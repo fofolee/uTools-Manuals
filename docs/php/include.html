@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>include</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.include" class="sect1">
+ <h2 class="title"><span class="function"><strong>include</strong></span></h2>
+ <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p>
+ <p class="simpara">
+  <em>include</em> 语句包含并运行指定文件。
+ </p>
+ <p class="simpara">
+  以下文档也适用于 <span class="function"><a href="require.html" class="function">require</a></span>。
+ </p>
+ <p class="simpara">
+  被包含文件先按参数给出的路径寻找，如果没有给出目录（只有文件名）时则按照
+  <a href="ini.core.html#ini.include-path" class="link">include_path</a> 指定的目录寻找。如果在
+  <a href="ini.core.html#ini.include-path" class="link">include_path</a> 下没找到该文件则
+  <em>include</em> 最后才在调用脚本文件所在的目录和当前工作目录下寻找。如果最后仍未找到文件则
+  <em>include</em> 结构会发出一条<a href="errorfunc.constants.html#errorfunc.constants.errorlevels" class="link">警告</a>；这一点和
+  <span class="function"><a href="require.html" class="function">require</a></span> 不同，后者会发出一个<a href="errorfunc.constants.html#errorfunc.constants.errorlevels" class="link">致命错误</a>。
+ </p>
+ <p class="simpara">
+  如果定义了路径——不管是绝对路径（在 Windows
+  下以盘符或者 <em>\</em> 开头，在 Unix/Linux
+  下以 <em>/</em> 开头）还是当前目录的相对路径（以
+  <em>.</em> 或者 <em>..</em> 开头）——<a href="ini.core.html#ini.include-path" class="link">include_path</a> 都会被完全忽略。例如一个文件以
+  <em>../</em> 开头，则解析器会在当前目录的父目录下寻找该文件。
+ </p>
+ <p class="simpara">
+  有关 PHP 怎样处理包含文件和包含路径的更多信息参见
+  <a href="ini.core.html#ini.include-path" class="link">include_path</a> 部分的文档。
+ </p>
+ <p class="simpara">
+  当一个文件被包含时，其中所包含的代码继承了 include 所在行的<a href="language.variables.scope.html" class="link">变量范围</a>。从该处开始，调用文件在该行处可用的任何变量在被调用的文件中也都可用。不过所有在包含文件中定义的函数和类都具有全局作用域。
+ </p>
+ <p class="para">
+  <div class="example" id="example-128">
+   <p><strong>Example #1 基本的 <em>include</em> 例子</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+vars.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$color&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'green'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$fruit&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'apple'</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">?&gt;<br /></span><br />test.php<br /><span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"A&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #DD0000">&nbsp;</span><span style="color: #0000BB">$fruit</span><span style="color: #DD0000">"</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;A<br /><br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'vars.php'</span><span style="color: #007700">;<br /><br />echo&nbsp;</span><span style="color: #DD0000">"A&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #DD0000">&nbsp;</span><span style="color: #0000BB">$fruit</span><span style="color: #DD0000">"</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;A&nbsp;green&nbsp;apple<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="simpara">
+  如果 include 出现于调用文件中的一个函数里，则被调用的文件中所包含的所有代码将表现得如同它们是在该函数内部定义的一样。所以它将遵循该函数的变量范围。此规则的一个例外是<a href="language.constants.predefined.html" class="link">魔术常量</a>，它们是在发生包含之前就已被解析器处理的。
+ </p>
+ <p class="para">
+  <div class="example" id="example-129">
+   <p><strong>Example #2 函数中的包含</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">()<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;global&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;include&nbsp;</span><span style="color: #DD0000">'vars.php'</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"A&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #DD0000">&nbsp;</span><span style="color: #0000BB">$fruit</span><span style="color: #DD0000">"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;vars.php&nbsp;is&nbsp;in&nbsp;the&nbsp;scope&nbsp;of&nbsp;foo()&nbsp;so&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br />&nbsp;*&nbsp;$fruit&nbsp;is&nbsp;NOT&nbsp;available&nbsp;outside&nbsp;of&nbsp;this&nbsp;&nbsp;*<br />&nbsp;*&nbsp;scope.&nbsp;&nbsp;$color&nbsp;is&nbsp;because&nbsp;we&nbsp;declared&nbsp;it&nbsp;*<br />&nbsp;*&nbsp;as&nbsp;global.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br /><br /></span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;A&nbsp;green&nbsp;apple<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"A&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #DD0000">&nbsp;</span><span style="color: #0000BB">$fruit</span><span style="color: #DD0000">"</span><span style="color: #007700">;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;A&nbsp;green<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="simpara">
+  当一个文件被包含时，语法解析器在目标文件的开头脱离 PHP 模式并进入 HTML
+  模式，到文件结尾处恢复。由于此原因，目标文件中需要作为
+  PHP 代码执行的任何代码都必须被包括在<a href="language.basic_syntax.phpmode.html" class="link">有效的 PHP 起始和结束标记</a>之中。
+ </p>
+ <p class="simpara">
+  如果“<a href="filesystem.configuration.html#ini.allow-url-fopen" class="link">URL fopen wrappers</a>”在
+  PHP 中被激活（默认配置），可以用 URL（通过 HTTP
+  或者其它支持的封装协议——见<a href="wrappers.html" class="xref">支持的协议和封装协议</a>）而不是本地文件来指定要被包含的文件。如果目标服务器将目标文件作为
+  PHP 代码解释，则可以用适用于 HTTP GET 的 URL
+  请求字符串来向被包括的文件传递变量。严格的说这和包含一个文件并继承父文件的变量空间并不是一回事；该脚本文件实际上已经在远程服务器上运行了，而本地脚本则包括了其结果。
+ </p>
+ <div class="warning"><strong class="warning">Warning</strong><p class="para">Windows 版本的 PHP 在 4.3.0
+版之前不支持通过此函数访问远程文件，即使已经启用 <a href="filesystem.configuration.html#ini.allow-url-fopen" class="link">allow_url_fopen</a>.
+</p></div>
+ <p class="para">
+  <div class="example" id="example-130">
+   <p><strong>Example #3 通过 HTTP 进行的 <em>include</em></strong></p>
+   <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #FF8000">/*&nbsp;This&nbsp;example&nbsp;assumes&nbsp;that&nbsp;www.example.com&nbsp;is&nbsp;configured&nbsp;to&nbsp;parse&nbsp;.php&nbsp;*<br />&nbsp;*&nbsp;files&nbsp;and&nbsp;not&nbsp;.txt&nbsp;files.&nbsp;Also,&nbsp;'Works'&nbsp;here&nbsp;means&nbsp;that&nbsp;the&nbsp;variables&nbsp;*<br />&nbsp;*&nbsp;$foo&nbsp;and&nbsp;$bar&nbsp;are&nbsp;available&nbsp;within&nbsp;the&nbsp;included&nbsp;file.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br /><br />//&nbsp;Won't&nbsp;work;&nbsp;file.txt&nbsp;wasn't&nbsp;handled&nbsp;by&nbsp;www.example.com&nbsp;as&nbsp;PHP<br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'http://www.example.com/file.txt?foo=1&amp;bar=2'</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;Won't&nbsp;work;&nbsp;looks&nbsp;for&nbsp;a&nbsp;file&nbsp;named&nbsp;'file.php?foo=1&amp;bar=2'&nbsp;on&nbsp;the<br />//&nbsp;local&nbsp;filesystem.<br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'file.php?foo=1&amp;bar=2'</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;Works.<br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'http://www.example.com/file.php?foo=1&amp;bar=2'</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$foo&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$bar&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />include&nbsp;</span><span style="color: #DD0000">'file.txt'</span><span style="color: #007700">;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Works.<br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'file.php'</span><span style="color: #007700">;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Works.<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+   </div>
+
+  </div>
+ </p>
+ <div class="warning"><strong class="warning">Warning</strong>
+  <h1 class="title">安全警告</h1>
+  <p class="para">
+   远程文件可能会经远程服务器处理（根据文件后缀以及远程服务器是否在运行
+   PHP 而定），但必须产生出一个合法的 PHP
+   脚本，因为其将被本地服务器处理。如果来自远程服务器的文件应该在远端运行而只输出结果，那用
+   <span class="function"><a href="readfile.html" class="function">readfile()</a></span>
+   函数更好。另外还要格外小心以确保远程的脚本产生出合法并且是所需的代码。
+  </p>
+ </div>
+ <p class="para">
+  相关信息参见<a href="features.remote_files.html" class="link">使用远程文件</a>，<span class="function"><a href="fopen.html" class="function">fopen()</a></span>
+  和 <span class="function"><a href="file.html" class="function">file()</a></span>。
+ </p>
+ <p class="simpara">
+  处理返回值：在失败时 <em>include</em> 返回 <em>FALSE</em>
+  并且发出警告。成功的包含则返回
+  <em>1</em>，除非在包含文件中另外给出了返回值。可以在被包括的文件中使用 <span class="function"><a href="return.html" class="function">return</a></span>
+  语句来终止该文件中程序的执行并返回调用它的脚本。同样也可以从被包含的文件中返回值。可以像普通函数一样获得
+  include 调用的返回值。不过这在包含远程文件时却不行，除非远程文件的输出具有<a href="language.basic_syntax.phpmode.html" class="link">合法的 PHP
+  开始和结束标记</a>（如同任何本地文件一样）。可以在标记内定义所需的变量，该变量在文件被包含的位置之后就可用了。
+ </p>
+ <p class="para">
+  因为 <em>include</em> 是一个特殊的语言结构，其参数不需要括号。在比较其返回值时要注意。
+  <div class="example" id="example-131">
+   <p><strong>Example #4 比较 include 的返回值</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;won't&nbsp;work,&nbsp;evaluated&nbsp;as&nbsp;include(('vars.php')&nbsp;==&nbsp;'OK'),&nbsp;i.e.&nbsp;include('')<br /></span><span style="color: #007700">if&nbsp;(include(</span><span style="color: #DD0000">'vars.php'</span><span style="color: #007700">)&nbsp;==&nbsp;</span><span style="color: #DD0000">'OK'</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'OK'</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;works<br /></span><span style="color: #007700">if&nbsp;((include&nbsp;</span><span style="color: #DD0000">'vars.php'</span><span style="color: #007700">)&nbsp;==&nbsp;</span><span style="color: #DD0000">'OK'</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'OK'</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-132">
+   <p><strong>Example #5 <em>include</em> 和 <span class="function"><a href="return.html" class="function">return</a></span> 语句</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+return.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$var&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'PHP'</span><span style="color: #007700">;<br /><br />return&nbsp;</span><span style="color: #0000BB">$var</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">?&gt;<br /></span><br />noreturn.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$var&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'PHP'</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">?&gt;<br /></span><br />testreturns.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$foo&nbsp;</span><span style="color: #007700">=&nbsp;include&nbsp;</span><span style="color: #DD0000">'return.php'</span><span style="color: #007700">;<br /><br />echo&nbsp;</span><span style="color: #0000BB">$foo</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;prints&nbsp;'PHP'<br /><br /></span><span style="color: #0000BB">$bar&nbsp;</span><span style="color: #007700">=&nbsp;include&nbsp;</span><span style="color: #DD0000">'noreturn.php'</span><span style="color: #007700">;<br /><br />echo&nbsp;</span><span style="color: #0000BB">$bar</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;prints&nbsp;1<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="simpara">
+  <em>$bar</em> 的值为 <em>1</em> 是因为 include
+  成功运行了。注意以上例子中的区别。第一个在被包含的文件中用了
+  <span class="function"><a href="return.html" class="function">return</a></span> 而另一个没有。如果文件不能被包含，则返回
+  <strong><code>FALSE</code></strong> 并发出一个 <strong><code>E_WARNING</code></strong> 警告。
+ </p>
+ <p class="para">
+  如果在包含文件中定义有函数，这些函数不管是在 <span class="function"><a href="return.html" class="function">return</a></span>
+  之前还是之后定义的，都可以独立在主文件中使用。如果文件被包含两次，PHP 5
+  发出致命错误因为函数已经被定义，但是 PHP 4 不会对在
+  <span class="function"><a href="return.html" class="function">return</a></span> 之后定义的函数报错。推荐使用
+  <span class="function"><a href="include_once.html" class="function">include_once</a></span> 而不是检查文件是否已包含并在包含文件中有条件返回。
+ </p>
+ <p class="simpara">
+  另一个将 PHP 文件“包含”到一个变量中的方法是用<a href="ref.outcontrol.html" class="link">输出控制函数</a>结合
+  <span class="function"><strong>include</strong></span> 来捕获其输出，例如：
+ </p>
+ <p class="para">
+  <div class="example" id="example-133">
+   <p><strong>Example #6 使用输出缓冲来将 PHP 文件包含入一个字符串</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$string&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">get_include_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'somefile.php'</span><span style="color: #007700">);<br /><br />function&nbsp;</span><span style="color: #0000BB">get_include_contents</span><span style="color: #007700">(</span><span style="color: #0000BB">$filename</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">is_file</span><span style="color: #007700">(</span><span style="color: #0000BB">$filename</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ob_start</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;include&nbsp;</span><span style="color: #0000BB">$filename</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$contents&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">ob_get_contents</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ob_end_clean</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$contents</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  要在脚本中自动包含文件，参见 <var class="filename">php.ini</var> 中的
+  <a href="ini.core.html#ini.auto-prepend-file" class="link">auto_prepend_file</a> 和
+  <a href="ini.core.html#ini.auto-append-file" class="link">auto_append_file</a>
+  配置选项。
+ </p>
+ <blockquote class="note"><p><strong class="note">Note</strong>: <span class="simpara">因为是一个语言构造器而不是一个函数，不能被
+<a href="functions.variable_functions.html" class="link">可变函数</a> 调用。
+</span>
+</p></blockquote>
+ <p class="simpara">
+  参见 <span class="function"><a href="require.html" class="function">require</a></span>，<span class="function"><a href="require_once.html" class="function">require_once</a></span>，<span class="function"><a href="include_once.html" class="function">include_once</a></span>，<span class="function"><a href="get_included_files.html" class="function">get_included_files()</a></span>，<span class="function"><a href="readfile.html" class="function">readfile()</a></span>，<span class="function"><a href="virtual.html" class="function">virtual()</a></span>
+  和 <a href="ini.core.html#ini.include-path" class="link">include_path</a>。
+ </p>
+</div></div></div></body></html>

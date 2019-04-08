@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>向 PostgreSQL 后端发送以 NULL 结尾的字符串</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.pg-put-line" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">pg_put_line</h1>
+    <p class="verinfo">(PHP 4 &gt;= 4.0.3, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pg_put_line</span> &mdash; <span class="dc-title">向 PostgreSQL 后端发送以 NULL 结尾的字符串</span></p>
+
+   </div>
+ <div class="refsect1 description" id="refsect1-function.pg-put-line-description">
+  <h3 class="title">说明</h3>
+     <div class="methodsynopsis dc-description">
+      <span class="methodname"><strong>pg_put_line</strong></span>
+       ([ <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection</code></span>
+      ], <span class="methodparam"><span class="type">string</span> <code class="parameter">$data</code></span>
+      ) : <span class="type">bool</span></div>
+
+    <p class="para rdfs-comment">
+     <span class="function"><strong>pg_put_line()</strong></span> 向 PostgreSQL 后端服务器发送以 NULL 结尾的字符串。例如可以通过 PostgreSQL 的 <em>COPY</em> 操作来向表中高速插入数据。结尾的 NULL 字符会自动加入。
+    </p>
+    <p class="para"><em>COPY</em> is a high-speed data loading interface
+   supported by PostgreSQL.  Data is passed in without being parsed, 
+   and in a single transaction.
+  </p>
+  <p class="para">
+   An alternative to using raw <span class="function"><strong>pg_put_line()</strong></span> commands
+   is to use <span class="function"><a href="pg_copy_from.html" class="function">pg_copy_from()</a></span>.  This is a far simpler 
+   interface.
+  </p>
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+     <p class="para"> 
+      应用程序必须明确地在 <span class="function"><a href="pg_end_copy.html" class="function">pg_end_copy()</a></span> 之前最后一行发送两个字符 &quot;\.&quot; 来向后端指明发送数据结束。
+     </p>
+    </p></blockquote>
+   <div class="warning"><strong class="warning">Warning</strong>
+   <p class="para">
+    Use of the <span class="function"><strong>pg_put_line()</strong></span> causes most large object
+    operations, including <span class="function"><a href="pg_lo_read.html" class="function">pg_lo_read()</a></span> and
+    <span class="function"><a href="pg_lo_tell.html" class="function">pg_lo_tell()</a></span>, to subsequently fail. You can use
+    <span class="function"><a href="pg_copy_from.html" class="function">pg_copy_from()</a></span> and <span class="function"><a href="pg_copy_to.html" class="function">pg_copy_to()</a></span>
+    instead.
+   </p>
+  </div>
+   </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.pg-put-line-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">connection</code></dt>
+
+     <dd>
+
+      <p class="para">
+       PostgreSQL database connection resource.  When 
+       <code class="parameter">connection</code> is not present, the default connection 
+       is used. The default connection is the last connection made by 
+       <span class="function"><a href="pg_connect.html" class="function">pg_connect()</a></span> or <span class="function"><a href="pg_pconnect.html" class="function">pg_pconnect()</a></span>.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">data</code></dt>
+
+     <dd>
+
+      <p class="para">
+       A line of text to be sent directly to the PostgreSQL backend.  A <em>NULL</em>
+       terminator is added automatically.
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.pg-put-line-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 examples" id="refsect1-function.pg-put-line-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-2511">
+    <p><strong>Example #1 <span class="function"><strong>pg_put_line()</strong></span> 例子</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;<br />&nbsp;&nbsp;$conn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_pconnect</span><span style="color: #007700">(</span><span style="color: #DD0000">"dbname=foo"</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">pg_query</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"create&nbsp;table&nbsp;bar&nbsp;(a&nbsp;int4,&nbsp;b&nbsp;char(16),&nbsp;d&nbsp;float8)"</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">pg_query</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"copy&nbsp;bar&nbsp;from&nbsp;stdin"</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">pg_put_line</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"3\thello&nbsp;world\t4.5\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">pg_put_line</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"4\tgoodbye&nbsp;world\t7.11\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">pg_put_line</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"\.\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">pg_end_copy</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.pg-put-line-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="pg_end_copy.html" class="function" rel="rdfs-seeAlso">pg_end_copy()</a> - 与 PostgreSQL 后端同步</span></li>
+   </ul>
+  </p>
+ </div>
+
+  </div></div></div></body></html>

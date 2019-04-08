@@ -1,0 +1,420 @@
+<div class="section" id="scrapy">
+    <span id="intro-tutorial"></span><h1>Scrapy入门教程</h1>
+    <p>在本篇教程中，我们假定您已经安装好Scrapy。
+    如若不然，请参考 <a class="reference internal" href="install.html#intro-install"><span>安装指南</span></a> 。</p>
+    <p>接下来以 <a class="reference external" href="http://www.dmoz.org/">Open Directory Project(dmoz) (dmoz)</a>
+    为例来讲述爬取。</p>
+    <p>本篇教程中将带您完成下列任务:</p>
+    <ol class="arabic simple">
+    <li>创建一个Scrapy项目</li>
+    <li>定义提取的Item</li>
+    <li>编写爬取网站的 <a class="reference internal" href="../topics/spiders.html#topics-spiders"><span>spider</span></a> 并提取 <a class="reference internal" href="../topics/items.html#topics-items"><span>Item</span></a></li>
+    <li>编写 <a class="reference internal" href="../topics/item-pipeline.html#topics-item-pipeline"><span>Item Pipeline</span></a> 来存储提取到的Item(即数据)</li>
+    </ol>
+    <p>Scrapy由 <a class="reference external" href="https://www.python.org">Python</a> 编写。如果您刚接触并且好奇这门语言的特性以及Scrapy的详情，
+    对于已经熟悉其他语言并且想快速学习Python的编程老手，
+    我们推荐 <a class="reference external" href="http://learnpythonthehardway.org/book/">Learn Python The Hard Way</a> ，
+    对于想从Python开始学习的编程新手，
+    <a class="reference external" href="https://wiki.python.org/moin/BeginnersGuide/NonProgrammers">非程序员的Python学习资料列表</a> 将是您的选择。</p>
+    <div class="section" id="id2">
+    <h2>创建项目</h2>
+    <p>在开始爬取之前，您必须创建一个新的Scrapy项目。
+    进入您打算存储代码的目录中，运行下列命令:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>scrapy startproject tutorial
+    </pre></div>
+    </div>
+    <p>该命令将会创建包含下列内容的 <code class="docutils literal"><span class="pre">tutorial</span></code> 目录:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>tutorial/
+        scrapy.cfg
+    
+        tutorial/
+            __init__.py
+    
+            items.py
+    
+            pipelines.py
+    
+            settings.py
+    
+            spiders/
+                __init__.py
+                ...
+    </pre></div>
+    </div>
+    </div>
+    <div class="section" id="item">
+    <h2>定义Item</h2>
+    <p><cite>Item</cite> 是保存爬取到的数据的容器；其使用方法和python字典类似。虽然您也可以在Scrapy中直接使用dict，但是 <cite>Item</cite>
+    提供了额外保护机制来避免拼写错误导致的未定义字段错误。
+    They can also be used with <a class="reference internal" href="../topics/loaders.html#topics-loaders"><span>Item Loaders</span></a>, a mechanism with helpers to conveniently populate <cite>Items</cite>.</p>
+    <p>类似在ORM中做的一样，您可以通过创建一个 <a class="reference internal" href="../topics/items.html#scrapy.item.Item" title="scrapy.item.Item"><code class="xref py py-class docutils literal"><span class="pre">scrapy.Item</span></code></a> 类，
+    并且定义类型为 <a class="reference internal" href="../topics/items.html#scrapy.item.Field" title="scrapy.item.Field"><code class="xref py py-class docutils literal"><span class="pre">scrapy.Field</span></code></a> 的类属性来定义一个Item。
+    (如果不了解ORM, 不用担心，您会发现这个步骤非常简单)</p>
+    <p>首先根据需要从dmoz.org获取到的数据对item进行建模。
+    我们需要从dmoz中获取名字，url，以及网站的描述。
+    对此，在item中定义相应的字段。编辑 <code class="docutils literal"><span class="pre">tutorial</span></code> 目录中的 <code class="docutils literal"><span class="pre">items.py</span></code> 文件:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scrapy</span>
+    
+    <span class="k">class</span> <span class="nc">DmozItem</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Item</span><span class="p">):</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">scrapy</span><span class="o">.</span><span class="n">Field</span><span class="p">()</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">scrapy</span><span class="o">.</span><span class="n">Field</span><span class="p">()</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">scrapy</span><span class="o">.</span><span class="n">Field</span><span class="p">()</span>
+    </pre></div>
+    </div>
+    <p>一开始这看起来可能有点复杂，但是通过定义item，
+    您可以很方便的使用Scrapy的其他方法。而这些方法需要知道您的item的定义。</p>
+    </div>
+    <div class="section" id="spider">
+    <h2>编写第一个爬虫(Spider)</h2>
+    <p>Spider是用户编写用于从单个网站(或者一些网站)爬取数据的类。</p>
+    <p>其包含了一个用于下载的初始URL，如何跟进网页中的链接以及如何分析页面中的内容，
+    提取生成 <a class="reference internal" href="../topics/items.html#topics-items"><span>item</span></a> 的方法。</p>
+    <p>为了创建一个Spider，您必须继承 <a class="reference internal" href="../topics/spiders.html#scrapy.spiders.Spider" title="scrapy.spiders.Spider"><code class="xref py py-class docutils literal"><span class="pre">scrapy.Spider</span></code></a> 类，
+    且定义一些属性:</p>
+    <ul class="simple">
+    <li><a class="reference internal" href="../topics/spiders.html#scrapy.spiders.Spider.name" title="scrapy.spiders.Spider.name"><code class="xref py py-attr docutils literal"><span class="pre">name</span></code></a>: 用于区别Spider。
+    该名字必须是唯一的，您不可以为不同的Spider设定相同的名字。</li>
+    <li><a class="reference internal" href="../topics/spiders.html#scrapy.spiders.Spider.start_urls" title="scrapy.spiders.Spider.start_urls"><code class="xref py py-attr docutils literal"><span class="pre">start_urls</span></code></a>: 包含了Spider在启动时进行爬取的url列表。
+    因此，第一个被获取到的页面将是其中之一。
+    后续的URL则从初始的URL获取到的数据中提取。</li>
+    <li><a class="reference internal" href="../topics/spiders.html#scrapy.spiders.Spider.parse" title="scrapy.spiders.Spider.parse"><code class="xref py py-meth docutils literal"><span class="pre">parse()</span></code></a> 是spider的一个方法。
+    被调用时，每个初始URL完成下载后生成的 <a class="reference internal" href="../topics/request-response.html#scrapy.http.Response" title="scrapy.http.Response"><code class="xref py py-class docutils literal"><span class="pre">Response</span></code></a>
+    对象将会作为唯一的参数传递给该函数。
+    该方法负责解析返回的数据(response data)，提取数据(生成item)以及生成需要进一步处理的URL的 <a class="reference internal" href="../topics/request-response.html#scrapy.http.Request" title="scrapy.http.Request"><code class="xref py py-class docutils literal"><span class="pre">Request</span></code></a> 对象。</li>
+    </ul>
+    <p>以下为我们的第一个Spider代码，保存在 <code class="docutils literal"><span class="pre">tutorial/spiders</span></code> 目录下的 <code class="docutils literal"><span class="pre">dmoz_spider.py</span></code> 文件中:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scrapy</span>
+    
+    <span class="k">class</span> <span class="nc">DmozSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">"dmoz"</span>
+        <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"dmoz.org"</span><span class="p">]</span>
+        <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">"http://www.dmoz.org/Computers/Programming/Languages/Python/Books/"</span><span class="p">,</span>
+            <span class="s2">"http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/"</span>
+        <span class="p">]</span>
+    
+        <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">'.html'</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">'wb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+    </pre></div>
+    </div>
+    <div class="section" id="id3">
+    <h3>爬取</h3>
+    <p>进入项目的根目录，执行下列命令启动spider:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>scrapy crawl dmoz
+    </pre></div>
+    </div>
+    <p>该命令启动了我们刚刚添加的 <code class="docutils literal"><span class="pre">dmoz</span></code> spider, 向 <code class="docutils literal"><span class="pre">dmoz.org</span></code> 发送一些请求。
+    您将会得到类似的输出:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>2014-01-23 18:13:07-0400 [scrapy] INFO: Scrapy started (bot: tutorial)
+    2014-01-23 18:13:07-0400 [scrapy] INFO: Optional features available: ...
+    2014-01-23 18:13:07-0400 [scrapy] INFO: Overridden settings: {}
+    2014-01-23 18:13:07-0400 [scrapy] INFO: Enabled extensions: ...
+    2014-01-23 18:13:07-0400 [scrapy] INFO: Enabled downloader middlewares: ...
+    2014-01-23 18:13:07-0400 [scrapy] INFO: Enabled spider middlewares: ...
+    2014-01-23 18:13:07-0400 [scrapy] INFO: Enabled item pipelines: ...
+    2014-01-23 18:13:07-0400 [scrapy] INFO: Spider opened
+    2014-01-23 18:13:08-0400 [scrapy] DEBUG: Crawled (200) &lt;GET http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/&gt; (referer: None)
+    2014-01-23 18:13:09-0400 [scrapy] DEBUG: Crawled (200) &lt;GET http://www.dmoz.org/Computers/Programming/Languages/Python/Books/&gt; (referer: None)
+    2014-01-23 18:13:09-0400 [scrapy] INFO: Closing spider (finished)
+    </pre></div>
+    </div>
+    <div class="admonition note">
+    <p class="first admonition-title">注解</p>
+    <p class="last">最后你可以看到有一行log包含定义在 <code class="docutils literal"><span class="pre">start_urls</span></code> 的初始URL，并且与spider中是一一对应的。在log中可以看到其没有指向其他页面( <code class="docutils literal"><span class="pre">(referer:None)</span></code> )。</p>
+    </div>
+    <p>现在，查看当前目录，您将会注意到有两个包含url所对应的内容的文件被创建了: <em>Book</em> , <em>Resources</em>,正如我们的 <code class="docutils literal"><span class="pre">parse</span></code> 方法里做的一样。</p>
+    <div class="section" id="id4">
+    <h4>刚才发生了什么？</h4>
+    <p>Scrapy为Spider的 <code class="docutils literal"><span class="pre">start_urls</span></code> 属性中的每个URL创建了 <a class="reference internal" href="../topics/request-response.html#scrapy.http.Request" title="scrapy.http.Request"><code class="xref py py-class docutils literal"><span class="pre">scrapy.Request</span></code></a> 对象，并将 <code class="docutils literal"><span class="pre">parse</span></code> 方法作为回调函数(callback)赋值给了Request。</p>
+    <p>Request对象经过调度，执行生成 <a class="reference internal" href="../topics/request-response.html#scrapy.http.Response" title="scrapy.http.Response"><code class="xref py py-class docutils literal"><span class="pre">scrapy.http.Response</span></code></a> 对象并送回给spider <a class="reference internal" href="../topics/spiders.html#scrapy.spiders.Spider.parse" title="scrapy.spiders.Spider.parse"><code class="xref py py-meth docutils literal"><span class="pre">parse()</span></code></a> 方法。</p>
+    </div>
+    </div>
+    <div class="section" id="id5">
+    <h3>提取Item</h3>
+    <div class="section" id="selectors">
+    <h4>Selectors选择器简介</h4>
+    <p>从网页中提取数据有很多方法。Scrapy使用了一种基于 <a class="reference external" href="http://www.w3.org/TR/xpath">XPath</a> 和 <a class="reference external" href="http://www.w3.org/TR/selectors">CSS</a> 表达式机制:
+    <a class="reference internal" href="../topics/selectors.html#topics-selectors"><span>Scrapy Selectors</span></a> 。
+    关于selector和其他提取机制的信息请参考 <a class="reference internal" href="../topics/selectors.html#topics-selectors"><span>Selector文档</span></a> 。</p>
+    <p>这里给出XPath表达式的例子及对应的含义:</p>
+    <ul class="simple">
+    <li><code class="docutils literal"><span class="pre">/html/head/title</span></code>: 选择HTML文档中 <code class="docutils literal"><span class="pre">&lt;head&gt;</span></code> 标签内的 <code class="docutils literal"><span class="pre">&lt;title&gt;</span></code> 元素</li>
+    <li><code class="docutils literal"><span class="pre">/html/head/title/text()</span></code>: 选择上面提到的 <code class="docutils literal"><span class="pre">&lt;title&gt;</span></code> 元素的文字</li>
+    <li><code class="docutils literal"><span class="pre">//td</span></code>: 选择所有的 <code class="docutils literal"><span class="pre">&lt;td&gt;</span></code> 元素</li>
+    <li><code class="docutils literal"><span class="pre">//div[@class="mine"]</span></code>: 选择所有具有 <code class="docutils literal"><span class="pre">class="mine"</span></code> 属性的 <code class="docutils literal"><span class="pre">div</span></code> 元素</li>
+    </ul>
+    <p>上边仅仅是几个简单的XPath例子，XPath实际上要比这远远强大的多。
+    如果您想了解的更多，我们推荐 <a class="reference external" href="http://zvon.org/comp/r/tut-XPath_1.html">通过这些例子来学习XPath</a>, 以及 <a class="reference external" href="http://plasmasturm.org/log/xpath101/">这篇教程学习”how to think in XPath”</a>.</p>
+    <div class="admonition note">
+    <p class="first admonition-title">注解</p>
+    <p class="last"><strong>CSS vs XPath:</strong> 您可以仅仅使用CSS Selector来从网页中
+    提取数据。不过, XPath提供了更强大的功能。其不仅仅能指明数据所在的路径，
+    还能查看数据: 比如，您可以这么进行选择:
+    <em>包含文字 ‘Next Page’ 的链接</em> 。 正因为如此，即使您已经了解如何使用
+    CSS selector， 我们仍推荐您使用XPath。</p>
+    </div>
+    <p>为了配合CSS与XPath，Scrapy除了提供了 <a class="reference internal" href="../topics/selectors.html#scrapy.selector.Selector" title="scrapy.selector.Selector"><code class="xref py py-class docutils literal"><span class="pre">Selector</span></code></a>
+    之外，还提供了方法来避免每次从response中提取数据时生成selector的麻烦。</p>
+    <p>Selector有四个基本的方法(点击相应的方法可以看到详细的API文档):</p>
+    <ul class="simple">
+    <li><a class="reference internal" href="../topics/selectors.html#scrapy.selector.Selector.xpath" title="scrapy.selector.Selector.xpath"><code class="xref py py-meth docutils literal"><span class="pre">xpath()</span></code></a>: 传入xpath表达式，返回该表达式所对应的所有节点的selector list列表 。</li>
+    <li><a class="reference internal" href="../topics/selectors.html#scrapy.selector.Selector.css" title="scrapy.selector.Selector.css"><code class="xref py py-meth docutils literal"><span class="pre">css()</span></code></a>: 传入CSS表达式，返回该表达式所对应的所有节点的selector list列表.</li>
+    <li><a class="reference internal" href="../topics/selectors.html#scrapy.selector.Selector.extract" title="scrapy.selector.Selector.extract"><code class="xref py py-meth docutils literal"><span class="pre">extract()</span></code></a>: 序列化该节点为unicode字符串并返回list。</li>
+    <li><a class="reference internal" href="../topics/selectors.html#scrapy.selector.Selector.re" title="scrapy.selector.Selector.re"><code class="xref py py-meth docutils literal"><span class="pre">re()</span></code></a>: 根据传入的正则表达式对数据进行提取，返回unicode字符串list列表。</li>
+    </ul>
+    </div>
+    <div class="section" id="shellselector">
+    <h4>在Shell中尝试Selector选择器</h4>
+    <p>为了介绍Selector的使用方法，接下来我们将要使用内置的 <a class="reference internal" href="../topics/shell.html#topics-shell"><span>Scrapy shell</span></a> 。Scrapy Shell需要您预装好 <a class="reference external" href="http://ipython.org/">IPython</a> (一个扩展的Python终端)。</p>
+    <p>您需要进入项目的根目录，执行下列命令来启动shell:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>scrapy shell "http://www.dmoz.org/Computers/Programming/Languages/Python/Books/"
+    </pre></div>
+    </div>
+    <div class="admonition note">
+    <p class="first admonition-title">注解</p>
+    <p class="last">当您在终端运行Scrapy时，请一定记得给url地址加上引号，否则包含参数的url(例如 <code class="docutils literal"><span class="pre">&amp;</span></code> 字符)会导致Scrapy运行失败。</p>
+    </div>
+    <p>shell的输出类似:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>[ ... Scrapy log here ... ]
+    
+    2014-01-23 17:11:42-0400 [scrapy] DEBUG: Crawled (200) &lt;GET http://www.dmoz.org/Computers/Programming/Languages/Python/Books/&gt; (referer: None)
+    [s] Available Scrapy objects:
+    [s]   crawler    &lt;scrapy.crawler.Crawler object at 0x3636b50&gt;
+    [s]   item       {}
+    [s]   request    &lt;GET http://www.dmoz.org/Computers/Programming/Languages/Python/Books/&gt;
+    [s]   response   &lt;200 http://www.dmoz.org/Computers/Programming/Languages/Python/Books/&gt;
+    [s]   settings   &lt;scrapy.settings.Settings object at 0x3fadc50&gt;
+    [s]   spider     &lt;Spider 'default' at 0x3cebf50&gt;
+    [s] Useful shortcuts:
+    [s]   shelp()           Shell help (print this help)
+    [s]   fetch(req_or_url) Fetch request (or URL) and update local objects
+    [s]   view(response)    View response in a browser
+    
+    In [1]:
+    </pre></div>
+    </div>
+    <p>当shell载入后，您将得到一个包含response数据的本地 <code class="docutils literal"><span class="pre">response</span></code> 变量。输入 <code class="docutils literal"><span class="pre">response.body</span></code> 将输出response的包体， 输出 <code class="docutils literal"><span class="pre">response.headers</span></code> 可以看到response的包头。</p>
+    <p>#TODO..
+    更为重要的是, <code class="docutils literal"><span class="pre">response</span></code> 拥有一个 <code class="docutils literal"><span class="pre">selector</span></code> 属性,
+    该属性是以该特定 <code class="docutils literal"><span class="pre">response</span></code> 初始化的类 <a class="reference internal" href="../topics/selectors.html#scrapy.selector.Selector" title="scrapy.selector.Selector"><code class="xref py py-class docutils literal"><span class="pre">Selector</span></code></a> 的对象。
+    您可以通过使用 <code class="docutils literal"><span class="pre">response.selector.xpath()</span></code> 或 <code class="docutils literal"><span class="pre">response.selector.css()</span></code>
+    来对 <code class="docutils literal"><span class="pre">response</span></code> 进行查询。 此外，scrapy也对 <code class="docutils literal"><span class="pre">response.selector.xpath()</span></code>
+    及 <code class="docutils literal"><span class="pre">response.selector.css()</span></code> 提供了一些快捷方式, 例如
+    <code class="docutils literal"><span class="pre">response.xpath()</span></code> 或 <code class="docutils literal"><span class="pre">response.css()</span></code> ，</p>
+    <p>同时，shell根据response提前初始化了变量 <code class="docutils literal"><span class="pre">sel</span></code> 。该selector根据response的类型自动选择最合适的分析规则(XML vs HTML)。</p>
+    <p>让我们来试试:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>In [1]: response.xpath('//title')
+    Out[1]: [&lt;Selector xpath='//title' data=u'&lt;title&gt;Open Directory - Computers: Progr'&gt;]
+    
+    In [2]: response.xpath('//title').extract()
+    Out[2]: [u'&lt;title&gt;Open Directory - Computers: Programming: Languages: Python: Books&lt;/title&gt;']
+    
+    In [3]: response.xpath('//title/text()')
+    Out[3]: [&lt;Selector xpath='//title/text()' data=u'Open Directory - Computers: Programming:'&gt;]
+    
+    In [4]: response.xpath('//title/text()').extract()
+    Out[4]: [u'Open Directory - Computers: Programming: Languages: Python: Books']
+    
+    In [5]: response.xpath('//title/text()').re('(\w+):')
+    Out[5]: [u'Computers', u'Programming', u'Languages', u'Python']
+    </pre></div>
+    </div>
+    </div>
+    <div class="section" id="id7">
+    <h4>提取数据</h4>
+    <p>现在，我们来尝试从这些页面中提取些有用的数据。</p>
+    <p>您可以在终端中输入 <code class="docutils literal"><span class="pre">response.body</span></code> 来观察HTML源码并确定合适的XPath表达式。不过，这任务非常无聊且不易。您可以考虑使用Firefox的Firebug扩展来使得工作更为轻松。详情请参考 <a class="reference internal" href="../topics/firebug.html#topics-firebug"><span>使用Firebug进行爬取</span></a> 和 <a class="reference internal" href="../topics/firefox.html#topics-firefox"><span>借助Firefox来爬取</span></a> 。</p>
+    <p>在查看了网页的源码后，您会发现网站的信息是被包含在 <em>第二个</em> <code class="docutils literal"><span class="pre">&lt;ul&gt;</span></code> 元素中。</p>
+    <p>我们可以通过这段代码选择该页面中网站列表里所有 <code class="docutils literal"><span class="pre">&lt;li&gt;</span></code> 元素:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'//ul/li'</span><span class="p">)</span>
+    </pre></div>
+    </div>
+    <p>网站的描述:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'//ul/li/text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+    </pre></div>
+    </div>
+    <p>网站的标题:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'//ul/li/a/text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+    </pre></div>
+    </div>
+    <p>以及网站的链接:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'//ul/li/a/@href'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+    </pre></div>
+    </div>
+    <p>之前提到过，每个 <code class="docutils literal"><span class="pre">.xpath()</span></code> 调用返回selector组成的list，因此我们可以拼接更多的 <code class="docutils literal"><span class="pre">.xpath()</span></code> 来进一步获取某个节点。我们将在下边使用这样的特性:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'//ul/li'</span><span class="p">):</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'a/text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'a/@href'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+        <span class="k">print</span> <span class="n">title</span><span class="p">,</span> <span class="n">link</span><span class="p">,</span> <span class="n">desc</span>
+    </pre></div>
+    </div>
+    <div class="admonition note">
+    <p class="first admonition-title">注解</p>
+    <p class="last">关于嵌套selctor的更多详细信息，请参考 <a class="reference internal" href="../topics/selectors.html#topics-selectors-nesting-selectors"><span>嵌套选择器(selectors)</span></a> 以及 <a class="reference internal" href="../topics/selectors.html#topics-selectors"><span>选择器(Selectors)</span></a> 文档中的 <a class="reference internal" href="../topics/selectors.html#topics-selectors-relative-xpaths"><span>使用相对XPaths</span></a> 部分。</p>
+    </div>
+    <p>在我们的spider中加入这段代码:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scrapy</span>
+    
+    <span class="k">class</span> <span class="nc">DmozSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">"dmoz"</span>
+        <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"dmoz.org"</span><span class="p">]</span>
+        <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">"http://www.dmoz.org/Computers/Programming/Languages/Python/Books/"</span><span class="p">,</span>
+            <span class="s2">"http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/"</span>
+        <span class="p">]</span>
+    
+        <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'//ul/li'</span><span class="p">):</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'a/text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+                <span class="n">link</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'a/@href'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+                <span class="n">desc</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+                <span class="k">print</span> <span class="n">title</span><span class="p">,</span> <span class="n">link</span><span class="p">,</span> <span class="n">desc</span>
+    </pre></div>
+    </div>
+    <p>现在尝试再次爬取dmoz.org，您将看到爬取到的网站信息被成功输出:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>scrapy crawl dmoz
+    </pre></div>
+    </div>
+    </div>
+    </div>
+    <div class="section" id="id8">
+    <h3>使用item</h3>
+    <p><a class="reference internal" href="../topics/items.html#scrapy.item.Item" title="scrapy.item.Item"><code class="xref py py-class docutils literal"><span class="pre">Item</span></code></a> 对象是自定义的python字典。
+    您可以使用标准的字典语法来获取到其每个字段的值。(字段即是我们之前用Field赋值的属性):</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">DmozItem</span><span class="p">()</span>
+    <span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="p">[</span><span class="s1">'title'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Example title'</span>
+    <span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="p">[</span><span class="s1">'title'</span><span class="p">]</span>
+    <span class="go">'Example title'</span>
+    </pre></div>
+    </div>
+    <p>为了将爬取的数据返回，我们最终的代码将是:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scrapy</span>
+    
+    <span class="kn">from</span> <span class="nn">tutorial.items</span> <span class="kn">import</span> <span class="n">DmozItem</span>
+    
+    <span class="k">class</span> <span class="nc">DmozSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">"dmoz"</span>
+        <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"dmoz.org"</span><span class="p">]</span>
+        <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">"http://www.dmoz.org/Computers/Programming/Languages/Python/Books/"</span><span class="p">,</span>
+            <span class="s2">"http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/"</span>
+        <span class="p">]</span>
+    
+        <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'//ul/li'</span><span class="p">):</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">DmozItem</span><span class="p">()</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">'title'</span><span class="p">]</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'a/text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">'link'</span><span class="p">]</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'a/@href'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">'desc'</span><span class="p">]</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+                <span class="k">yield</span> <span class="n">item</span>
+    </pre></div>
+    </div>
+    <div class="admonition note">
+    <p class="first admonition-title">注解</p>
+    <p class="last">您可以在 <a class="reference external" href="https://github.com/scrapy/dirbot">dirbot</a> 项目中找到一个具有完整功能的spider。该项目可以通过 <a class="reference external" href="https://github.com/scrapy/dirbot">https://github.com/scrapy/dirbot</a> 找到。</p>
+    </div>
+    <p>现在对dmoz.org进行爬取将会产生 <code class="docutils literal"><span class="pre">DmozItem</span></code> 对象:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>[scrapy] DEBUG: Scraped from &lt;200 http://www.dmoz.org/Computers/Programming/Languages/Python/Books/&gt;
+         {'desc': [u' - By David Mertz; Addison Wesley. Book in progress, full text, ASCII format. Asks for feedback. [author website, Gnosis Software, Inc.\n],
+          'link': [u'http://gnosis.cx/TPiP/'],
+          'title': [u'Text Processing in Python']}
+    [scrapy] DEBUG: Scraped from &lt;200 http://www.dmoz.org/Computers/Programming/Languages/Python/Books/&gt;
+         {'desc': [u' - By Sean McGrath; Prentice Hall PTR, 2000, ISBN 0130211192, has CD-ROM. Methods to build XML applications fast, Python tutorial, DOM and SAX, new Pyxie open source XML processing library. [Prentice Hall PTR]\n'],
+          'link': [u'http://www.informit.com/store/product.aspx?isbn=0130211192'],
+          'title': [u'XML Processing with Python']}
+    </pre></div>
+    </div>
+    </div>
+    </div>
+    <div class="section" id="following-links">
+    <h2>追踪链接(Following links)</h2>
+    <p>接下来, 不仅仅满足于爬取 <em>Books</em> 及 <em>Resources</em> 页面，
+    您想要获取获取所有 <a class="reference external" href="http://www.dmoz.org/Computers/Programming/Languages/Python/">Python directory</a>
+    的内容。</p>
+    <p>既然已经能从页面上爬取数据了,为什么不提取您感兴趣的页面的链接,追踪他们,
+    读取这些链接的数据呢?</p>
+    <p>下面是实现这个功能的改进版spider:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scrapy</span>
+    
+    <span class="kn">from</span> <span class="nn">tutorial.items</span> <span class="kn">import</span> <span class="n">DmozItem</span>
+    
+    <span class="k">class</span> <span class="nc">DmozSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">"dmoz"</span>
+        <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"dmoz.org"</span><span class="p">]</span>
+        <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">"http://www.dmoz.org/Computers/Programming/Languages/Python/"</span><span class="p">,</span>
+        <span class="p">]</span>
+    
+        <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">href</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s2">"ul.directory.dir-col &gt; li &gt; a::attr('href')"</span><span class="p">):</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">href</span><span class="o">.</span><span class="n">extract</span><span class="p">())</span>
+                <span class="k">yield</span> <span class="n">scrapy</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_dir_contents</span><span class="p">)</span>
+    
+        <span class="k">def</span> <span class="nf">parse_dir_contents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'//ul/li'</span><span class="p">):</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">DmozItem</span><span class="p">()</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">'title'</span><span class="p">]</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'a/text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">'link'</span><span class="p">]</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'a/@href'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">'desc'</span><span class="p">]</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">'text()'</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+                <span class="k">yield</span> <span class="n">item</span>
+    </pre></div>
+    </div>
+    <p>现在， <cite>parse()</cite> 仅仅从页面中提取我们感兴趣的链接，使用
+    <cite>response.urljoin</cite> 方法构造一个绝对路径的URL(页面上的链接都是相对路径的)，
+    产生(yield)一个请求， 该请求使用 <cite>parse_dir_contents()</cite> 方法作为回调函数,
+    用于最终产生我们想要的数据.。</p>
+    <p>这里展现的即是Scrpay的追踪链接的机制: 当您在回调函数中yield一个Request后,
+    Scrpay将会调度,发送该请求,并且在该请求完成时,调用所注册的回调函数。</p>
+    <p>基于此方法,您可以根据您所定义的跟进链接的规则,创建复杂的crawler,并且,
+    根据所访问的页面,提取不同的数据.</p>
+    <p>一种常见的方法是,回调函数负责提取一些item,查找能跟进的页面的链接,
+    并且使用相同的回调函数yield一个 <cite>Request</cite>:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">parse_articles_follow_next_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">article</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s2">"//article"</span><span class="p">):</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">ArticleItem</span><span class="p">()</span>
+    
+            <span class="o">...</span> <span class="n">extract</span> <span class="n">article</span> <span class="n">data</span> <span class="n">here</span>
+    
+            <span class="k">yield</span> <span class="n">item</span>
+    
+        <span class="n">next_page</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s2">"ul.navigation &gt; li.next-page &gt; a::attr('href')"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_page</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">next_page</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">extract</span><span class="p">())</span>
+            <span class="k">yield</span> <span class="n">scrapy</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_articles_follow_next_page</span><span class="p">)</span>
+    </pre></div>
+    </div>
+    <p>上述代码将创建一个循环,跟进所有下一页的链接,直到找不到为止 –
+    对于爬取博客、论坛以及其他做了分页的网站十分有效。</p>
+    <p>另一种常见的需求是从多个页面构建item的数据, 这可以使用
+    <a class="reference internal" href="../topics/request-response.html#topics-request-response-ref-request-callback-arguments"><span>在回调函数中传递信息的技巧</span></a>.</p>
+    <div class="admonition note">
+    <p class="first admonition-title">注解</p>
+    <p class="last">上述代码仅仅作为阐述scrapy机制的样例spider, 想了解
+    如何实现一个拥有小型的规则引擎(rule engine)的通用spider
+    来构建您的crawler,
+    请查看 <a class="reference internal" href="../topics/spiders.html#scrapy.spiders.CrawlSpider" title="scrapy.spiders.CrawlSpider"><code class="xref py py-class docutils literal"><span class="pre">CrawlSpider</span></code></a></p>
+    </div>
+    </div>
+    <div class="section" id="id9">
+    <h2>保存爬取到的数据</h2>
+    <p>最简单存储爬取的数据的方式是使用 <a class="reference internal" href="../topics/feed-exports.html#topics-feed-exports"><span>Feed exports</span></a>:</p>
+    <div class="highlight-python"><div class="highlight"><pre><span></span>scrapy crawl dmoz -o items.json
+    </pre></div>
+    </div>
+    <p>该命令将采用 <a class="reference external" href="http://en.wikipedia.org/wiki/JSON">JSON</a> 格式对爬取的数据进行序列化，生成 <code class="docutils literal"><span class="pre">items.json</span></code> 文件。</p>
+    <p>在类似本篇教程里这样小规模的项目中，这种存储方式已经足够。
+    如果需要对爬取到的item做更多更为复杂的操作，您可以编写
+    <a class="reference internal" href="../topics/item-pipeline.html#topics-item-pipeline"><span>Item Pipeline</span></a> 。
+    类似于我们在创建项目时对Item做的，用于您编写自己的
+    <code class="docutils literal"><span class="pre">tutorial/pipelines.py</span></code> 也被创建。
+    不过如果您仅仅想要保存item，您不需要实现任何的pipeline。</p>
+    </div>
+    <div class="section" id="id10">
+    <h2>下一步</h2>
+    <p>本篇教程仅介绍了Scrapy的基础，还有很多特性没有涉及。请查看 <a class="reference internal" href="overview.html#intro-overview"><span>初窥Scrapy</span></a> 章节中的 <a class="reference internal" href="overview.html#topics-whatelse"><span>还有什么？</span></a> 部分,大致浏览大部分重要的特性。</p>
+    <p>接着，我们推荐您把玩一个例子(查看 <a class="reference internal" href="examples.html#intro-examples"><span>例子</span></a>)，而后继续阅读 <a class="reference internal" href="../index.html#section-basics"><span>基本概念</span></a> 。</p>
+    </div>
+    </div>

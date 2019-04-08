@@ -1,0 +1,415 @@
+<h1 id="iptables">iptables</h1>
+<p>Linux上常用的防火墙软件</p>
+<h2 id="补充说明">补充说明</h2>
+<p><strong>iptables命令</strong> 是Linux上常用的防火墙软件，是netfilter项目的一部分。可以直接配置，也可以通过许多前端和图形界面配置。</p>
+<!-- TOC -->
+<ul>
+<li><a href="#补充说明">补充说明</a>
+<ul>
+<li><a href="#语法">语法</a></li>
+<li><a href="#选项">选项</a></li>
+</ul></li>
+<li><a href="#基本参数">基本参数</a>
+<ul>
+<li><a href="#命令选项输入顺序">命令选项输入顺序</a></li>
+<li><a href="#工作机制">工作机制</a></li>
+<li><a href="#防火墙的策略">防火墙的策略</a></li>
+<li><a href="#防火墙的策略-1">防火墙的策略</a></li>
+<li><a href="#实例">实例</a>
+<ul>
+<li><a href="#空当前的所有规则和计数">空当前的所有规则和计数</a></li>
+<li><a href="#配置允许ssh端口连接">配置允许ssh端口连接</a></li>
+<li><a href="#允许本地回环地址可以正常使用">允许本地回环地址可以正常使用</a></li>
+<li><a href="#设置默认的规则">设置默认的规则</a></li>
+<li><a href="#配置白名单">配置白名单</a></li>
+<li><a href="#开启相应的服务端口">开启相应的服务端口</a></li>
+<li><a href="#保存规则到配置文件中">保存规则到配置文件中</a></li>
+<li><a href="#列出已设置的规则">列出已设置的规则</a></li>
+<li><a href="#清除已有规则">清除已有规则</a></li>
+<li><a href="#删除已添加的规则">删除已添加的规则</a></li>
+<li><a href="#开放指定的端口">开放指定的端口</a></li>
+<li><a href="#屏蔽ip">屏蔽IP</a></li>
+<li><a href="#指定数据包出去的网络接口">指定数据包出去的网络接口</a></li>
+<li><a href="#查看已添加的规则">查看已添加的规则</a></li>
+<li><a href="#启动网络转发规则">启动网络转发规则</a></li>
+<li><a href="#端口映射">端口映射</a></li>
+<li><a href="#字符串匹配">字符串匹配</a></li>
+<li><a href="#阻止windows蠕虫的攻击">阻止Windows蠕虫的攻击</a></li>
+<li><a href="#防止syn洪水攻击">防止SYN洪水攻击</a></li>
+</ul></li>
+</ul></li>
+</ul>
+<!-- /TOC -->
+<h3 id="语法">语法</h3>
+<pre><code>iptables(选项)(参数)</code></pre>
+<h3 id="选项">选项</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="ex">-t</span>, --table table 对指定的表 table 进行操作， table 必须是 raw， nat，filter，mangle 中的一个。如果不指定此选项，默认的是 filter 表。</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="co"># 通用匹配：源地址目标地址的匹配</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="ex">-p</span>：指定要匹配的数据包协议类型；</a>
+<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="ex">-s</span>, --source [!] address[/mask] ：把指定的一个／一组地址作为源地址，按此规则进行过滤。当后面没有 mask 时，address 是一个地址，比如：192.168.1.1；当 mask 指定时，可以表示一组范围内的地址，比如：192.168.1.0/255.255.255.0。</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="ex">-d</span>, --destination [!] address[/mask] ：地址格式同上，但这里是指定地址为目的地址，按此进行过滤。</a>
+<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="ex">-i</span>, --in-interface [!] <span class="op">&lt;</span>网络接口name<span class="op">&gt;</span> ：指定数据包的来自来自网络接口，比如最常见的 eth0 。注意：它只对 INPUT，FORWARD，PREROUTING 这三个链起作用。如果没有指定此选项， 说明可以来自任何一个网络接口。同前面类似，<span class="st">&quot;!&quot;</span> 表示取反。</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8"><span class="ex">-o</span>, --out-interface [!] <span class="op">&lt;</span>网络接口name<span class="op">&gt;</span> ：指定数据包出去的网络接口。只对 OUTPUT，FORWARD，POSTROUTING 三个链起作用。</a>
+<a class="sourceLine" id="cb2-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="co"># 查看管理命令</span></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="ex">-L</span>, --list [chain] 列出链 chain 上面的所有规则，如果没有指定链，列出表上所有链的所有规则。</a>
+<a class="sourceLine" id="cb2-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="co"># 规则管理命令</span></a>
+<a class="sourceLine" id="cb2-14" data-line-number="14"><span class="ex">-A</span>, --append chain rule-specification 在指定链 chain 的末尾插入指定的规则，也就是说，这条规则会被放到最后，最后才会被执行。规则是由后面的匹配来指定。</a>
+<a class="sourceLine" id="cb2-15" data-line-number="15"><span class="ex">-I</span>, --insert chain [rulenum] rule-specification 在链 chain 中的指定位置插入一条或多条规则。如果指定的规则号是1，则在链的头部插入。这也是默认的情况，如果没有指定规则号。</a>
+<a class="sourceLine" id="cb2-16" data-line-number="16"><span class="ex">-D</span>, --delete chain rule-specification -D, --delete chain rulenum 在指定的链 chain 中删除一个或多个指定规则。</a>
+<a class="sourceLine" id="cb2-17" data-line-number="17"><span class="ex">-R</span> num：Replays替换/修改第几条规则</a>
+<a class="sourceLine" id="cb2-18" data-line-number="18"></a>
+<a class="sourceLine" id="cb2-19" data-line-number="19"><span class="co"># 链管理命令（这都是立即生效的）</span></a>
+<a class="sourceLine" id="cb2-20" data-line-number="20"><span class="ex">-P</span>, --policy chain target ：为指定的链 chain 设置策略 target。注意，只有内置的链才允许有策略，用户自定义的是不允许的。</a>
+<a class="sourceLine" id="cb2-21" data-line-number="21"><span class="ex">-F</span>, --flush [chain] 清空指定链 chain 上面的所有规则。如果没有指定链，清空该表上所有链的所有规则。</a>
+<a class="sourceLine" id="cb2-22" data-line-number="22"><span class="ex">-N</span>, --new-chain chain 用指定的名字创建一个新的链。</a>
+<a class="sourceLine" id="cb2-23" data-line-number="23"><span class="ex">-X</span>, --delete-chain [chain] ：删除指定的链，这个链必须没有被其它任何规则引用，而且这条上必须没有任何规则。如果没有指定链名，则会删除该表中所有非内置的链。</a>
+<a class="sourceLine" id="cb2-24" data-line-number="24"><span class="ex">-E</span>, --rename-chain old-chain new-chain ：用指定的新名字去重命名指定的链。这并不会对链内部照成任何影响。</a>
+<a class="sourceLine" id="cb2-25" data-line-number="25"><span class="ex">-Z</span>, --zero [chain] ：把指定链，或者表中的所有链上的所有计数器清零。</a>
+<a class="sourceLine" id="cb2-26" data-line-number="26"></a>
+<a class="sourceLine" id="cb2-27" data-line-number="27"><span class="ex">-j</span>, --jump target <span class="op">&lt;</span>指定目标<span class="op">&gt;</span> ：即满足某条件时该执行什么样的动作。target 可以是内置的目标，比如 ACCEPT，也可以是用户自定义的链。</a>
+<a class="sourceLine" id="cb2-28" data-line-number="28"><span class="ex">-h</span>：显示帮助信息；</a></code></pre></div>
+<h2 id="基本参数">基本参数</h2>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-P</td>
+<td>设置默认策略:iptables -P INPUT (DROP</td>
+</tr>
+<tr class="even">
+<td>-F</td>
+<td>清空规则链</td>
+</tr>
+<tr class="odd">
+<td>-L</td>
+<td>查看规则链</td>
+</tr>
+<tr class="even">
+<td>-A</td>
+<td>在规则链的末尾加入新规则</td>
+</tr>
+<tr class="odd">
+<td>-I</td>
+<td>num 在规则链的头部加入新规则</td>
+</tr>
+<tr class="even">
+<td>-D</td>
+<td>num 删除某一条规则</td>
+</tr>
+<tr class="odd">
+<td>-s</td>
+<td>匹配来源地址IP/MASK，加叹号“!”表示除这个IP外。</td>
+</tr>
+<tr class="even">
+<td>-d</td>
+<td>匹配目标地址</td>
+</tr>
+<tr class="odd">
+<td>-i</td>
+<td>网卡名称 匹配从这块网卡流入的数据</td>
+</tr>
+<tr class="even">
+<td>-o</td>
+<td>网卡名称 匹配从这块网卡流出的数据</td>
+</tr>
+<tr class="odd">
+<td>-p</td>
+<td>匹配协议,如tcp,udp,icmp</td>
+</tr>
+<tr class="even">
+<td>–dport num</td>
+<td>匹配目标端口号</td>
+</tr>
+<tr class="odd">
+<td>–sport num</td>
+<td>匹配来源端口号</td>
+</tr>
+</tbody>
+</table>
+<h4 id="命令选项输入顺序">命令选项输入顺序</h4>
+<pre><code>iptables -t 表名 &lt;-A/I/D/R&gt; 规则链名 [规则号] &lt;-i/o 网卡名&gt; -p 协议名 &lt;-s 源IP/源子网&gt; --sport 源端口 &lt;-d 目标IP/目标子网&gt; --dport 目标端口 -j 动作</code></pre>
+<h4 id="工作机制">工作机制</h4>
+<p>规则链名包括(也被称为五个钩子函数（hook functions）)：</p>
+<ul>
+<li><strong>INPUT链</strong> ：处理输入数据包。</li>
+<li><strong>OUTPUT链</strong> ：处理输出数据包。</li>
+<li><strong>PORWARD链</strong> ：处理转发数据包。</li>
+<li><strong>PREROUTING链</strong> ：用于目标地址转换（DNAT）。</li>
+<li><strong>POSTOUTING链</strong> ：用于源地址转换（SNAT）。</li>
+</ul>
+<h4 id="防火墙的策略">防火墙的策略</h4>
+<p>防火墙策略一般分为两种，一种叫<code>通</code>策略，一种叫<code>堵</code>策略，通策略，默认门是关着的，必须要定义谁能进。堵策略则是，大门是洞开的，但是你必须有身份认证，否则不能进。所以我们要定义，让进来的进来，让出去的出去，<code>所以通，是要全通，而堵，则是要选择</code>。当我们定义的策略的时候，要分别定义多条功能，其中：定义数据包中允许或者不允许的策略，filter过滤的功能，而定义地址转换的功能的则是nat选项。为了让这些功能交替工作，我们制定出了“表”这个定义，来定义、区分各种不同的工作功能和处理方式。</p>
+<p>我们现在用的比较多个功能有3个：</p>
+<ol type="1">
+<li>filter 定义允许或者不允许的，只能做在3个链上：INPUT ，FORWARD ，OUTPUT</li>
+<li>nat 定义地址转换的，也只能做在3个链上：PREROUTING ，OUTPUT ，POSTROUTING</li>
+<li>mangle功能:修改报文原数据，是5个链都可以做：PREROUTING，INPUT，FORWARD，OUTPUT，POSTROUTING</li>
+</ol>
+<p>我们修改报文原数据就是来修改TTL的。能够实现将数据包的元数据拆开，在里面做标记/修改内容的。而防火墙标记，其实就是靠mangle来实现的。</p>
+<p>小扩展:</p>
+<ul>
+<li>对于filter来讲一般只能做在3个链上：INPUT ，FORWARD ，OUTPUT</li>
+<li>对于nat来讲一般也只能做在3个链上：PREROUTING ，OUTPUT ，POSTROUTING</li>
+<li>而mangle则是5个链都可以做：PREROUTING，INPUT，FORWARD，OUTPUT，POSTROUTING</li>
+</ul>
+<p>iptables/netfilter（这款软件）是工作在用户空间的，它可以让规则进行生效的，本身不是一种服务，而且规则是立即生效的。而我们iptables现在被做成了一个服务，可以进行启动，停止的。启动，则将规则直接生效，停止，则将规则撤销。</p>
+<p>iptables还支持自己定义链。但是自己定义的链，必须是跟某种特定的链关联起来的。在一个关卡设定，指定当有数据的时候专门去找某个特定的链来处理，当那个链处理完之后，再返回。接着在特定的链中继续检查。</p>
+<p>注意：规则的次序非常关键，<code>谁的规则越严格，应该放的越靠前</code>，而检查规则的时候，是按照从上往下的方式进行检查的。</p>
+<h4 id="防火墙的策略-1">防火墙的策略</h4>
+<p>防火墙策略一般分为两种，一种叫<code>通</code>策略，一种叫<code>堵</code>策略，通策略，默认门是关着的，必须要定义谁能进。堵策略则是，大门是洞开的，但是你必须有身份认证，否则不能进，<code>所以通，是要全通，而堵，则是要选择</code>。</p>
+<p>表名包括：</p>
+<ul>
+<li><strong>raw</strong> ：高级功能，如：网址过滤。</li>
+<li><strong>mangle</strong> ：数据包修改（QOS），用于实现服务质量。</li>
+<li><strong>net</strong> ：地址转换，用于网关路由器。</li>
+<li><strong>filter</strong> ：包过滤，用于防火墙规则。</li>
+</ul>
+<p>动作包括：</p>
+<ul>
+<li><strong>ACCEPT</strong> ：接收数据包。</li>
+<li><strong>DROP</strong> ：丢弃数据包。</li>
+<li><strong>REDIRECT</strong> ：重定向、映射、透明代理。</li>
+<li><strong>SNAT</strong> ：源地址转换。</li>
+<li><strong>DNAT</strong> ：目标地址转换。</li>
+<li><strong>MASQUERADE</strong> ：IP伪装（NAT），用于ADSL。</li>
+<li><strong>LOG</strong> ：日志记录。</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1">                             ┏╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍┓</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"> ┌───────────────┐           ┃    <span class="ex">Network</span>    ┃</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"> │ <span class="ex">table</span>: filter │           ┗━━━━━━━┳━━━━━━━┛</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"> │ <span class="ex">chain</span>: INPUT  │◀────┐             │</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"> └───────┬───────┘     │             ▼</a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">         │             │   ┌───────────────────┐</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">  ┌      ▼      ┐      │   │ <span class="ex">table</span>: nat        │</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">  │<span class="ex">local</span> process│      │   │ chain: PREROUTING │</a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">  └             ┘      │   └─────────┬─────────┘</a>
+<a class="sourceLine" id="cb4-10" data-line-number="10">         │             │             │</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11">         ▼             │             ▼              ┌─────────────────┐</a>
+<a class="sourceLine" id="cb4-12" data-line-number="12">┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅    │     ┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅      │<span class="ex">table</span>: nat       │</a>
+<a class="sourceLine" id="cb4-13" data-line-number="13"> <span class="ex">Routing</span> decision      └───── outing decision ─────▶│chain: PREROUTING│</a>
+<a class="sourceLine" id="cb4-14" data-line-number="14">┅┅┅┅┅┅┅┅┅┳┅┅┅┅┅┅┅┅┅          ┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅      └────────┬────────┘</a>
+<a class="sourceLine" id="cb4-15" data-line-number="15">         │                                                   │</a>
+<a class="sourceLine" id="cb4-16" data-line-number="16">         ▼                                                   │</a>
+<a class="sourceLine" id="cb4-17" data-line-number="17"> ┌───────────────┐                                           │</a>
+<a class="sourceLine" id="cb4-18" data-line-number="18"> │ <span class="ex">table</span>: nat    │           ┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅               │</a>
+<a class="sourceLine" id="cb4-19" data-line-number="19"> │ <span class="ex">chain</span>: OUTPUT │    ┌─────▶ outing decision ◀──────────────┘</a>
+<a class="sourceLine" id="cb4-20" data-line-number="20"> └───────┬───────┘    │      ┅┅┅┅┅┅┅┅┳┅┅┅┅┅┅┅┅</a>
+<a class="sourceLine" id="cb4-21" data-line-number="21">         │            │              │</a>
+<a class="sourceLine" id="cb4-22" data-line-number="22">         ▼            │              ▼</a>
+<a class="sourceLine" id="cb4-23" data-line-number="23"> ┌───────────────┐    │   ┌────────────────────┐</a>
+<a class="sourceLine" id="cb4-24" data-line-number="24"> │ <span class="ex">table</span>: filter │    │   │ chain: POSTROUTING │</a>
+<a class="sourceLine" id="cb4-25" data-line-number="25"> │ <span class="ex">chain</span>: OUTPUT ├────┘   └──────────┬─────────┘</a>
+<a class="sourceLine" id="cb4-26" data-line-number="26"> └───────────────┘                   │</a>
+<a class="sourceLine" id="cb4-27" data-line-number="27">                                     ▼</a>
+<a class="sourceLine" id="cb4-28" data-line-number="28">                             ┏╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍┓</a>
+<a class="sourceLine" id="cb4-29" data-line-number="29">                             ┃    <span class="ex">Network</span>    ┃</a>
+<a class="sourceLine" id="cb4-30" data-line-number="30">                             ┗━━━━━━━━━━━━━━━┛</a></code></pre></div>
+<h3 id="实例">实例</h3>
+<h4 id="空当前的所有规则和计数">空当前的所有规则和计数</h4>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="ex">iptables</span> -F  # 清空所有的防火墙规则</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="ex">iptables</span> -X  # 删除用户自定义的空链</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="ex">iptables</span> -Z  # 清空计数</a></code></pre></div>
+<h4 id="配置允许ssh端口连接">配置允许ssh端口连接</h4>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="ex">iptables</span> -A INPUT -s 192.168.1.0/24 -p tcp --dport 22 -j ACCEPT</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="co"># 22为你的ssh端口， -s 192.168.1.0/24表示允许这个网段的机器来连接，其它网段的ip地址是登陆不了你的机器的。 -j ACCEPT表示接受这样的请求</span></a></code></pre></div>
+<h4 id="允许本地回环地址可以正常使用">允许本地回环地址可以正常使用</h4>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="ex">iptables</span> -A INPUT -i lo -j ACCEPT</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="co">#本地圆环地址就是那个127.0.0.1，是本机上使用的,它进与出都设置为允许</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="ex">iptables</span> -A OUTPUT -o lo -j ACCEPT</a></code></pre></div>
+<h4 id="设置默认的规则">设置默认的规则</h4>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="ex">iptables</span> -P INPUT DROP <span class="co"># 配置默认的不让进</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="ex">iptables</span> -P FORWARD DROP <span class="co"># 默认的不允许转发</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="ex">iptables</span> -P OUTPUT ACCEPT <span class="co"># 默认的可以出去</span></a></code></pre></div>
+<h4 id="配置白名单">配置白名单</h4>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="ex">iptables</span> -A INPUT -p all -s 192.168.1.0/24 -j ACCEPT  # 允许机房内网机器可以访问</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"><span class="ex">iptables</span> -A INPUT -p all -s 192.168.140.0/24 -j ACCEPT  # 允许机房内网机器可以访问</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="ex">iptables</span> -A INPUT -p tcp -s 183.121.3.7 --dport 3380 -j ACCEPT <span class="co"># 允许183.121.3.7访问本机的3380端口</span></a></code></pre></div>
+<h4 id="开启相应的服务端口">开启相应的服务端口</h4>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="ex">iptables</span> -A INPUT -p tcp --dport 80 -j ACCEPT <span class="co"># 开启80端口，因为web对外都是这个端口</span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="ex">iptables</span> -A INPUT -p icmp --icmp-type 8 -j ACCEPT <span class="co"># 允许被ping</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="ex">iptables</span> -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT <span class="co"># 已经建立的连接得让它进来</span></a></code></pre></div>
+<h4 id="保存规则到配置文件中">保存规则到配置文件中</h4>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="fu">cp</span> /etc/sysconfig/iptables /etc/sysconfig/iptables.bak <span class="co"># 任何改动之前先备份，请保持这一优秀的习惯</span></a>
+<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="ex">iptables-save</span> <span class="op">&gt;</span> /etc/sysconfig/iptables</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3"><span class="fu">cat</span> /etc/sysconfig/iptables</a></code></pre></div>
+<h4 id="列出已设置的规则">列出已设置的规则</h4>
+<blockquote>
+<p>iptables -L [-t 表名] [链名]</p>
+</blockquote>
+<ul>
+<li>四个表名 <code>raw</code>，<code>nat</code>，<code>filter</code>，<code>mangle</code></li>
+<li>五个规则链名 <code>INPUT</code>、<code>OUTPUT</code>、<code>FORWARD</code>、<code>PREROUTING</code>、<code>POSTROUTING</code></li>
+<li>filter表包含<code>INPUT</code>、<code>OUTPUT</code>、<code>FORWARD</code>三个规则链</li>
+</ul>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="ex">iptables</span> -L -t nat                  # 列出 nat 上面的所有规则</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="co">#            ^ -t 参数指定，必须是 raw， nat，filter，mangle 中的一个</span></a>
+<a class="sourceLine" id="cb12-3" data-line-number="3"><span class="ex">iptables</span> -L -t nat  --line-numbers  # 规则带编号</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4"><span class="ex">iptables</span> -L INPUT</a>
+<a class="sourceLine" id="cb12-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb12-6" data-line-number="6"><span class="ex">iptables</span> -L -nv  # 查看，这个列表看起来更详细</a></code></pre></div>
+<h4 id="清除已有规则">清除已有规则</h4>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="ex">iptables</span> -F INPUT  # 清空指定链 INPUT 上面的所有规则</a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="ex">iptables</span> -X INPUT  # 删除指定的链，这个链必须没有被其它任何规则引用，而且这条上必须没有任何规则。</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">                   <span class="co"># 如果没有指定链名，则会删除该表中所有非内置的链。</span></a>
+<a class="sourceLine" id="cb13-4" data-line-number="4"><span class="ex">iptables</span> -Z INPUT  # 把指定链，或者表中的所有链上的所有计数器清零。</a></code></pre></div>
+<h4 id="删除已添加的规则">删除已添加的规则</h4>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="co"># 添加一条规则</span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="ex">iptables</span> -A INPUT -s 192.168.1.5 -j DROP</a></code></pre></div>
+<p>将所有iptables以序号标记显示，执行：</p>
+<pre><code>iptables -L -n --line-numbers</code></pre>
+<p>比如要删除INPUT里序号为8的规则，执行：</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="ex">iptables</span> -D INPUT 8</a></code></pre></div>
+<h4 id="开放指定的端口">开放指定的端口</h4>
+<pre><code>iptables -A INPUT -s 127.0.0.1 -d 127.0.0.1 -j ACCEPT               #允许本地回环接口(即运行本机访问本机)
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT    #允许已建立的或相关连的通行
+iptables -A OUTPUT -j ACCEPT         #允许所有本机向外的访问
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT    #允许访问22端口
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT    #允许访问80端口
+iptables -A INPUT -p tcp --dport 21 -j ACCEPT    #允许ftp服务的21端口
+iptables -A INPUT -p tcp --dport 20 -j ACCEPT    #允许FTP服务的20端口
+iptables -A INPUT -j reject       #禁止其他未允许的规则访问
+iptables -A FORWARD -j REJECT     #禁止其他未允许的规则访问</code></pre>
+<h4 id="屏蔽ip">屏蔽IP</h4>
+<pre><code>iptables -A INPUT -p tcp -m tcp -s 192.168.0.8 -j DROP  # 屏蔽恶意主机（比如，192.168.0.8
+iptables -I INPUT -s 123.45.6.7 -j DROP       #屏蔽单个IP的命令
+iptables -I INPUT -s 123.0.0.0/8 -j DROP      #封整个段即从123.0.0.1到123.255.255.254的命令
+iptables -I INPUT -s 124.45.0.0/16 -j DROP    #封IP段即从123.45.0.1到123.45.255.254的命令
+iptables -I INPUT -s 123.45.6.0/24 -j DROP    #封IP段即从123.45.6.1到123.45.6.254的命令是</code></pre>
+<h4 id="指定数据包出去的网络接口">指定数据包出去的网络接口</h4>
+<p>只对 OUTPUT，FORWARD，POSTROUTING 三个链起作用。</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="ex">iptables</span> -A FORWARD -o eth0</a></code></pre></div>
+<h4 id="查看已添加的规则">查看已添加的规则</h4>
+<pre><code>iptables -L -n -v
+Chain INPUT (policy DROP 48106 packets, 2690K bytes)
+ pkts bytes target     prot opt in     out     source               destination
+ 5075  589K ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0
+ 191K   90M ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0           tcp dpt:22
+1499K  133M ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0           tcp dpt:80
+4364K 6351M ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0           state RELATED,ESTABLISHED
+ 6256  327K ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+
+Chain OUTPUT (policy ACCEPT 3382K packets, 1819M bytes)
+ pkts bytes target     prot opt in     out     source               destination
+ 5075  589K ACCEPT     all  --  *      lo      0.0.0.0/0            0.0.0.0/0</code></pre>
+<h4 id="启动网络转发规则">启动网络转发规则</h4>
+<p>公网<code>210.14.67.7</code>让内网<code>192.168.188.0/24</code>上网</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="ex">iptables</span> -t nat -A POSTROUTING -s 192.168.188.0/24 -j SNAT --to-source 210.14.67.127</a></code></pre></div>
+<h4 id="端口映射">端口映射</h4>
+<p>本机的 2222 端口映射到内网 虚拟机的22 端口</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="ex">iptables</span> -t nat -A PREROUTING -d 210.14.67.127 -p tcp --dport 2222  -j DNAT --to-dest 192.168.188.115:22</a></code></pre></div>
+<h4 id="字符串匹配">字符串匹配</h4>
+<p>比如，我们要过滤所有TCP连接中的字符串<code>test</code>，一旦出现它我们就终止这个连接，我们可以这么做：</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb23-1" data-line-number="1"><span class="ex">iptables</span> -A INPUT -p tcp -m string --algo kmp --string <span class="st">&quot;test&quot;</span> -j REJECT --reject-with tcp-reset</a>
+<a class="sourceLine" id="cb23-2" data-line-number="2"><span class="ex">iptables</span> -L</a>
+<a class="sourceLine" id="cb23-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb23-4" data-line-number="4"><span class="co"># Chain INPUT (policy ACCEPT)</span></a>
+<a class="sourceLine" id="cb23-5" data-line-number="5"><span class="co"># target     prot opt source               destination</span></a>
+<a class="sourceLine" id="cb23-6" data-line-number="6"><span class="co"># REJECT     tcp  --  anywhere             anywhere            STRING match &quot;test&quot; ALGO name kmp TO 65535 reject-with tcp-reset</span></a>
+<a class="sourceLine" id="cb23-7" data-line-number="7"><span class="co">#</span></a>
+<a class="sourceLine" id="cb23-8" data-line-number="8"><span class="co"># Chain FORWARD (policy ACCEPT)</span></a>
+<a class="sourceLine" id="cb23-9" data-line-number="9"><span class="co"># target     prot opt source               destination</span></a>
+<a class="sourceLine" id="cb23-10" data-line-number="10"><span class="co">#</span></a>
+<a class="sourceLine" id="cb23-11" data-line-number="11"><span class="co"># Chain OUTPUT (policy ACCEPT)</span></a>
+<a class="sourceLine" id="cb23-12" data-line-number="12"><span class="co"># target     prot opt source               destination</span></a></code></pre></div>
+<h4 id="阻止windows蠕虫的攻击">阻止Windows蠕虫的攻击</h4>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb24-1" data-line-number="1"><span class="ex">iptables</span> -I INPUT -j DROP -p tcp -s 0.0.0.0/0 -m string --algo kmp --string <span class="st">&quot;cmd.exe&quot;</span></a></code></pre></div>
+<h4 id="防止syn洪水攻击">防止SYN洪水攻击</h4>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb25-1" data-line-number="1"><span class="ex">iptables</span> -A INPUT -p tcp --syn -m limit --limit 5/second -j ACCEPT</a></code></pre></div>
+<h2 id="更多实例">更多实例</h2>
+<blockquote>
+<p>用iptables搭建一套强大的安全防护盾 http://www.imooc.com/learn/389</p>
+</blockquote>
+<p>iptables: linux 下应用层防火墙工具</p>
+<p>iptables 5链: 对应 Hook point netfilter: linux 操作系统核心层内部的一个数据包处理模块 Hook point: 数据包在 netfilter 中的挂载点; <code>PRE_ROUTING / INPUT / OUTPUT / FORWARD / POST_ROUTING</code></p>
+<p>iptables &amp; netfilter <img src="http://7xq89b.com1.z0.glb.clouddn.com/netfilter&amp;iptables.jpg" /></p>
+<p>iptables 4表5链 <img src="http://7xq89b.com1.z0.glb.clouddn.com/iptables-data-stream.jpg" /></p>
+<p>iptables rules <img src="http://7xq89b.com1.z0.glb.clouddn.com/iptables-rules.jpg" /></p>
+<ul>
+<li>4表</li>
+</ul>
+<p><strong>filter</strong>: 访问控制 / 规则匹配 <strong>nat</strong>: 地址转发 mangle / raw</p>
+<ul>
+<li>规则</li>
+</ul>
+<p>数据访问控制: ACCEPT / DROP / REJECT 数据包改写(nat -&gt; 地址转换): snat / dnat 信息记录: log</p>
+<h2 id="使用场景实例">使用场景实例</h2>
+<ul>
+<li>场景一</li>
+</ul>
+<p>开放 tcp 10-22/80 端口 开放 icmp 其他未被允许的端口禁止访问</p>
+<p>存在的问题: 本机无法访问本机; 本机无法访问其他主机</p>
+<ul>
+<li>场景二</li>
+</ul>
+<p>ftp: 默认被动模式(服务器产生随机端口告诉客户端, 客户端主动连接这个端口拉取数据) vsftpd: 使 ftp 支持主动模式(客户端产生随机端口通知服务器, 服务器主动连接这个端口发送数据)</p>
+<ul>
+<li>场景三</li>
+</ul>
+<p>允许外网访问: web http -&gt; 80/tcp; https -&gt; 443/tcp mail smtp -&gt; 25/tcp; smtps -&gt; 465/tcp pop3 -&gt; 110/tcp; pop3s -&gt; 995/tcp imap -&gt; 143/tcp</p>
+<p>内部使用: file nfs -&gt; 123/udp samba -&gt; 137/138/139/445/tcp ftp -&gt; 20/21/tcp remote ssh -&gt; 22/tcp sql mysql -&gt; 3306/tcp oracle -&gt; 1521/tcp</p>
+<ul>
+<li>场景四</li>
+</ul>
+<p>nat 转发</p>
+<ul>
+<li>场景五</li>
+</ul>
+<p>防CC攻击</p>
+<pre><code>iptables -L -F -A -D # list flush append delete
+# 场景一
+iptables -I INPUT -p tcp --dport 80 -j ACCEPT # 允许 tcp 80 端口
+iptables -I INPUT -p tcp --dport 10:22 -j ACCEPT # 允许 tcp 10-22 端口
+iptables -I INPUT -p icmp -j ACCEPT # 允许 icmp
+iptables -A INPUT -j REJECT # 添加一条规则, 不允许所有
+
+# 优化场景一
+iptables -I INPUT -i lo -j ACCEPT # 允许本机访问
+iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT # 允许访问外网
+iptables -I INPUT -p tcp --dport 80 -s 10.10.188.233 -j ACCEPT # 只允许固定ip访问80
+
+# 场景二
+vi /etc/vsftpd/vsftpd.conf # 使用 vsftpd 开启 ftp 主动模式
+port_enable=yes
+connect_from_port_20=YES
+iptables -I INPUT -p tcp --dport 21 -j ACCEPT
+
+vi /etc/vsftpd/vsftpd.conf # 建议使用 ftp 被动模式
+pasv_min_port=50000
+pasv_max_port=60000
+iptables -I INPUT -p tcp --dport 21 -j ACCEPT
+iptables -I INPUT -p tcp --dport 50000:60000 -j ACCEPT
+
+# 还可以使用 iptables 模块追踪来自动开发对应的端口
+
+# 场景三
+iptables -I INPUT -i lo -j ACCEPT # 允许本机访问
+iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT # 允许访问外网
+iptables -I INPUT -s 10.10.155.0/24 -j ACCEPT # 允许内网访问
+iptables -I INPUT -p tcp -m multiport --dports 80,1723 -j ACCEPT # 允许端口, 80 -&gt; http, 1723 -&gt; vpn
+iptables -A INPUT -j REJECT # 添加一条规则, 不允许所有
+
+iptables-save # 保存设置到配置文件
+
+# 场景四
+iptables -t nat -L # 查看 nat 配置
+
+iptables -t nat -A POST_ROUTING -s 10.10.177.0/24 -j SNAT --to 10.10.188.232 # SNAT
+vi /etc/sysconfig/network # 配置网关
+
+iptables -t nat -A POST_ROUTING -d 10.10.188.232 -p tcp --dport 80 -j DNAT --to 10.10.177.232:80 # DNAT
+
+#场景五
+iptables -I INPUT -p tcp --syn --dport 80 -m connlimit --connlimit-above 100 -j REJECT # 限制并发连接访问数
+iptables -I INPUT -m limit --limit 3/hour --limit-burst 10 -j ACCEPT # limit模块; --limit-burst 默认为5</code></pre>
+<!-- Linux命令行搜索引擎：https://jaywcjlove.github.io/linux-command/ -->

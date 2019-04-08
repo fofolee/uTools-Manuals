@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>销毁一个会话中的全部数据</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.session-destroy" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">session_destroy</h1>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">session_destroy</span> &mdash; <span class="dc-title">销毁一个会话中的全部数据</span></p>
+
+ </div>
+ 
+ <div class="refsect1 description" id="refsect1-function.session-destroy-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>session_destroy</strong></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">bool</span></div>
+
+  <p class="simpara">
+   <span class="function"><strong>session_destroy()</strong></span> 销毁当前会话中的全部数据，
+   但是不会重置当前会话所关联的全局变量，
+   也不会重置会话 cookie。
+   如果需要再次使用会话变量，
+   必须重新调用 <span class="function"><a href="session_start.html" class="function">session_start()</a></span> 函数。
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <span class="simpara">
+    通常情况下，在你的代码中不必调用 <span class="function"><strong>session_destroy()</strong></span> 函数，
+    可以直接清除 $_SESSION 数组中的数据来实现会话数据清理。
+   </span>
+  </p></blockquote>
+  <p class="para">
+   为了彻底销毁会话，必须同时重置会话 ID。
+   如果是通过 cookie 方式传送会话 ID 的，那么同时也需要
+   调用 <span class="function"><a href="setcookie.html" class="function">setcookie()</a></span> 函数来
+   删除客户端的会话 cookie。
+  </p>
+  <p class="para">
+   当启用了 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 配置项的时候，你不需要删除过期会话 ID 对应的 cookie，
+   因为会话模块已经不再接受携带过期会话 ID 的 cookie 了，
+   然后它会生成一个新的会话 ID cookie。
+   建议所有的站点都启用 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 配置项。
+  </p>
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="para">
+    过早的删除会话中的数据可能会导致不可预期的结果。
+    例如，当存在从 JavaScript 或者 URL 链接过来的并发请求的时候，
+    某一个请求删除了会话中的数据，会导致其他的并发请求无法使用会话数据。
+   </p>
+   <p class="para">
+    虽然当前的会话处理模块不会接受为空的会话 ID，
+    但是由于客户端（浏览器）的处理方式，
+    立即删除会话中的数据可能会导致生成为空的会话 cookie，
+    进而导致客户端生成很多不必要的会话 ID cookie。
+   </p>
+   <p class="para">
+    为了避免这种情况的发生，你需要在 $_SESSION 中设置一个时间戳，
+    在这个时间戳之后的对于会话的访问都将被拒绝。
+    或者，确保你的应用中不存在并发请求。
+    这个规则同样适用于 <span class="function"><a href="session_regenerate_id.html" class="function">session_regenerate_id()</a></span>。
+<span class="function"><a href="session_regenerate_id.html" class="function">session_regenerate_id()</a></span> also.
+   </p>
+  </div>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.session-destroy-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.session-destroy-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-5832">
+    <p><strong>Example #1 销毁会话数据以及 <var class="varname"><var class="varname"><a href="reserved.variables.session.html" class="classname">$_SESSION</a></var></var></strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;初始化会话。<br />//&nbsp;如果要使用会话，别忘了现在就调用：<br /></span><span style="color: #0000BB">session_start</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;重置会话中的所有变量<br /></span><span style="color: #0000BB">$_SESSION&nbsp;</span><span style="color: #007700">=&nbsp;array();<br /><br /></span><span style="color: #FF8000">//&nbsp;如果要清理的更彻底，那么同时删除会话&nbsp;cookie<br />//&nbsp;注意：这样不但销毁了会话中的数据，还同时销毁了会话本身<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">ini_get</span><span style="color: #007700">(</span><span style="color: #DD0000">"session.use_cookies"</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$params&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">session_get_cookie_params</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">setcookie</span><span style="color: #007700">(</span><span style="color: #0000BB">session_name</span><span style="color: #007700">(),&nbsp;</span><span style="color: #DD0000">''</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">time</span><span style="color: #007700">()&nbsp;-&nbsp;</span><span style="color: #0000BB">42000</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$params</span><span style="color: #007700">[</span><span style="color: #DD0000">"path"</span><span style="color: #007700">],&nbsp;</span><span style="color: #0000BB">$params</span><span style="color: #007700">[</span><span style="color: #DD0000">"domain"</span><span style="color: #007700">],<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$params</span><span style="color: #007700">[</span><span style="color: #DD0000">"secure"</span><span style="color: #007700">],&nbsp;</span><span style="color: #0000BB">$params</span><span style="color: #007700">[</span><span style="color: #DD0000">"httponly"</span><span style="color: #007700">]<br />&nbsp;&nbsp;&nbsp;&nbsp;);<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;最后，销毁会话<br /></span><span style="color: #0000BB">session_destroy</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 notes" id="refsect1-function.session-destroy-notes">
+  <h3 class="title">注释</h3>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    对于旧版本中不使用 <var class="varname"><var class="varname"><a href="reserved.variables.session.html" class="classname">$_SESSION</a></var></var> 的代码，
+    仅能使用 <span class="function"><a href="session_unset.html" class="function">session_unset()</a></span> 来完成会话销毁工作。
+   </p>
+  </p></blockquote>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.session-destroy-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a></li>
+    <li class="member"><span class="function"><a href="session_reset.html" class="function" rel="rdfs-seeAlso">session_reset()</a> - Re-initialize session array with original values</span></li>
+    <li class="member"><span class="function"><a href="session_regenerate_id.html" class="function" rel="rdfs-seeAlso">session_regenerate_id()</a> - 使用新生成的会话 ID 更新现有会话 ID</span></li>
+    <li class="member"><span class="function"><a href="unset.html" class="function" rel="rdfs-seeAlso">unset()</a> - 释放给定的变量</span></li>
+    <li class="member"><span class="function"><a href="setcookie.html" class="function" rel="rdfs-seeAlso">setcookie()</a> - 发送 Cookie</span></li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

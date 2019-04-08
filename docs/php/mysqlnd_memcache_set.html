@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Associate a MySQL connection with a Memcache connection</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.mysqlnd-memcache-set" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">mysqlnd_memcache_set</h1>
+  <p class="verinfo">(PECL mysqlnd_memcache &gt;= 1.0.0)</p><p class="refpurpose"><span class="refname">mysqlnd_memcache_set</span> &mdash; <span class="dc-title">Associate a MySQL connection with a Memcache connection</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.mysqlnd-memcache-set-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   
+   <span class="methodname"><strong>mysqlnd_memcache_set</strong></span>
+    ( <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span> <code class="parameter">$mysql_connection</code></span>
+   [, <span class="methodparam"><span class="type"><a href="class.memcached.html" class="type Memcached">Memcached</a></span> <code class="parameter">$memcache_connection</code></span>
+   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$pattern</code></span>
+   [, <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.callback" class="type callback">callback</a></span> <code class="parameter">$callback</code></span>
+  ]]] ) : <span class="type">bool</span></div>
+
+  <p class="para rdfs-comment">
+   Associate <code class="parameter">mysql_connection</code> with
+   <code class="parameter">memcache_connection</code> using <code class="parameter">pattern</code>
+   as a PCRE regular expression, and <code class="parameter">callback</code> as a notification
+   callback or to unset the association of <code class="parameter">mysql_connection</code>.
+  </p>
+  <p class="para">
+   While associating a MySQL connection with a Memcache connection, this function
+   will query the MySQL Server for its configuration. It will automatically
+   detect whether the server is configured to use the InnoDB Memcache Daemon
+   Plugin or MySQL Cluster NDB Memcache support. It will also query the server
+   to automatically identify exported tables and other configuration options.
+   The results of this automatic configuration can be retrieved using
+   <span class="function"><a href="mysqlnd_memcache_get_config.html" class="function">mysqlnd_memcache_get_config()</a></span>.
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.mysqlnd-memcache-set-parameters">
+  <h3 class="title">参数</h3>
+  <dl>
+
+   
+    <dt>
+<code class="parameter">mysql_connection</code></dt>
+
+    <dd>
+
+     <p class="para">
+      A handle to a MySQL Server using one of the MySQL API extensions for PHP, which are
+      <a href="ref.pdo_mysql.html" class="link">PDO_MYSQL</a>, <a href="book.mysqli.html" class="link">mysqli</a> or
+      <a href="book.mysql.html" class="link">ext/mysql</a>.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">memcache_connection</code></dt>
+
+    <dd>
+
+     <p class="para">
+      A <a href="book.memcached.html" class="link">Memcached</a> instance with a 
+      connection to the MySQL Memcache Daemon plugin. If this parameter
+      is omitted, then <code class="parameter">mysql_connection</code> will be unassociated
+      from any memcache connection. And if a previous association exists, then it will be
+      replaced.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">pattern</code></dt>
+
+    <dd>
+
+     <p class="para">
+      A regular expression in <a href="book.pcre.html" class="link">Perl Compatible
+      Regular Expression</a> syntax used to identify potential
+      Memcache-queries. The query should have three sub patterns. The
+      first subpattern contains the requested field list, the second the name
+      of the ID column from the query and the third the requested value. If
+      this parameter is omitted or os set to <strong><code>NULL</code></strong>, then a default
+      pattern will be used.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">callback</code></dt>
+
+    <dd>
+
+     <p class="para">
+      A callback which will be used whenever a query is being sent to 
+      MySQL. The callback will receive a single <span class="type"><a href="language.types.boolean.html" class="type boolean">boolean</a></span> parameter
+      telling if a query was sent via Memcache.
+     </p>
+    </dd>
+
+   
+  </dl>
+
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.mysqlnd-memcache-set-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   <strong><code>TRUE</code></strong> if the association or disassociation is successful, otherwise <strong><code>FALSE</code></strong> if there
+   is an error.
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.mysqlnd-memcache-set-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-2367">
+    <p><strong>Example #1 
+     <span class="function"><strong>mysqlnd_memcache_set()</strong></span> example with
+     <span class="function"><a href="var_dump.html" class="function">var_dump()</a></span> as a simple debugging callback.</strong></p>
+
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"host"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"passwd"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"database"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$memc&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">Memcached</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$memc</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">addServer</span><span style="color: #007700">(</span><span style="color: #DD0000">"host"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">11211</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">mysqlnd_memcache_set</span><span style="color: #007700">(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$memc</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">NULL</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'var_dump'</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;This&nbsp;query&nbsp;will&nbsp;be&nbsp;intercepted&nbsp;and&nbsp;executed&nbsp;via&nbsp;Memcache&nbsp;protocol&nbsp;*/<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"Sending&nbsp;query&nbsp;for&nbsp;id&nbsp;via&nbsp;Memcache:&nbsp;"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;f1,&nbsp;f2,&nbsp;f3&nbsp;FROM&nbsp;test&nbsp;WHERE&nbsp;id&nbsp;=&nbsp;1"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;f1&nbsp;is&nbsp;not&nbsp;configured&nbsp;as&nbsp;valid&nbsp;key&nbsp;field,&nbsp;this&nbsp;won't&nbsp;be&nbsp;sent&nbsp;via&nbsp;Memcache&nbsp;*/<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"Sending&nbsp;query&nbsp;for&nbsp;f1&nbsp;via&nbsp;Memcache:&nbsp;"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;id&nbsp;FROM&nbsp;test&nbsp;WHERE&nbsp;f1&nbsp;=&nbsp;1"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">mysqlnd_memcache_set</span><span style="color: #007700">(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;Now&nbsp;the&nbsp;regular&nbsp;MySQL&nbsp;protocol&nbsp;will&nbsp;be&nbsp;used&nbsp;*/<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"var_dump&nbsp;won't&nbsp;be&nbsp;invoked:&nbsp;"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;f1,&nbsp;f2,&nbsp;f3&nbsp;WHERE&nbsp;id&nbsp;=&nbsp;1"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Sending query for id via Memcache: bool(true)
+Sending query for f1 via Memcache: bool(false)
+var_dump won&#039;t be invoked: 
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.mysqlnd-memcache-set-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member">
+     <span class="function"><a href="mysqlnd_memcache_get_config.html" class="function" rel="rdfs-seeAlso">mysqlnd_memcache_get_config()</a> - Returns information about the plugin configuration</span>
+    </li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

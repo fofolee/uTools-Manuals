@@ -1,0 +1,105 @@
+<h1 id="free">free</h1>
+<p>显示内存的使用情况</p>
+<h2 id="补充说明">补充说明</h2>
+<p><strong>free命令</strong> 可以显示当前系统未使用的和已使用的内存数目，还可以显示被内核使用的内存缓冲区。</p>
+<h3 id="语法">语法</h3>
+<pre><code>free(选项)</code></pre>
+<h3 id="选项">选项</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="ex">-b</span> <span class="co"># 以Byte为单位显示内存使用情况；</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="ex">-k</span> <span class="co"># 以KB为单位显示内存使用情况；</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="ex">-m</span> <span class="co"># 以MB为单位显示内存使用情况；</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="ex">-g</span> <span class="co"># 以GB为单位显示内存使用情况。 </span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="ex">-o</span> <span class="co"># 不显示缓冲区调节列；</span></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="ex">-s</span><span class="op">&lt;</span>间隔秒数<span class="op">&gt;</span> <span class="co"># 持续观察内存使用状况；</span></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="ex">-t</span> <span class="co"># 显示内存总和列；</span></a>
+<a class="sourceLine" id="cb2-8" data-line-number="8"><span class="ex">-V</span> <span class="co"># 显示版本信息。</span></a></code></pre></div>
+<h3 id="实例">实例</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="fu">free</span> -t    # 以总和的形式显示内存的使用信息</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="fu">free</span> -s 10 <span class="co"># 周期性的查询内存使用信息，每10s 执行一次命令</span></a></code></pre></div>
+<p>显示内存使用情况</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fu">free</span> -m</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">             <span class="ex">total</span>       used       free     shared    buffers     cached</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="ex">Mem</span>:          2016       1973         42          0        163       1497</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="ex">-/+</span> buffers/cache:        312       1703</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="ex">Swap</span>:         4094          0       4094</a></code></pre></div>
+<p><strong>第一部分Mem行解释：</strong></p>
+<pre><code>total：内存总数；
+used：已经使用的内存数；
+free：空闲的内存数；
+shared：当前已经废弃不用；
+buffers Buffer：缓存内存数；
+cached Page：缓存内存数。</code></pre>
+<p>关系：total = used + free</p>
+<p><strong>第二部分(-/+ buffers/cache)解释:</strong></p>
+<pre><code>(-buffers/cache) used内存数：第一部分Mem行中的 used – buffers – cached
+(+buffers/cache) free内存数: 第一部分Mem行中的 free + buffers + cached</code></pre>
+<p>可见-buffers/cache反映的是被程序实实在在吃掉的内存，而+buffers/cache反映的是可以挪用的内存总数。</p>
+<p>第三部分是指交换分区。</p>
+<p>输出结果的第四行是交换分区SWAP的，也就是我们通常所说的虚拟内存。 区别：第二行(mem)的used/free与第三行(-/+ buffers/cache) used/free的区别。 这两个的区别在于使用的角度来看，第一行是从OS的角度来看，因为对于OS，buffers/cached 都是属于被使用，所以他的可用内存是2098428KB,已用内存是30841684KB,其中包括，内核（OS）使用+Application(X, oracle,etc)使用的+buffers+cached.</p>
+<p>第三行所指的是从应用程序角度来看，对于应用程序来说，buffers/cached 是等于可用的，因为buffer/cached是为了提高文件读取的性能，当应用程序需在用到内存的时候，buffer/cached会很快地被回收。</p>
+<p>所以从应用程序的角度来说，可用内存=系统free memory+buffers+cached。 如本机情况的可用内存为：</p>
+<p>18007156=2098428KB+4545340KB+11363424KB</p>
+<p>接下来解释什么时候内存会被交换，以及按什么方交换。</p>
+<p>当可用内存少于额定值的时候，就会开会进行交换。如何看额定值：</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="fu">cat</span> /proc/meminfo</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="ex">MemTotal</span>:       16140816 kB</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="ex">MemFree</span>:          816004 kB</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="ex">MemAvailable</span>:    2913824 kB</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6"><span class="ex">Buffers</span>:           17912 kB</a>
+<a class="sourceLine" id="cb7-7" data-line-number="7"><span class="ex">Cached</span>:          2239076 kB</a>
+<a class="sourceLine" id="cb7-8" data-line-number="8"><span class="ex">SwapCached</span>:            0 kB</a>
+<a class="sourceLine" id="cb7-9" data-line-number="9"><span class="ex">Active</span>:         12774804 kB</a>
+<a class="sourceLine" id="cb7-10" data-line-number="10"><span class="ex">Inactive</span>:        1594328 kB</a>
+<a class="sourceLine" id="cb7-11" data-line-number="11"><span class="ex">Active</span>(anon)<span class="bu">:</span>   12085544 kB</a>
+<a class="sourceLine" id="cb7-12" data-line-number="12"><span class="ex">Inactive</span>(anon)<span class="bu">:</span>    94572 kB</a>
+<a class="sourceLine" id="cb7-13" data-line-number="13"><span class="ex">Active</span>(file)<span class="bu">:</span>     689260 kB</a>
+<a class="sourceLine" id="cb7-14" data-line-number="14"><span class="ex">Inactive</span>(file)<span class="bu">:</span>  1499756 kB</a>
+<a class="sourceLine" id="cb7-15" data-line-number="15"><span class="ex">Unevictable</span>:      116888 kB</a>
+<a class="sourceLine" id="cb7-16" data-line-number="16"><span class="ex">Mlocked</span>:          116888 kB</a>
+<a class="sourceLine" id="cb7-17" data-line-number="17"><span class="ex">SwapTotal</span>:       8191996 kB</a>
+<a class="sourceLine" id="cb7-18" data-line-number="18"><span class="ex">SwapFree</span>:        8191996 kB</a>
+<a class="sourceLine" id="cb7-19" data-line-number="19"><span class="ex">Dirty</span>:                56 kB</a>
+<a class="sourceLine" id="cb7-20" data-line-number="20"><span class="ex">Writeback</span>:             0 kB</a>
+<a class="sourceLine" id="cb7-21" data-line-number="21"><span class="ex">AnonPages</span>:      12229228 kB</a>
+<a class="sourceLine" id="cb7-22" data-line-number="22"><span class="ex">Mapped</span>:           117136 kB</a>
+<a class="sourceLine" id="cb7-23" data-line-number="23"><span class="ex">Shmem</span>:             58736 kB</a>
+<a class="sourceLine" id="cb7-24" data-line-number="24"><span class="ex">Slab</span>:             395568 kB</a>
+<a class="sourceLine" id="cb7-25" data-line-number="25"><span class="ex">SReclaimable</span>:     246700 kB</a>
+<a class="sourceLine" id="cb7-26" data-line-number="26"><span class="ex">SUnreclaim</span>:       148868 kB</a>
+<a class="sourceLine" id="cb7-27" data-line-number="27"><span class="ex">KernelStack</span>:       30496 kB</a>
+<a class="sourceLine" id="cb7-28" data-line-number="28"><span class="ex">PageTables</span>:       165104 kB</a>
+<a class="sourceLine" id="cb7-29" data-line-number="29"><span class="ex">NFS_Unstable</span>:          0 kB</a>
+<a class="sourceLine" id="cb7-30" data-line-number="30"><span class="ex">Bounce</span>:                0 kB</a>
+<a class="sourceLine" id="cb7-31" data-line-number="31"><span class="ex">WritebackTmp</span>:          0 kB</a>
+<a class="sourceLine" id="cb7-32" data-line-number="32"><span class="ex">CommitLimit</span>:    16262404 kB</a>
+<a class="sourceLine" id="cb7-33" data-line-number="33"><span class="ex">Committed_AS</span>:   27698600 kB</a>
+<a class="sourceLine" id="cb7-34" data-line-number="34"><span class="ex">VmallocTotal</span>:   34359738367 kB</a>
+<a class="sourceLine" id="cb7-35" data-line-number="35"><span class="ex">VmallocUsed</span>:      311072 kB</a>
+<a class="sourceLine" id="cb7-36" data-line-number="36"><span class="ex">VmallocChunk</span>:   34350899200 kB</a>
+<a class="sourceLine" id="cb7-37" data-line-number="37"><span class="ex">HardwareCorrupted</span>:     0 kB</a>
+<a class="sourceLine" id="cb7-38" data-line-number="38"><span class="ex">AnonHugePages</span>:   3104768 kB</a>
+<a class="sourceLine" id="cb7-39" data-line-number="39"><span class="ex">HugePages_Total</span>:       0</a>
+<a class="sourceLine" id="cb7-40" data-line-number="40"><span class="ex">HugePages_Free</span>:        0</a>
+<a class="sourceLine" id="cb7-41" data-line-number="41"><span class="ex">HugePages_Rsvd</span>:        0</a>
+<a class="sourceLine" id="cb7-42" data-line-number="42"><span class="ex">HugePages_Surp</span>:        0</a>
+<a class="sourceLine" id="cb7-43" data-line-number="43"><span class="ex">Hugepagesize</span>:       2048 kB</a>
+<a class="sourceLine" id="cb7-44" data-line-number="44"><span class="ex">DirectMap4k</span>:      225536 kB</a>
+<a class="sourceLine" id="cb7-45" data-line-number="45"><span class="ex">DirectMap2M</span>:    13279232 kB</a>
+<a class="sourceLine" id="cb7-46" data-line-number="46"><span class="ex">DirectMap1G</span>:     5242880 kB</a></code></pre></div>
+<p>交换将通过三个途径来减少系统中使用的物理页面的个数：　</p>
+<ol type="1">
+<li>减少缓冲与页面cache的大小，</li>
+<li>将系统V类型的内存页面交换出去，　</li>
+<li>换出或者丢弃页面。(Application 占用的内存页，也就是物理内存不足）。</li>
+</ol>
+<p>事实上，少量地使用swap是不是影响到系统性能的。</p>
+<p>那buffers和cached都是缓存，两者有什么区别呢？</p>
+<p>为了提高磁盘存取效率, Linux做了一些精心的设计, 除了对dentry进行缓存(用于VFS,加速文件路径名到inode的转换), 还采取了两种主要Cache方式：</p>
+<p>Buffer Cache和Page Cache。前者针对磁盘块的读写，后者针对文件inode的读写。这些Cache有效缩短了 I/O系统调用(比如read,write,getdents)的时间。 磁盘的操作有逻辑级（文件系统）和物理级（磁盘块），这两种Cache就是分别缓存逻辑和物理级数据的。</p>
+<p>Page cache实际上是针对文件系统的，是文件的缓存，在文件层面上的数据会缓存到page cache。文件的逻辑层需要映射到实际的物理磁盘，这种映射关系由文件系统来完成。当page cache的数据需要刷新时，page cache中的数据交给buffer cache，因为Buffer Cache就是缓存磁盘块的。但是这种处理在2.6版本的内核之后就变的很简单了，没有真正意义上的cache操作。</p>
+<p>Buffer cache是针对磁盘块的缓存，也就是在没有文件系统的情况下，直接对磁盘进行操作的数据会缓存到buffer cache中，例如，文件系统的元数据都会缓存到buffer cache中。</p>
+<p>简单说来，page cache用来缓存文件数据，buffer cache用来缓存磁盘数据。在有文件系统的情况下，对文件操作，那么数据会缓存到page cache，如果直接采用dd等工具对磁盘进行读写，那么数据会缓存到buffer cache。</p>
+<p>所以我们看linux,只要不用swap的交换空间,就不用担心自己的内存太少.如果常常swap用很多,可能你就要考虑加物理内存了.这也是linux看内存是否够用的标准.</p>
+<p>如果是应用服务器的话，一般只看第二行，+buffers/cache,即对应用程序来说free的内存太少了，也是该考虑优化程序或加内存了。</p>
+<!-- Linux命令行搜索引擎：https://jaywcjlove.github.io/linux-command/ -->

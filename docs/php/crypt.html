@@ -1,0 +1,289 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>单向字符串散列</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.crypt" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">crypt</h1>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">crypt</span> &mdash; <span class="dc-title">单向字符串散列</span></p>
+
+ </div>
+ 
+ <div class="refsect1 description" id="refsect1-function.crypt-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>crypt</strong></span>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$str</code></span>
+   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$salt</code></span>
+  ] ) : <span class="type">string</span></div>
+
+  <p class="para rdfs-comment">
+   <span class="function"><strong>crypt()</strong></span> 返回一个基于标准 UNIX <abbr class="abbrev">DES</abbr> 算法或系统上其他可用的替代算法的散列字符串。
+  </p>
+  <p class="para">
+   <code class="parameter">salt</code> 参数是可选的。然而，如果没有<code class="parameter">salt</code>的话，<span class="function"><strong>crypt()</strong></span>创建出来的会是弱密码。 php 5.6及之后的版本会在没有它的情况下抛出一个 E_NOTICE 级别的错误。为了更好的安全性，请确保指定一个足够强度的盐值。
+  </p>
+  <p class="para">
+   <span class="function"><a href="password_hash.html" class="function">password_hash()</a></span>使用了一个强的哈希算法，来产生足够强的盐值，并且会自动进行合适的轮次。<span class="function"><a href="password_hash.html" class="function">password_hash()</a></span>是<span class="function"><strong>crypt()</strong></span>的一个简单封装，并且完全与现有的密码哈希兼容。推荐使用<span class="function"><a href="password_hash.html" class="function">password_hash()</a></span>。
+  </p>
+  <p class="para">
+   有些系统支持不止一种散列类型。实际上，有时候，基于 MD5 的算法被用来替代基于标准 DES 的算法。这种散列类型由盐值参数触发。在 5.3 之前，PHP 在安装时根据系统的 crypt() 决定可用的算法。如果没有提供盐值，PHP 将自动生成一个 2 个字符（DES）或者 12 个字符（MD5）的盐值 ，这取决于 MD5 crypt() 的可用性。PHP 设置了一个名为 <strong><code>CRYPT_SALT_LENGTH</code></strong> 的常量，用来表示可用散列允许的最长可用盐值。
+  </p>
+  <p class="para">
+   基于标准 DES 算法的 <span class="function"><strong>crypt()</strong></span> 在输出内容的开始位置返回两个字符的盐值。它也只使用 <code class="parameter">str</code> 的开始 8 个字符，所以更长的以相同 8 个字符开始的字符串也将生成相同的结果（当使用了相同的盐值时）。
+  </p>
+  <p class="simpara">
+   在 crypt() 函数支持多重散列的系统上，下面的常量根据相应的类型是否可用被设置为 0 或 1：
+  </p>
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     <strong><code>CRYPT_STD_DES</code></strong> - 基于标准 DES 算法的散列使用 &quot;./0-9A-Za-z&quot; 字符中的两个字符作为盐值。在盐值中使用非法的字符将导致 crypt() 失败。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <strong><code>CRYPT_EXT_DES</code></strong> - 扩展的基于 DES 算法的散列。其盐值为 9 个字符的字符串，由 1 个下划线后面跟着 4 字节循环次数和 4 字节盐值组成。它们被编码成可打印字符，每个字符 6 位，有效位最少的优先。0 到 63 被编码为 &quot;./0-9A-Za-z&quot;。在盐值中使用非法的字符将导致 crypt() 失败。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <strong><code>CRYPT_MD5</code></strong> - MD5 散列使用一个以 $1$ 开始的 12 字符的字符串盐值。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <strong><code>CRYPT_BLOWFISH</code></strong> - Blowfish 算法使用如下盐值：“$2a$”，一个两位 cost 参数，“$” 以及 64 位由 “./0-9A-Za-z” 中的字符组合而成的字符串。在盐值中使用此范围之外的字符将导致 crypt() 返回一个空字符串。两位 cost 参数是循环次数以 2 为底的对数，它的范围是 04-31，超出这个范围将导致 crypt() 失败。
+     PHP 5.3.7 之前只支持 “$2a$” 作为盐值的前缀，PHP 5.3.7 开始引入了新的前缀来修正一个在Blowfish实现上的安全风险。可以参考<a href="http://www.php.net/security/crypt_blowfish.php" class="link external">&raquo;&nbsp;this document</a>来了解关于这个修复的更多信息。总而言之，开发者如果仅针对 PHP 5.3.7及之后版本进行开发，那应该使用 “$2y$” 而非 “$2a$”
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <strong><code>CRYPT_SHA256</code></strong> - SHA-256 算法使用一个以 $5$ 开头的 16 字符字符串盐值进行散列。如果盐值字符串以 “rounds=&lt;N&gt;$” 开头，N 的数字值将被用来指定散列循环的执行次数，这点很像 Blowfish 算法的 cost 参数。默认的循环次数是 5000，最小是 1000，最大是 999,999,999。超出这个范围的 N 将会被转换为最接近的值。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <strong><code>CRYPT_SHA512</code></strong> - SHA-512 算法使用一个以 $6$ 开头的 16 字符字符串盐值进行散列。如果盐值字符串以 “rounds=&lt;N&gt;$” 开头，N 的数字值将被用来指定散列循环的执行次数，这点很像 Blowfish 算法的 cost 参数。默认的循环次数是 5000，最小是 1000，最大是 999,999,999。超出这个范围的 N 将会被转换为最接近的值。
+    </span>
+   </li>
+  </ul>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    从 PHP 5.3.0 起，PHP 包含了它自己的实现，并将在系统缺乏相应算法支持的时候使用它自己的实现。
+   </p>
+  </p></blockquote>
+ </div>
+
+ 
+ <div class="refsect1 parameters" id="refsect1-function.crypt-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">str</code></dt>
+
+     <dd>
+
+      <p class="para">
+       待散列的字符串。
+      </p>
+      <div class="caution"><strong class="caution">Caution</strong>
+       <p class="para">
+        使用 <strong><code>CRYPT_BLOWFISH</code></strong> 算法将导致<code class="parameter">str</code>被裁剪为一个最长72个字符的字符串。
+       </p>
+      </div>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">salt</code></dt>
+
+     <dd>
+
+      <p class="para">
+       可选的盐值字符串。如果没有提供，算法行为将由不同的算法实现决定，并可能导致不可预料的结束。
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 returnvalues" id="refsect1-function.crypt-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   返回散列后的字符串或一个少于 13 字符的字符串，从而保证在失败时与盐值区分开来。
+  </p>
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="simpara">
+    当校验密码时，应该使用一个不容易被时间攻击的字符串比较函数来比较<span class="function"><strong>crypt()</strong></span>的输出与之前已知的哈希。出于这个目的，PHP5.6开始提供了<span class="function"><a href="hash_equals.html" class="function">hash_equals()</a></span>。
+   </p>
+  </div>
+ </div>
+
+ 
+ <div class="refsect1 changelog" id="refsect1-function.crypt-changelog">
+  <h3 class="title">更新日志</h3>
+  <p class="para">
+   <table class="doctable informaltable">
+    
+     <thead>
+      <tr>
+       <th>版本</th>
+       <th>说明</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      <tr>
+       <td>5.6.5</td>
+       <td>
+        When the failure string &quot;*0&quot; is given as the
+        <code class="parameter">salt</code>, &quot;*1&quot; will now be returned for consistency
+        with other crypt implementations. Prior to this version, PHP 5.6 would
+        incorrectly return a DES hash.
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.6.0</td>
+       <td>
+        Raise E_NOTICE security warning if <code class="parameter">salt</code> is omitted.
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.5.21</td>
+       <td>
+        When the failure string &quot;*0&quot; is given as the
+        <code class="parameter">salt</code>, &quot;*1&quot; will now be returned for consistency
+        with other crypt implementations. Prior to this version, PHP 5.5 (and
+        earlier branches) would incorrectly return a DES hash.
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.3.7</td>
+       <td>
+        Added <em>$2x$</em> and <em>$2y$</em> Blowfish
+        modes to deal with potential high-bit attacks.
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.3.2</td>
+       <td>
+        基于 Ulrich Drepper 的<a href="http://people.redhat.com/drepper/SHA-crypt.txt" class="link external">&raquo;&nbsp;实现</a>，新增基于 SHA-256 算法和 SHA-512 算法的 crypt。
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.3.2</td>
+       <td>
+        修正了 Blowfish 算法由于非法循环导致的问题，返回“失败”字符串（“*0” 或 “*1”）而不是转而使用 DES 算法。
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.3.0</td>
+       <td>
+        PHP 现在包含了它自己的 MD5 Crypt 实现，包括标准 DES 算法，扩展的 DES 算法以及 Blowfish 算法。如果系统缺乏相应的实现，那么 PHP 将使用它自己的实现。
+       </td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 examples" id="refsect1-function.crypt-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-5899">
+    <p><strong>Example #1 <span class="function"><strong>crypt()</strong></span> 范例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$hashed_password&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #DD0000">'mypassword'</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;自动生成盐值<br /><br />/*&nbsp;你应当使用&nbsp;crypt()&nbsp;得到的完整结果作为盐值进行密码校验，以此来避免使用不同散列算法导致的问题。（如上所述，基于标准&nbsp;DES&nbsp;算法的密码散列使用&nbsp;2&nbsp;字符盐值，但是基于&nbsp;MD5&nbsp;算法的散列使用&nbsp;12&nbsp;个字符盐值。）*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">hash_equals</span><span style="color: #007700">(</span><span style="color: #0000BB">$hashed_password</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #0000BB">$user_input</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$hashed_password</span><span style="color: #007700">)))&nbsp;{<br />&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Password&nbsp;verified!"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-5900">
+    <p><strong>Example #2 利用 htpasswd 进行 <span class="function"><strong>crypt()</strong></span> 加密</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;设置密码<br /></span><span style="color: #0000BB">$password&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'mypassword'</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;获取散列值，使用自动盐值<br /></span><span style="color: #0000BB">$hash&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #0000BB">$password</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-5901">
+    <p><strong>Example #3 以不同散列类型使用 <span class="function"><strong>crypt()</strong></span></strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">CRYPT_STD_DES&nbsp;</span><span style="color: #007700">==&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Standard&nbsp;DES:&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #DD0000">'rasmuslerdorf'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'rl'</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(</span><span style="color: #0000BB">CRYPT_EXT_DES&nbsp;</span><span style="color: #007700">==&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Extended&nbsp;DES:&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #DD0000">'rasmuslerdorf'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'_J9..rasm'</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(</span><span style="color: #0000BB">CRYPT_MD5&nbsp;</span><span style="color: #007700">==&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'MD5:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #DD0000">'rasmuslerdorf'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'$1$rasmusle$'</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(</span><span style="color: #0000BB">CRYPT_BLOWFISH&nbsp;</span><span style="color: #007700">==&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Blowfish:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #DD0000">'rasmuslerdorf'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'$2a$07$usesomesillystringforsalt$'</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(</span><span style="color: #0000BB">CRYPT_SHA256&nbsp;</span><span style="color: #007700">==&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'SHA-256:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #DD0000">'rasmuslerdorf'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'$5$rounds=5000$usesomesillystringforsalt$'</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(</span><span style="color: #0000BB">CRYPT_SHA512&nbsp;</span><span style="color: #007700">==&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'SHA-512:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #DD0000">'rasmuslerdorf'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'$6$rounds=5000$usesomesillystringforsalt$'</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Standard DES: rl.3StKT.4T8M
+Extended DES: _J9..rasmBYk8r9AiWNc
+MD5:          $1$rasmusle$rISCgZzpwk3UhDidwXvin0
+Blowfish:     $2a$07$usesomesillystringfore2uDLvp1Ii2e./U9C8sBjqp8I90dH6hi
+SHA-256:      $5$rounds=5000$usesomesillystri$KqJWpanXZHKq2BOB43TSaYhEWsQ1Lr5QNyPCDH/Tp.6
+SHA-512:      $6$rounds=5000$usesomesillystri$D4IrlXatmP7rx3P3InaxBeoomnAihCKRVQP22JZ6EY47Wc6BkroIuUUBOov1i.S5KPgErtP/EN5mcO.ChWQW21
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 notes" id="refsect1-function.crypt-notes">
+  <h3 class="title">注释</h3>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <span class="simpara">
+    由于 <span class="function"><strong>crypt()</strong></span> 使用的是单向算法，因此不存在 decrypt 函数。
+   </span>
+  </p></blockquote>
+ </div>
+
+ 
+ <div class="refsect1 seealso" id="refsect1-function.crypt-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="hash_equals.html" class="function" rel="rdfs-seeAlso">hash_equals()</a> - 可防止时序攻击的字符串比较</span></li>
+    <li class="member"><span class="function"><a href="password_hash.html" class="function" rel="rdfs-seeAlso">password_hash()</a> - 创建密码的散列（hash）</span></li>
+    <li class="member"><span class="function"><a href="md5.html" class="function" rel="rdfs-seeAlso">md5()</a> - 计算字符串的 MD5 散列值</span></li>
+    <li class="member"><a href="ref.mcrypt.html" class="link">Mcrypt</a> 扩展</li>
+    <li class="member">更多关于 crypt 函数的信息，请阅读 Unix man 页面</li>
+   </ul>
+  </p>
+ </div>
+
+ 
+</div></div></div></body></html>

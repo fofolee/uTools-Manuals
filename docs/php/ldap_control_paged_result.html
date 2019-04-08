@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Send LDAP pagination control</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.ldap-control-paged-result" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">ldap_control_paged_result</h1>
+  <p class="verinfo">(PHP 5 &gt;= 5.4.0, PHP 7)</p><p class="refpurpose"><span class="refname">ldap_control_paged_result</span> &mdash; <span class="dc-title">Send LDAP pagination control</span></p>
+
+ </div>
+ <div class="refsect1 description" id="refsect1-function.ldap-control-paged-result-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>ldap_control_paged_result</strong></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$link</code></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$pagesize</code></span>
+   [, <span class="methodparam"><span class="type">bool</span> <code class="parameter">$iscritical</code><span class="initializer"> = <strong><code>FALSE</code></strong></span></span>
+   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$cookie</code><span class="initializer"> = &quot;&quot;</span></span>
+  ]] ) : <span class="type">bool</span></div>
+
+  <p class="para rdfs-comment">
+   Enable LDAP pagination by sending the pagination control (page size, cookie...).
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.ldap-control-paged-result-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">link</code></dt>
+
+     <dd>
+
+      <p class="para">
+       An LDAP link identifier, returned by <span class="function"><a href="ldap_connect.html" class="function">ldap_connect()</a></span>.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">pagesize</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The number of entries by page.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">iscritical</code></dt>
+
+     <dd>
+
+      <p class="para">
+       Indicates whether the pagination is critical or not. 
+       If true and if the server doesn&#039;t support pagination, the search
+       will return no result.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">cookie</code></dt>
+
+     <dd>
+
+      <p class="para">
+       An opaque structure sent by the server 
+       (<span class="function"><a href="ldap_control_paged_result_response.html" class="function">ldap_control_paged_result_response()</a></span>).
+      </p>
+     </dd>
+
+    
+    </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.ldap-control-paged-result-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.ldap-control-paged-result-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   The example below show the retrieval of the first page of a search paginated
+   with one entry by page.
+   <div class="example" id="example-5391">
+    <p><strong>Example #1 LDAP pagination</strong></p>
+    <div class="example-contents">
+     <div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;$ds&nbsp;is&nbsp;a&nbsp;valid&nbsp;link&nbsp;identifier&nbsp;(see&nbsp;ldap_connect)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ldap_set_option</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">LDAP_OPT_PROTOCOL_VERSION</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$dn&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'ou=example,dc=org'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$filter&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'(|(sn=Doe*)(givenname=John*))'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$justthese&nbsp;</span><span style="color: #007700">=&nbsp;array(</span><span style="color: #DD0000">'ou'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'sn'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'givenname'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'mail'</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;enable&nbsp;pagination&nbsp;with&nbsp;a&nbsp;page&nbsp;size&nbsp;of&nbsp;1.<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ldap_control_paged_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$sr&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">ldap_search</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$dn</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$filter</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$justthese</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$info&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">ldap_get_entries</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$sr</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$info</span><span style="color: #007700">[</span><span style="color: #DD0000">'count'</span><span style="color: #007700">]&nbsp;.&nbsp;</span><span style="color: #DD0000">'&nbsp;entries&nbsp;returned'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">PHP_EOL</span><span style="color: #007700">;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   The example below show the retrieval of all the result paginated with 100 
+   entries by page.
+   <div class="example" id="example-5392">
+    <p><strong>Example #2 LDAP pagination</strong></p>
+    <div class="example-contents">
+     <div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;$ds&nbsp;is&nbsp;a&nbsp;valid&nbsp;link&nbsp;identifier&nbsp;(see&nbsp;ldap_connect)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ldap_set_option</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">LDAP_OPT_PROTOCOL_VERSION</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$dn&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'ou=example,dc=org'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$filter&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'(|(sn=Doe*)(givenname=John*))'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$justthese&nbsp;</span><span style="color: #007700">=&nbsp;array(</span><span style="color: #DD0000">'ou'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'sn'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'givenname'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'mail'</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;enable&nbsp;pagination&nbsp;with&nbsp;a&nbsp;page&nbsp;size&nbsp;of&nbsp;100.<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$pageSize&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">100</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$cookie&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">''</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ldap_control_paged_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$pageSize</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$cookie</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$result&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">ldap_search</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$dn</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$filter</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$justthese</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$entries&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">ldap_get_entries</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$result</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(</span><span style="color: #0000BB">$entries&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">[</span><span style="color: #DD0000">'dn'</span><span style="color: #007700">]&nbsp;.&nbsp;</span><span style="color: #0000BB">PHP_EOL</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ldap_control_paged_result_response</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$result</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$cookie</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;while(</span><span style="color: #0000BB">$cookie&nbsp;</span><span style="color: #007700">!==&nbsp;</span><span style="color: #0000BB">null&nbsp;</span><span style="color: #007700">&amp;&amp;&nbsp;</span><span style="color: #0000BB">$cookie&nbsp;</span><span style="color: #007700">!=&nbsp;</span><span style="color: #DD0000">''</span><span style="color: #007700">);</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 notes" id="refsect1-function.ldap-control-paged-result-notes">
+  <h3 class="title">注释</h3>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    Pagination control is a LDAPv3 protocol feature.
+   </p>
+  </p></blockquote>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.ldap-control-paged-result-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="ldap_control_paged_result_response.html" class="function" rel="rdfs-seeAlso">ldap_control_paged_result_response()</a> - Retrieve the LDAP pagination cookie</span></li>
+    <li class="member"><a href="http://www.faqs.org/rfcs/rfc2696" class="link external">&raquo;&nbsp;RFC2696 : LDAP Control Extension for Simple
+    Paged Results Manipulation</a></li>
+   </ul>
+  </p>
+ </div>
+
+</div></div></div></body></html>

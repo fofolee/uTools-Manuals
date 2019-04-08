@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Atomically fetch or generate a cache entry</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.apcu-entry" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">apcu_entry</h1>
+  <p class="verinfo">(PECL apcu &gt;= 5.1.0)</p><p class="refpurpose"><span class="refname">apcu_entry</span> &mdash; <span class="dc-title">
+   Atomically fetch or generate a cache entry
+  </span></p>
+
+ </div>
+ <div class="refsect1 description" id="refsect1-function.apcu-entry-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>apcu_entry</strong></span>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$key</code></span>
+   , <span class="methodparam"><span class="type"><a href="language.types.callable.html" class="type callable">callable</a></span> <code class="parameter">$generator</code></span>
+   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$ttl</code><span class="initializer"> = 0</span></span>
+  ] ) : <span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span></div>
+
+  <p class="para rdfs-comment">
+   Atomically attempts to find <code class="parameter">key</code> in the cache, if it cannot be found <code class="parameter">generator</code>
+   is called, passing <code class="parameter">key</code> as the only argument. The return value of the call is then cached with the optionally specified
+   <code class="parameter">ttl</code>, and returned.
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <span class="simpara">
+    When control enters <span class="function"><strong>apcu_entry()</strong></span> the lock for the cache is acquired exclusively, it is released when control leaves <span class="function"><strong>apcu_entry()</strong></span>: 
+    In effect, this turns the body of <code class="parameter">generator</code> into a critical section, disallowing two processes from executing the same code paths concurrently.
+    In addition, it prohibits the concurrent execution of any other APCu functions, since they will acquire the same lock.
+   </span>
+  </p></blockquote>
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="simpara">
+    The only APCu function that can be called safely by <code class="parameter">generator</code> is <span class="function"><strong>apcu_entry()</strong></span>.
+   </p>
+  </div>
+ </div>
+
+ <div class="refsect1 parameters" id="refsect1-function.apcu-entry-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">key</code></dt>
+
+     <dd>
+
+      <p class="para">
+       Identity of cache entry
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">generator</code></dt>
+
+     <dd>
+
+      <p class="para">
+       A callable that accepts <code class="parameter">key</code> as the only argument and returns the value to cache.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">ttl</code></dt>
+
+     <dd>
+
+      <p class="para">
+       Time To Live; store <code class="parameter">var</code> in the cache for
+       <code class="parameter">ttl</code> seconds. After the
+       <code class="parameter">ttl</code> has passed, the stored variable will be
+       expunged from the cache (on the next request). If no <code class="parameter">ttl</code>
+       is supplied (or if the <code class="parameter">ttl</code> is
+       <em>0</em>), the value will persist until it is removed from
+       the cache manually, or otherwise fails to exist in the cache (clear,
+       restart, etc.).
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+ <div class="refsect1 returnvalues" id="refsect1-function.apcu-entry-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   Returns the cached value
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.apcu-entry-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-419">
+    <p><strong>Example #1 An <span class="function"><strong>apcu_entry()</strong></span> example</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$config&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">apcu_entry</span><span style="color: #007700">(</span><span style="color: #DD0000">"config"</span><span style="color: #007700">,&nbsp;function(</span><span style="color: #0000BB">$key</span><span style="color: #007700">)&nbsp;{<br />&nbsp;return&nbsp;[<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"fruit"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">apcu_entry</span><span style="color: #007700">(</span><span style="color: #DD0000">"config.fruit"</span><span style="color: #007700">,&nbsp;function(</span><span style="color: #0000BB">$key</span><span style="color: #007700">){<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;[<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"apples"</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"pears"<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;}),&nbsp;<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"people"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">apcu_entry</span><span style="color: #007700">(</span><span style="color: #DD0000">"config.people"</span><span style="color: #007700">,&nbsp;function(</span><span style="color: #0000BB">$key</span><span style="color: #007700">){<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;[<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"bob"</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"joe"</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"niki"<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;})<br />&nbsp;];<br />});<br /><br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$config</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+array(2) {
+  [&quot;fruit&quot;]=&gt;
+  array(2) {
+    [0]=&gt;
+    string(6) &quot;apples&quot;
+    [1]=&gt;
+    string(5) &quot;pears&quot;
+  }
+  [&quot;people&quot;]=&gt;
+  array(3) {
+    [0]=&gt;
+    string(3) &quot;bob&quot;
+    [1]=&gt;
+    string(3) &quot;joe&quot;
+    [2]=&gt;
+    string(4) &quot;niki&quot;
+  }
+}
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.apcu-entry-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="apcu_store.html" class="function" rel="rdfs-seeAlso">apcu_store()</a> - Cache a variable in the data store</span></li>
+    <li class="member"><span class="function"><a href="apcu_fetch.html" class="function" rel="rdfs-seeAlso">apcu_fetch()</a> - Fetch a stored variable from the cache</span></li>
+    <li class="member"><span class="function"><a href="apcu_delete.html" class="function" rel="rdfs-seeAlso">apcu_delete()</a> - Removes a stored variable from the cache</span></li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

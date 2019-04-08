@@ -1,0 +1,264 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Runs the equivalent of the select() system call on the given
+   arrays of streams with a timeout specified by tv_sec and tv_usec</title>
+ </head>
+ <body class="docs"></div>
+<div id="layout">
+  <div id="layout-content"><div id="function.stream-select" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">stream_select</h1>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">stream_select</span> &mdash; <span class="dc-title">Runs the equivalent of the select() system call on the given
+   arrays of streams with a timeout specified by tv_sec and tv_usec </span></p>
+
+ </div>
+ <div class="refsect1 description" id="refsect1-function.stream-select-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>stream_select</strong></span>
+    ( <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$read</code></span>
+   , <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$write</code></span>
+   , <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$except</code></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$tv_sec</code></span>
+   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$tv_usec</code><span class="initializer"> = 0</span></span>
+  ] ) : <span class="type">int</span></div>
+
+  <p class="para rdfs-comment">
+   The <span class="function"><strong>stream_select()</strong></span> function accepts arrays of streams and
+   waits for them to change status. Its operation is equivalent to that of
+   the <span class="function"><a href="socket_select.html" class="function">socket_select()</a></span> function except in that it acts on streams.
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.stream-select-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">read</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The streams listed in the <code class="parameter">read</code> array will be watched to
+       see if characters become available for reading (more precisely, to see if
+       a read will not block - in particular, a stream resource is also ready on
+       end-of-file, in which case an <span class="function"><a href="fread.html" class="function">fread()</a></span> will return
+       a zero length string).
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">write</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The streams listed in the <code class="parameter">write</code> array will be
+       watched to see if a write will not block.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">except</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The streams listed in the <code class="parameter">except</code> array will be
+       watched for high priority exceptional (&quot;out-of-band&quot;) data arriving.
+      </p>
+      <blockquote class="note"><p><strong class="note">Note</strong>: 
+       <p class="para">
+        When <span class="function"><strong>stream_select()</strong></span> returns, the arrays
+        <code class="parameter">read</code>, <code class="parameter">write</code> and
+        <code class="parameter">except</code> are modified to indicate which stream
+        resource(s) actually changed status.
+       </p>
+      </p></blockquote>
+      <span class="simpara">
+       You do not need to pass every array to
+       <span class="function"><strong>stream_select()</strong></span>. You can leave it out and use an
+       empty array or <strong><code>NULL</code></strong> instead. Also do not forget that those arrays are
+       passed <em class="emphasis">by reference</em> and will be modified after
+       <span class="function"><strong>stream_select()</strong></span> returns.
+      </span>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">tv_sec</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The <code class="parameter">tv_sec</code> and <code class="parameter">tv_usec</code>
+       together form the <em class="emphasis">timeout</em> parameter,
+       <code class="parameter">tv_sec</code> specifies the number of seconds while
+       <code class="parameter">tv_usec</code> the number of microseconds.
+       The <code class="parameter">timeout</code> is an upper bound on the amount of time
+       that <span class="function"><strong>stream_select()</strong></span> will wait before it returns.
+       If <code class="parameter">tv_sec</code> and <code class="parameter">tv_usec</code> are
+       both set to <em>0</em>, <span class="function"><strong>stream_select()</strong></span> will
+       not wait for data - instead it will return immediately, indicating the
+       current status of the streams.
+      </p>
+      <p class="para">
+       If <code class="parameter">tv_sec</code> is <strong><code>NULL</code></strong> <span class="function"><strong>stream_select()</strong></span>
+       can block indefinitely, returning only when an event on one of the
+       watched streams occurs (or if a signal interrupts the system call).
+      </p>
+      <div class="warning"><strong class="warning">Warning</strong>
+       <p class="para">
+        Using a timeout value of <em>0</em> allows you to
+        instantaneously poll the status of the streams, however, it is NOT a
+        good idea to use a <em>0</em> timeout value in a loop as it
+        will cause your script to consume too much CPU time.
+       </p>
+       <p class="para">
+        It is much better to specify a timeout value of a few seconds, although
+        if you need to be checking and running other code concurrently, using a
+        timeout value of at least <em>200000</em> microseconds will
+        help reduce the CPU usage of your script.
+       </p>
+       <p class="para">
+        Remember that the timeout value is the maximum time that will elapse;
+        <span class="function"><strong>stream_select()</strong></span> will return as soon as the
+        requested streams are ready for use.
+       </p>
+      </div>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">tv_usec</code></dt>
+
+     <dd>
+
+      <p class="para">
+       See <code class="parameter">tv_sec</code> description.
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.stream-select-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   On success <span class="function"><strong>stream_select()</strong></span> returns the number of
+   stream resources contained in the modified arrays, which may be zero if
+   the timeout expires before anything interesting happens. On error <strong><code>FALSE</code></strong>
+   is returned and a warning raised (this can happen if the system call is
+   interrupted by an incoming signal).
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.stream-select-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-4833">
+    <p><strong>Example #1 <span class="function"><strong>stream_select()</strong></span> Example</strong></p>
+    <div class="example-contents"><p>
+     This example checks to see if data has arrived for reading on either
+     <code class="parameter">$stream1</code> or <code class="parameter">$stream2</code>.
+     Since the timeout value is <em>0</em> it will return
+     immediately:
+    </p></div>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">/*&nbsp;Prepare&nbsp;the&nbsp;read&nbsp;array&nbsp;*/<br /></span><span style="color: #0000BB">$read&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;array(</span><span style="color: #0000BB">$stream1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$stream2</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$write&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">NULL</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$except&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">NULL</span><span style="color: #007700">;<br />if&nbsp;(</span><span style="color: #0000BB">false&nbsp;</span><span style="color: #007700">===&nbsp;(</span><span style="color: #0000BB">$num_changed_streams&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">stream_select</span><span style="color: #007700">(</span><span style="color: #0000BB">$read</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$write</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$except</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">)))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;Error&nbsp;handling&nbsp;*/<br /></span><span style="color: #007700">}&nbsp;elseif&nbsp;(</span><span style="color: #0000BB">$num_changed_streams&nbsp;</span><span style="color: #007700">&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;At&nbsp;least&nbsp;on&nbsp;one&nbsp;of&nbsp;the&nbsp;streams&nbsp;something&nbsp;interesting&nbsp;happened&nbsp;*/<br /></span><span style="color: #007700">}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 notes" id="refsect1-function.stream-select-notes">
+  <h3 class="title">注释</h3>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    Due to a limitation in the current Zend Engine it is not possible to pass a
+    constant modifier like <strong><code>NULL</code></strong> directly as a parameter to a function
+    which expects this parameter to be passed by reference. Instead use a
+    temporary variable or an expression with the leftmost member being a
+    temporary variable:
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$e&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">NULL</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">stream_select</span><span style="color: #007700">(</span><span style="color: #0000BB">$r</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$w</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+   </div>
+
+   </p>
+  </p></blockquote>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+   Be sure to use the <em>===</em> operator when checking for an
+   error. Since the <span class="function"><strong>stream_select()</strong></span> may return 0 the
+   comparison with <em>==</em> would evaluate to <strong><code>TRUE</code></strong>:
+   <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$e&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">NULL</span><span style="color: #007700">;<br />if&nbsp;(</span><span style="color: #0000BB">false&nbsp;</span><span style="color: #007700">===&nbsp;</span><span style="color: #0000BB">stream_select</span><span style="color: #007700">(</span><span style="color: #0000BB">$r</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$w</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"stream_select()&nbsp;failed\n"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+   </div>
+
+   </p>
+  </p></blockquote>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    If you read/write to a stream returned in the arrays be aware that
+    they do not necessarily read/write the full amount of data you have
+    requested. Be prepared to even only be able to read/write a single
+    byte.
+   </p>
+  </p></blockquote>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    Some streams (like <em>zlib</em>) cannot be selected by this
+    function.
+   </p>
+  </p></blockquote>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    Windows compatibility: <span class="function"><strong>stream_select()</strong></span> used on a
+    pipe returned from <span class="function"><a href="proc_open.html" class="function">proc_open()</a></span> may cause data loss
+    under Windows 98.
+   </p>
+   <p class="para">
+    Use of <span class="function"><strong>stream_select()</strong></span> on
+    file descriptors returned by <span class="function"><a href="proc_open.html" class="function">proc_open()</a></span> will fail
+    and return <strong><code>FALSE</code></strong> under Windows.
+   </p>
+  </p></blockquote>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.stream-select-seealso">
+  <h3 class="title">参见</h3>
+  <ul class="simplelist">
+   <li class="member"><span class="function"><a href="stream_set_blocking.html" class="function" rel="rdfs-seeAlso">stream_set_blocking()</a> - 为资源流设置阻塞或者阻塞模式</span></li>
+  </ul>
+ </div>
+
+</div></div></div></body></html>

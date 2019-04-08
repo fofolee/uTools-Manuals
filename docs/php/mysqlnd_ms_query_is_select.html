@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>查询给定的 SQL 会发送给 master、slave 还是最后使用的 MySQL server 执行。</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.mysqlnd-ms-query-is-select" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">mysqlnd_ms_query_is_select</h1>
+  <p class="verinfo">(PECL mysqlnd_ms &gt;= 1.0.0)</p><p class="refpurpose"><span class="refname">mysqlnd_ms_query_is_select</span> &mdash; <span class="dc-title">查询给定的 SQL 会发送给 master、slave 还是最后使用的 MySQL server 执行。</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.mysqlnd-ms-query-is-select-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   
+   <span class="methodname"><strong>mysqlnd_ms_query_is_select</strong></span>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$query</code></span>
+   ) : <span class="type">int</span></div>
+
+  <p class="para rdfs-comment">
+   查询给定的 SQL 会发送给 master、slave 还是最后使用的 MySQL server 执行。
+  </p>
+  <p class="para">
+   插件内置的读写分离会分析 SQL，然后决定到底把他发送到哪里执行。这个读写分离器非常
+   的基本和简单。插件会将所有的查询发送给 master，除非他以 <em>SELECT</em>
+   开头，或者使用 SQL hints 指定要去 slave 执行。因为这个读写分离很简单，
+   所以会将一些只读查询发送给主从同步的 master，例如：<em>SHOW TABLES</em>。
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.mysqlnd-ms-query-is-select-parameters">
+  <h3 class="title">参数</h3>
+  <dl>
+
+   
+    <dt>
+<code class="parameter">query</code></dt>
+
+    <dd>
+
+     <p class="para">
+      要测试的 SQL 字符串。
+     </p>
+    </dd>
+
+   
+  </dl>
+
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.mysqlnd-ms-query-is-select-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   返回 <strong><code>MYSQLND_MS_QUERY_USE_MASTER</code></strong> 说明发送给 master。
+   返回 <strong><code>MYSQLND_MS_QUERY_USE_SLAVE</code></strong> 说明是一个只读语句，
+   将发送给 slave 执行。返回 <strong><code>MYSQLND_MS_QUERY_USE_LAST_USED</code></strong>
+   说明会在上一次执行的服务器连接中执行，这可能是 master 也可能是 slave。
+  </p>
+  <p class="para">
+   如果通过设定 <em>mysqlnd_ms.disable_rw_split</em> 禁用了读写分离，
+   那么函数可能返回 <strong><code>MYSQLND_MS_QUERY_USE_MASTER</code></strong> 或者返回
+   <strong><code>MYSQLND_MS_QUERY_USE_LAST_USED</code></strong>。
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.mysqlnd-ms-query-is-select-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-2274">
+    <p><strong>Example #1 <span class="function"><strong>mysqlnd_ms_query_is_select()</strong></span> example</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">is_select</span><span style="color: #007700">(</span><span style="color: #0000BB">$query</span><span style="color: #007700">)<br />{<br />&nbsp;switch&nbsp;(</span><span style="color: #0000BB">mysqlnd_ms_query_is_select</span><span style="color: #007700">(</span><span style="color: #0000BB">$query</span><span style="color: #007700">))<br />&nbsp;{<br />&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">MYSQLND_MS_QUERY_USE_MASTER</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"'%s'&nbsp;should&nbsp;be&nbsp;run&nbsp;on&nbsp;the&nbsp;master.\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">MYSQLND_MS_QUERY_USE_SLAVE</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"'%s'&nbsp;should&nbsp;be&nbsp;run&nbsp;on&nbsp;a&nbsp;slave.\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">MYSQLND_MS_QUERY_USE_LAST_USED</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"'%s'&nbsp;should&nbsp;be&nbsp;run&nbsp;on&nbsp;the&nbsp;server&nbsp;that&nbsp;has&nbsp;run&nbsp;the&nbsp;previous&nbsp;query\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;default:<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"No&nbsp;suggestion&nbsp;where&nbsp;to&nbsp;run&nbsp;the&nbsp;'%s',&nbsp;fallback&nbsp;to&nbsp;master&nbsp;recommended\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;break;<br />&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">is_select</span><span style="color: #007700">(</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;test(id)&nbsp;VALUES&nbsp;(1)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">is_select</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;1&nbsp;FROM&nbsp;DUAL"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">is_select</span><span style="color: #007700">(</span><span style="color: #DD0000">"/*"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">MYSQLND_MS_LAST_USED_SWITCH&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"*/SELECT&nbsp;2&nbsp;FROM&nbsp;DUAL"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+INSERT INTO test(id) VALUES (1) should be run on the master.
+SELECT 1 FROM DUAL should be run on a slave.
+/*ms=last_used*/SELECT 2 FROM DUAL should be run on the server that has run the previous query
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.mysqlnd-ms-query-is-select-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member">
+     <a href="mysqlnd_ms.constants.html" class="link">Predefined Constants</a>
+    </li>
+    <li class="member">
+     <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.filter-user" class="link"><em>user</em></a> filter
+    </li>
+   </ul>
+      <ul class="simplelist">
+    <li class="member">
+     <a href="mysqlnd_ms.configuration.html" class="link">Runtime configuration</a>
+    </li>
+    <li class="member">
+     <a href="mysqlnd-ms.configuration.html#ini.mysqlnd-ms.disable-rw-split" class="link">mysqlnd_ms.disable_rw_split</a>
+    </li>
+    <li class="member">
+     <a href="mysqlnd-ms.configuration.html#ini.mysqlnd-ms.enable" class="link">mysqlnd_ms.enable</a>
+    </li>
+   </ul>
+
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

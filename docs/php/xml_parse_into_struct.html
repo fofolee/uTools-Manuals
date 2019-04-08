@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>将 XML 数据解析到数组中</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.xml-parse-into-struct" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">xml_parse_into_struct</h1>
+    <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">xml_parse_into_struct</span> &mdash; <span class="dc-title">将 XML 数据解析到数组中</span></p>
+
+   </div>
+   <div class="refsect1 unknown-seealsp" id="refsect1-function.xml-parse-into-struct-unknown-seealsp">
+    <h3 class="title">说明</h3>
+    <div class="methodsynopsis dc-description">
+     <span class="methodname"><strong>xml_parse_into_struct</strong></span>
+      ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$parser</code></span>
+     , <span class="methodparam"><span class="type">string</span> <code class="parameter">$data</code></span>
+     , <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$values</code></span>
+     [, <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$index</code></span>
+    ] ) : <span class="type">int</span></div>
+
+    <p class="para rdfs-comment">
+     该函数将 XML 文件解析到两个对应的数组中，<code class="parameter">index</code>
+     参数含有指向 <code class="parameter">values</code>
+     数组中对应值的指针。最后两个数组参数可由指针传递给函数。
+    </p>
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+     <p class="para">
+      <span class="function"><strong>xml_parse_into_struct()</strong></span> 失败返回 0，成功返回
+      1。这和 <strong><code>FALSE</code></strong> 与
+      <strong><code>TRUE</code></strong> 不同，使用例如 === 的运算符时要注意。
+     </p>
+    </p></blockquote>
+    <p class="para">
+     以下范例显示了由该函数生成的数组的内部结构。我们简单地将一个
+     <em>note</em> 嵌入到一个 <em>para</em>
+     标记中，解析后我们可以打印出生成的数组的结构：
+     <div class="example" id="example-6603">
+      <p><strong>Example #1 <span class="function"><strong>xml_parse_into_struct()</strong></span> 示例</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$simple&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"&lt;para&gt;&lt;note&gt;simple&nbsp;note&lt;/note&gt;&lt;/para&gt;"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$p&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">xml_parser_create</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">xml_parse_into_struct</span><span style="color: #007700">(</span><span style="color: #0000BB">$p</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$simple</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$vals</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$index</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">xml_parser_free</span><span style="color: #007700">(</span><span style="color: #0000BB">$p</span><span style="color: #007700">);<br />echo&nbsp;</span><span style="color: #DD0000">"Index&nbsp;array\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$index</span><span style="color: #007700">);<br />echo&nbsp;</span><span style="color: #DD0000">"\nVals&nbsp;array\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$vals</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+      </div>
+
+     <div class="example-contents"><p>
+     运行以上代码，我们得到的输出将是：
+     </p></div>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+Index array
+Array
+(
+    [PARA] =&gt; Array
+        (
+            [0] =&gt; 0
+            [1] =&gt; 2
+        )
+
+    [NOTE] =&gt; Array
+        (
+            [0] =&gt; 1
+        )
+
+)
+
+Vals array
+Array
+(
+    [0] =&gt; Array
+        (
+            [tag] =&gt; PARA
+            [type] =&gt; open
+            [level] =&gt; 1
+        )
+
+    [1] =&gt; Array
+        (
+            [tag] =&gt; NOTE
+            [type] =&gt; complete
+            [level] =&gt; 2
+            [value] =&gt; simple note
+        )
+
+    [2] =&gt; Array
+        (
+            [tag] =&gt; PARA
+            [type] =&gt; close
+            [level] =&gt; 1
+        )
+
+)
+</pre></div>
+      </div>
+     </div>
+    </p>
+    <p class="para">
+     如果您的 XML 文档很复杂，基于该文档的事件处理（Event-driven）解析（基于 expat 扩展库）也会对应的变得复杂。该函数生成的并非 DOM 风格的对象，而是横向的树状结构。因此，我们能够方便的建立表达 XML 文件数据的对象。我们假设以下 XML 文件表示一个关于氨基酸信息的小型数据库：
+     <div class="example" id="example-6604">
+      <p><strong>Example #2 moldb.xml - 分子信息的小型数据库</strong></p>
+      <div class="example-contents">
+<div class="xmlcode"><pre class="xmlcode">&lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;moldb&gt;
+
+    &lt;molecule&gt;
+        &lt;name&gt;Alanine&lt;/name&gt;
+        &lt;symbol&gt;ala&lt;/symbol&gt;
+        &lt;code&gt;A&lt;/code&gt;
+        &lt;type&gt;hydrophobic&lt;/type&gt;
+    &lt;/molecule&gt;
+
+    &lt;molecule&gt;
+        &lt;name&gt;Lysine&lt;/name&gt;
+        &lt;symbol&gt;lys&lt;/symbol&gt;
+        &lt;code&gt;K&lt;/code&gt;
+        &lt;type&gt;charged&lt;/type&gt;
+    &lt;/molecule&gt;
+
+&lt;/moldb&gt;</pre>
+</div>
+      </div>
+
+     </div>
+     以下是解析该文档并生成相应对象的代码：
+     <div class="example" id="example-6605">
+      <p><strong>Example #3 
+       parsemoldb.php - 将 moldb.xml 解析到分子（molecular）对象的数组中
+      </strong></p>
+      <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">AminoAcid&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;var&nbsp;</span><span style="color: #0000BB">$name</span><span style="color: #007700">;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;aa&nbsp;姓名<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">var&nbsp;</span><span style="color: #0000BB">$symbol</span><span style="color: #007700">;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;三字母符号<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">var&nbsp;</span><span style="color: #0000BB">$code</span><span style="color: #007700">;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;单字母代码<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">var&nbsp;</span><span style="color: #0000BB">$type</span><span style="color: #007700">;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;hydrophobic,&nbsp;charged&nbsp;或&nbsp;neutral<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">AminoAcid&nbsp;</span><span style="color: #007700">(</span><span style="color: #0000BB">$aa</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(</span><span style="color: #0000BB">$aa&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$k</span><span style="color: #007700">=&gt;</span><span style="color: #0000BB">$v</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">$k&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$aa</span><span style="color: #007700">[</span><span style="color: #0000BB">$k</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">readDatabase</span><span style="color: #007700">(</span><span style="color: #0000BB">$filename</span><span style="color: #007700">)<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;读取&nbsp;aminoacids&nbsp;的&nbsp;XML&nbsp;数据<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$data&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">implode</span><span style="color: #007700">(</span><span style="color: #DD0000">""</span><span style="color: #007700">,</span><span style="color: #0000BB">file</span><span style="color: #007700">(</span><span style="color: #0000BB">$filename</span><span style="color: #007700">));<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$parser&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">xml_parser_create</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">xml_parser_set_option</span><span style="color: #007700">(</span><span style="color: #0000BB">$parser</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">XML_OPTION_CASE_FOLDING</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">xml_parser_set_option</span><span style="color: #007700">(</span><span style="color: #0000BB">$parser</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">XML_OPTION_SKIP_WHITE</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">xml_parse_into_struct</span><span style="color: #007700">(</span><span style="color: #0000BB">$parser</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$data</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$values</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$tags</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">xml_parser_free</span><span style="color: #007700">(</span><span style="color: #0000BB">$parser</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;遍历&nbsp;XML&nbsp;结构<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">foreach&nbsp;(</span><span style="color: #0000BB">$tags&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$key</span><span style="color: #007700">=&gt;</span><span style="color: #0000BB">$val</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">$key&nbsp;</span><span style="color: #007700">==&nbsp;</span><span style="color: #DD0000">"molecule"</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$molranges&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$val</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;each&nbsp;contiguous&nbsp;pair&nbsp;of&nbsp;array&nbsp;entries&nbsp;are&nbsp;the<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;lower&nbsp;and&nbsp;upper&nbsp;range&nbsp;for&nbsp;each&nbsp;molecule&nbsp;definition<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">for&nbsp;(</span><span style="color: #0000BB">$i</span><span style="color: #007700">=</span><span style="color: #0000BB">0</span><span style="color: #007700">;&nbsp;</span><span style="color: #0000BB">$i&nbsp;</span><span style="color: #007700">&lt;&nbsp;</span><span style="color: #0000BB">count</span><span style="color: #007700">(</span><span style="color: #0000BB">$molranges</span><span style="color: #007700">);&nbsp;</span><span style="color: #0000BB">$i</span><span style="color: #007700">+=</span><span style="color: #0000BB">2</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$offset&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$molranges</span><span style="color: #007700">[</span><span style="color: #0000BB">$i</span><span style="color: #007700">]&nbsp;+&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$len&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$molranges</span><span style="color: #007700">[</span><span style="color: #0000BB">$i&nbsp;</span><span style="color: #007700">+&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">]&nbsp;-&nbsp;</span><span style="color: #0000BB">$offset</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$tdb</span><span style="color: #007700">[]&nbsp;=&nbsp;</span><span style="color: #0000BB">parseMol</span><span style="color: #007700">(</span><span style="color: #0000BB">array_slice</span><span style="color: #007700">(</span><span style="color: #0000BB">$values</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$offset</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$len</span><span style="color: #007700">));<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$tdb</span><span style="color: #007700">;<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">parseMol</span><span style="color: #007700">(</span><span style="color: #0000BB">$mvalues</span><span style="color: #007700">)<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(</span><span style="color: #0000BB">$i</span><span style="color: #007700">=</span><span style="color: #0000BB">0</span><span style="color: #007700">;&nbsp;</span><span style="color: #0000BB">$i&nbsp;</span><span style="color: #007700">&lt;&nbsp;</span><span style="color: #0000BB">count</span><span style="color: #007700">(</span><span style="color: #0000BB">$mvalues</span><span style="color: #007700">);&nbsp;</span><span style="color: #0000BB">$i</span><span style="color: #007700">++)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$mol</span><span style="color: #007700">[</span><span style="color: #0000BB">$mvalues</span><span style="color: #007700">[</span><span style="color: #0000BB">$i</span><span style="color: #007700">][</span><span style="color: #DD0000">"tag"</span><span style="color: #007700">]]&nbsp;=&nbsp;</span><span style="color: #0000BB">$mvalues</span><span style="color: #007700">[</span><span style="color: #0000BB">$i</span><span style="color: #007700">][</span><span style="color: #DD0000">"value"</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;new&nbsp;</span><span style="color: #0000BB">AminoAcid</span><span style="color: #007700">(</span><span style="color: #0000BB">$mol</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #0000BB">$db&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">readDatabase</span><span style="color: #007700">(</span><span style="color: #DD0000">"moldb.xml"</span><span style="color: #007700">);<br />echo&nbsp;</span><span style="color: #DD0000">"**&nbsp;Database&nbsp;of&nbsp;AminoAcid&nbsp;objects:\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$db</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+      </div>
+
+     </div>
+     在执行完 <var class="filename">parsemoldb.php</var> 后，变量 <var class="varname"><var class="varname">$db</var></var> 将包含有一个由 <strong class="classname">AminoAcid</strong> 对象组成的数组，该脚本的输出如下：
+     <div class="informalexample">
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+** Database of AminoAcid objects:
+Array
+(
+    [0] =&gt; aminoacid Object
+        (
+            [name] =&gt; Alanine
+            [symbol] =&gt; ala
+            [code] =&gt; A
+            [type] =&gt; hydrophobic
+        )
+
+    [1] =&gt; aminoacid Object
+        (
+            [name] =&gt; Lysine
+            [symbol] =&gt; lys
+            [code] =&gt; K
+            [type] =&gt; charged
+        )
+
+)
+</pre></div>
+      </div>
+     </div>
+    </p>
+   </div>
+
+  </div></div></div></body></html>

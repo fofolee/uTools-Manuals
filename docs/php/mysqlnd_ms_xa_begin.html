@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Starts a distributed/XA transaction among MySQL servers</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.mysqlnd-ms-xa-begin" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">mysqlnd_ms_xa_begin</h1>
+  <p class="verinfo">(PECL mysqlnd_ms &lt; 1.6.0)</p><p class="refpurpose"><span class="refname">mysqlnd_ms_xa_begin</span> &mdash; <span class="dc-title">Starts a distributed/XA transaction among MySQL servers</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.mysqlnd-ms-xa-begin-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   
+   <span class="methodname"><strong>mysqlnd_ms_xa_begin</strong></span>
+    ( <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span> <code class="parameter">$connection</code></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$gtrid</code></span>
+   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$timeout</code></span>
+  ] ) : <span class="type">int</span></div>
+
+  <p class="para rdfs-comment">
+   Starts a XA transaction among MySQL servers. PECL/mysqlnd_ms acts as a transaction
+   coordinator the distributed transaction.
+  </p>
+  <p class="para">
+   Once a global transaction has been started, the plugin injects appropriate
+   <em>XA BEGIN</em> SQL statements on all MySQL servers used in the following.
+   The global transaction is either ended by calling <span class="function"><a href="mysqlnd_ms_xa_commit.html" class="function">mysqlnd_ms_xa_commit()</a></span>,
+   <span class="function"><a href="mysqlnd_ms_xa_rollback.html" class="function">mysqlnd_ms_xa_rollback()</a></span> or by an implicit rollback in case
+   of an error.
+  </p>
+  <p class="para">
+   During a global transaction, the plugin tracks all server switches,
+   for example, when switching from one MySQL shard to another MySQL shard.
+   Immediately before a query is run on a server that has not been participating
+   in the global transaction yet, <em>XA BEGIN</em> is executed on
+   the server. From a users perspective the injection happens during a call to a
+   query execution function such as  <span class="function"><a href="mysqli.query.html" class="function">mysqli_query()</a></span>. Should
+   the injection fail an error is reported to the caller of the query execution
+   function. The failing server does not become a participant in the global
+   transaction. The user may retry executing a query on the server and hereby retry
+   injecting <em>XA BEGIN</em>, abort the global transaction because
+   not all required servers can participate, or ignore and continue the global without
+   the failed server.
+  </p>
+  <p class="para">
+   Reasons to fail executing <em>XA BEGIN</em> include but are not limited to
+   a server being unreachable or the server having an open, concurrent
+   XA transaction using the same xid.
+  </p>
+  <p class="para">
+   Please note, global and local transactions
+   are mutually exclusive. You cannot start a XA transaction when you have a local
+   transaction open. The local transaction must be ended first. The plugin tries
+   to detect this conflict as early as possible. It monitors API calls for controlling
+   local transactions to learn about the current state. However, if using
+   SQL statements for local transactions such as <em>BEGIN</em>, the
+   plugin may not know the current state and the conflict is not detected
+   before <em>XA BEGIN</em> is injected and executed.
+  </p>
+  <p class="para">
+   The use of other XA resources but MySQL servers is not supported by
+   the function. To carry out a global transaction among, for example,
+   a MySQL server and another vendors database system, you should issue
+   the systems SQL commands yourself.
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <strong>Experimental</strong><br />
+   <p class="para">
+    The feature is currently under development. There may be issues and/or
+    feature limitations. Do not use in production environments.
+   </p>
+  </p></blockquote>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.mysqlnd-ms-xa-begin-parameters">
+  <h3 class="title">参数</h3>
+  <dl>
+
+    
+    <dt>
+<code class="parameter">connection</code></dt>
+
+    <dd>
+
+     <p class="para">
+      A MySQL connection handle obtained from any of the
+      connect functions of the <a href="ref.mysqli.html" class="link">mysqli</a>,
+      <a href="ref.mysql.html" class="link">mysql</a> or
+      <a href="ref.pdo_mysql.html" class="link">PDO_MYSQL</a> extensions.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">gtrid</code></dt>
+
+    <dd>
+
+     <p class="para">
+      Global transaction identifier (gtrid). The gtrid is a binary string
+      up to 64 bytes long. Please note, depending on your character set settings,
+      64 characters may require more than 64 bytes to store.
+     </p>
+     <p class="para">
+     In accordance with the MySQL SQL syntax,
+     XA transactions use identifiers made of three parts. An xid consists of a
+     global transaction identifier (gtrid), a branch qualifier (bqual) and a
+     format identifier (formatID). Only the global transaction identifier can
+     and needs to be set.
+     </p>
+     <p class="para">
+     The branch qualifier and format identifier are set automatically. The details
+     should be considered implementation dependent, which may change without
+     prior notice. In version 1.6 the branch qualifier is consecutive number
+     which is incremented whenever a participant joins the global transaction.
+     </p>
+    </dd>
+
+   
+    
+    <dt>
+<code class="parameter">timeout</code></dt>
+
+    <dd>
+
+     <p class="para">
+      Timeout in seconds. The default value is 60 seconds.
+     </p>
+     <p class="para">
+      The timeout is a hint to the garbage collection. If a transaction is recorded
+      to take longer than expected, the garbage collection begins checking the
+      transactions status.
+     </p>
+     <p class="para">
+       Setting a low value may make the garbage collection check the progress
+       too often. Please note, checking the status of a global transaction may
+       involve connecting to all recorded participants and possibly issuing
+       queries on the servers.
+     </p>
+    </dd>
+
+   
+  </dl>
+
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.mysqlnd-ms-xa-begin-returnvalues">
+  <h3 class="title">返回值</h3>
+   <p class="para">
+   Returns <strong><code>TRUE</code></strong> if there is no open local or global transaction and a new global
+   transaction can be started. Otherwise, returns <strong><code>FALSE</code></strong>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.mysqlnd-ms-xa-begin-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member">
+     <a href="mysqlnd_ms.quickstart.xa_transactions.html" class="link">Quickstart XA/Distributed transactions</a>
+    </li>
+    <li class="member">
+     <a href="mysqlnd_ms.configuration.html" class="link">Runtime configuration</a>
+    </li>
+    <li class="member">
+     <span class="function"><a href="mysqlnd_ms_get_stats.html" class="function" rel="rdfs-seeAlso">mysqlnd_ms_get_stats()</a> - Returns query distribution and connection statistics</span>
+    </li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

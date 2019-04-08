@@ -1,0 +1,151 @@
+<h1 id="firewall-cmd">firewall-cmd</h1>
+<p>Linux上新用的防火墙软件，跟iptables差不多的工具。</p>
+<h2 id="补充说明">补充说明</h2>
+<p>firewall-cmd 是 firewalld的字符界面管理工具，firewalld是centos7的一大特性，最大的好处有两个：支持动态更新，不用重启服务；第二个就是加入了防火墙的“zone”概念。</p>
+<p>firewalld跟iptables比起来至少有两大好处：</p>
+<ol type="1">
+<li>firewalld可以动态修改单条规则，而不需要像iptables那样，在修改了规则后必须得全部刷新才可以生效。</li>
+<li>firewalld在使用上要比iptables人性化很多，即使不明白“五张表五条链”而且对TCP/IP协议也不理解也可以实现大部分功能。</li>
+</ol>
+<p>firewalld自身并不具备防火墙的功能，而是和iptables一样需要通过内核的netfilter来实现，也就是说firewalld和 iptables一样，他们的作用都是用于维护规则，而真正使用规则干活的是内核的netfilter，只不过firewalld和iptables的结 构以及使用方法不一样罢了。</p>
+<h3 id="语法">语法</h3>
+<pre><code>finger(选项)(参数)</code></pre>
+<h3 id="实例">实例</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># 安装firewalld</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="ex">yum</span> install firewalld firewall-config</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="ex">systemctl</span> start  firewalld <span class="co"># 启动</span></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="ex">systemctl</span> status firewalld <span class="co"># 或者 firewall-cmd --state 查看状态</span></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="ex">systemctl</span> disable firewalld <span class="co"># 停止</span></a>
+<a class="sourceLine" id="cb2-8" data-line-number="8"><span class="ex">systemctl</span> stop firewalld  # 禁用</a>
+<a class="sourceLine" id="cb2-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="co"># 关闭服务的方法</span></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="co"># 你也可以关闭目前还不熟悉的FirewallD防火墙，而使用iptables，命令如下：</span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="ex">systemctl</span> stop firewalld</a>
+<a class="sourceLine" id="cb2-14" data-line-number="14"><span class="ex">systemctl</span> disable firewalld</a>
+<a class="sourceLine" id="cb2-15" data-line-number="15"><span class="ex">yum</span> install iptables-services</a>
+<a class="sourceLine" id="cb2-16" data-line-number="16"><span class="ex">systemctl</span> start iptables</a>
+<a class="sourceLine" id="cb2-17" data-line-number="17"><span class="ex">systemctl</span> enable iptables</a></code></pre></div>
+<p>配置firewalld</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="ex">firewall-cmd</span> --version  # 查看版本</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="ex">firewall-cmd</span> --help     # 查看帮助</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="co"># 查看设置：</span></a>
+<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="ex">firewall-cmd</span> --state  # 显示状态</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="ex">firewall-cmd</span> --get-active-zones  # 查看区域信息</a>
+<a class="sourceLine" id="cb3-7" data-line-number="7"><span class="ex">firewall-cmd</span> --get-zone-of-interface=eth0  # 查看指定接口所属区域</a>
+<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="ex">firewall-cmd</span> --panic-on  # 拒绝所有包</a>
+<a class="sourceLine" id="cb3-9" data-line-number="9"><span class="ex">firewall-cmd</span> --panic-off  # 取消拒绝状态</a>
+<a class="sourceLine" id="cb3-10" data-line-number="10"><span class="ex">firewall-cmd</span> --query-panic  # 查看是否拒绝</a>
+<a class="sourceLine" id="cb3-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb3-12" data-line-number="12"><span class="ex">firewall-cmd</span> --reload <span class="co"># 更新防火墙规则</span></a>
+<a class="sourceLine" id="cb3-13" data-line-number="13"><span class="ex">firewall-cmd</span> --complete-reload</a>
+<a class="sourceLine" id="cb3-14" data-line-number="14"><span class="co"># 两者的区别就是第一个无需断开连接，就是firewalld特性之一动态添加规则，第二个需要断开连接，类似重启服务</span></a>
+<a class="sourceLine" id="cb3-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb3-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb3-17" data-line-number="17"><span class="co"># 将接口添加到区域，默认接口都在public</span></a>
+<a class="sourceLine" id="cb3-18" data-line-number="18"><span class="ex">firewall-cmd</span> --zone=public --add-interface=eth0</a>
+<a class="sourceLine" id="cb3-19" data-line-number="19"><span class="co"># 永久生效再加上 --permanent 然后reload防火墙</span></a>
+<a class="sourceLine" id="cb3-20" data-line-number="20"> </a>
+<a class="sourceLine" id="cb3-21" data-line-number="21"><span class="co"># 设置默认接口区域，立即生效无需重启</span></a>
+<a class="sourceLine" id="cb3-22" data-line-number="22"><span class="ex">firewall-cmd</span> --set-default-zone=public</a>
+<a class="sourceLine" id="cb3-23" data-line-number="23"></a>
+<a class="sourceLine" id="cb3-24" data-line-number="24"><span class="co"># 查看所有打开的端口：</span></a>
+<a class="sourceLine" id="cb3-25" data-line-number="25"><span class="ex">firewall-cmd</span> --zone=dmz --list-ports</a>
+<a class="sourceLine" id="cb3-26" data-line-number="26"></a>
+<a class="sourceLine" id="cb3-27" data-line-number="27"><span class="co"># 加入一个端口到区域：</span></a>
+<a class="sourceLine" id="cb3-28" data-line-number="28"><span class="ex">firewall-cmd</span> --zone=dmz --add-port=8080/tcp</a>
+<a class="sourceLine" id="cb3-29" data-line-number="29"><span class="co"># 若要永久生效方法同上</span></a>
+<a class="sourceLine" id="cb3-30" data-line-number="30"> </a>
+<a class="sourceLine" id="cb3-31" data-line-number="31"><span class="co"># 打开一个服务，类似于将端口可视化，服务需要在配置文件中添加，/etc/firewalld 目录下有services文件夹，这个不详细说了，详情参考文档</span></a>
+<a class="sourceLine" id="cb3-32" data-line-number="32"><span class="ex">firewall-cmd</span> --zone=work --add-service=smtp</a>
+<a class="sourceLine" id="cb3-33" data-line-number="33"> </a>
+<a class="sourceLine" id="cb3-34" data-line-number="34"><span class="co"># 移除服务</span></a>
+<a class="sourceLine" id="cb3-35" data-line-number="35"><span class="ex">firewall-cmd</span> --zone=work --remove-service=smtp</a>
+<a class="sourceLine" id="cb3-36" data-line-number="36"></a>
+<a class="sourceLine" id="cb3-37" data-line-number="37"><span class="co"># 显示支持的区域列表</span></a>
+<a class="sourceLine" id="cb3-38" data-line-number="38"><span class="ex">firewall-cmd</span> --get-zones</a>
+<a class="sourceLine" id="cb3-39" data-line-number="39"></a>
+<a class="sourceLine" id="cb3-40" data-line-number="40"><span class="co"># 设置为家庭区域</span></a>
+<a class="sourceLine" id="cb3-41" data-line-number="41"><span class="ex">firewall-cmd</span> --set-default-zone=home</a>
+<a class="sourceLine" id="cb3-42" data-line-number="42"></a>
+<a class="sourceLine" id="cb3-43" data-line-number="43"><span class="co"># 查看当前区域</span></a>
+<a class="sourceLine" id="cb3-44" data-line-number="44"><span class="ex">firewall-cmd</span> --get-active-zones</a>
+<a class="sourceLine" id="cb3-45" data-line-number="45"></a>
+<a class="sourceLine" id="cb3-46" data-line-number="46"><span class="co"># 设置当前区域的接口</span></a>
+<a class="sourceLine" id="cb3-47" data-line-number="47"><span class="ex">firewall-cmd</span> --get-zone-of-interface=enp03s</a>
+<a class="sourceLine" id="cb3-48" data-line-number="48"></a>
+<a class="sourceLine" id="cb3-49" data-line-number="49"><span class="co"># 显示所有公共区域（public）</span></a>
+<a class="sourceLine" id="cb3-50" data-line-number="50"><span class="ex">firewall-cmd</span> --zone=public --list-all</a>
+<a class="sourceLine" id="cb3-51" data-line-number="51"></a>
+<a class="sourceLine" id="cb3-52" data-line-number="52"><span class="co"># 临时修改网络接口（enp0s3）为内部区域（internal）</span></a>
+<a class="sourceLine" id="cb3-53" data-line-number="53"><span class="ex">firewall-cmd</span> --zone=internal --change-interface=enp03s</a>
+<a class="sourceLine" id="cb3-54" data-line-number="54"></a>
+<a class="sourceLine" id="cb3-55" data-line-number="55"><span class="co"># 永久修改网络接口enp03s为内部区域（internal）</span></a>
+<a class="sourceLine" id="cb3-56" data-line-number="56"><span class="ex">firewall-cmd</span> --permanent --zone=internal --change-interface=enp03s</a></code></pre></div>
+<p>服务管理</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># 显示服务列表  </span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="ex">Amanda</span>, FTP, Samba和TFTP等最重要的服务已经被FirewallD提供相应的服务，可以使用如下命令查看：</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="ex">firewall-cmd</span> --get-services</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="co"># 允许SSH服务通过</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="ex">firewall-cmd</span> --enable service=ssh</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="co"># 禁止SSH服务通过</span></a>
+<a class="sourceLine" id="cb4-10" data-line-number="10"><span class="ex">firewall-cmd</span> --disable service=ssh</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb4-12" data-line-number="12"><span class="co"># 打开TCP的8080端口</span></a>
+<a class="sourceLine" id="cb4-13" data-line-number="13"><span class="ex">firewall-cmd</span> --enable ports=8080/tcp</a>
+<a class="sourceLine" id="cb4-14" data-line-number="14"></a>
+<a class="sourceLine" id="cb4-15" data-line-number="15"><span class="co"># 临时允许Samba服务通过600秒</span></a>
+<a class="sourceLine" id="cb4-16" data-line-number="16"><span class="ex">firewall-cmd</span> --enable service=samba --timeout=600</a>
+<a class="sourceLine" id="cb4-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb4-18" data-line-number="18"><span class="co"># 显示当前服务</span></a>
+<a class="sourceLine" id="cb4-19" data-line-number="19"><span class="ex">firewall-cmd</span> --list-services</a>
+<a class="sourceLine" id="cb4-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb4-21" data-line-number="21"><span class="co"># 添加HTTP服务到内部区域（internal）</span></a>
+<a class="sourceLine" id="cb4-22" data-line-number="22"><span class="ex">firewall-cmd</span> --permanent --zone=internal --add-service=http</a>
+<a class="sourceLine" id="cb4-23" data-line-number="23"><span class="ex">firewall-cmd</span> --reload     # 在不改变状态的条件下重新加载防火墙</a></code></pre></div>
+<p>端口管理</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co"># 打开443/TCP端口</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="ex">firewall-cmd</span> --add-port=443/tcp</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="co"># 永久打开3690/TCP端口</span></a>
+<a class="sourceLine" id="cb5-5" data-line-number="5"><span class="ex">firewall-cmd</span> --permanent --add-port=3690/tcp</a>
+<a class="sourceLine" id="cb5-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb5-7" data-line-number="7"><span class="co"># 永久打开端口好像需要reload一下，临时打开好像不用，如果用了reload临时打开的端口就失效了</span></a>
+<a class="sourceLine" id="cb5-8" data-line-number="8"><span class="co"># 其它服务也可能是这样的，这个没有测试</span></a>
+<a class="sourceLine" id="cb5-9" data-line-number="9"><span class="ex">firewall-cmd</span> --reload</a>
+<a class="sourceLine" id="cb5-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb5-11" data-line-number="11"><span class="co"># 查看防火墙，添加的端口也可以看到</span></a>
+<a class="sourceLine" id="cb5-12" data-line-number="12"><span class="ex">firewall-cmd</span> --list-all</a></code></pre></div>
+<p>直接模式</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="co"># FirewallD包括一种直接模式，使用它可以完成一些工作，例如打开TCP协议的9999端口</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="ex">firewall-cmd</span> --direct -add-rule ipv4 filter INPUT 0 -p tcp --dport 9000 -j ACCEPT</a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="ex">firewall-cmd</span> --reload</a></code></pre></div>
+<p><strong>控制端口 / 服务</strong></p>
+<p>可以通过两种方式控制端口的开放，一种是指定端口号另一种是指定服务名。虽然开放 http 服务就是开放了 80 端口，但是还是不能通过端口号来关闭，也就是说通过指定服务名开放的就要通过指定服务名关闭；通过指定端口号开放的就要通过指定端口号关闭。还有一个要注意的就是指定端口的时候一定要指定是什么协议，tcp 还是 udp。知道这个之后以后就不用每次先关防火墙了，可以让防火墙真正的生效。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="ex">firewall-cmd</span> --add-service=mysql        # 开放mysql端口</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="ex">firewall-cmd</span> --remove-service=http      # 阻止http端口</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="ex">firewall-cmd</span> --list-services            # 查看开放的服务</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="ex">firewall-cmd</span> --add-port=3306/tcp        # 开放通过tcp访问3306</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="ex">firewall-cmd</span> --remove-port=80tcp        # 阻止通过tcp访问3306</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6"><span class="ex">firewall-cmd</span> --add-port=233/udp         # 开放通过udp访问233</a>
+<a class="sourceLine" id="cb7-7" data-line-number="7"><span class="ex">firewall-cmd</span> --list-ports               # 查看开放的端口</a></code></pre></div>
+<p>伪装 IP</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="ex">firewall-cmd</span> --query-masquerade <span class="co"># 检查是否允许伪装IP</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="ex">firewall-cmd</span> --add-masquerade   # 允许防火墙伪装IP</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="ex">firewall-cmd</span> --remove-masquerade# 禁止防火墙伪装IP</a></code></pre></div>
+<p><strong>端口转发</strong></p>
+<p>端口转发可以将指定地址访问指定的端口时，将流量转发至指定地址的指定端口。转发的目的如果不指定 ip 的话就默认为本机，如果指定了 ip 却没指定端口，则默认使用来源端口。 如果配置好端口转发之后不能用，可以检查下面两个问题： 1. 比如我将 80 端口转发至 8080 端口，首先检查本地的 80 端口和目标的 8080 端口是否开放监听了 2. 其次检查是否允许伪装 IP，没允许的话要开启伪装 IP</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="ex">firewall-cmd</span> --add-forward-port=port=80:proto=tcp:toport=8080   # 将80端口的流量转发至8080</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"><span class="ex">firewall-cmd</span> --add-forward-port=port=80:proto=tcp:toaddr=192.168.0.1 <span class="co"># 将80端口的流量转发至192.168.0.1</span></a>
+<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="ex">firewall-cmd</span> --add-forward-port=port=80:proto=tcp:toaddr=192.168.0.1:toport=8080 <span class="co"># 将80端口的流量转发至192.168.0.1的8080端口</span></a></code></pre></div>
+<ol type="1">
+<li>当我们想把某个端口隐藏起来的时候，就可以在防火墙上阻止那个端口访问，然后再开一个不规则的端口，之后配置防火墙的端口转发，将流量转发过去。</li>
+<li>端口转发还可以做流量分发，一个防火墙拖着好多台运行着不同服务的机器，然后用防火墙将不同端口的流量转发至不同机器。</li>
+</ol>

@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Prepare an SQL statement for execution</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.maxdb-prepare" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">maxdb_prepare</h1>
+  <h1 class="refname">maxdb::prepare</h1>
+  <p class="verinfo">(PECL maxdb &gt;= 1.0)</p><p class="refpurpose"><span class="refname">maxdb_prepare</span> -- <span class="refname">maxdb::prepare</span> &mdash; <span class="dc-title">Prepare an SQL statement for execution</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.maxdb-prepare-description">
+  <h3 class="title">说明</h3>
+  <p class="para">过程化风格</p>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>maxdb_prepare</strong></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$link</code></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$query</code></span>
+   ) : <span class="type">resource</span></div>
+
+  <p class="para rdfs-comment">面向对象风格</p>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>maxdb::prepare</strong></span>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$query</code></span>
+   ) : <span class="type"><span class="type maxdb_stmt">maxdb_stmt</span></span></div>
+
+  <p class="para rdfs-comment">
+   <span class="function"><strong>maxdb_prepare()</strong></span> prepares the SQL query pointed to by the
+   null-terminated string query, and returns a statement handle to be used for
+   further operations on the statement. The query must consist of a single SQL statement.
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    You should not add a terminating semicolon or <em>\g</em>
+    to the statement.
+   </p>
+  </p></blockquote>
+  <p class="para">
+   The parameter <code class="parameter">query</code>  can include one or more parameter markers
+   in the SQL statement by embedding question mark (<em>?</em>) characters
+   at the appropriate positions.
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    The markers are legal only in certain places in SQL statements.
+    For example, they are allowed in the VALUES() list of an INSERT statement
+    (to specify column values for a row), or in a comparison with a column in
+    a WHERE clause to specify a comparison value.
+   </p>
+   <p class="para">
+    However, they are not allowed for identifiers (such as table or column names),
+    in the select list that names the columns to be returned by a SELECT statement),
+    or to specify both operands of a binary operator such as the <em>=</em>
+    equal sign. The latter restriction is necessary because it would be impossible
+    to determine the parameter type. In general, parameters are legal only in Data
+    Manipulation Languange (DML) statements, and not in Data Defination Language
+    (DDL) statements.
+   </p>
+  </p></blockquote>
+  <p class="para">
+   The parameter markers must be bound to application variables using
+   <span class="function"><a href="maxdb_stmt_bind_param.html" class="function">maxdb_stmt_bind_param()</a></span> and/or <span class="function"><a href="maxdb_stmt_bind_result.html" class="function">maxdb_stmt_bind_result()</a></span>
+   before executing the statement or fetching rows.
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.maxdb-prepare-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   <span class="function"><strong>maxdb_prepare()</strong></span> returns a statement resource or <strong><code>FALSE</code></strong> if an error occurred.
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.maxdb-prepare-examples">
+  <h3 class="title">范例</h3>
+  <div class="example" id="example-1389">
+   <p><strong>Example #1 面向对象风格</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$maxdb&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">maxdb</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"MONA"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"RED"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"DEMODB"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;check&nbsp;connection&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">maxdb_connect_errno</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Connect&nbsp;failed:&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">maxdb_connect_error</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;exit();<br />}<br /><br /></span><span style="color: #0000BB">$city&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"Rosemont"</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">/*&nbsp;create&nbsp;a&nbsp;prepared&nbsp;statement&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$maxdb</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;state&nbsp;FROM&nbsp;hotel.city&nbsp;WHERE&nbsp;name=?"</span><span style="color: #007700">))&nbsp;{<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;bind&nbsp;parameters&nbsp;for&nbsp;markers&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bind_param</span><span style="color: #007700">(</span><span style="color: #DD0000">"s"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$city</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;execute&nbsp;query&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;bind&nbsp;result&nbsp;variables&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bind_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$district</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;fetch&nbsp;value&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch</span><span style="color: #007700">();<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"%s&nbsp;is&nbsp;in&nbsp;district&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$city</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$district</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;close&nbsp;statement&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">close</span><span style="color: #007700">();<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;close&nbsp;connection&nbsp;*/<br /></span><span style="color: #0000BB">$maxdb</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">close</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+  </div>
+
+  </div>
+  <div class="example" id="example-1390">
+   <p><strong>Example #2 过程化风格</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$link&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">maxdb_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"MONA"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"RED"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"DEMODB"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;check&nbsp;connection&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">maxdb_connect_errno</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Connect&nbsp;failed:&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">maxdb_connect_error</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;exit();<br />}<br /><br /></span><span style="color: #0000BB">$city&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"Rosemont"</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">/*&nbsp;create&nbsp;a&nbsp;prepared&nbsp;statement&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">maxdb_prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"SELECT&nbsp;state&nbsp;FROM&nbsp;hotel.city&nbsp;WHERE&nbsp;name=?"</span><span style="color: #007700">))&nbsp;{<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;bind&nbsp;parameters&nbsp;for&nbsp;markers&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">maxdb_stmt_bind_param</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"s"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$city</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;execute&nbsp;query&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">maxdb_stmt_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;bind&nbsp;result&nbsp;variables&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">maxdb_stmt_bind_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$district</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;fetch&nbsp;value&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">maxdb_stmt_fetch</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"%s&nbsp;is&nbsp;in&nbsp;district&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$city</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$district</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;close&nbsp;statement&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">maxdb_stmt_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;close&nbsp;connection&nbsp;*/<br /></span><span style="color: #0000BB">maxdb_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+   </div>
+
+  </div>
+  <p class="para">以上例程的输出类似于：</p>
+  <div class="example-contents screen">
+<div class="cdata"><pre>
+Rosemont is in district IL
+</pre></div>
+  </div>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.maxdb-prepare-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="maxdb_stmt_execute.html" class="function" rel="rdfs-seeAlso">maxdb_stmt_execute()</a> - Executes a prepared Query</span></li>
+    <li class="member"><span class="function"><a href="maxdb_stmt_fetch.html" class="function" rel="rdfs-seeAlso">maxdb_stmt_fetch()</a> - Fetch results from a prepared statement into the bound variables</span></li>
+    <li class="member"><span class="function"><a href="maxdb_stmt_bind_param.html" class="function" rel="rdfs-seeAlso">maxdb_stmt_bind_param()</a> - Binds variables to a prepared statement as parameters</span></li>
+    <li class="member"><span class="function"><a href="maxdb_stmt_bind_result.html" class="function" rel="rdfs-seeAlso">maxdb_stmt_bind_result()</a> - Binds variables to a prepared statement for result storage</span></li>
+    <li class="member"><span class="function"><a href="maxdb_stmt_close.html" class="function" rel="rdfs-seeAlso">maxdb_stmt_close()</a> - Closes a prepared statement</span></li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

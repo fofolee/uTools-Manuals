@@ -1,0 +1,313 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>从 JPEG 或 TIFF
+   文件中读取 EXIF 头信息</title>
+ </head>
+ <body class="docs"></div>
+<div id="layout">
+  <div id="layout-content"><div id="function.exif-read-data" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">exif_read_data</h1>
+  <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">exif_read_data</span> &mdash; <span class="dc-title">
+   从 <acronym title="Joint Photographic Experts Group">JPEG</acronym> 或 <acronym title="Tagged Image File Format">TIFF</acronym>
+   文件中读取 <acronym title="Exchangeable Image File ">EXIF</acronym> 头信息
+  </span></p>
+
+ </div>
+ <div class="refsect1 description" id="refsect1-function.exif-read-data-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>exif_read_data</strong></span>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$filename</code></span>
+   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$sections</code><span class="initializer"> = <strong><code>NULL</code></strong></span></span>
+   [, <span class="methodparam"><span class="type">bool</span> <code class="parameter">$arrays</code><span class="initializer"> = false</span></span>
+   [, <span class="methodparam"><span class="type">bool</span> <code class="parameter">$thumbnail</code><span class="initializer"> = false</span></span>
+  ]]] ) : <span class="type">array</span></div>
+
+  <p class="para rdfs-comment">
+   <span class="function"><strong>exif_read_data()</strong></span> 函数从 <acronym title="Joint Photographic Experts Group">JPEG</acronym> 或 <acronym title="Tagged Image File Format">TIFF</acronym> 图像文件中读取 <acronym title="Exchangeable Image File ">EXIF</acronym>
+   头信息。这样就可以读取数码相机产生的元数据。
+  </p>
+  <p class="para">
+   <acronym title="Exchangeable Image File ">EXIF</acronym> 头信息往往存在于数码相机生成的 JPEG/TIFF
+   图像中，但不幸的是每个数码相机制造商的标记都不同，因此（编写代码时）不能依赖于某个特定的
+   Exif 头信息。
+  </p>
+  <p class="para">
+   Height 和 Width 是用和 <span class="function"><a href="getimagesize.html" class="function">getimagesize()</a></span>
+   一样的方法计算的，因此它们的值不能是任何返回的头信息的部分。此外
+   html 是一个 height/width 的文本字符串可以用于普通的 <acronym title="Hyper Text Markup Language">HTML</acronym> 中。
+  </p>
+  <p class="para">
+   当一个 Exif 头信息包含有一个 Copyright 时注意它本身可以包含两个值。解决方案和
+   Exif 2.10 标准不一致，COMPUTED 区段会同时返回
+   Copyright.Photographer 和
+   Copyright.Editor，但是 IFD0
+   区段则包含有一个字节数组用 NULL 字符分隔开两个项目。或者只有第一项如果数据类型错误的话（Exif
+   的正常行为）。COMPUTED 也会包含
+   Copyright，要么是原始的版权字符串，要么是逗号分隔的摄像与编辑的版权信息。
+  </p>
+  <p class="para">
+   UserComment 标记和 Copyright
+   有同样的问题。它也可以存储两个值，第一个是使用的编码方式，第二个是其值本身。如果这样则
+   IFD0 区段仅包含编码方式或者一个字节数组。COMPUTED
+   区段将存储两个值到 UserCommentEncoding 和
+   UserComment。UserComment
+   在两种情况下都可用因此应该优先使用它而不是 IFD0 区段中的该值。
+  </p>
+  <p class="para">
+   <span class="function"><strong>exif_read_data()</strong></span> 还会根据 EXIF
+   规范（<a href="http://exif.org/Exif2-2.PDF" class="link external">&raquo;&nbsp;http://exif.org/Exif2-2.PDF</a>，第
+   20 页）来验证 EXIF 数据。
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    Windows ME/XP 在连接到数码相机时能清除掉
+    Exif 头信息。
+   </p>
+  </p></blockquote>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.exif-read-data-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">filename</code></dt>
+
+     <dd>
+
+      <p class="para">
+       被读取的图像文件名。不能是 <acronym title="Uniform Resource Locator">URL</acronym>。
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">sections</code></dt>
+
+     <dd>
+
+      <p class="para">
+       是需要存在于文件中的逗号分隔的区段列表用来产生结果数组。如果未找到所请求的区段则返回值为
+       <strong><code>FALSE</code></strong>。
+       <table class="doctable informaltable">
+        
+         <tbody class="tbody">
+          <tr>
+           <td>FILE</td>
+           <td>FileName, FileSize, FileDateTime, SectionsFound</td>
+          </tr>
+
+          <tr>
+           <td>COMPUTED</td>
+           <td>
+            html，Width，Height，IsColor，可能有更多其它的。Height
+            和 Width 是用和 <span class="function"><a href="getimagesize.html" class="function">getimagesize()</a></span>
+            一样的方法计算的，因此它们的值不能是任何返回的头信息的部分。此外
+            html 是一个 height/width 的文本字符串可以用于普通的 <acronym title="Hyper Text Markup Language">HTML</acronym> 中。
+           </td>
+          </tr>
+
+          <tr>
+           <td>ANY_TAG</td>
+           <td>任何包含有标记的信息，例如 IFD0，EXIF，...</td>
+          </tr>
+
+          <tr>
+           <td>IFD0</td>
+           <td>
+            所有 IFD0 的标记数据。在标准的图像文件中这包含了图像大小及其它。
+           </td>
+          </tr>
+
+          <tr>
+           <td>THUMBNAIL</td>
+           <td>
+            如果有第二个 IFD，文件应该包含有缩略图。所有有关嵌入缩略图的标记信息都存储在本区。
+           </td>
+          </tr>
+
+          <tr>
+           <td>COMMENT</td>
+           <td>JPEG 图像的注释头信息。</td>
+          </tr>
+
+          <tr>
+           <td>EXIF</td>
+           <td>
+            EXIF 区段是 IFDO 的子区，包含有图像的更多详细信息。大多数内容都是数码相机相关的。
+           </td>
+          </tr>
+
+         </tbody>
+        
+       </table>
+
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">arrays</code></dt>
+
+      <dd>
+
+      <p class="para">
+       指定了是否每个区段都成为一个数组。<code class="parameter">sections</code>
+       <em>COMPUTED</em>，<em>THUMBNAIL</em>
+       和<em>COMMENT</em>
+       区段总是成为数组，因为它们里面包含的名字和其它区段冲突。
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">thumbnail</code></dt>
+
+     <dd>
+
+      <p class="para">
+       当设定为 <strong><code>TRUE</code></strong> 时，读取缩略图本身。否则只读取标记数据。
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+ <div class="refsect1 returnvalues" id="refsect1-function.exif-read-data-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   返回一个关联数组，键名是头信息名，值为与其相应的值。如果没有可供返回的数据，<span class="function"><strong>exif_read_data()</strong></span>
+   将返回 <strong><code>FALSE</code></strong>。
+  </p>
+ </div>
+
+
+ <div class="refsect1 changelog" id="refsect1-function.exif-read-data-changelog">
+  <h3 class="title">更新日志</h3>
+  <p class="para">
+   <table class="doctable informaltable">
+    
+     <thead>
+      <tr>
+       <th>版本</th>
+       <th>说明</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      <tr>
+       <td>4.3.0</td>
+       <td>
+        可以读取所有嵌入的 <acronym title="Image File Directory">IFD</acronym>
+        数据，包括数组（也返回数组）。此外嵌入的缩略图的大小包括在
+        THUMBNAIL 子数组中并且
+        <span class="function"><strong>exif_read_data()</strong></span> 可以将缩略图按照
+        <acronym title="Tagged Image File Format">TIFF</acronym> 格式返回。最后，不再有返回值最大长度的限制了（直到达到内存限定）。
+       </td>
+      </tr>
+
+      <tr>
+       <td>4.3.0</td>
+       <td>
+        如果 PHP 有 <a href="ref.mbstring.html" class="link">mbstring</a>
+        支持，则用户注释可以自动改变编码。此外，如果用户注释使用
+        Unicode 或 JIS 编码，将会根据 EXIF 在 <var class="filename">php.ini</var> 中的
+        设置被自动改变。
+       </td>
+      </tr>
+
+      <tr>
+       <td>4.3.0</td>
+       <td>
+        如果图像包含任何 IFD0 数据，则 COMPUTED 会包含有一项
+        ByteOrderMotorola，对于 little-endian (intel) 字节顺序，其值为 0，对于
+        big-endian (motorola) 字节顺序，其值为 1。此外，COMPUTED
+        和 UserComment 在数据类型出错时也不再仅包含第一个版权条目。
+       </td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.exif-read-data-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-3634">
+    <p><strong>Example #1 <span class="function"><strong>exif_read_data()</strong></span> 例子</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"test1.jpg:&lt;br&nbsp;/&gt;\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$exif&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">exif_read_data</span><span style="color: #007700">(</span><span style="color: #DD0000">'tests/test1.jpg'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'IFD0'</span><span style="color: #007700">);<br />echo&nbsp;</span><span style="color: #0000BB">$exif</span><span style="color: #007700">===</span><span style="color: #0000BB">false&nbsp;</span><span style="color: #007700">?&nbsp;</span><span style="color: #DD0000">"No&nbsp;header&nbsp;data&nbsp;found.&lt;br&nbsp;/&gt;\n"&nbsp;</span><span style="color: #007700">:&nbsp;</span><span style="color: #DD0000">"Image&nbsp;contains&nbsp;headers&lt;br&nbsp;/&gt;\n"</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$exif&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">exif_read_data</span><span style="color: #007700">(</span><span style="color: #DD0000">'tests/test2.jpg'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">);<br />echo&nbsp;</span><span style="color: #DD0000">"test2.jpg:&lt;br&nbsp;/&gt;\n"</span><span style="color: #007700">;<br />foreach&nbsp;(</span><span style="color: #0000BB">$exif&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$key&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">$section</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(</span><span style="color: #0000BB">$section&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">$val</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$key</span><span style="color: #DD0000">.</span><span style="color: #0000BB">$name</span><span style="color: #DD0000">:&nbsp;</span><span style="color: #0000BB">$val</span><span style="color: #DD0000">&lt;br&nbsp;/&gt;\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+    <div class="example-contents"><p>
+     第一个调用失败了，因为图像没有头信息。
+    </p></div>
+    <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+test1.jpg:
+No header data found.
+test2.jpg:
+FILE.FileName: test2.jpg
+FILE.FileDateTime: 1017666176
+FILE.FileSize: 1240
+FILE.FileType: 2
+FILE.SectionsFound: ANY_TAG, IFD0, THUMBNAIL, COMMENT
+COMPUTED.html: width=&quot;1&quot; height=&quot;1&quot;
+COMPUTED.Height: 1
+COMPUTED.Width: 1
+COMPUTED.IsColor: 1
+COMPUTED.ByteOrderMotorola: 1
+COMPUTED.UserComment: Exif test image.
+COMPUTED.UserCommentEncoding: ASCII
+COMPUTED.Copyright: Photo (c) M.Boerger, Edited by M.Boerger.
+COMPUTED.Copyright.Photographer: Photo (c) M.Boerger
+COMPUTED.Copyright.Editor: Edited by M.Boerger.
+IFD0.Copyright: Photo (c) M.Boerger
+IFD0.UserComment: ASCII
+THUMBNAIL.JPEGInterchangeFormat: 134
+THUMBNAIL.JPEGInterchangeFormatLength: 523
+COMMENT.0: Comment #1.
+COMMENT.1: Comment #2.
+COMMENT.2: Comment #3end
+THUMBNAIL.JPEGInterchangeFormat: 134
+THUMBNAIL.Thumbnail.Height: 1
+THUMBNAIL.Thumbnail.Height: 1
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+<div class="refsect1 seealso" id="refsect1-function.exif-read-data-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="exif_thumbnail.html" class="function" rel="rdfs-seeAlso">exif_thumbnail()</a> - 取得嵌入在 TIFF 或 JPEG 图像中的缩略图</span></li>
+    <li class="member"><span class="function"><a href="getimagesize.html" class="function" rel="rdfs-seeAlso">getimagesize()</a> - 取得图像大小</span></li>
+   </ul>
+  </p>
+ </div>
+
+</div></div></div></body></html>

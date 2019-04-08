@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>打开输出控制缓冲</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.ob-start" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">ob_start</h1>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">ob_start</span> &mdash; <span class="dc-title">打开输出控制缓冲</span></p>
+
+ </div>
+ 
+ <div class="refsect1 description" id="refsect1-function.ob-start-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>ob_start</strong></span>
+    ([ <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.callback" class="type callback">callback</a></span> <code class="parameter">$output_callback</code></span>
+   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$chunk_size</code></span>
+   [, <span class="methodparam"><span class="type">bool</span> <code class="parameter">$erase</code></span>
+  ]]] ) : <span class="type">bool</span></div>
+
+  <p class="para rdfs-comment">
+   此函数将打开输出缓冲。当输出缓冲激活后，脚本将不会输出内容（除http标头外），相反需要输出的内容被存储在内部缓冲区中。
+  </p>
+  <p class="para">
+    内部缓冲区的内容可以用 <span class="function"><a href="ob_get_contents.html" class="function">ob_get_contents()</a></span> 函数复制到一个字符串变量中。
+    想要输出存储在内部缓冲区中的内容，可以使用 <span class="function"><a href="ob_end_flush.html" class="function">ob_end_flush()</a></span> 函数。另外，
+    使用 <span class="function"><a href="ob_end_clean.html" class="function">ob_end_clean()</a></span> 函数会静默丢弃掉缓冲区的内容。
+  </p>
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="para">
+    当有正在调用的回调函数时，一些网络服务器（例如Apache）会改变一个脚本的工作目录。
+    你可以在回调函数中再把它改回来，例如 <em>chdir(dirname($_SERVER[&#039;SCRIPT_FILENAME&#039;]))</em> 。
+   </p>
+  </div>
+  <p class="para">
+   输出缓冲区是可堆叠的，这即意谓着，当有一个 <span class="function"><strong>ob_start()</strong></span> 是活跃的时，
+   你可以调用另一个 <span class="function"><strong>ob_start()</strong></span> 。
+   只要确保又正确调用了 <span class="function"><a href="ob_end_flush.html" class="function">ob_end_flush()</a></span> 恰当的次数即可。
+   如果有多重输出回调函数是活跃的，输出内容会一直按嵌套的顺序依次通过它们而被过滤。
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.ob-start-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">output_callback</code></dt>
+
+     <dd>
+
+      <p class="para">
+       可选参数 <code class="parameter">output_callback</code> 函数可以被指定。 
+       此函数把一个字符串当作参数并返回一个字符串。
+       当输出缓冲区被( <span class="function"><a href="ob_flush.html" class="function">ob_flush()</a></span>, <span class="function"><a href="ob_clean.html" class="function">ob_clean()</a></span> 或者相似的函数)冲刷（送出）或者被清洗的时候；或者在请求结束之际输出缓冲区内容被冲刷到浏览器的时候该函数将会被调用。 
+       当调用 <code class="parameter">output_callback</code> 时，它将收到输出缓冲区的内容作为参数
+       并预期返回一个新的输出缓冲区作为结果，这个新返回的输出缓冲区内容将被送到浏览器。
+       如果这个 <code class="parameter">output_callback</code> 不是一个可以调用的函数，此函数
+       会返回 <strong><code>FALSE</code></strong> 。
+      </p>
+      <p class="para">
+       如果回调函数有两个参数，第二个参数会由一个位域补充，该位域由
+       <strong><code>PHP_OUTPUT_HANDLER_START</code></strong>,
+       <strong><code>PHP_OUTPUT_HANDLER_CONT</code></strong> 和
+       <strong><code>PHP_OUTPUT_HANDLER_END</code></strong> 组成。
+      </p>
+      <p class="para">
+       如果 <code class="parameter">output_callback</code> 返回 <strong><code>FALSE</code></strong> ，其原来的输入
+       内容被直接送到浏览器。
+      </p>
+      <p class="para">
+       这个参数 <code class="parameter">output_callback</code> 可以通过直接给一个 <strong><code>NULL</code></strong> 
+       值而避开。
+      </p>
+      <p class="para">
+       <span class="function"><a href="ob_end_clean.html" class="function">ob_end_clean()</a></span>, <span class="function"><a href="ob_end_flush.html" class="function">ob_end_flush()</a></span>,
+       <span class="function"><a href="ob_clean.html" class="function">ob_clean()</a></span>, <span class="function"><a href="ob_flush.html" class="function">ob_flush()</a></span> and
+       <span class="function"><strong>ob_start()</strong></span> 不能从一个回调函数中调用。
+       如果从回调函数中调用了它们，产生的行为是不明确的。
+       如果想要删除缓冲区的内容，从回调函数中返回一个&quot;&quot; (空字符串)。
+       更不能从一个回调函数中使用像<em>print_r($expression, true)</em> 
+       或<em>highlight_file($filename, true)</em> 一样的输出缓冲函数。   
+      </p>
+      <blockquote class="note"><p><strong class="note">Note</strong>: 
+       <p class="para">
+        在PHP 4.0.4中， <span class="function"><a href="ob_gzhandler.html" class="function">ob_gzhandler()</a></span> 被引入是为了简化把gz编码过 
+        数据发送到支持压缩网页的浏览器。
+        <span class="function"><a href="ob_gzhandler.html" class="function">ob_gzhandler()</a></span> 会判定浏览器可以接受哪种类型的编码内容，并返回相应
+        的输出。
+       </p>
+      </p></blockquote>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">chunk_size</code></dt>
+
+     <dd>
+
+      <p class="para">
+       如果可选参数 <code class="parameter">chunk_size</code> 被赋值了，在任何一个能引起缓冲区的长度等于
+       或超过 <code class="parameter">chunk_size</code> 的输出操作后，缓冲区都会被刷送。
+       默认值 0 意味着函数仅在最后被调用，其余的特殊值可以将 <code class="parameter">chunk_size</code>
+       从 1 设定到 4096。
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">erase</code></dt>
+
+     <dd>
+
+      <p class="para">
+       如果可选参数 <code class="parameter">erase</code> 被赋成 <strong><code>FALSE</code></strong>，直到脚本执行完成缓冲区才被删除。
+       这使得，如果调用了冲刷和清洗（清除）函数，会抛出一个“notice”,并返回 <strong><code>FALSE</code></strong> 值。
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.ob-start-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+  </p>
+ </div>
+
+
+ <div class="refsect1 changelog" id="refsect1-function.ob-start-changelog">
+  <h3 class="title">更新日志</h3>
+  <p class="para">
+   <table class="doctable informaltable">
+    
+     <thead>
+      <tr>
+       <th>版本</th>
+       <th>说明</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      
+      <tr>
+       <td>4.3.2</td>
+       <td>
+        在传递的 <code class="parameter">output_callback</code> 不能被执行时，此函数
+        被改成返回 <strong><code>FALSE</code></strong> 
+       </td>
+      </tr>
+
+      <tr>
+       <td>4.2.0</td>
+       <td>
+        添加了 <code class="parameter">erase</code> 参数。
+       </td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.ob-start-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-481">
+    <p><strong>Example #1 用户自定义回调函数的例子</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">callback</span><span style="color: #007700">(</span><span style="color: #0000BB">$buffer</span><span style="color: #007700">)<br />{<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;replace&nbsp;all&nbsp;the&nbsp;apples&nbsp;with&nbsp;oranges<br />&nbsp;&nbsp;</span><span style="color: #007700">return&nbsp;(</span><span style="color: #0000BB">str_replace</span><span style="color: #007700">(</span><span style="color: #DD0000">"apples"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"oranges"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$buffer</span><span style="color: #007700">));<br />}<br /><br /></span><span style="color: #0000BB">ob_start</span><span style="color: #007700">(</span><span style="color: #DD0000">"callback"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">?&gt;<br /></span>&lt;html&gt;<br />&lt;body&gt;<br />&lt;p&gt;It's&nbsp;like&nbsp;comparing&nbsp;apples&nbsp;to&nbsp;oranges.&lt;/p&gt;<br />&lt;/body&gt;<br />&lt;/html&gt;<br /><span style="color: #0000BB">&lt;?php<br /><br />ob_end_flush</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;It&#039;s like comparing oranges to oranges.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.ob-start-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="ob_get_contents.html" class="function" rel="rdfs-seeAlso">ob_get_contents()</a> - 返回输出缓冲区的内容</span></li>
+    <li class="member"><span class="function"><a href="ob_end_clean.html" class="function" rel="rdfs-seeAlso">ob_end_clean()</a> - 清空（擦除）缓冲区并关闭输出缓冲</span></li>
+    <li class="member"><span class="function"><a href="ob_end_flush.html" class="function" rel="rdfs-seeAlso">ob_end_flush()</a> - 冲刷出（送出）输出缓冲区内容并关闭缓冲</span></li>
+    <li class="member"><span class="function"><a href="ob_implicit_flush.html" class="function" rel="rdfs-seeAlso">ob_implicit_flush()</a> - 打开/关闭绝对刷送</span></li>
+    <li class="member"><span class="function"><a href="ob_gzhandler.html" class="function" rel="rdfs-seeAlso">ob_gzhandler()</a> - 在ob_start中使用的用来压缩输出缓冲区中内容的回调函数。ob_start callback function to gzip output buffer</span></li>
+    <li class="member"><span class="function"><a href="ob_iconv_handler.html" class="function" rel="rdfs-seeAlso">ob_iconv_handler()</a> - 以输出缓冲处理程序转换字符编码</span></li>
+    <li class="member"><span class="function"><a href="mb_output_handler.html" class="function" rel="rdfs-seeAlso">mb_output_handler()</a> - 在输出缓冲中转换字符编码的回调函数</span></li>
+    <li class="member"><span class="function"><a href="ob_tidyhandler.html" class="function" rel="rdfs-seeAlso">ob_tidyhandler()</a> - ob_start callback function to repair the buffer</span></li>
+   </ul>
+  </p>
+ </div>
+  
+
+</div></div></div></body></html>

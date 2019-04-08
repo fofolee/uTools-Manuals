@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>产生一个可存储的值的表示</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.serialize" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">serialize</h1>
+    <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">serialize</span> &mdash; <span class="dc-title">
+     产生一个可存储的值的表示
+    </span></p>
+
+   </div>
+   <div class="refsect1 unknown-seealsp" id="refsect1-function.serialize-unknown-seealsp">
+    <h3 class="title">描述</h3>
+     <div class="methodsynopsis dc-description">
+      <span class="methodname"><strong>serialize</strong></span>
+       ( <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span> <code class="parameter">$value</code></span>
+      ) : <span class="type">string</span></div>
+
+    <p class="simpara">
+     <span class="function"><strong>serialize()</strong></span> 返回字符串，此字符串包含了表示 
+     <code class="parameter">value</code> 的字节流，可以存储于任何地方。
+    </p>
+    <p class="simpara">
+     这有利于存储或传递 PHP 的值，同时不丢失其类型和结构。
+    </p>
+   <p class="simpara">
+    想要将已序列化的字符串变回 PHP 的值，可使用
+    <span class="function"><a href="unserialize.html" class="function">unserialize()</a></span>。<span class="function"><strong>serialize()</strong></span>
+    可处理除了 <span class="type"><a href="language.types.resource.html" class="type resource">resource</a></span> 
+    之外的任何类型。甚至可以 <span class="function"><strong>serialize()</strong></span> 那些包含了指向其自身引用的数组。你正 
+    <span class="function"><strong>serialize()</strong></span>  的数组／对象中的引用也将被存储。
+   </p>
+   <p class="simpara">
+   当序列化对象时，PHP 将试图在序列动作之前调用该对象的成员函数
+   <span class="function"><strong>__sleep()</strong></span>。这样就允许对象在被序列化之前做任何清除操作。类似的，当使用 
+   <span class="function"><a href="unserialize.html" class="function">unserialize()</a></span> 恢复对象时， 将调用
+   <span class="function"><strong>__wakeup()</strong></span> 成员函数。
+   </p>
+   
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     在 PHP 3 中，对象属性将被序列化，但是方法则会丢失。PHP 4 
+     打破了此限制，可以同时存储属性和方法。请参见<a href="language.oop5.html" class="link">类与对象</a>中的<a href="language.oop5.serialization.html" class="link">序列化对象</a>部分获取更多信息。
+    </p>
+   </p></blockquote>
+    <p class="para">
+     <div class="example" id="example-6369">
+      <p><strong>Example #1 <span class="function"><strong>serialize()</strong></span> 示例</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;$session_data&nbsp;是包含了当前用户&nbsp;session&nbsp;信息的多维数组。<br />//&nbsp;我们使用&nbsp;serialize()&nbsp;在请求结束之前将其存储到数据库中。<br /><br /></span><span style="color: #0000BB">$conn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">odbc_connect&nbsp;</span><span style="color: #007700">(</span><span style="color: #DD0000">"webdb"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"php"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"chicken"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">odbc_prepare&nbsp;</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"UPDATE&nbsp;sessions&nbsp;SET&nbsp;data&nbsp;=&nbsp;?&nbsp;WHERE&nbsp;id&nbsp;=&nbsp;?"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$sqldata&nbsp;</span><span style="color: #007700">=&nbsp;array&nbsp;(</span><span style="color: #0000BB">serialize</span><span style="color: #007700">(</span><span style="color: #0000BB">$session_data</span><span style="color: #007700">),&nbsp;</span><span style="color: #0000BB">$PHP_AUTH_USER</span><span style="color: #007700">);<br />if&nbsp;(!</span><span style="color: #0000BB">odbc_execute&nbsp;</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">,&nbsp;&amp;</span><span style="color: #0000BB">$sqldata</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">odbc_prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;sessions&nbsp;(id,&nbsp;data)&nbsp;VALUES(?,&nbsp;?)"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!</span><span style="color: #0000BB">odbc_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">,&nbsp;&amp;</span><span style="color: #0000BB">$sqldata</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;出错&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+      </div>
+
+     </div>
+    </p>
+   <p class="para">
+    参见：<span class="function"><a href="unserialize.html" class="function">unserialize()</a></span>。
+   </p>
+   </div>
+
+  </div></div></div></body></html>

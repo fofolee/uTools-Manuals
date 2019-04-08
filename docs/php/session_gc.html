@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Perform session data garbage collection</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.session-gc" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">session_gc</h1>
+  <p class="verinfo">(PHP 7 &gt;= 7.1.0)</p><p class="refpurpose"><span class="refname">session_gc</span> &mdash; <span class="dc-title">Perform session data garbage collection</span></p>
+
+ </div>
+ <div class="refsect1 description" id="refsect1-function.session-gc-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>session_gc</strong></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">int</span></div>
+
+  <p class="para rdfs-comment">
+   <span class="function"><strong>session_gc()</strong></span> is used to perform session data
+   GC(garbage collection). PHP does probability based session GC by
+   default.
+  </p>
+  <p class="para">
+   Probability based GC works somewhat but it has few problems. 1) Low
+   traffic sites&#039; session data may not be deleted within the preferred
+   duration. 2) High traffic sites&#039; GC may be too frequent GC. 3) GC is
+   performed on the user&#039;s request and the user will experience a GC
+   delay.
+  </p>
+  <p class="para">
+   Therefore, it is recommended to execute GC periodically for
+   production systems using, e.g., &quot;cron&quot; for UNIX-like systems.
+   Make sure to disable probability based GC by setting 
+   <a href="session.configuration.html#ini.session.gc-probability" class="link">session.gc_probability</a> 
+   to 0.
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.session-gc-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   <span class="function"><strong>session_gc()</strong></span> returns number of deleted session
+   data for success, <strong><code>FALSE</code></strong> for failure.
+  </p>
+  <p class="para">
+   Old save handlers do not return number of deleted session data, but 
+   only success/failure flag. If this is the case, number of deleted
+   session data became 1 regardless of actually deleted data.
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.session-gc-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-5833">
+    <p><strong>Example #1 <span class="function"><strong>session_gc()</strong></span> example for task managers like cron</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;Note:&nbsp;This&nbsp;script&nbsp;should&nbsp;be&nbsp;executed&nbsp;by&nbsp;the&nbsp;same&nbsp;user&nbsp;of&nbsp;web&nbsp;server&nbsp;process.<br /><br />//&nbsp;Need&nbsp;active&nbsp;session&nbsp;to&nbsp;initialize&nbsp;session&nbsp;data&nbsp;storage&nbsp;access.<br /></span><span style="color: #0000BB">session_start</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;Executes&nbsp;GC&nbsp;immediately<br /></span><span style="color: #0000BB">session_gc</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;Clean&nbsp;up&nbsp;session&nbsp;ID&nbsp;created&nbsp;by&nbsp;session_gc()<br /></span><span style="color: #0000BB">session_destroy</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+   <div class="example" id="example-5834">
+    <p><strong>Example #2 <span class="function"><strong>session_gc()</strong></span> example for user accessible script</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;Note:&nbsp;session_gc()&nbsp;is&nbsp;recommended&nbsp;to&nbsp;be&nbsp;used&nbsp;by&nbsp;task&nbsp;manager&nbsp;script,&nbsp;but<br />//&nbsp;it&nbsp;may&nbsp;be&nbsp;used&nbsp;as&nbsp;follows.<br /><br />//&nbsp;Used&nbsp;for&nbsp;last&nbsp;GC&nbsp;time&nbsp;check<br /></span><span style="color: #0000BB">$gc_time&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'/tmp/php_session_last_gc'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$gc_period&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1800</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">session_start</span><span style="color: #007700">();<br /></span><span style="color: #FF8000">//&nbsp;Execute&nbsp;GC&nbsp;only&nbsp;when&nbsp;GC&nbsp;period&nbsp;elapsed.&nbsp;<br />//&nbsp;i.e.&nbsp;Calling&nbsp;session_gc()&nbsp;every&nbsp;request&nbsp;is&nbsp;waste&nbsp;of&nbsp;resources.&nbsp;<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">file_exists</span><span style="color: #007700">(</span><span style="color: #0000BB">$gc_time</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">filemtime</span><span style="color: #007700">(</span><span style="color: #0000BB">$gc_time</span><span style="color: #007700">)&nbsp;&lt;&nbsp;</span><span style="color: #0000BB">time</span><span style="color: #007700">()&nbsp;-&nbsp;</span><span style="color: #0000BB">$gc_period</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">session_gc</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">touch</span><span style="color: #007700">(</span><span style="color: #0000BB">$gc_time</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">touch</span><span style="color: #007700">(</span><span style="color: #0000BB">$gc_time</span><span style="color: #007700">);<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.session-gc-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="session_start.html" class="function" rel="rdfs-seeAlso">session_start()</a> - 启动新会话或者重用现有会话</span></li>
+    <li class="member"><span class="function"><a href="session_destroy.html" class="function" rel="rdfs-seeAlso">session_destroy()</a> - 销毁一个会话中的全部数据</span></li>
+    <li class="member"><a href="session.configuration.html#ini.session.gc-probability" class="link">session.gc_probability</a></li>
+   </ul>
+  </p>
+ </div>
+
+</div></div></div></body></html>

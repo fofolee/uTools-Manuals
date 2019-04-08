@@ -1,0 +1,143 @@
+<div class="body" role="main"><div class="section" id="module-ast"><h1><span class="yiyi-st" id="yiyi-10">32.2. <a class="reference internal" href="#module-ast" title="ast: Abstract Syntax Tree classes and manipulation."><code class="xref py py-mod docutils literal"><span class="pre">ast</span></code></a> — 抽象语法树</span></h1><p><span class="yiyi-st" id="yiyi-11"><strong>源代码：</strong> <a class="reference external" href="https://hg.python.org/cpython/file/3.5/Lib/ast.py">Lib/ast.py</a></span></p><p><span class="yiyi-st" id="yiyi-12"><a class="reference internal" href="#module-ast" title="ast: Abstract Syntax Tree classes and manipulation."><code class="xref py py-mod docutils literal"><span class="pre">ast</span></code></a>模块可帮助Python应用程序处理Python抽象语法语法的树。</span><span class="yiyi-st" id="yiyi-13">抽象语法本身可能随每个Python版本而改变；这个模块有助于以编程方式找出当前语法的样子。</span></p><p><span class="yiyi-st" id="yiyi-14">通过将<code class="xref py py-data docutils literal"><span class="pre">ast.PyCF_ONLY_AST</span></code>作为标志传递给<a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal"><span class="pre">compile()</span></code></a>内建函数或使用<a class="reference internal" href="#ast.parse" title="ast.parse"><code class="xref py py-func docutils literal"><span class="pre">parse()</span></code></a></span><span class="yiyi-st" id="yiyi-15">结果将是一个对象的树，其类都继承自<a class="reference internal" href="#ast.AST" title="ast.AST"><code class="xref py py-class docutils literal"><span class="pre">ast.AST</span></code></a>。</span><span class="yiyi-st" id="yiyi-16">可以使用内建<a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal"><span class="pre">compile()</span></code></a>函数将抽象语法树编译为Python代码对象。</span></p><div class="section" id="node-classes"><h2><span class="yiyi-st" id="yiyi-17">32.2.1. </span><span class="yiyi-st" id="yiyi-18">节点类</span></h2><dl class="class"><dt id="ast.AST"><span class="yiyi-st" id="yiyi-19"> <em class="property">class </em><code class="descclassname">ast.</code><code class="descname">AST</code></span></dt><dd><p><span class="yiyi-st" id="yiyi-20">这是所有AST节点类的基础。</span><span class="yiyi-st" id="yiyi-21">实际的节点类派生自<code class="file docutils literal"><span class="pre">Parser/Python.asdl</span></code>文件，该文件在<a class="reference internal" href="#abstract-grammar"><span>below</span></a>中再现。</span><span class="yiyi-st" id="yiyi-22">它们在<code class="xref py py-mod docutils literal"><span class="pre">_ast</span></code> C模块中定义，并在<a class="reference internal" href="#module-ast" title="ast: Abstract Syntax Tree classes and manipulation."><code class="xref py py-mod docutils literal"><span class="pre">ast</span></code></a>中重新导出。</span></p><p><span class="yiyi-st" id="yiyi-23">为抽象语法中的每个左侧符号定义一个类（例如，<code class="xref py py-class docutils literal"><span class="pre">ast.stmt</span></code>或<code class="xref py py-class docutils literal"><span class="pre">ast.expr</span></code>）。</span><span class="yiyi-st" id="yiyi-24">此外，右侧为每个构造函数定义了一个类；这些类继承自左侧树的类。</span><span class="yiyi-st" id="yiyi-25">例如，<code class="xref py py-class docutils literal"><span class="pre">ast.BinOp</span></code>从<code class="xref py py-class docutils literal"><span class="pre">ast.expr</span></code>继承。</span><span class="yiyi-st" id="yiyi-26">对于具有替代的生产规则（也称为“sums”），左侧类是抽象的：只有特定构造函数节点的实例被创建。</span></p><dl class="attribute"><dt id="ast.AST._fields"><span class="yiyi-st" id="yiyi-27"> <code class="descname">_fields</code></span></dt><dd><p><span class="yiyi-st" id="yiyi-28">每个具体类都有一个属性<a class="reference internal" href="#ast.AST._fields" title="ast.AST._fields"><code class="xref py py-attr docutils literal"><span class="pre">_fields</span></code></a>，它给出了所有子节点的名称。</span></p><p><span class="yiyi-st" id="yiyi-29">具体类的每个实例对于每个子节点具有在语法中定义的类型的一个属性。</span><span class="yiyi-st" id="yiyi-30">例如，<code class="xref py py-class docutils literal"><span class="pre">ast.BinOp</span></code>实例具有类型<code class="xref py py-class docutils literal"><span class="pre">ast.expr</span></code>的属性<code class="xref py py-attr docutils literal"><span class="pre">left</span></code>。</span></p><p><span class="yiyi-st" id="yiyi-31">如果这些属性在语法中标记为可选（使用问号），该值可能为<code class="docutils literal"><span class="pre">None</span></code>。</span><span class="yiyi-st" id="yiyi-32">如果属性可以具有零个或多个值（标有星号），那么值将表示为Python列表。</span><span class="yiyi-st" id="yiyi-33">当使用<a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal"><span class="pre">compile()</span></code></a>编译AST时，所有可能的属性必须存在并具有有效值。</span></p></dd></dl><dl class="attribute"><dt id="ast.AST.lineno"><span class="yiyi-st" id="yiyi-34"> <code class="descname">lineno</code></span></dt><dt id="ast.AST.col_offset"><span class="yiyi-st" id="yiyi-35"> <code class="descname">col_offset</code></span></dt><dd><p><span class="yiyi-st" id="yiyi-36"><code class="xref py py-class docutils literal"><span class="pre">ast.expr</span></code>和<code class="xref py py-class docutils literal"><span class="pre">ast.stmt</span></code>子类的实例具有<a class="reference internal" href="#ast.AST.lineno" title="ast.AST.lineno"><code class="xref py py-attr docutils literal"><span class="pre">lineno</span></code></a>和<a class="reference internal" href="#ast.AST.col_offset" title="ast.AST.col_offset"><code class="xref py py-attr docutils literal"><span class="pre">col_offset</span></code></a>属性。</span><span class="yiyi-st" id="yiyi-37"><a class="reference internal" href="#ast.AST.lineno" title="ast.AST.lineno"><code class="xref py py-attr docutils literal"><span class="pre">lineno</span></code></a>是源文本的行号（1-索引，因此第一行是第1行），<a class="reference internal" href="#ast.AST.col_offset" title="ast.AST.col_offset"><code class="xref py py-attr docutils literal"><span class="pre">col_offset</span></code></a>是第一个令牌的UTF-8字节偏移量生成节点。</span><span class="yiyi-st" id="yiyi-38">记录UTF-8偏移，因为解析器在内部使用UTF-8。</span></p></dd></dl><p><span class="yiyi-st" id="yiyi-39">类<code class="xref py py-class docutils literal"><span class="pre">ast.T</span></code>的构造函数解析其参数，如下所示：</span></p><ul class="simple"><li><span class="yiyi-st" id="yiyi-40">如果有位置参数，则必须存在与<code class="xref py py-attr docutils literal"><span class="pre">T._fields</span></code>中的项目一样多的项目；它们将被分配为这些名称的属性。</span></li><li><span class="yiyi-st" id="yiyi-41">如果有关键字参数，它们将把相同名称的属性设置为给定的值。</span></li></ul><p><span class="yiyi-st" id="yiyi-42">例如，要创建和填充<code class="xref py py-class docutils literal"><span class="pre">ast.UnaryOp</span></code>节点，您可以使用</span></p><div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">node</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">UnaryOp</span><span class="p">()</span>
+<span class="n">node</span><span class="o">.</span><span class="n">op</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">USub</span><span class="p">()</span>
+<span class="n">node</span><span class="o">.</span><span class="n">operand</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">Num</span><span class="p">()</span>
+<span class="n">node</span><span class="o">.</span><span class="n">operand</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">node</span><span class="o">.</span><span class="n">operand</span><span class="o">.</span><span class="n">lineno</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">node</span><span class="o">.</span><span class="n">operand</span><span class="o">.</span><span class="n">col_offset</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">node</span><span class="o">.</span><span class="n">lineno</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">node</span><span class="o">.</span><span class="n">col_offset</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div></div><p><span class="yiyi-st" id="yiyi-43">或更紧凑</span></p><div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">node</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">UnaryOp</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">USub</span><span class="p">(),</span> <span class="n">ast</span><span class="o">.</span><span class="n">Num</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">lineno</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">col_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                   <span class="n">lineno</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">col_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div></div></dd></dl></div><div class="section" id="abstract-grammar"><h2><span class="yiyi-st" id="yiyi-44">32.2.2. </span><span class="yiyi-st" id="yiyi-45">抽象语法</span></h2><p><span class="yiyi-st" id="yiyi-46">抽象语法目前定义如下：</span></p><div class="highlight-none"><div class="highlight"><pre><span></span>-- ASDL's six builtin types are identifier, int, string, bytes, object, singleton
+
+module Python
+{
+    mod = Module(stmt* body)
+        | Interactive(stmt* body)
+        | Expression(expr body)
+
+        -- not really an actual node but useful in Jython's typesystem.
+        | Suite(stmt* body)
+
+    stmt = FunctionDef(identifier name, arguments args,
+                       stmt* body, expr* decorator_list, expr? returns)
+          | AsyncFunctionDef(identifier name, arguments args,
+                             stmt* body, expr* decorator_list, expr? returns)
+
+          | ClassDef(identifier name,
+             expr* bases,
+             keyword* keywords,
+             stmt* body,
+             expr* decorator_list)
+          | Return(expr? value)
+
+          | Delete(expr* targets)
+          | Assign(expr* targets, expr value)
+          | AugAssign(expr target, operator op, expr value)
+
+          -- use 'orelse' because else is a keyword in target languages
+          | For(expr target, expr iter, stmt* body, stmt* orelse)
+          | AsyncFor(expr target, expr iter, stmt* body, stmt* orelse)
+          | While(expr test, stmt* body, stmt* orelse)
+          | If(expr test, stmt* body, stmt* orelse)
+          | With(withitem* items, stmt* body)
+          | AsyncWith(withitem* items, stmt* body)
+
+          | Raise(expr? exc, expr? cause)
+          | Try(stmt* body, excepthandler* handlers, stmt* orelse, stmt* finalbody)
+          | Assert(expr test, expr? msg)
+
+          | Import(alias* names)
+          | ImportFrom(identifier? module, alias* names, int? level)
+
+          | Global(identifier* names)
+          | Nonlocal(identifier* names)
+          | Expr(expr value)
+          | Pass | Break | Continue
+
+          -- XXX Jython will be different
+          -- col_offset is the byte offset in the utf8 string the parser uses
+          attributes (int lineno, int col_offset)
+
+          -- BoolOp() can use left &amp; right?
+    expr = BoolOp(boolop op, expr* values)
+         | BinOp(expr left, operator op, expr right)
+         | UnaryOp(unaryop op, expr operand)
+         | Lambda(arguments args, expr body)
+         | IfExp(expr test, expr body, expr orelse)
+         | Dict(expr* keys, expr* values)
+         | Set(expr* elts)
+         | ListComp(expr elt, comprehension* generators)
+         | SetComp(expr elt, comprehension* generators)
+         | DictComp(expr key, expr value, comprehension* generators)
+         | GeneratorExp(expr elt, comprehension* generators)
+         -- the grammar constrains where yield expressions can occur
+         | Await(expr value)
+         | Yield(expr? value)
+         | YieldFrom(expr value)
+         -- need sequences for compare to distinguish between
+         -- x &lt; 4 &lt; 3 and (x &lt; 4) &lt; 3
+         | Compare(expr left, cmpop* ops, expr* comparators)
+         | Call(expr func, expr* args, keyword* keywords)
+         | Num(object n) -- a number as a PyObject.
+         | Str(string s) -- need to specify raw, unicode, etc?
+         | Bytes(bytes s)
+         | NameConstant(singleton value)
+         | Ellipsis
+
+         -- the following expression can appear in assignment context
+         | Attribute(expr value, identifier attr, expr_context ctx)
+         | Subscript(expr value, slice slice, expr_context ctx)
+         | Starred(expr value, expr_context ctx)
+         | Name(identifier id, expr_context ctx)
+         | List(expr* elts, expr_context ctx)
+         | Tuple(expr* elts, expr_context ctx)
+
+          -- col_offset is the byte offset in the utf8 string the parser uses
+          attributes (int lineno, int col_offset)
+
+    expr_context = Load | Store | Del | AugLoad | AugStore | Param
+
+    slice = Slice(expr? lower, expr? upper, expr? step)
+          | ExtSlice(slice* dims)
+          | Index(expr value)
+
+    boolop = And | Or
+
+    operator = Add | Sub | Mult | MatMult | Div | Mod | Pow | LShift
+                 | RShift | BitOr | BitXor | BitAnd | FloorDiv
+
+    unaryop = Invert | Not | UAdd | USub
+
+    cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
+
+    comprehension = (expr target, expr iter, expr* ifs)
+
+    excepthandler = ExceptHandler(expr? type, identifier? name, stmt* body)
+                    attributes (int lineno, int col_offset)
+
+    arguments = (arg* args, arg? vararg, arg* kwonlyargs, expr* kw_defaults,
+                 arg? kwarg, expr* defaults)
+
+    arg = (identifier arg, expr? annotation)
+           attributes (int lineno, int col_offset)
+
+    -- keyword arguments supplied to call (NULL identifier for **kwargs)
+    keyword = (identifier? arg, expr value)
+
+    -- import name with optional 'as' alias.
+    alias = (identifier name, identifier? asname)
+
+    withitem = (expr context_expr, expr? optional_vars)
+}
+
+</pre></div></div></div><div class="section" id="ast-helpers"><h2><span class="yiyi-st" id="yiyi-47">32.2.3. <a class="reference internal" href="#module-ast" title="ast: Abstract Syntax Tree classes and manipulation."><code class="xref py py-mod docutils literal"><span class="pre">ast</span></code></a>助手</span></h2><p><span class="yiyi-st" id="yiyi-48">除了节点类之外，<a class="reference internal" href="#module-ast" title="ast: Abstract Syntax Tree classes and manipulation."><code class="xref py py-mod docutils literal"><span class="pre">ast</span></code></a>模块定义了这些用于遍历抽象语法树的效用函数和类：</span></p><dl class="function"><dt id="ast.parse"><span class="yiyi-st" id="yiyi-49"> <code class="descclassname">ast.</code><code class="descname">parse</code><span class="sig-paren">(</span><em>source</em>, <em>filename='&lt;unknown&gt;'</em>, <em>mode='exec'</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-50">将源解析为AST节点。</span><span class="yiyi-st" id="yiyi-51">等同于<code class="docutils literal"><span class="pre">compile（source，</span> <span class="pre">filename，</span> <span class="pre">模式，</span> <span class="pre">ast.PyCF_ONLY_AST）</span> </code></span></p></dd></dl><dl class="function"><dt id="ast.literal_eval"><span class="yiyi-st" id="yiyi-52"> <code class="descclassname">ast.</code><code class="descname">literal_eval</code><span class="sig-paren">(</span><em>node_or_string</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-53">安全计算表达式节点或包含Python字面值或容器显示的字符串。</span><span class="yiyi-st" id="yiyi-54">提供的字符串或节点只能由以下Python字面值结构组成：字符串，字节，数字，元组，列表，项，集，布尔值和<code class="docutils literal"><span class="pre">None</span></code>。</span></p><p><span class="yiyi-st" id="yiyi-55">这可以用于安全地评估包含来自不可信来源的Python值的字符串，而不需要解析值自己。</span><span class="yiyi-st" id="yiyi-56">它不能够评估任意复杂的表达式，例如涉及运算符或索引。</span></p><div class="versionchanged"><p><span class="yiyi-st" id="yiyi-57"><span class="versionmodified">在版本3.2中更改：</span>现在允许字节和设置字面值。</span></p></div></dd></dl><dl class="function"><dt id="ast.get_docstring"><span class="yiyi-st" id="yiyi-58"> <code class="descclassname">ast.</code><code class="descname">get_docstring</code><span class="sig-paren">(</span><em>node</em>, <em>clean=True</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-59">Return the docstring of the given <em>node</em> (which must be a <code class="xref py py-class docutils literal"><span class="pre">FunctionDef</span></code>, <code class="xref py py-class docutils literal"><span class="pre">ClassDef</span></code> or <code class="xref py py-class docutils literal"><span class="pre">Module</span></code> node), or <code class="docutils literal"><span class="pre">None</span></code> if it has no docstring. </span><span class="yiyi-st" id="yiyi-60">如果<em>clean</em>为true，请使用<a class="reference internal" href="inspect.html#inspect.cleandoc" title="inspect.cleandoc"><code class="xref py py-func docutils literal"><span class="pre">inspect.cleandoc()</span></code></a>清除docstring的缩进。</span></p></dd></dl><dl class="function"><dt id="ast.fix_missing_locations"><span class="yiyi-st" id="yiyi-61"> <code class="descclassname">ast.</code><code class="descname">fix_missing_locations</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-62">当使用<a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal"><span class="pre">compile()</span></code></a>编译节点树时，编译器对于支持它们的每个节点都需要<code class="xref py py-attr docutils literal"><span class="pre">lineno</span></code>和<code class="xref py py-attr docutils literal"><span class="pre">col_offset</span></code>属性。</span><span class="yiyi-st" id="yiyi-63">这是非常繁琐的填充生成的节点，所以这个帮助程序通过将它们设置为父节点的值，递归地添加这些属性尚未设置。</span><span class="yiyi-st" id="yiyi-64">它以递归方式从<em>节点</em>开始工作。</span></p></dd></dl><dl class="function"><dt id="ast.increment_lineno"><span class="yiyi-st" id="yiyi-65"> <code class="descclassname">ast.</code><code class="descname">increment_lineno</code><span class="sig-paren">(</span><em>node</em>, <em>n=1</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-66">从<em>节点</em>开始，通过<em>n</em>增加树中每个节点的行号。这对于“将代码移动到文件中的其他位置很有用。</span></p></dd></dl><dl class="function"><dt id="ast.copy_location"><span class="yiyi-st" id="yiyi-67"> <code class="descclassname">ast.</code><code class="descname">copy_location</code><span class="sig-paren">(</span><em>new_node</em>, <em>old_node</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-68">如果可能，将源位置（<code class="xref py py-attr docutils literal"><span class="pre">lineno</span></code>和<code class="xref py py-attr docutils literal"><span class="pre">col_offset</span></code>）从<em>old_node</em>复制到<em>new_node</em>，然后返回<em>new_node 。</em></span></p></dd></dl><dl class="function"><dt id="ast.iter_fields"><span class="yiyi-st" id="yiyi-69"> <code class="descclassname">ast.</code><code class="descname">iter_fields</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-70">Yield a tuple of <code class="docutils literal"><span class="pre">(fieldname,</span> <span class="pre">value)</span></code> for each field in <code class="docutils literal"><span class="pre">node._fields</span></code> that is present on <em>node</em>.</span></p></dd></dl><dl class="function"><dt id="ast.iter_child_nodes"><span class="yiyi-st" id="yiyi-71"> <code class="descclassname">ast.</code><code class="descname">iter_child_nodes</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-72">产生<em>节点</em>的所有直接子节点，即作为节点的所有字段和作为节点列表的所有字段项。</span></p></dd></dl><dl class="function"><dt id="ast.walk"><span class="yiyi-st" id="yiyi-73"> <code class="descclassname">ast.</code><code class="descname">walk</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-74">递归地以<em>节点</em>（包括<em>节点</em>本身）开始生成树中的所有后代节点，没有指定顺序。</span><span class="yiyi-st" id="yiyi-75">如果您只想要修改节点并且不关心上下文，这将非常有用。</span></p></dd></dl><dl class="class"><dt id="ast.NodeVisitor"><span class="yiyi-st" id="yiyi-76"> <em class="property">class </em><code class="descclassname">ast.</code><code class="descname">NodeVisitor</code></span></dt><dd><p><span class="yiyi-st" id="yiyi-77">一个节点访问者基类，它遍历抽象语法树并为找到的每个节点调用一个访问者函数。</span><span class="yiyi-st" id="yiyi-78">此函数可以返回通过<a class="reference internal" href="#ast.NodeVisitor.visit" title="ast.NodeVisitor.visit"><code class="xref py py-meth docutils literal"><span class="pre">visit()</span></code></a>方法转发的值。</span></p><p><span class="yiyi-st" id="yiyi-79">这个类是子类化的，子类添加了访问者方法。</span></p><dl class="method"><dt id="ast.NodeVisitor.visit"><span class="yiyi-st" id="yiyi-80"> <code class="descname">visit</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-81">访问节点。</span><span class="yiyi-st" id="yiyi-82">默认实现调用<code class="samp docutils literal"><span class="pre">self.visit _</span> <em><span class="pre">classname</span></em></code>的方法，其中<em>classname</em>是节点类的名称， <a class="reference internal" href="#ast.NodeVisitor.generic_visit" title="ast.NodeVisitor.generic_visit"><code class="xref py py-meth docutils literal"><span class="pre">generic_visit()</span></code></a>如果该方法不存在。</span></p></dd></dl><dl class="method"><dt id="ast.NodeVisitor.generic_visit"><span class="yiyi-st" id="yiyi-83"> <code class="descname">generic_visit</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-84">此访问者在节点的所有子节点上调用<a class="reference internal" href="#ast.NodeVisitor.visit" title="ast.NodeVisitor.visit"><code class="xref py py-meth docutils literal"><span class="pre">visit()</span></code></a>。</span></p><p><span class="yiyi-st" id="yiyi-85">请注意，除非访问者调用<a class="reference internal" href="#ast.NodeVisitor.generic_visit" title="ast.NodeVisitor.generic_visit"><code class="xref py py-meth docutils literal"><span class="pre">generic_visit()</span></code></a>或访问它们本身，否则将不会访问具有自定义访问者方法的节点的子节点。</span></p></dd></dl><p><span class="yiyi-st" id="yiyi-86">如果要在遍历期间将更改应用于节点，请不要使用<a class="reference internal" href="#ast.NodeVisitor" title="ast.NodeVisitor"><code class="xref py py-class docutils literal"><span class="pre">NodeVisitor</span></code></a>。</span><span class="yiyi-st" id="yiyi-87">为此，存在允许修改的特殊访问者（<a class="reference internal" href="#ast.NodeTransformer" title="ast.NodeTransformer"><code class="xref py py-class docutils literal"><span class="pre">NodeTransformer</span></code></a>）。</span></p></dd></dl><dl class="class"><dt id="ast.NodeTransformer"><span class="yiyi-st" id="yiyi-88"> <em class="property">class </em><code class="descclassname">ast.</code><code class="descname">NodeTransformer</code></span></dt><dd><p><span class="yiyi-st" id="yiyi-89"><a class="reference internal" href="#ast.NodeVisitor" title="ast.NodeVisitor"><code class="xref py py-class docutils literal"><span class="pre">NodeVisitor</span></code></a>子类，它遍历抽象语法树并允许修改节点。</span></p><p><span class="yiyi-st" id="yiyi-90"><a class="reference internal" href="#ast.NodeTransformer" title="ast.NodeTransformer"><code class="xref py py-class docutils literal"><span class="pre">NodeTransformer</span></code></a>将遍历AST并使用访问者方法的返回值替换或删除旧节点。</span><span class="yiyi-st" id="yiyi-91">如果visitor方法的返回值为<code class="docutils literal"><span class="pre">None</span></code>，则节点将从其位置删除，否则将替换为返回值。</span><span class="yiyi-st" id="yiyi-92">返回值可以是原始节点，在这种情况下不发生替换。</span></p><p><span class="yiyi-st" id="yiyi-93">下面是一个将所有出现的名称查找（<code class="docutils literal"><span class="pre">foo</span></code>）重写为<code class="docutils literal"><span class="pre">data['foo']</span></code>的示例变换器：</span></p><div class="highlight-python3"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RewriteName</span><span class="p">(</span><span class="n">NodeTransformer</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">visit_Name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy_location</span><span class="p">(</span><span class="n">Subscript</span><span class="p">(</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">Name</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">'data'</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">Load</span><span class="p">()),</span>
+            <span class="nb">slice</span><span class="o">=</span><span class="n">Index</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">Str</span><span class="p">(</span><span class="n">s</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">)),</span>
+            <span class="n">ctx</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">ctx</span>
+        <span class="p">),</span> <span class="n">node</span><span class="p">)</span>
+</pre></div></div><p><span class="yiyi-st" id="yiyi-94">请记住，如果您操作的节点具有子节点，则必须自己转换子节点，或者先为该节点调用<code class="xref py py-meth docutils literal"><span class="pre">generic_visit()</span></code>方法。</span></p><p><span class="yiyi-st" id="yiyi-95">对于作为语句的容器（适用于所有语句节点）的一部分的节点，访问者还可以返回节点的列表，而不仅仅是单个节点。</span></p><p><span class="yiyi-st" id="yiyi-96">通常你使用这样的变压器：</span></p><div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">node</span> <span class="o">=</span> <span class="n">YourTransformer</span><span class="p">()</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+</pre></div></div></dd></dl><dl class="function"><dt id="ast.dump"><span class="yiyi-st" id="yiyi-97"> <code class="descclassname">ast.</code><code class="descname">dump</code><span class="sig-paren">(</span><em>node</em>, <em>annotate_fields=True</em>, <em>include_attributes=False</em><span class="sig-paren">)</span></span></dt><dd><p><span class="yiyi-st" id="yiyi-98">在<em>节点</em>中返回树的格式化转储。</span><span class="yiyi-st" id="yiyi-99">这主要用于调试目的。</span><span class="yiyi-st" id="yiyi-100">返回的字符串将显示字段的名称和值。</span><span class="yiyi-st" id="yiyi-101">这使得代码不可能计算，因此如果需要评估<em>annotate_fields</em>必须设置为<code class="docutils literal"><span class="pre">False</span></code>。</span><span class="yiyi-st" id="yiyi-102">默认情况下，属性（例如行号和列偏移量）不会转储。</span><span class="yiyi-st" id="yiyi-103">如果需要，可以将<em>include_attributes</em>设置为<code class="docutils literal"><span class="pre">True</span></code>。</span></p></dd></dl><div class="admonition seealso"><p class="first admonition-title"><span class="yiyi-st" id="yiyi-104">也可以看看</span></p><p class="last"><span class="yiyi-st" id="yiyi-105"><a class="reference external" href="https://greentreesnakes.readthedocs.org/">Green Tree Snakes</a>是一个外部文档资源，具有使用Python AST的良好细节。</span></p></div></div></div></div>

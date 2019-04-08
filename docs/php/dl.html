@@ -1,0 +1,189 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>运行时载入一个 PHP 扩展</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.dl" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">dl</h1>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">dl</span> &mdash; <span class="dc-title">运行时载入一个 PHP 扩展</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.dl-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>dl</strong></span>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$library</code></span>
+   ) : <span class="type">bool</span></div>
+
+  <p class="para rdfs-comment">
+   载入指定参数 <code class="parameter">library</code> 的 PHP 扩展。
+  </p>
+  <p class="para">
+   使用 <span class="function"><a href="extension_loaded.html" class="function">extension_loaded()</a></span> 来测试指定的扩展是否已经激活。
+   这既能用于内建的扩展也可以用于动态加载的扩展（既可以通过 <var class="filename">php.ini</var> 也可以通过 <span class="function"><strong>dl()</strong></span>）。
+  </p>
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="simpara">
+    在 PHP 5.3 里，此函数被某些 SAPI 移除了。
+   </p>
+  </div>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.dl-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">library</code></dt>
+
+     <dd>
+
+      <p class="para">
+       此参数<em class="emphasis">仅仅</em>是要加载的扩展的文件名，依赖于你的平台。
+       比如，<a href="ref.sockets.html" class="link">sockets</a>（作为共享模块编译，而不是默认的！）在 Unix 平台上称为 <var class="filename">sockets.so</var> 而 在 Windows 平台上是 <var class="filename">php_sockets.dll</var>。
+      </p>
+      <p class="para">
+       扩展加载的目录依赖于你的平台：
+      </p>
+      <p class="para">
+       Windows - 如果没有在 <var class="filename">php.ini</var> 里明确设置，扩展默认会从 <var class="filename">C:\php5\</var> 加载。
+      </p>
+      <p class="para">
+       Unix - 如果没有在 <var class="filename">php.ini</var> 里明确设置，默认的扩展目录依赖于
+       <ul class="itemizedlist">
+        <li class="listitem">
+         <span class="simpara">
+          PHP 是否通过 <em>--enable-debug</em> 选项构建
+         </span>
+        </li>
+        <li class="listitem">
+         <span class="simpara">
+          PHP 是否以（实验性质的）ZTS （Zned 线程安全）支持构建
+         </span>
+        </li>
+        <li class="listitem">
+         <span class="simpara">
+          当前的内部 <em>ZEND_MODULE_API_NO</em>（Zend 内部模块 API 数字，基本上是主要模块修改时的日期）
+         </span>
+        </li>
+       </ul>
+       考虑到上述，目录默认为 <em>&lt;install-dir&gt;/lib/php/extensions/ &lt;debug-or-not&gt;-&lt;zts-or-not&gt;-ZEND_MODULE_API_NO</em>，例如
+       <var class="filename">/usr/local/php/lib/php/extensions/debug-non-zts-20010901</var>
+       或
+       <var class="filename">/usr/local/php/lib/php/extensions/no-debug-zts-20010901</var>。
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.dl-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。 如果加载模块的功能是无效或者禁用的（既可以通过设置关闭 <a href="info.configuration.html#ini.enable-dl" class="link">enable_dl</a> 设置，也可以通过启用 <var class="filename">php.ini</var> 里的 <a href="ini.sect.safe-mode.html#ini.safe-mode" class="link">安全模式</a>）将导致一个 <strong><code>E_ERROR</code></strong> 并中断执行。
+   如果因为指定的库无法加载而导致 <span class="function"><strong>dl()</strong></span> 失败，除了返回 <strong><code>FALSE</code></strong>，还会产生一个 <strong><code>E_WARNING</code></strong> 的消息。
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.dl-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-491">
+    <p><strong>Example #1 <span class="function"><strong>dl()</strong></span> 例子</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;加载一个扩展的例子，基于操作系统<br /></span><span style="color: #007700">if&nbsp;(!</span><span style="color: #0000BB">extension_loaded</span><span style="color: #007700">(</span><span style="color: #DD0000">'sqlite'</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">strtoupper</span><span style="color: #007700">(</span><span style="color: #0000BB">substr</span><span style="color: #007700">(</span><span style="color: #0000BB">PHP_OS</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">))&nbsp;===&nbsp;</span><span style="color: #DD0000">'WIN'</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">dl</span><span style="color: #007700">(</span><span style="color: #DD0000">'php_sqlite.dll'</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">dl</span><span style="color: #007700">(</span><span style="color: #DD0000">'sqlite.so'</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;或者，使用常量&nbsp;PHP_SHLIB_SUFFIX&nbsp;<br /></span><span style="color: #007700">if&nbsp;(!</span><span style="color: #0000BB">extension_loaded</span><span style="color: #007700">(</span><span style="color: #DD0000">'sqlite'</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$prefix&nbsp;</span><span style="color: #007700">=&nbsp;(</span><span style="color: #0000BB">PHP_SHLIB_SUFFIX&nbsp;</span><span style="color: #007700">===&nbsp;</span><span style="color: #DD0000">'dll'</span><span style="color: #007700">)&nbsp;?&nbsp;</span><span style="color: #DD0000">'php_'&nbsp;</span><span style="color: #007700">:&nbsp;</span><span style="color: #DD0000">''</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">dl</span><span style="color: #007700">(</span><span style="color: #0000BB">$prefix&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">'sqlite.'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">PHP_SHLIB_SUFFIX</span><span style="color: #007700">);<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 changelog" id="refsect1-function.dl-changelog">
+  <h3 class="title">更新日志</h3>
+  <p class="para">
+   <table class="doctable informaltable">
+    
+     <thead>
+      <tr>
+       <th>版本</th>
+       <th>说明</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      <tr>
+       <td>7.0.0</td>
+       <td>
+        PHP-FPM 模式下已禁用 <span class="function"><strong>dl()</strong></span>。
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.3.9</td>
+       <td>
+        尽管不推荐，但  PHP-FPM 模式下启用了 <span class="function"><strong>dl()</strong></span>。
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.3.0</td>
+       <td>
+        由于稳定性，<span class="function"><strong>dl()</strong></span> 在某些 SAPI 中被禁用。仅仅允许 <span class="function"><strong>dl()</strong></span> 的 SAPI 为 CLI 和 Embed。
+        使用 <a href="ini.core.html#ini.extension" class="link">扩展加载指令</a> 作为替代。
+       </td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 notes" id="refsect1-function.dl-notes">
+  <h3 class="title">注释</h3>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    当 PHP 以支持 ZTS 构建时，<em class="emphasis">不</em>支持 <span class="function"><strong>dl()</strong></span>。
+    使用 <a href="ini.core.html#ini.extension" class="link">扩展加载指令</a> 作为替代。
+   </p>
+  </p></blockquote>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    在某些 Unix 平台上，<span class="function"><strong>dl()</strong></span> 是大小写敏感的。
+   </p>
+  </p></blockquote>
+  <blockquote class="note"><p><strong class="note">Note</strong>: <span class="simpara">当 PHP 运行在 <a href="features.safe_mode.html" class="link">安全模式</a> 时，不能使用此函数。</span></p></blockquote>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.dl-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><a href="ini.core.html#ini.extension" class="link">扩展加载指令</a></li>
+    <li class="member"><span class="function"><a href="extension_loaded.html" class="function" rel="rdfs-seeAlso">extension_loaded()</a> - 检查一个扩展是否已经加载</span></li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

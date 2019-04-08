@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Sets the quality of service needed from the cluster</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.mysqlnd-ms-set-qos" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">mysqlnd_ms_set_qos</h1>
+  <p class="verinfo">(PECL mysqlnd_ms &lt; 1.2.0)</p><p class="refpurpose"><span class="refname">mysqlnd_ms_set_qos</span> &mdash; <span class="dc-title">Sets the quality of service needed from the cluster</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.mysqlnd-ms-set-qos-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   
+   <span class="methodname"><strong>mysqlnd_ms_set_qos</strong></span>
+    ( <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span> <code class="parameter">$connection</code></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$service_level</code></span>
+   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$service_level_option</code></span>
+   [, <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span> <code class="parameter">$option_value</code></span>
+  ]] ) : <span class="type">bool</span></div>
+
+  <p class="para rdfs-comment">
+   Sets the quality of service needed from the cluster. A database cluster delivers
+   a certain quality of service to the user depending on its architecture. A major
+   aspect of the quality of service is the consistency level the cluster can offer.
+   An asynchronous MySQL replication cluster defaults to eventual consistency for
+   slave reads: a slave may serve stale data, current data, or it may have not the
+   requested data at all, because it is not synchronous to the master. In a
+   MySQL replication cluster, only master accesses can give strong consistency, which
+   promises that all clients see each others changes.
+  </p>
+  <p class="para">
+   PECL/mysqlnd_ms hides the complexity of choosing appropriate nodes to achieve
+   a certain level of service from the cluster. The
+   &quot;Quality of Service&quot; filter implements the necessary logic. The filter can either
+   be configured in the plugins configuration file, or at runtime using
+   <span class="function"><strong>mysqlnd_ms_set_qos()</strong></span>.
+  </p>
+  <p class="para">
+   Similar results can be achieved with PECL mysqlnd_ms &lt; 1.2.0, if using
+   SQL hints to force the use of a certain type of node or using the
+   <em>master_on_write</em> plugin configuration option. The first
+   requires more code and causes more work on the application side.
+   The latter is less refined than using the quality of service filter.
+   Settings made through the function call can be reversed, as shown in the example
+   below. The example temporarily switches to a higher service level
+   (session consistency, read your writes) and returns
+   back to the clusters default after it has performed all operations that require the
+   better service. This way, read load on the master can be minimized compared to
+   using <em>master_on_write</em>, which would continue using the master
+   after the first write.
+  </p>
+  <p class="para">
+   Since 1.5.0 calls will fail when done in the middle of a transaction if
+   <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.trx-stickiness" class="link">transaction stickiness</a>
+   is enabled and transaction boundaries have been detected.
+   properly.
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.mysqlnd-ms-set-qos-parameters">
+  <h3 class="title">参数</h3>
+  <dl>
+
+   
+    <dt>
+<code class="parameter">connection</code></dt>
+
+    <dd>
+
+     <p class="para">
+      A PECL/mysqlnd_ms connection handle to a MySQL server of the type
+      <a href="ref.pdo_mysql.html" class="link">PDO_MYSQL</a>, <a href="book.mysqli.html" class="link">mysqli</a> or
+      <a href="book.mysql.html" class="link">ext/mysql</a> for which a service level is to be set.
+      The connection handle is obtained when opening a connection with
+      a host name that matches a mysqlnd_ms configuration file
+      entry using any of the above three MySQL driver extensions.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">service_level</code></dt>
+
+    <dd>
+
+     <p class="para">
+      The requested service level: <strong><code>MYSQLND_MS_QOS_CONSISTENCY_EVENTUAL</code></strong>,
+      <strong><code>MYSQLND_MS_QOS_CONSISTENCY_SESSION</code></strong> or
+      <strong><code>MYSQLND_MS_QOS_CONSISTENCY_STRONG</code></strong>.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">service_level_option</code></dt>
+
+    <dd>
+
+     <p class="para">
+      An option to parameterize the requested service level.
+      The option can either be <strong><code>MYSQLND_MS_QOS_OPTION_GTID</code></strong>
+      or <strong><code>MYSQLND_MS_QOS_OPTION_AGE</code></strong>.
+     </p>
+     <p class="para">
+       The option <strong><code>MYSQLND_MS_QOS_OPTION_GTID</code></strong> can be used
+       to refine the service level <strong><code>MYSQLND_MS_QOS_CONSISTENCY_SESSION</code></strong>.
+       It must be combined with a fourth function parameter, the
+       <code class="parameter">option_value</code>. The <code class="parameter">option_value</code>
+       shall be a global transaction ID obtained from
+       <span class="function"><a href="mysqlnd_ms_get_last_gtid.html" class="function">mysqlnd_ms_get_last_gtid()</a></span>. If set, the
+       plugin considers both master servers and asynchronous slaves for session
+       consistency (read your writes). Otherwise, only masters are
+       used to achieve session consistency. A slave is considered up-to-date and
+       checked if it has already replicated the global transaction ID from
+       <code class="parameter">option_value</code>. Please note, searching appropriate slaves
+       is an expensive and slow operation. Use the feature sparsely, if the
+       master cannot handle the read load alone.
+     </p>
+     <p class="para">
+       The <strong><code>MYSQLND_MS_QOS_OPTION_AGE</code></strong> option can be combined
+       with the <strong><code>MYSQLND_MS_QOS_CONSISTENCY_EVENTUAL</code></strong>
+       service level, to filter out asynchronous slaves that lag more seconds behind
+       the master than <code class="parameter">option_value</code>. If set, the plugin
+       will only consider slaves for reading if
+       <em>SHOW SLAVE STATUS</em> reports
+       <em>Slave_IO_Running=Yes</em>,
+       <em>Slave_SQL_Running=Yes</em> and
+       <em>Seconds_Behind_Master &lt;= option_value</em>. Please note,
+       searching appropriate slaves is an expensive and slow operation.
+       Use the feature sparsely in version 1.2.0. Future versions may improve the
+       algorithm used to identify candidates. Please, see the MySQL reference
+       manual about the precision, accuracy and limitations of the MySQL administrative
+       command <em>SHOW SLAVE STATUS</em>.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">option_value</code></dt>
+
+    <dd>
+
+     <p class="para">
+      Parameter value for the service level option. See also the
+      <code class="parameter">service_level_option</code> parameter.
+     </p>
+    </dd>
+
+   
+  </dl>
+
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.mysqlnd-ms-set-qos-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   Returns <strong><code>TRUE</code></strong> if the connections service level
+   has been switched to the requested. Otherwise, returns <strong><code>FALSE</code></strong>
+  </p>
+ </div>
+
+
+ <div class="refsect1 unknown-returnvaluet" id="refsect1-function.mysqlnd-ms-set-qos-unknown-returnvaluet">
+  <h3 class="title">注释</h3>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    <span class="function"><strong>mysqlnd_ms_set_qos()</strong></span> requires
+    PHP &gt;= 5.4.0 and PECL mysqlnd_ms &gt;= 1.2.0. Internally, it is using
+    a <em>mysqlnd</em> library C functionality not available with PHP 5.3.
+   </p>
+   <p class="para">
+Please note, all MySQL 5.6 production versions do not provide
+     clients with enough information to use GTIDs for enforcing session consistency.
+     In the worst case, the plugin will choose the master only.
+   </p>
+  </p></blockquote>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.mysqlnd-ms-set-qos-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-2275">
+    <p><strong>Example #1 <span class="function"><strong>mysqlnd_ms_set_qos()</strong></span> example</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">/*&nbsp;Open&nbsp;mysqlnd_ms&nbsp;connection&nbsp;using&nbsp;mysqli,&nbsp;PDO_MySQL&nbsp;or&nbsp;mysql&nbsp;extension&nbsp;*/<br /></span><span style="color: #0000BB">$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"myapp"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"username"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"database"</span><span style="color: #007700">);<br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">)<br />&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;Of&nbsp;course,&nbsp;your&nbsp;error&nbsp;handling&nbsp;is&nbsp;nicer...&nbsp;*/<br />&nbsp;&nbsp;</span><span style="color: #007700">die(</span><span style="color: #0000BB">sprintf</span><span style="color: #007700">(</span><span style="color: #DD0000">"[%d]&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_connect_errno</span><span style="color: #007700">(),&nbsp;</span><span style="color: #0000BB">mysqli_connect_error</span><span style="color: #007700">()));<br /><br /></span><span style="color: #FF8000">/*&nbsp;Session&nbsp;consistency:&nbsp;read&nbsp;your&nbsp;writes&nbsp;*/<br /></span><span style="color: #0000BB">$ret&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysqlnd_ms_set_qos</span><span style="color: #007700">(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">MYSQLND_MS_QOS_CONSISTENCY_SESSION</span><span style="color: #007700">);<br />if&nbsp;(!</span><span style="color: #0000BB">$ret</span><span style="color: #007700">)<br />&nbsp;&nbsp;die(</span><span style="color: #0000BB">sprintf</span><span style="color: #007700">(</span><span style="color: #DD0000">"[%d]&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">));<br /><br /></span><span style="color: #FF8000">/*&nbsp;Will&nbsp;use&nbsp;master&nbsp;and&nbsp;return&nbsp;fresh&nbsp;data,&nbsp;client&nbsp;can&nbsp;see&nbsp;his&nbsp;last&nbsp;write&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(!</span><span style="color: #0000BB">$res&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;item,&nbsp;price&nbsp;FROM&nbsp;orders&nbsp;WHERE&nbsp;order_id&nbsp;=&nbsp;1"</span><span style="color: #007700">))<br />&nbsp;&nbsp;die(</span><span style="color: #0000BB">sprintf</span><span style="color: #007700">(</span><span style="color: #DD0000">"[%d]&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">));<br /><br /></span><span style="color: #FF8000">/*&nbsp;Back&nbsp;to&nbsp;default:&nbsp;use&nbsp;of&nbsp;all&nbsp;slaves&nbsp;and&nbsp;masters&nbsp;permitted,&nbsp;stale&nbsp;data&nbsp;can&nbsp;happen&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(!</span><span style="color: #0000BB">mysqlnd_ms_set_qos</span><span style="color: #007700">(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">MYSQLND_MS_QOS_CONSISTENCY_EVENTUAL</span><span style="color: #007700">))<br />&nbsp;&nbsp;die(</span><span style="color: #0000BB">sprintf</span><span style="color: #007700">(</span><span style="color: #DD0000">"[%d]&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">));<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.mysqlnd-ms-set-qos-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member">
+     <span class="function"><a href="mysqlnd_ms_get_last_gtid.html" class="function" rel="rdfs-seeAlso">mysqlnd_ms_get_last_gtid()</a> - 返回最后的全局同步 ID (GTID)</span>
+    </li>
+    <li class="member">
+     <a href="mysqlnd_ms.qos_consistency.html" class="link">Service level and consistency concept</a>
+    </li>
+    <li class="member">
+     <a href="mysqlnd_ms.filter.html" class="link">Filter concept</a>
+    </li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

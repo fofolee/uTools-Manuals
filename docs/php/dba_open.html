@@ -1,0 +1,246 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Open database</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.dba-open" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">dba_open</h1>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">dba_open</span> &mdash; <span class="dc-title">Open database</span></p>
+
+ </div>
+ <div class="refsect1 description" id="refsect1-function.dba-open-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>dba_open</strong></span>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$path</code></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$mode</code></span>
+   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$handler</code></span>
+   [, <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span> <code class="parameter">$...</code></span>
+  ]] ) : <span class="type">resource</span></div>
+
+  <p class="para rdfs-comment">
+   <span class="function"><strong>dba_open()</strong></span> establishes a database instance for
+   <code class="parameter">path</code> with <code class="parameter">mode</code> using
+   <code class="parameter">handler</code>.
+  </p>
+ </div>
+
+ <div class="refsect1 parameters" id="refsect1-function.dba-open-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">path</code></dt>
+
+     <dd>
+
+      <p class="para">
+       Commonly a regular path in your filesystem.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">mode</code></dt>
+
+     <dd>
+
+      <p class="para">
+       It is <em>r</em> for read access, <em>w</em> for
+       read/write access to an already existing database, <em>c</em>
+       for read/write access and database creation if it doesn&#039;t currently exist,
+       and <em>n</em> for create, truncate and read/write access.
+       The database is created in BTree mode, other modes (like Hash or Queue)
+       are not supported.
+      </p>
+      <p class="para">
+       Additionally you can set the database lock method with the next char. 
+       Use <em>l</em> to lock the database with a <var class="filename">.lck</var>
+       file or <em>d</em> to lock the databasefile itself. It is 
+       important that all of your applications do this consistently.
+      </p>
+      <p class="para">
+       If you want to test the access and do not want to wait for the lock 
+       you can add <em>t</em> as third character. When you are 
+       absolutely sure that you do not require database locking you can do 
+       so by using <em>-</em> instead of <em>l</em> or
+       <em>d</em>. When none of <em>d</em>, 
+       <em>l</em> or <em>-</em> is used, dba will lock
+       on the database file as it would with <em>d</em>.
+      </p>
+      <blockquote class="note"><p><strong class="note">Note</strong>: 
+       <p class="para">
+        There can only be one writer for one database file. When you use dba on 
+        a web server and more than one request requires write operations they can
+        only be done one after another. Also read during write is not allowed.
+        The dba extension uses locks to prevent this. See the following table:
+        <table class="doctable table">
+         <caption><strong>DBA locking</strong></caption>
+         
+          <thead>
+           <tr>
+            <th>already open</th>
+            <th><code class="parameter">mode</code> = &quot;rl&quot;</th>
+            <th><code class="parameter">mode</code> = &quot;rlt&quot;</th>
+            <th><code class="parameter">mode</code> = &quot;wl&quot;</th>
+            <th><code class="parameter">mode</code> = &quot;wlt&quot;</th>
+            <th><code class="parameter">mode</code> = &quot;rd&quot;</th>
+            <th><code class="parameter">mode</code> = &quot;rdt&quot;</th>
+            <th><code class="parameter">mode</code> = &quot;wd&quot;</th>
+            <th><code class="parameter">mode</code> = &quot;wdt&quot;</th>
+           </tr>
+
+          </thead>
+
+          <tbody class="tbody">
+           <tr>
+            <td>not open</td>
+            <td>ok</td>
+            <td>ok</td>
+            <td>ok</td>
+            <td>ok</td>
+            <td>ok</td>
+            <td>ok</td>
+            <td>ok</td>
+            <td>ok</td>
+           </tr>
+
+           <tr>
+            <td><code class="parameter">mode</code> = &quot;rl&quot;</td>
+            <td>ok</td>
+            <td>ok</td>
+            <td>wait</td>
+            <td>false</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>illegal</td>
+           </tr>
+
+           <tr>
+            <td><code class="parameter">mode</code> = &quot;wl&quot;</td>
+            <td>wait</td>
+            <td>false</td>
+            <td>wait</td>
+            <td>false</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>illegal</td>
+           </tr>
+
+           <tr>
+            <td><code class="parameter">mode</code> = &quot;rd&quot;</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>ok</td>
+            <td>ok</td>
+            <td>wait</td>
+            <td>false</td>
+           </tr>
+
+           <tr>
+            <td><code class="parameter">mode</code> = &quot;wd&quot;</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>illegal</td>
+            <td>wait</td>
+            <td>false</td>
+            <td>wait</td>
+            <td>false</td>
+           </tr>
+
+          </tbody>
+         
+        </table>
+
+        <ul class="simplelist">
+         <li class="member">ok: the second call will be successfull.</li>
+         <li class="member">wait: the second call waits until <span class="function"><a href="dba_close.html" class="function">dba_close()</a></span> is called for the first.</li>
+         <li class="member">false: the second call returns false.</li>
+         <li class="member">illegal: you must not mix <em>&quot;l&quot;</em> and <em>&quot;d&quot;</em> modifiers for <code class="parameter">mode</code> parameter.</li>
+        </ul>
+       </p>
+      </p></blockquote>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">handler</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The name of the <a href="dba.requirements.html" class="link">handler</a> which
+       shall be used for accessing <code class="parameter">path</code>. It is passed 
+       all optional parameters given to <span class="function"><strong>dba_open()</strong></span> and 
+       can act on behalf of them.
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+ <div class="refsect1 returnvalues" id="refsect1-function.dba-open-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   Returns a positive handle on success 或者在失败时返回 <strong><code>FALSE</code></strong>.
+  </p>
+ </div>
+
+ <div class="refsect1 changelog" id="refsect1-function.dba-open-changelog">
+  <h3 class="title">更新日志</h3>
+  <p class="para">
+   <table class="doctable informaltable">
+    
+     <thead>
+      <tr>
+       <th>版本</th>
+       <th>说明</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      <tr>
+       <td>4.3.0</td>
+       <td>
+        It&#039;s possible to open database files over network connection. However
+        in cases a socket connection will be used (as with http or ftp) the
+        connection will be locked instead of the resource itself. This is important 
+        to know since in such cases locking is simply ignored on the resource 
+        and other solutions have to be found.
+       </td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+ </div>
+
+ <div class="refsect1 seealso" id="refsect1-function.dba-open-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="dba_popen.html" class="function" rel="rdfs-seeAlso">dba_popen()</a> - Open database persistently</span></li>
+    <li class="member"><span class="function"><a href="dba_close.html" class="function" rel="rdfs-seeAlso">dba_close()</a> - Close a DBA database</span></li>
+   </ul>
+  </p>
+ </div>
+
+</div></div></div></body></html>

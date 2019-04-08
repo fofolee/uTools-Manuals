@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Initialize an inotify instance</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.inotify-init" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">inotify_init</h1>
+  <p class="verinfo">(PECL inotify &gt;= 0.1.2)</p><p class="refpurpose"><span class="refname">inotify_init</span> &mdash; <span class="dc-title">Initialize an inotify instance</span></p>
+
+ </div>
+ 
+ <div class="refsect1 description" id="refsect1-function.inotify-init-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>inotify_init</strong></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">resource</span></div>
+
+  <p class="para rdfs-comment">
+   Initialize an inotify instance for use with
+   <span class="function"><a href="inotify_add_watch.html" class="function">inotify_add_watch()</a></span>
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 returnvalues" id="refsect1-function.inotify-init-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   A stream resource or <strong><code>FALSE</code></strong> on error.
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 examples" id="refsect1-function.inotify-init-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-2853">
+    <p><strong>Example #1 Example usage of inotify</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;Open&nbsp;an&nbsp;inotify&nbsp;instance<br /></span><span style="color: #0000BB">$fd&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">inotify_init</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;Watch&nbsp;__FILE__&nbsp;for&nbsp;metadata&nbsp;changes&nbsp;(e.g.&nbsp;mtime)<br /></span><span style="color: #0000BB">$watch_descriptor&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">inotify_add_watch</span><span style="color: #007700">(</span><span style="color: #0000BB">$fd</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">__FILE__</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">IN_ATTRIB</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;generate&nbsp;an&nbsp;event<br /></span><span style="color: #0000BB">touch</span><span style="color: #007700">(</span><span style="color: #0000BB">__FILE__</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;Read&nbsp;events<br /></span><span style="color: #0000BB">$events&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">inotify_read</span><span style="color: #007700">(</span><span style="color: #0000BB">$fd</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$events</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;The&nbsp;following&nbsp;methods&nbsp;allows&nbsp;to&nbsp;use&nbsp;inotify&nbsp;functions&nbsp;without&nbsp;blocking&nbsp;on&nbsp;inotify_read():<br /><br />//&nbsp;-&nbsp;Using&nbsp;stream_select()&nbsp;on&nbsp;$fd:<br /></span><span style="color: #0000BB">$read&nbsp;</span><span style="color: #007700">=&nbsp;array(</span><span style="color: #0000BB">$fd</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$write&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">null</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$except&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">null</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">stream_select</span><span style="color: #007700">(</span><span style="color: #0000BB">$read</span><span style="color: #007700">,</span><span style="color: #0000BB">$write</span><span style="color: #007700">,</span><span style="color: #0000BB">$except</span><span style="color: #007700">,</span><span style="color: #0000BB">0</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;-&nbsp;Using&nbsp;stream_set_blocking()&nbsp;on&nbsp;$fd<br /></span><span style="color: #0000BB">stream_set_blocking</span><span style="color: #007700">(</span><span style="color: #0000BB">$fd</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">inotify_read</span><span style="color: #007700">(</span><span style="color: #0000BB">$fd</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;Does&nbsp;no&nbsp;block,&nbsp;and&nbsp;return&nbsp;false&nbsp;if&nbsp;no&nbsp;events&nbsp;are&nbsp;pending<br /><br />//&nbsp;-&nbsp;Using&nbsp;inotify_queue_len()&nbsp;to&nbsp;check&nbsp;if&nbsp;event&nbsp;queue&nbsp;is&nbsp;not&nbsp;empty<br /></span><span style="color: #0000BB">$queue_len&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">inotify_queue_len</span><span style="color: #007700">(</span><span style="color: #0000BB">$fd</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;If&nbsp;&gt;&nbsp;0,&nbsp;inotify_read()&nbsp;will&nbsp;not&nbsp;block<br /><br />//&nbsp;Stop&nbsp;watching&nbsp;__FILE__&nbsp;for&nbsp;metadata&nbsp;changes<br /></span><span style="color: #0000BB">inotify_rm_watch</span><span style="color: #007700">(</span><span style="color: #0000BB">$fd</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$watch_descriptor</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;Close&nbsp;the&nbsp;inotify&nbsp;instance<br />//&nbsp;This&nbsp;may&nbsp;have&nbsp;closed&nbsp;all&nbsp;watches&nbsp;if&nbsp;this&nbsp;was&nbsp;not&nbsp;already&nbsp;done<br /></span><span style="color: #0000BB">fclose</span><span style="color: #007700">(</span><span style="color: #0000BB">$fd</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+array(
+  array(
+    &#039;wd&#039; =&gt; 1,     // Equals $watch_descriptor
+    &#039;mask&#039; =&gt; 4,   // IN_ATTRIB bit is set
+    &#039;cookie&#039; =&gt; 0, // unique id to connect related events (e.g. 
+                   // IN_MOVE_FROM and IN_MOVE_TO events)
+    &#039;name&#039; =&gt; &#039;&#039;,  // the name of a file (e.g. if we monitored changes
+                   // in a directory)
+  ),
+);
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 seealso" id="refsect1-function.inotify-init-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="inotify_add_watch.html" class="function" rel="rdfs-seeAlso">inotify_add_watch()</a> - Add a watch to an initialized inotify instance</span></li>
+    <li class="member"><span class="function"><a href="inotify_rm_watch.html" class="function" rel="rdfs-seeAlso">inotify_rm_watch()</a> - Remove an existing watch from an inotify instance</span></li>
+    <li class="member"><span class="function"><a href="inotify_queue_len.html" class="function" rel="rdfs-seeAlso">inotify_queue_len()</a> - Return a number upper than zero if there are pending events</span></li>
+    <li class="member"><span class="function"><a href="inotify_read.html" class="function" rel="rdfs-seeAlso">inotify_read()</a> - Read events from an inotify instance</span></li>
+    <li class="member"><span class="function"><a href="fclose.html" class="function" rel="rdfs-seeAlso">fclose()</a> - 关闭一个已打开的文件指针</span></li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

@@ -1,0 +1,180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>使用新生成的会话 ID 更新现有会话 ID</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.session-regenerate-id" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">session_regenerate_id</h1>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.2, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">session_regenerate_id</span> &mdash; <span class="dc-title">
+   使用新生成的会话 ID 更新现有会话 ID
+  </span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.session-regenerate-id-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>session_regenerate_id</strong></span>
+    ([ <span class="methodparam"><span class="type">bool</span> <code class="parameter">$delete_old_session</code><span class="initializer"> = <strong><code>FALSE</code></strong></span></span>
+  ] ) : <span class="type">bool</span></div>
+
+  <p class="para rdfs-comment">
+   <span class="function"><strong>session_regenerate_id()</strong></span> 
+   在不修改当前会话中数据的前提下使用新的 ID 替换原有会话 ID。
+  </p>
+  <p class="para">
+   如果启用了 <a href="session.configuration.html#ini.session.use-trans-sid" class="link">session.use_trans_sid</a> 选项，
+   那么必须在调用 <span class="function"><strong>session_regenerate_id()</strong></span> 函数之后开始进行输出工作，
+   否则会导致使用原有的会话 ID。
+  </p>
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="para">
+    当前的 session_regenerate_id 并没有很好的处理在诸如移动数据网络和 WiFi 网络不稳定的场景。
+    因此，调用 session_regenerate_id 函数
+    可能会导致会话丢失。
+   </p>
+   <p class="para">
+    你不应该直接销毁旧的会话所关联的数据，
+    而是应该使用时间戳机制来控制对于已经失效的会话 ID 的访问。
+    否则，可能会在并发访问的场景下导致会话数据不一致、
+    会话丢失等情况，甚至可能引发客户端（浏览器）创建很多无用的会话 ID。
+    但是，另外一方面来讲，立即删除会话中的数据
+    可以防止会话劫持攻击。
+   </p>
+  </div>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.session-regenerate-id-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">delete_old_session</code></dt>
+
+      <dd>
+
+       <p class="para">
+        是否删除原 ID 所关联的会话存储文件。
+        如果你需要避免会话并发访问冲突，那么不应该立即删除会话中的数据。
+        如果你需要防止会话劫持攻击，那么可以立即删除会话数据。
+       </p>
+      </dd>
+
+     
+   </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.session-regenerate-id-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+  </p>
+ </div>
+
+
+ <div class="refsect1 changelog" id="refsect1-function.session-regenerate-id-changelog">
+  <h3 class="title">更新日志</h3>
+  <p class="para">
+   <table class="doctable informaltable">
+    
+     <thead>
+      <tr>
+       <th>版本</th>
+       <th>说明</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      <tr>
+       <td>7.0.0</td>
+       <td>
+        <span class="function"><strong>session_regenerate_id()</strong></span> 函数在关闭过期会话之前保存其中的数据。
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.1.0</td>
+       <td>
+        新加 <code class="parameter">delete_old_session</code> 参数。
+       </td>
+      </tr>
+
+      <tr>
+       <td>4.3.3</td>
+       <td>
+        如果启用会话 cookie，
+        调用 <span class="function"><strong>session_regenerate_id()</strong></span> 函数
+        会使用新的会话 ID 来生成 cookie 并发送给客户端。
+       </td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.session-regenerate-id-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-5836">
+    <p><strong>Example #1 A <span class="function"><strong>session_regenerate_id()</strong></span> 示例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;注意：下列不是完整的代码，只是一个示例<br /><br /></span><span style="color: #0000BB">session_start</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;检查会话被销毁的时间戳<br /></span><span style="color: #007700">if&nbsp;(isset(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'destroyed'</span><span style="color: #007700">])<br />&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp;&nbsp;</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'destroyed'</span><span style="color: #007700">]&nbsp;&lt;&nbsp;</span><span style="color: #0000BB">time</span><span style="color: #007700">()&nbsp;-&nbsp;</span><span style="color: #0000BB">300</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;通常不会发生这种情况。如果发生，那么可能是由于不稳定的网络状况或者被攻击导致的<br />&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;移除用户会话中的认证信息<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">remove_all_authentication_flag_from_active_sessions</span><span style="color: #007700">(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'userid'</span><span style="color: #007700">]);<br />&nbsp;&nbsp;&nbsp;&nbsp;throw(new&nbsp;</span><span style="color: #0000BB">DestroyedSessionAccessException</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #0000BB">$old_sessionid&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">session_id</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;设置会话销毁时间戳<br /></span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'destroyed'</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">time</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;从&nbsp;PHP&nbsp;7.0.0&nbsp;开始,&nbsp;session_regenerate_id()&nbsp;会自动保存会话数据<br /><br />//&nbsp;如果直接调用&nbsp;session_regenerate_id()&nbsp;函数可能会导致会话丢失的情况，<br />//&nbsp;参见下面的例程<br /></span><span style="color: #0000BB">session_regenerate_id</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;新创建的会话不需要时间戳<br /></span><span style="color: #007700">unset(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'destroyed'</span><span style="color: #007700">]);<br /><br /></span><span style="color: #0000BB">$new_sessionid&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">session_id</span><span style="color: #007700">();<br /><br />echo&nbsp;</span><span style="color: #DD0000">"Old&nbsp;Session:&nbsp;</span><span style="color: #0000BB">$old_sessionid</span><span style="color: #DD0000">&lt;br&nbsp;/&gt;"</span><span style="color: #007700">;<br />echo&nbsp;</span><span style="color: #DD0000">"New&nbsp;Session:&nbsp;</span><span style="color: #0000BB">$new_sessionid</span><span style="color: #DD0000">&lt;br&nbsp;/&gt;"</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  
+  <p class="para">
+   当前的会话模块未能很好的处理在网络不稳定的时候导致会话丢失的场景。
+   你需要自行管理会话 ID 避免调用 session_regenerate_id 导致会话丢失。
+  </p>
+  
+  <p class="para">
+   <div class="example" id="example-5837">
+    <p><strong>Example #2 Avoiding lost session by <span class="function"><strong>session_regenerate_id()</strong></span></strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;注意：下列不是完整的代码，只是一个示例<br />//&nbsp;my_session_start()&nbsp;和&nbsp;my_session_regenerate_id()<br />//&nbsp;函数可以避免在网络不稳定的情况下导致会话丢失的问题。<br />//&nbsp;并且还可以避免用户会话被攻击者利用<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">my_session_start</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">session_start</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(isset(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'destroyed'</span><span style="color: #007700">]))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'destroyed'</span><span style="color: #007700">]&nbsp;&lt;&nbsp;</span><span style="color: #0000BB">time</span><span style="color: #007700">()-</span><span style="color: #0000BB">300</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;通常不会发生这种情况。如果发生，那么可能是由于不稳定的网络状况或者被攻击导致的<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;移除用户会话中的认证信息<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">remove_all_authentication_flag_from_active_sessions</span><span style="color: #007700">(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'userid'</span><span style="color: #007700">]);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw(new&nbsp;</span><span style="color: #0000BB">DestroyedSessionAccessException</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(isset(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'new_session_id'</span><span style="color: #007700">]))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;尚未完全过期，可能是由于网络不稳定引起的。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;尝试再次设置正确的会话&nbsp;ID&nbsp;cookie。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;注意：如果你需要移除认证标记，那么不要尝试再次设置会话&nbsp;ID。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">session_commit</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">session_id</span><span style="color: #007700">(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'new_session_id'</span><span style="color: #007700">]);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;现在有了新的会话&nbsp;ID&nbsp;了。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">session_start</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;}<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">my_session_regenerate_id</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;如果由于不稳定的网络导致没有创建会话&nbsp;ID，<br />&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;那么就创建一个<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$new_session_id&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">session_create_id</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'new_session_id'</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">$new_session_id</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;设置销毁时间戳<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'destroyed'</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">time</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;保存并关闭会话<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">session_commit</span><span style="color: #007700">();<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;使用新的会话&nbsp;ID&nbsp;开始会话<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">session_id</span><span style="color: #007700">(</span><span style="color: #0000BB">$new_session_id</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ini_set</span><span style="color: #007700">(</span><span style="color: #DD0000">'session.use_strict_mode'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">session_start</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ini_set</span><span style="color: #007700">(</span><span style="color: #DD0000">'session.use_strict_mode'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;新的会话不需要这&nbsp;2&nbsp;个数据了<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">unset(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'destroyed'</span><span style="color: #007700">]);<br />&nbsp;&nbsp;&nbsp;&nbsp;unset(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">'new_session_id'</span><span style="color: #007700">]);<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.session-regenerate-id-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="session_id.html" class="function" rel="rdfs-seeAlso">session_id()</a> - 获取/设置当前会话 ID</span></li>
+    <li class="member"><span class="function"><a href="session_create_id.html" class="function" rel="rdfs-seeAlso">session_create_id()</a> - Create new session id</span></li>
+    <li class="member"><span class="function"><a href="session_start.html" class="function" rel="rdfs-seeAlso">session_start()</a> - 启动新会话或者重用现有会话</span></li>
+    <li class="member"><span class="function"><a href="session_destroy.html" class="function" rel="rdfs-seeAlso">session_destroy()</a> - 销毁一个会话中的全部数据</span></li>
+    <li class="member"><span class="function"><a href="session_reset.html" class="function" rel="rdfs-seeAlso">session_reset()</a> - Re-initialize session array with original values</span></li>
+    <li class="member"><span class="function"><a href="session_name.html" class="function" rel="rdfs-seeAlso">session_name()</a> - 读取/设置会话名称</span></li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

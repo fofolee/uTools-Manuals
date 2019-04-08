@@ -1,0 +1,829 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Returns query distribution and connection statistics</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.mysqlnd-ms-get-stats" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">mysqlnd_ms_get_stats</h1>
+  <p class="verinfo">(PECL mysqlnd_ms &gt;= 1.0.0)</p><p class="refpurpose"><span class="refname">mysqlnd_ms_get_stats</span> &mdash; <span class="dc-title">Returns query distribution and connection statistics</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.mysqlnd-ms-get-stats-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   
+   <span class="methodname"><strong>mysqlnd_ms_get_stats</strong></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">array</span></div>
+
+  <p class="para rdfs-comment">
+   Returns an array of statistics collected by the replication
+   and load balancing plugin.
+  </p>
+  <p class="para">
+   The PHP configuration setting
+   <em><a href="mysqlnd-ms.configuration.html#ini.mysqlnd-ms.collect-statistics" class="link">mysqlnd_ms.collect_statistics</a></em>
+   controls the collection of statistics. The collection of statistics
+   is disabled by default for performance reasons.
+  </p>
+  <p class="para">
+   The scope of the statistics is the
+   <em>PHP</em> process.
+   Depending on your deployment model a
+   <em>PHP</em> process may handle one or multiple requests.
+  </p>
+  <p class="para">
+   Statistics are aggregated for all connections and all storage handler. It is not possible
+   to tell how much queries originating from
+   <em>mysqli</em>,
+   <em>PDO_MySQL</em> or
+   <em>mysql</em> API calls have
+   contributed to the aggregated data values.
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.mysqlnd-ms-get-stats-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">此函数没有参数。</p>
+ </div>
+
+
+<div class="refsect1 returnvalues" id="refsect1-function.mysqlnd-ms-get-stats-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   Returns <strong><code>NULL</code></strong> if
+   the PHP configuration directive
+   <a href="mysqlnd-ms.configuration.html#ini.mysqlnd-ms.enable" class="link"><em>mysqlnd_ms.enable</em></a>
+   has disabled the plugin. Otherwise, returns array of statistics.
+  </p>
+  <p class="para">
+   Array of statistics
+  </p>
+  <table class="doctable informaltable">
+   
+    <col width="1*" />
+    <col width="7*" />
+    <col width="2*" />
+    <thead>
+     <tr>
+      <th>Statistic</th>
+      <th>Description</th>
+      <th>Version</th>
+     </tr>
+
+    </thead>
+
+    <tbody class="tbody">
+     <tr>
+      <td>
+       <em>use_slave</em>
+      </td>
+      <td>
+       <p class="para">
+         The semantics of this statistic has changed between 1.0.1 - 1.1.0.
+       </p>
+       <p class="para">
+         The meaning for version 1.0.1 is as follows.
+         Number of statements considered as read-only by the built-in query analyzer.
+         Neither statements which begin with a SQL hint to force
+         use of slave nor statements directed to a slave by an user-defined
+         callback are included. The total number of statements sent to the slaves is
+         <em>use_slave</em> + <em>use_slave_sql_hint</em> +
+         <em>use_slave_callback</em>.
+        </p>
+        <p class="para">
+         PECL/mysqlnd_ms 1.1.0 introduces a new concept of chained filters. The
+         statistics is now set by the internal load balancing filter. With
+         version 1.1.0 the load balancing filter is always the last in the
+         filter chain, if used. In future versions a load balancing filter may be
+         followed by other filters causing another change in the meaning of
+         the statistic. If, in the future, a load balancing filter is followed
+         by another filter it is no longer guaranteed that the statement, which
+         increments <em>use_slave</em>, will be executed on the slaves.
+        </p>
+        <p class="para">
+         The meaning for version 1.1.0 is as follows. Number of statements
+         sent to the slaves. Statements directed to a slave by the user filter
+         (an user-defined callback) are not included. The latter are counted by
+         <em>use_slave_callback</em>.
+        </p>
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>use_master</em>
+      </td>
+      <td>
+       <p class="para">
+         The semantics of this statistic has changed between 1.0.1 - 1.1.0.
+       </p>
+       <p class="para">
+        The meaning for version 1.0.1 is as follows.
+        Number of statements not considered as read-only by the built-in query analyzer.
+        Neither statements which begin with a SQL hint to force
+        use of master nor statements directed to a master by an user-defined
+        callback are included. The total number of statements sent to the master is
+        <em>use_master</em> + <em>use_master_sql_hint</em> +
+        <em>use_master_callback</em>.
+       </p>
+       <p class="para">
+         PECL/mysqlnd_ms 1.1.0 introduces a new concept of chained filters. The
+         statictics is now set by the internal load balancing filter. With
+         version 1.1.0 the load balancing filter is always the last in the
+         filter chain, if used. In future versions a load balancing filter may be
+         followed by other filters causing another change in the meaning of
+         the statistic. If, in the future, a load balancing filter is followed
+         by another filter it is no longer guaranteed that the statement, which
+         increments <em>use_master</em>, will be executed on the slaves.
+        </p>
+        <p class="para">
+         The meaning for version 1.1.0 is as follows. Number of statements
+         sent to the masters. Statements directed to a master by the user filter
+         (an user-defined callback) are not included. The latter are counted by
+         <em>use_master_callback</em>.
+        </p>
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>use_slave_guess</em>
+      </td>
+      <td>
+       Number of statements the built-in query analyzer recommends sending to
+       a slave because they contain no SQL hint to force use of a
+       certain server. The recommendation may be overruled in the following.
+       It is not guaranteed whether the statement will be executed on a slave
+       or not. This is how often the internal <em>is_select</em>
+       function has guessed that a slave shall be used. Please, see also the
+       user space function <span class="function"><a href="mysqlnd_ms_query_is_select.html" class="function">mysqlnd_ms_query_is_select()</a></span>.
+      </td>
+      <td>Since 1.1.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>use_master_guess</em>
+      </td>
+      <td>
+       Number of statements the built-in query analyzer recommends sending to
+       a master because they contain no SQL hint to force use of a
+       certain server. The recommendation may be overruled in the following.
+       It is not guaranteed whether the statement will be executed on a slave
+       or not. This is how often the internal <em>is_select</em>
+       function has guessed that a master shall be used. Please, see also the
+       user space function <span class="function"><a href="mysqlnd_ms_query_is_select.html" class="function">mysqlnd_ms_query_is_select()</a></span>.
+      </td>
+      <td>Since 1.1.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>use_slave_sql_hint</em>
+      </td>
+      <td>
+       Number of statements sent to a slave because statement begins with
+       the SQL hint to force use of slave.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>use_master_sql_hint</em>
+      </td>
+      <td>
+       Number of statements sent to a master because statement begins with
+       the SQL hint to force use of master.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>use_last_used_sql_hint</em>
+      </td>
+      <td>
+       Number of statements sent to server which has run the previous statement,
+       because statement begins with the SQL hint to force use of previously
+       used server.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>use_slave_callback</em>
+      </td>
+      <td>
+       Number of statements sent to a slave because an user-defined callback
+       has chosen a slave server for statement execution.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>use_master_callback</em>
+      </td>
+      <td>
+       Number of statements sent to a master because an user-defined callback
+       has chosen a master server for statement execution.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>non_lazy_connections_slave_success</em>
+      </td>
+      <td>
+       Number of successfully opened slave connections from
+       configurations not using
+       <em><a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.lazy-connections" class="link">lazy connections</a></em>.
+       The total number of successfully opened slave connections
+       is <em>non_lazy_connections_slave_success</em> +
+       <em>lazy_connections_slave_success</em>
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>non_lazy_connections_slave_failure</em>
+      </td>
+      <td>
+       Number of failed slave connection attempts from
+       configurations not using
+       <em><a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.lazy-connections" class="link">lazy connections</a></em>.
+       The total number of failed slave connection attempts
+       is <em>non_lazy_connections_slave_failure</em> +
+       <em>lazy_connections_slave_failure</em>
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>non_lazy_connections_master_success</em>
+      </td>
+      <td>
+       Number of successfully opened master connections from
+       configurations not using
+       <em><a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.lazy-connections" class="link">lazy connections</a></em>.
+       The total number of successfully opened master connections
+       is <em>non_lazy_connections_master_success</em> +
+       <em>lazy_connections_master_success</em>
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>non_lazy_connections_master_failure</em>
+      </td>
+      <td>
+       Number of failed master connection attempts from
+       configurations not using
+       <em><a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.lazy-connections" class="link">lazy connections</a></em>.
+       The total number of failed master connection attempts
+       is <em>non_lazy_connections_master_failure</em> +
+       <em>lazy_connections_master_failure</em>
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>lazy_connections_slave_success</em>
+      </td>
+      <td>
+       Number of successfully opened slave connections from
+       configurations using
+       <em><a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.lazy-connections" class="link">lazy connections</a></em>.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>lazy_connections_slave_failure</em>
+      </td>
+      <td>
+       Number of failed slave connection attempts from
+       configurations using
+       <em><a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.lazy-connections" class="link">lazy connections</a></em>.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>lazy_connections_master_success</em>
+      </td>
+      <td>
+       Number of successfully opened master connections from
+       configurations using
+       <em><a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.lazy-connections" class="link">lazy connections</a></em>.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>lazy_connections_master_failure</em>
+      </td>
+      <td>
+       Number of failed master connection attempts from
+       configurations using
+       <em><a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.lazy-connections" class="link">lazy connections</a></em>.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>trx_autocommit_on</em>
+      </td>
+      <td>
+       Number of <em>autocommit</em> mode activations via API calls.
+       This figure may be used to monitor activity related to the plugin configuration
+       setting
+       <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.trx-stickiness" class="link"><em>trx_stickiness</em></a>.
+       If, for example, you want to know if a certain API call invokes the
+       <em>mysqlnd</em> library function <em>trx_autocommit()</em>,
+       which is a requirement for
+       <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.trx-stickiness" class="link"><em>trx_stickiness</em></a>,
+       you may call the user API function in question and check if the
+       statistic has changed. The statistic is modified only by the
+       plugins internal subclassed <em>trx_autocommit()</em>
+       method.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>trx_autocommit_off</em>
+      </td>
+      <td>
+       Number of <em>autocommit</em> mode deactivations via API calls.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>trx_master_forced</em>
+      </td>
+      <td>
+       Number of statements redirected to the master while
+       <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.trx-stickiness" class="link"><em>trx_stickiness=master</em></a>
+       and <em>autocommit</em> mode is disabled.
+      </td>
+      <td>Since 1.0.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>gtid_autocommit_injections_success</em>
+      </td>
+      <td>
+       Number of successful SQL injections in autocommit mode as part
+       of the plugins client-side
+       <a href="mysqlnd_ms.gtid.html" class="link">global transaction id emulation</a>.
+      </td>
+      <td>Since 1.2.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>gtid_autocommit_injections_failure</em>
+      </td>
+      <td>
+       Number of failed SQL injections in autocommit mode as part
+       of the plugins client-side
+       <a href="mysqlnd_ms.gtid.html" class="link">global transaction id emulation</a>.
+      </td>
+      <td>Since 1.2.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>gtid_commit_injections_success</em>
+      </td>
+      <td>
+       Number of successful SQL injections in commit mode as part
+       of the plugins client-side
+       <a href="mysqlnd_ms.gtid.html" class="link">global transaction id emulation</a>.
+      </td>
+      <td>Since 1.2.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>gtid_commit_injections_failure</em>
+      </td>
+      <td>
+       Number of failed SQL injections in commit mode as part
+       of the plugins client-side
+       <a href="mysqlnd_ms.gtid.html" class="link">global transaction id emulation</a>.
+      </td>
+      <td>Since 1.2.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>gtid_implicit_commit_injections_success</em>
+      </td>
+      <td>
+       Number of successful SQL injections when implicit commit is detected as part
+       of the plugins client-side
+       <a href="mysqlnd_ms.gtid.html" class="link">global transaction id emulation</a>.
+       Implicit commit happens, for example, when autocommit has been turned
+       off, a query is executed and autocommit is enabled again. In that case,
+       the statement will be committed by the server and SQL to maintain is
+       injected before the autocommit is re-enabled. Another sequence
+       causing an implicit commit is <em>begin()</em>,
+       <em>query()</em>, <em>begin()</em>. The second call
+       to <em>begin()</em> will implicitly commit the transaction
+       started by the first call to <em>begin()</em>.
+       <em>begin()</em> refers to internal library calls not actual
+       PHP user API calls.
+      </td>
+      <td>Since 1.2.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>gtid_implicit_commit_injections_failure</em>
+      </td>
+      <td>
+       Number of failed SQL injections when implicit commit is detected as part
+       of the plugins client-side
+       <a href="mysqlnd_ms.gtid.html" class="link">global transaction id emulation</a>.
+       Implicit commit happens, for example, when autocommit has been turned
+       off, a query is executed and autocommit is enabled again. In that case,
+       the statement will be committed by the server and SQL to maintain is
+       injected before the autocommit is re-enabled.
+      </td>
+      <td>Since 1.2.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>transient_error_retries</em>
+      </td>
+      <td>
+       How often an operation has been retried when a transient error was
+       detected. See also,
+       <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.transient_error" class="link"><em>transient_error</em></a>
+       plugin configuration file setting.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>fabric_sharding_lookup_servers_success</em>
+      </td>
+      <td>
+       Number of successful <em>sharding.lookup_servers</em>
+       remote procedure calls to MySQL Fabric.
+       A call is considered successful if the plugin could reach MySQL
+       Fabric and got any reply. The reply itself may or may not be
+       understood by the plugin. Success refers to the network transport
+       only. If the reply was not understood or indicates a valid error condition,
+       <em>fabric_sharding_lookup_servers_xml_failure</em>
+       gets incremented.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>fabric_sharding_lookup_servers_failure</em>
+      </td>
+      <td>
+       Number of failed <em>sharding.lookup_servers</em>
+       remote procedure calls to MySQL Fabric.
+       A remote procedure call is considered failed if there was a
+       network error in connecting to, writing to or reading from
+       MySQL Fabric.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>fabric_sharding_lookup_servers_time_total</em>
+      </td>
+      <td>
+       Time spent connecting to,writing to and reading from MySQL
+       Fabrich during the <em>sharding.lookup_servers</em>
+       remote procedure call. The value is aggregated for all calls. Time is
+       measured in microseconds.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>fabric_sharding_lookup_servers_bytes_total</em>
+      </td>
+      <td>
+       Total number of bytes received from MySQL Fabric in reply to
+       <em>sharding.lookup_servers</em> calls.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>fabric_sharding_lookup_servers_xml_failure</em>
+      </td>
+      <td>
+       How often a reply from MySQL Fabric to
+       <em>sharding.lookup_servers</em> calls was not understood.
+       Please note, the current experimental implementation does not
+       distinguish between valid errors returned and malformed replies.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>xa_begin</em>
+      </td>
+      <td>
+       How many XA/distributed transactions have been started
+       using <span class="function"><a href="mysqlnd_ms_xa_begin.html" class="function">mysqlnd_ms_xa_begin()</a></span>.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>xa_commit_success</em>
+      </td>
+      <td>
+       How many XA/distributed transactions have been successfully committed
+       using <span class="function"><a href="mysqlnd_ms_xa_commit.html" class="function">mysqlnd_ms_xa_commit()</a></span>.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>xa_commit_failure</em>
+      </td>
+      <td>
+       How many XA/distributed transactions failed to commit
+       during <span class="function"><a href="mysqlnd_ms_xa_commit.html" class="function">mysqlnd_ms_xa_commit()</a></span>.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>xa_rollback_success</em>
+      </td>
+      <td>
+       How many XA/distributed transactions have been successfully rolled back
+       using <span class="function"><a href="mysqlnd_ms_xa_rollback.html" class="function">mysqlnd_ms_xa_rollback()</a></span>. The figure does
+       not include implict rollbacks performed as a result of
+       <span class="function"><a href="mysqlnd_ms_xa_commit.html" class="function">mysqlnd_ms_xa_commit()</a></span> failure.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>xa_rollback_failure</em>
+      </td>
+      <td>
+       How many XA/distributed transactions could not be rolled back.
+       This includes failures of <span class="function"><a href="mysqlnd_ms_xa_rollback.html" class="function">mysqlnd_ms_xa_rollback()</a></span>
+       but also failured during rollback when closing a connection, if
+       <em>rollback_on_close</em> is set. Please, see also
+       <em>xa_rollback_on_close</em> below.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>xa_participants</em>
+      </td>
+      <td>
+       Total number of participants in any XA transaction started with
+       <span class="function"><a href="mysqlnd_ms_xa_begin.html" class="function">mysqlnd_ms_xa_begin()</a></span>.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>xa_rollback_on_close</em>
+      </td>
+      <td>
+       How many XA transactions have been rolled back implicitly when
+       a connection was close and <em>rollback_on_close</em> is set.
+       Depending on your coding policies, this may hint a flaw in your code as
+       you may prefer to explicitly clean up resources.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>pool_masters_total</em>
+      </td>
+      <td>
+       Number of master servers (connections) in the internal connection pool.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>pool_slaves_total</em>
+      </td>
+      <td>
+       Number of slave servers (connections) in the internal connection pool.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>pool_masters_active</em>
+      </td>
+      <td>
+       Number of master servers (connections) from the internal connection pool
+       which are currently used for picking a connection.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>pool_slaves_active</em>
+      </td>
+      <td>
+       Number of slave servers (connections) from the internal connection pool
+       which are currently used for picking a connection.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+       <tr>
+      <td>
+       <em>pool_updates</em>
+      </td>
+      <td>
+       How often the active connection list has been replaced and a
+       new set of master and slave servers had been installed.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>pool_master_reactivated</em>
+      </td>
+      <td>
+       How often a master connection has been reused after being
+       flushed from the active list.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+     <tr>
+      <td>
+       <em>pool_slave_reactivated</em>
+      </td>
+      <td>
+       How often a slave connection has been reused after being
+       flushed from the active list.
+      </td>
+      <td>Since 1.6.0.</td>
+     </tr>
+
+    </tbody>
+   
+  </table>
+
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.mysqlnd-ms-get-stats-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-2272">
+    <p><strong>Example #1 <span class="function"><strong>mysqlnd_ms_get_stats()</strong></span> example</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"mysqlnd_ms.enable&nbsp;=&nbsp;%d\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">ini_get</span><span style="color: #007700">(</span><span style="color: #DD0000">"mysqlnd_ms.enable"</span><span style="color: #007700">));<br /></span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"mysqlnd_ms.collect_statistics&nbsp;=&nbsp;%d\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">ini_get</span><span style="color: #007700">(</span><span style="color: #DD0000">"mysqlnd_ms.collect_statistics"</span><span style="color: #007700">));<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">mysqlnd_ms_get_stats</span><span style="color: #007700">());<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+mysqlnd_ms.enable = 1
+mysqlnd_ms.collect_statistics = 1
+array(26) {
+  [&quot;use_slave&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;use_master&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;use_slave_guess&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;use_master_guess&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;use_slave_sql_hint&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;use_master_sql_hint&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;use_last_used_sql_hint&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;use_slave_callback&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;use_master_callback&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;non_lazy_connections_slave_success&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;non_lazy_connections_slave_failure&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;non_lazy_connections_master_success&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;non_lazy_connections_master_failure&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;lazy_connections_slave_success&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;lazy_connections_slave_failure&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;lazy_connections_master_success&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;lazy_connections_master_failure&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;trx_autocommit_on&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;trx_autocommit_off&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;trx_master_forced&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;gtid_autocommit_injections_success&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;gtid_autocommit_injections_failure&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;gtid_commit_injections_success&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;gtid_commit_injections_failure&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;gtid_implicit_commit_injections_success&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;gtid_implicit_commit_injections_failure&quot;]=&gt;
+  string(1) &quot;0&quot;
+  [&quot;transient_error_retries&quot;]=&gt;
+  string(1) &quot;0&quot;
+}
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.mysqlnd-ms-get-stats-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member">
+     <a href="mysqlnd_ms.configuration.html" class="link">Runtime configuration</a>
+    </li>
+    <li class="member">
+     <a href="mysqlnd-ms.configuration.html#ini.mysqlnd-ms.collect-statistics" class="link">mysqlnd_ms.collect_statistics</a>
+    </li>
+    <li class="member">
+     <a href="mysqlnd-ms.configuration.html#ini.mysqlnd-ms.enable" class="link">mysqlnd_ms.enable</a>
+    </li>
+    <li class="member">
+     <a href="mysqlnd-ms.plugin-ini-json.html#mysqlnd-ms.monitoring" class="link">Monitoring</a>
+    </li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

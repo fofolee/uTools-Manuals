@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Returns the next row from a query as an object</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.oci-fetch-object" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">oci_fetch_object</h1>
+  <p class="verinfo">(PHP 5, PHP 7, PECL OCI8 &gt;= 1.1.0)</p><p class="refpurpose"><span class="refname">oci_fetch_object</span> &mdash; <span class="dc-title">Returns the next row from a query as an object</span></p>
+
+ </div>
+ 
+ <div class="refsect1 description" id="refsect1-function.oci-fetch-object-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>oci_fetch_object</strong></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$statement</code></span>
+   ) : <span class="type">object</span></div>
+
+  <p class="para rdfs-comment">
+   Returns an object containing the next result-set row of a query.
+   Each attribute of the object corresponds to a column of the row.
+   This function is typically called in a loop until it returns
+   <strong><code>FALSE</code></strong>, indicating no more rows exist.
+  </p>
+  <p class="para">要获取 OCI8
+扩展进行数据类型映射的细节，请参见<a href="oci8.datatypes.html" class="link">驱动所支持的数据类型</a>。</p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.oci-fetch-object-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">statement</code></dt>
+
+     <dd>
+
+       <p class="para">有效的 OCI8 报表标识符
+由 <span class="function"><a href="oci_parse.html" class="function">oci_parse()</a></span> 创建，被 <span class="function"><a href="oci_execute.html" class="function">oci_execute()</a></span>
+或 <em>REF CURSOR</em> statement 标识执行。</p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.oci-fetch-object-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   Returns an object.  Each attribute of the object corresponds to a
+   column of the row.  If there are no more rows in
+   the <code class="parameter">statement</code> then <strong><code>FALSE</code></strong> is returned.
+  </p>
+  <p class="para">
+    Any <em>LOB</em> columns are returned as LOB descriptors.
+  </p>
+  <p class="para">
+   <em>DATE</em> columns are returned as strings formatted
+   to the current date format.  The default format can be changed with
+   Oracle environment variables such as <em>NLS_LANG</em> or
+   by a previously executed <em>ALTER SESSION SET
+   NLS_DATE_FORMAT</em> command.
+  </p>
+  <p class="para">
+   Oracle&#039;s default, non-case sensitive column names will have
+   uppercase attribute names.  Case-sensitive column names will have
+   attribute names using the exact column case.
+   Use <span class="function"><a href="var_dump.html" class="function">var_dump()</a></span> on the result object to verify
+   the appropriate case for attribute access.
+  </p>
+  <p class="para">
+    Attribute values will be <strong><code>NULL</code></strong> for any <em>NULL</em>
+    data fields.
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.oci-fetch-object-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-2430">
+    <p><strong>Example #1 <span class="function"><strong>oci_fetch_object()</strong></span> example</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #FF8000">/*<br />&nbsp;&nbsp;Before&nbsp;running,&nbsp;create&nbsp;the&nbsp;table:<br />&nbsp;&nbsp;&nbsp;&nbsp;CREATE&nbsp;TABLE&nbsp;mytab&nbsp;(id&nbsp;NUMBER,&nbsp;description&nbsp;VARCHAR2(30));<br />&nbsp;&nbsp;&nbsp;&nbsp;INSERT&nbsp;INTO&nbsp;mytab&nbsp;(id,&nbsp;description)&nbsp;values&nbsp;(1,&nbsp;'Fish&nbsp;and&nbsp;Chips');<br />&nbsp;&nbsp;&nbsp;&nbsp;COMMIT;<br />*/<br /><br /></span><span style="color: #0000BB">$conn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">'hr'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'welcome'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'localhost/XE'</span><span style="color: #007700">);<br />if&nbsp;(!</span><span style="color: #0000BB">$conn</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$e&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_error</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">trigger_error</span><span style="color: #007700">(</span><span style="color: #0000BB">htmlentities</span><span style="color: #007700">(</span><span style="color: #0000BB">$e</span><span style="color: #007700">[</span><span style="color: #DD0000">'message'</span><span style="color: #007700">],&nbsp;</span><span style="color: #0000BB">ENT_QUOTES</span><span style="color: #007700">),&nbsp;</span><span style="color: #0000BB">E_USER_ERROR</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #0000BB">$stid&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_parse</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'SELECT&nbsp;id,&nbsp;description&nbsp;FROM&nbsp;mytab'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">oci_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stid</span><span style="color: #007700">);<br /><br />while&nbsp;((</span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_fetch_object</span><span style="color: #007700">(</span><span style="color: #0000BB">$stid</span><span style="color: #007700">))&nbsp;!=&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Use&nbsp;upper&nbsp;case&nbsp;attribute&nbsp;names&nbsp;for&nbsp;each&nbsp;standard&nbsp;Oracle&nbsp;column<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">ID&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&lt;br&gt;\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">DESCRIPTION&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&lt;br&gt;\n"</span><span style="color: #007700">;&nbsp;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;Output&nbsp;is:<br />//&nbsp;&nbsp;&nbsp;&nbsp;1<br />//&nbsp;&nbsp;&nbsp;&nbsp;Fish&nbsp;and&nbsp;Chips<br /><br /></span><span style="color: #0000BB">oci_free_statement</span><span style="color: #007700">(</span><span style="color: #0000BB">$stid</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">oci_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-2431">
+    <p><strong>Example #2 <span class="function"><strong>oci_fetch_object()</strong></span> with case sensitive column names</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #FF8000">/*<br />&nbsp;&nbsp;Before&nbsp;running,&nbsp;create&nbsp;the&nbsp;table&nbsp;with&nbsp;a&nbsp;case&nbsp;sensitive&nbsp;column&nbsp;name:<br />&nbsp;&nbsp;&nbsp;&nbsp;CREATE&nbsp;TABLE&nbsp;mytab&nbsp;(id&nbsp;NUMBER,&nbsp;"MyDescription"&nbsp;VARCHAR2(30));<br />&nbsp;&nbsp;&nbsp;&nbsp;INSERT&nbsp;INTO&nbsp;mytab&nbsp;(id,&nbsp;"MyDescription")&nbsp;values&nbsp;(1,&nbsp;'Iced&nbsp;Coffee');<br />&nbsp;&nbsp;&nbsp;&nbsp;COMMIT;<br />*/<br /><br /></span><span style="color: #0000BB">$conn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">'hr'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'welcome'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'localhost/XE'</span><span style="color: #007700">);<br />if&nbsp;(!</span><span style="color: #0000BB">$conn</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$e&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_error</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">trigger_error</span><span style="color: #007700">(</span><span style="color: #0000BB">htmlentities</span><span style="color: #007700">(</span><span style="color: #0000BB">$e</span><span style="color: #007700">[</span><span style="color: #DD0000">'message'</span><span style="color: #007700">],&nbsp;</span><span style="color: #0000BB">ENT_QUOTES</span><span style="color: #007700">),&nbsp;</span><span style="color: #0000BB">E_USER_ERROR</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #0000BB">$stid&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_parse</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'SELECT&nbsp;id,&nbsp;"MyDescription"&nbsp;FROM&nbsp;mytab'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">oci_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stid</span><span style="color: #007700">);<br /><br />while&nbsp;((</span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_fetch_object</span><span style="color: #007700">(</span><span style="color: #0000BB">$stid</span><span style="color: #007700">))&nbsp;!=&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Use&nbsp;upper&nbsp;case&nbsp;attribute&nbsp;names&nbsp;for&nbsp;each&nbsp;standard&nbsp;Oracle&nbsp;column<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">ID&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&lt;br&gt;\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Use&nbsp;the&nbsp;exact&nbsp;case&nbsp;for&nbsp;the&nbsp;case&nbsp;sensitive&nbsp;column&nbsp;name<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">MyDescription&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&lt;br&gt;\n"</span><span style="color: #007700">;&nbsp;&nbsp;&nbsp;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;Output&nbsp;is:<br />//&nbsp;&nbsp;&nbsp;&nbsp;1<br />//&nbsp;&nbsp;&nbsp;&nbsp;Iced&nbsp;Coffee<br /><br /></span><span style="color: #0000BB">oci_free_statement</span><span style="color: #007700">(</span><span style="color: #0000BB">$stid</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">oci_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-2432">
+    <p><strong>Example #3 <span class="function"><strong>oci_fetch_object()</strong></span> with LOBs</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #FF8000">/*<br />&nbsp;&nbsp;Before&nbsp;running,&nbsp;create&nbsp;the&nbsp;table:<br />&nbsp;&nbsp;&nbsp;&nbsp;CREATE&nbsp;TABLE&nbsp;mytab&nbsp;(id&nbsp;NUMBER,&nbsp;description&nbsp;CLOB);<br />&nbsp;&nbsp;&nbsp;&nbsp;INSERT&nbsp;INTO&nbsp;mytab&nbsp;(id,&nbsp;description)&nbsp;values&nbsp;(1,&nbsp;'A&nbsp;very&nbsp;long&nbsp;string');<br />&nbsp;&nbsp;&nbsp;&nbsp;COMMIT;<br />*/<br /><br /></span><span style="color: #0000BB">$conn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">'hr'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'welcome'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'localhost/XE'</span><span style="color: #007700">);<br />if&nbsp;(!</span><span style="color: #0000BB">$conn</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$e&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_error</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">trigger_error</span><span style="color: #007700">(</span><span style="color: #0000BB">htmlentities</span><span style="color: #007700">(</span><span style="color: #0000BB">$e</span><span style="color: #007700">[</span><span style="color: #DD0000">'message'</span><span style="color: #007700">],&nbsp;</span><span style="color: #0000BB">ENT_QUOTES</span><span style="color: #007700">),&nbsp;</span><span style="color: #0000BB">E_USER_ERROR</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #0000BB">$stid&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_parse</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'SELECT&nbsp;id,&nbsp;description&nbsp;FROM&nbsp;mytab'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">oci_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stid</span><span style="color: #007700">);<br /><br />while&nbsp;((</span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_fetch_object</span><span style="color: #007700">(</span><span style="color: #0000BB">$stid</span><span style="color: #007700">))&nbsp;!=&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">ID&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&lt;br&gt;\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;The&nbsp;following&nbsp;will&nbsp;output&nbsp;the&nbsp;first&nbsp;11&nbsp;bytes&nbsp;from&nbsp;DESCRIPTION<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">DESCRIPTION</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">read</span><span style="color: #007700">(</span><span style="color: #0000BB">11</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"&lt;br&gt;\n"</span><span style="color: #007700">;&nbsp;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;Output&nbsp;is:<br />//&nbsp;&nbsp;&nbsp;&nbsp;1<br />//&nbsp;&nbsp;&nbsp;&nbsp;A&nbsp;very&nbsp;long<br /><br /></span><span style="color: #0000BB">oci_free_statement</span><span style="color: #007700">(</span><span style="color: #0000BB">$stid</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">oci_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.oci-fetch-object-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="oci_fetch.html" class="function" rel="rdfs-seeAlso">oci_fetch()</a> - Fetches the next row into result-buffer</span></li>
+    <li class="member"><span class="function"><a href="oci_fetch_all.html" class="function" rel="rdfs-seeAlso">oci_fetch_all()</a> - 获取结果数据的所有行到一个数组</span></li>
+    <li class="member"><span class="function"><a href="oci_fetch_assoc.html" class="function" rel="rdfs-seeAlso">oci_fetch_assoc()</a> - Returns the next row from a query as an associative array</span></li>
+    <li class="member"><span class="function"><a href="oci_fetch_array.html" class="function" rel="rdfs-seeAlso">oci_fetch_array()</a> - Returns the next row from a query as an associative or numeric array</span></li>
+    <li class="member"><span class="function"><a href="oci_fetch_row.html" class="function" rel="rdfs-seeAlso">oci_fetch_row()</a> - Returns the next row from a query as a numeric array</span></li>
+   </ul>
+  </p>
+ </div>
+
+
+</div></div></div></body></html>

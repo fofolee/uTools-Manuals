@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>发送异步查询</title>
+ </head>
+ <body class="docs"><div id="layout">
+  <div id="layout-content"><div id="function.pg-send-query" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">pg_send_query</h1>
+    <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pg_send_query</span> &mdash; <span class="dc-title">
+     发送异步查询
+    </span></p>
+
+   </div>
+   <div class="refsect1 unknown-seealsp" id="refsect1-function.pg-send-query-unknown-seealsp">
+    <h3 class="title">说明</h3>
+     <div class="methodsynopsis dc-description">
+      <span class="methodname"><strong>pg_send_query</strong></span>
+       ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection</code></span>
+      , <span class="methodparam"><span class="type">string</span> <code class="parameter">$query</code></span>
+      ) : <span class="type">bool</span></div>
+
+     <div class="methodsynopsis dc-description">
+      <span class="methodname"><strong>pg_send_query</strong></span>
+       ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$query</code></span>
+      ) : <span class="type">bool</span></div>
+
+    <p class="para rdfs-comment">
+     <span class="function"><strong>pg_send_query()</strong></span> 向 <code class="parameter">connection</code>
+     连接发送异步查询。和 <span class="function"><a href="pg_query.html" class="function">pg_query()</a></span> 不同，它可以向 PostgreSQL
+     发送多个查询并用 <span class="function"><a href="pg_get_result.html" class="function">pg_get_result()</a></span>
+     依次得到结果。当执行查询时脚本的执行不会被锁定。用
+     <span class="function"><a href="pg_connection_busy.html" class="function">pg_connection_busy()</a></span> 来检查连接连接是否为忙（即查询正在执行中）。调用
+     <span class="function"><a href="pg_cancel_query.html" class="function">pg_cancel_query()</a></span> 则有可能取消查询。
+    </p>
+    <p class="para">
+     尽管用户可以一次发送多个查询，但用户不能通过正忙的连接发送多个查询。如果向正忙的连接发送了查询，则会等待上一条查询结束并丢弃所有结果。
+    </p>
+    <p class="para">
+     <div class="example" id="example-2518">
+      <p><strong>Example #1 异步查询</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><pre><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;&nbsp;&nbsp;$dbconn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"dbname=publisher"</span><span style="color: #007700">)&nbsp;or&nbsp;die(</span><span style="color: #DD0000">"Could&nbsp;not&nbsp;connect"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!</span><span style="color: #0000BB">pg_connection_busy</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">pg_send_query</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">,</span><span style="color: #DD0000">"select&nbsp;*&nbsp;from&nbsp;authors;&nbsp;select&nbsp;count(*)&nbsp;from&nbsp;authors;"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$res1&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_get_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"First&nbsp;call&nbsp;to&nbsp;pg_get_result():&nbsp;</span><span style="color: #0000BB">$res1</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$rows1&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_num_rows</span><span style="color: #007700">(</span><span style="color: #0000BB">$res1</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$res1</span><span style="color: #DD0000">&nbsp;has&nbsp;</span><span style="color: #0000BB">$rows1</span><span style="color: #DD0000">&nbsp;records\n\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$res2&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_get_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"second&nbsp;call&nbsp;to&nbsp;pg_get_result():&nbsp;</span><span style="color: #0000BB">$res2</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$rows2&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_num_rows</span><span style="color: #007700">(</span><span style="color: #0000BB">$res2</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$res2</span><span style="color: #DD0000">&nbsp;has&nbsp;</span><span style="color: #0000BB">$rows2</span><span style="color: #DD0000">&nbsp;records\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</pre></div>
+      </div>
+
+      <div class="example-contents"><p>
+       上例输出如下：
+      </p></div>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+first call to pg_get_result(): Resource id #3
+Resource id #3 has 3 records
+
+second call to pg_get_result(): Resource id #4
+Resource id #4 has 1 records
+</pre></div>
+      </div>
+     </div>
+    </p>
+    <p class="para">
+     参见 <span class="function"><a href="pg_query.html" class="function">pg_query()</a></span>，<span class="function"><a href="pg_cancel_query.html" class="function">pg_cancel_query()</a></span>，<span class="function"><a href="pg_get_result.html" class="function">pg_get_result()</a></span>
+     和 <span class="function"><a href="pg_connection_busy.html" class="function">pg_connection_busy()</a></span>。
+    </p>
+   </div>
+
+  </div></div></div></body></html>

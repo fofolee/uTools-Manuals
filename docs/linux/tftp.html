@@ -1,0 +1,90 @@
+<h1 id="tftp">tftp</h1>
+<p>在本机和tftp服务器之间使用TFTP协议传输文件</p>
+<h2 id="补充说明">补充说明</h2>
+<p><strong>tftp命令</strong> 用在本机和tftp服务器之间使用TFTP协议传输文件。</p>
+<p>TFTP是用来下载远程文件的最简单网络协议，它其于UDP协议而实现。嵌入式linux的tftp开发环境包括两个方面：一是linux服务器端的tftp-server支持，二是嵌入式目标系统的tftp-client支持。因为u-boot本身内置支持tftp-client，所以嵌入式目标系统端就不用配置了。下面就详细介绍一下linux服务器端tftp-server的配置。</p>
+<h3 id="语法">语法</h3>
+<pre><code>tftp(选项)(参数)</code></pre>
+<h3 id="选项">选项</h3>
+<pre><code>-c：指定与tftp服务器连接成功后，立即要执行的指令；
+-m：指定文件传输模式。可以是ASCII或者Binary；
+-v：显示指令详细执行过程；
+-V：显示指令版本信息。</code></pre>
+<h3 id="参数">参数</h3>
+<p>主机：指定tftp要联机的tftp服务器的ip地址或主机名。</p>
+<h3 id="实例">实例</h3>
+<p><strong>1、安装tftp服务器</strong></p>
+<p>需要安装xinetd、tftp和tftp-server 3个软件</p>
+<p>如果能上网，通过yum安装：</p>
+<pre><code>yum install xinetd
+yum install tftp
+yum install tftp-server</code></pre>
+<p>如果不能上网，可以直接安装提供的rpm包：</p>
+<pre><code>rpm -ivh xinetd-2.3.14-18.fc9.i386.rpm
+rpm -ivh tftp-0.48-3.fc9.i386.rpm
+rpm -ivh tftp-server-0.48-3.fc9.i386.rpm</code></pre>
+<p><strong>2、配置tftp服务器</strong></p>
+<p>修改/etc/xinetd.d/tftp文件，将其中的disable=yes改为disable=no。主要是设置TFTP服务器的根目录，开启服务。修改后的文件如下：</p>
+<pre><code>service tftp
+{
+       socket_type           =dgram
+       protocol              =udp
+       wait                  =yes
+       user                  =root
+       server                =/usr/sbin/in.tftpd
+       server_args           =-s  /home/mike/tftpboot -c
+       disable               =no
+       per_source            =11
+       cps                   =100 2
+       flags                 =IPv4
+}</code></pre>
+<p>说明：修改项<code>server_args= -s &lt;path&gt; -c</code>，其中<path>处可以改为你的tftp-server的根目录，参数-s指定chroot，-c指定了可以创建文件。</p>
+<p><strong>3、启动tftp服务器并关闭防火墙</strong></p>
+<pre><code>/etc/init.d/iptables stop        //关闭防火墙
+sudo /sbin/service xinetd start
+或
+service xinetd restart
+/etc/init.d/xinetd start</code></pre>
+<p>看到启动[OK]就可以了</p>
+<p>4、查看tftp服务是否开启</p>
+<pre><code>netstat -a | grep tftp</code></pre>
+<p>显示结果为<code>udp 0 0 *:tftp *:*</code>表明服务已经开启，就表明tftp配置成功了。</p>
+<p><strong>5、tftp使用</strong></p>
+<p>复制一个文件到tftp服务器目录，然后在主机启动tftp软件，进行简单测试。</p>
+<pre><code>tftp 192.168.1.2
+tftp&gt;get &lt;download file&gt; 
+
+tftp&gt;put &lt;upload file&gt;
+tftp&gt;q</code></pre>
+<p><strong>6、tftp命令用法如下</strong></p>
+<pre><code>tftp your-ip-address</code></pre>
+<p>进入TFTP操作：</p>
+<ul>
+<li>connect：连接到远程tftp服务器</li>
+<li>mode：文件传输模式</li>
+<li>put：上传文件</li>
+<li>get：下载文件</li>
+<li>quit：退出</li>
+<li>verbose：显示详细的处理信息</li>
+<li>tarce：显示包路径</li>
+<li>status：显示当前状态信息</li>
+<li>binary：二进制传输模式</li>
+<li>ascii：ascii 传送模式</li>
+<li>rexmt：设置包传输的超时时间</li>
+<li>timeout：设置重传的超时时间</li>
+<li>help：帮助信息</li>
+<li>? ：帮助信息</li>
+</ul>
+<p><strong>7、如果老是出现“AVC Denial, click icon to view”的错误，并不能传输文件，需要作如下修改</strong></p>
+<p>修改<code>/etc/sysconfig/selinux</code>,将SELINUX设定为disable，使用命令<code>setenforce 0</code>让selinux配置文件生效。</p>
+<p><strong>8、Busybox中tftp命令的用法</strong></p>
+<p>命令格式为：</p>
+<pre><code>tftp [option] ... host [port]</code></pre>
+<p>如果要下载或上传文件的话是一定要用这些option的。</p>
+<pre><code>-g 表示下载文件 (get)
+-p 表示上传文件 (put)
+-l 表示本地文件名 (local file)
+-r 表示远程主机的文件名 (remote file)</code></pre>
+<p>例如，要从远程主机192.168.1.2上下载 embedexpert，则应输入以下命令</p>
+<pre><code>tftp -g -r embedexpert 192.168.1.2</code></pre>
+<!-- Linux命令行搜索引擎：https://jaywcjlove.github.io/linux-command/ -->
