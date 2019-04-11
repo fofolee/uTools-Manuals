@@ -45,7 +45,7 @@ showManual = path => {
         } else {
             var file = p[0]
         }
-        window.read(`docs/${window.code}/${file}`, (err, data) => {
+        window.read(`${window.baseDir}/docs/${window.code}/${file}`, (err, data) => {
             if (!err) {
                 $("#mainlist").fadeOut();
                 $("#content").fadeOut().promise().done(() => {
@@ -106,8 +106,14 @@ utools.onPluginEnter(({ code, type, payload }) => {
     } else {
         window.code = code;
         $("#mainlist").fadeIn();
+        var allFts = getAllFeatures();
+        if (allFts[code].type == "default") {
+            window.baseDir = window.getDirname();
+        } else {
+            window.baseDir = allFts[code].path
+        }
         // 读取目录文件
-        window.read(`index/${code}.json`, (err, data) => {
+        window.read(`${window.baseDir}/index/${code}.json`, (err, data) => {
             let index = JSON.parse(data);
             if (type == 'over') {
                 showList(payload, index, 500)
@@ -134,7 +140,7 @@ $("#mainlist").on('mousedown', '.info', function (e) {
 });
 
 // 鼠标滑过列表，高亮
-$("#mainlist").on('mouseover', '.info', function () {
+$("#mainlist").on('mousemove', '.info', function () {
     $(".select").removeClass('select');
     $(this).addClass('select');
 });
@@ -208,7 +214,7 @@ $(document).keydown(e => {
             // 没有到达边界时移动选择条
             if(next.length !=0){
                 event.preventDefault();
-                if(next.offset().top >= $(window).scrollTop() + 500){
+                if(next.offset().top >= $(window).scrollTop() + 550){
                     $("html").animate({ scrollTop: "+=50" }, 0);
                 }
                 loadList(500);

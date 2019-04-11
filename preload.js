@@ -1,8 +1,10 @@
 const fs = require('fs')
 const { shell } = require('electron');
 
+getDirname = () => __dirname;
+
 read = (path, callback) => {
-    fs.readFile(`${__dirname}/${path}`, 'utf8', (err, data) => {
+    fs.readFile(path, 'utf8', (err, data) => {
         callback(err, data);
     })
 }
