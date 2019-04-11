@@ -1,28 +1,22 @@
 // 显示列表
 showList = (text, index, listnum) => {
     window.info = [];
-    Object.keys(index).filter(path => {
-        let description = index[path];
-        let p = path.split('.html#')
-        if (p.length == 2) {
-            var type = `<div class="type">${p[0]}</div>`;
-            var name = p[1];
-        } else {
-            var type = '';
-            name = p[0].replace('.html', '');
-        }
+    Object.keys(index).filter(key => {
+        let v = index[key];
+        let name = v.name;
+        let desc = v.desc
         let reg = new RegExp(text, "i");
         let match1 = reg.exec(name);
-        let match2 = reg.exec(description)
+        let match2 = reg.exec(desc)
         if (match1 || match2) { 
-            let index = name.slice(0, 1).toUpperCase();
+            let initial = name.slice(0, 1).toUpperCase();
             if (match1) name = highlightList(name, match1[0]);
-            if (match2) description = highlightList(description, match2[0]);
-            window.info.push(`<div class='info' path='${path}'>
-                          <div class="index">${index}</div>
-                          ${type}
+            if (match2) desc = highlightList(desc, match2[0]);
+            window.info.push(`<div class='info' path='${v.path}'>
+                          <div class="initial">${initial}</div>
+                          <div class="type">${v.type}</div>
                           <div class="name">${name}</div>
-                          <div class="description">${description}</div>
+                          <div class="description">${desc}</div>
                           </div>`);
         }
     })
@@ -45,7 +39,7 @@ showManual = path => {
         } else {
             var file = p[0]
         }
-        window.read(`${window.baseDir}/docs/${window.code}/${file}`, (err, data) => {
+        window.read(`${window.baseDir}/docs/${file}`, (err, data) => {
             if (!err) {
                 $("#mainlist").fadeOut();
                 $("#content").fadeOut().promise().done(() => {
@@ -104,7 +98,6 @@ utools.onPluginEnter(({ code, type, payload }) => {
     if (code == 'options') {
         showOptions();
     } else {
-        window.code = code;
         $("#mainlist").fadeIn();
         var allFts = getAllFeatures();
         if (allFts[code].type == "default") {
