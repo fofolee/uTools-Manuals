@@ -72,6 +72,7 @@ showManual = path => {
                     data = data.replace(/href="(?!http)(.*?)"(.*?)(?!\#)/g, `href="${filePath}$1$2"`);
                     data = data.replace(/src="(?!http)(.*?)"/g, `src="${filePath}$1"`);
                     $("#manual").html(`<div id="manualHead">${data}</div>`).fadeIn();
+                    Prism.highlightAll();
                     location.href = p.length == 2 ? id : '#manualHead';
                 })
             } else {
@@ -93,11 +94,13 @@ highlightManual = text => {
 // 列表搜索结果高亮
 highlightList = (string, match) => string.replace(match, `<span style="color:#ff5722">${match}</span>`)
 
-// 隐藏所有窗口
+// 初始化
 init = () => {
     $("#mainlist").fadeOut(0);
     $("#options").fadeOut(0);
     $("#manual").fadeOut(0);
+    $("html").niceScroll();
+    $("#manual").niceScroll();
 }
 
 // 检查升级
@@ -271,7 +274,7 @@ $(document).keydown(e => {
             let pre = $(".select").prev();
             // 没有到达边界时移动选择条
             if(pre.length != 0){
-                event.preventDefault();
+                // event.preventDefault();
                 if(pre.offset().top < $(window).scrollTop()){
                     $("html").animate({ scrollTop: "-=50" }, 0);
                 }
@@ -287,7 +290,7 @@ $(document).keydown(e => {
             let next = $(".select").next();
             // 没有到达边界时移动选择条
             if(next.length !=0){
-                event.preventDefault();
+                // event.preventDefault();
                 if(next.offset().top >= $(window).scrollTop() + 550){
                     $("html").animate({ scrollTop: "+=50" }, 0);
                 }

@@ -13,7 +13,7 @@
 <h3 id="JavaScript_的内存分配">JavaScript 的内存分配</h3>
 <h4 id="值的初始化">值的初始化</h4>
 <p>为了不让程序员费心分配内存，JavaScript 在定义变量时就完成了内存分配。</p>
-<pre class="brush: js">var n = 123; // 给数值变量分配内存
+<pre><code  class="language-javascript">var n = 123; // 给数值变量分配内存
 var s = "azerty"; // 给字符串分配内存
 
 var o = {
@@ -32,15 +32,15 @@ function f(a){
 someElement.addEventListener('click', function(){
   someElement.style.backgroundColor = 'blue';
 }, false);
-</pre>
+</code></pre>
 <h4 id="通过函数调用分配内存">通过函数调用分配内存</h4>
 <p>有些函数调用结果是分配对象内存：</p>
-<pre class="brush: js">var d = new Date(); // 分配一个 Date 对象
+<pre><code  class="language-javascript">var d = new Date(); // 分配一个 Date 对象
 
 var e = document.createElement('div'); // 分配一个 DOM 元素
-</pre>
+</code></pre>
 <p>有些方法分配新变量或者新对象：</p>
-<pre class="brush: js">var s = "azerty";
+<pre><code  class="language-javascript">var s = "azerty";
 var s2 = s.substr(0, 3); // s2 是一个新的字符串
 // 因为字符串是不变量，
 // JavaScript 可能决定不分配内存，
@@ -50,7 +50,7 @@ var a = ["ouais ouais", "nan nan"];
 var a2 = ["generation", "nan nan"];
 var a3 = a.concat(a2); 
 // 新数组有四个元素，是 a 连接 a2 的结果
-</pre>
+</code></pre>
 <h3 id="使用值">使用值</h3>
 <p>使用值的过程实际上是对分配内存进行读取与写入的操作。读取与写入可能是写入一个变量或者一个对象的属性值，甚至传递函数的参数。</p>
 <h3 id="当内存不再需要使用时释放">当内存不再需要使用时释放</h3>
@@ -64,7 +64,7 @@ var a3 = a.concat(a2);
 <h3 id="引用计数垃圾收集">引用计数垃圾收集</h3>
 <p>这是最初级的垃圾收集算法。此算法把“对象是否不再需要”简化定义为“对象有没有其他对象引用到它”。如果没有引用指向该对象（零引用），对象将被垃圾回收机制回收。</p>
 <h4 id="示例">示例</h4>
-<pre class="brush: js">var o = { 
+<pre><code  class="language-javascript">var o = { 
   a: {
     b:2
   }
@@ -86,10 +86,10 @@ o2 = "yo"; // 最初的对象现在已经是零引用了
 
 oa = null; // a属性的那个对象现在也是零引用了
            // 它可以被垃圾回收了
-</pre>
+</code></pre>
 <h4 id="限制：循环引用">限制：循环引用</h4>
 <p>该算法有个限制：无法处理循环引用。在下面的例子中，两个对象被创建，并互相引用，形成了一个循环。它们被调用之后会离开函数作用域，所以它们已经没有用了，可以被回收了。然而，引用计数算法考虑到它们互相都有至少一次引用，所以它们不会被回收。</p>
-<pre class="brush: js">function f(){
+<pre><code  class="language-javascript">function f(){
   var o = {};
   var o2 = {};
   o.a = o2; // o 引用 o2
@@ -99,16 +99,16 @@ oa = null; // a属性的那个对象现在也是零引用了
 }
 
 f();
-</pre>
+</code></pre>
 <h4 id="实际例子">实际例子</h4>
 <p>IE 6, 7 使用引用计数方式对 DOM 对象进行垃圾回收。该方式常常造成对象被循环引用时内存发生泄漏：</p>
-<pre class="brush: js">var div;
+<pre><code  class="language-javascript">var div;
 window.onload = function(){
   div = document.getElementById("myDivElement");
   div.circularReference = div;
   div.lotsOfData = new Array(10000).join("*");
 };
-</pre>
+</code></pre>
 <p>在上面的例子里，<code>myDivElement</code> 这个 DOM 元素里的 <code>circularReference 属性</code>引用了 <code>myDivElement</code>，造成了循环引用。如果该属性没有显示移除或者设为 null，引用计数式垃圾收集器将总是且至少有一个引用，并将一直保持在内存里的 DOM 元素，即使其从DOM 树中删去了。如果这个 DOM 元素拥有大量的数据 (如上的 <code>lotsOfData</code> 属性)，而这个数据占用的内存将永远不会被释放。</p>
 <h3 id="标记-清除算法">标记-清除算法</h3>
 <p>这个算法把“对象是否不再需要”简化定义为“对象是否可以获得”。</p>

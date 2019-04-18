@@ -123,58 +123,58 @@
 <h2 id="示例">示例</h2>
 <h3 id="使用视图和缓冲">使用视图和缓冲</h3>
 <p>首先，我们创建一个16字节固定长度的缓冲：</p>
-<pre class="brush: js"><code>var buffer = new ArrayBuffer(16);</code></pre>
+<pre><code  class="language-javascript"><code>var buffer = new ArrayBuffer(16);</code></code></pre>
 <p>现在我们有了一段初始化为0的内存，目前还做不了什么太多操作。让我们确认一下数据的字节长度：</p>
-<pre class="brush: js">if (buffer.byteLength === 16) {
+<pre><code  class="language-javascript">if (buffer.byteLength === 16) {
   console.log("Yes, it's 16 bytes.");
 } else {
   console.log("Oh no, it's the wrong size!");
-}</pre>
+}</code></pre>
 <p>在实际开始操作这个缓冲之前，需要创建一个视图。我们将创建一个视图，此视图将把缓冲内的数据格式化为一个32位的有符号整数数组：</p>
-<pre class="brush: js"><code>var int32View = new Int32Array(buffer);</code></pre>
+<pre><code  class="language-javascript"><code>var int32View = new Int32Array(buffer);</code></code></pre>
 <p>现在我们可以像普通数组一样访问该数组中的元素：</p>
-<pre class="brush: js">for (var i = 0; i &lt; int32View.length; i++) {
+<pre><code  class="language-javascript">for (var i = 0; i &lt; int32View.length; i++) {
   int32View[i] = i * 2;
-}</pre>
+}</code></pre>
 <p>该代码会将数组以0, 2, 4和6填充 （一共4个4字节元素，所以总长度为16字节）。</p>
 <h3 id="同一数据的多个视图">同一数据的多个视图</h3>
 <p>更有意思的是，你可以在同一数据上创建多个视图。例如：基于上文的代码，我们可以添加如下代码处理：</p>
-<pre class="brush: js">var int16View = new Int16Array(buffer);
+<pre><code  class="language-javascript">var int16View = new Int16Array(buffer);
 
 for (var i = 0; i &lt; int16View.length; i++) {
   console.log("Entry " + i + ": " + int16View[i]);
-}</pre>
+}</code></pre>
 <p>这里我们创建了一个2字节整数视图，该视图共享上文的4字节整数视图的缓冲，然后以2字节整数打印出缓冲里的数据，这次我们会得到0, 0, 2, 0, 4, 0, 6, 0这样的输出。</p>
 <p>那么，这样呢？</p>
-<pre class="brush: js">int16View[0] = 32;
-console.log("Entry 0 in the 32-bit array is now " + int32View[0]);</pre>
+<pre><code  class="language-javascript">int16View[0] = 32;
+console.log("Entry 0 in the 32-bit array is now " + int32View[0]);</code></pre>
 <p>这次的输出是"Entry 0 in the 32-bit array is now 32"。也就是，这2个数组都是同一数据的以不同格式展示出来的视图。你可以使用任何一种 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#TypedArray_objects" title="JavaScript typed arrays/ArrayBufferView#Typed array subclasses">view types</a> 中的定义的视图。</p>
 <h3 id="使用复杂的数据结构">使用复杂的数据结构</h3>
 <p>通过将缓冲与不同类型视图组合，以及修改内存访问的偏移位置，你可以操作包含更多更复杂数据结构的数据。你可以使用<a href="https://developer.mozilla.org/en-US/docs/Mozilla/js-ctypes" title="js-ctypes">js-ctypes</a>操作诸如<a href="https://developer.mozilla.org/en-US/docs/Web/WebGL" title="WebGL">WebGL</a>，数据文件或C语言结构体这些复杂的数据结构。</p>
 <p>请看如下的C语言结构:</p>
-<pre class="brush: cpp">struct someStruct {
+<pre><code class="language-cpp">struct someStruct {
   unsigned long id;
   char username[16];
   float amountDue;
-};</pre>
+};</code></pre>
 <p>你可以采用如下代码访问一个包含此类结构体的缓冲：</p>
-<pre class="brush: js">var buffer = new ArrayBuffer(24);
+<pre><code  class="language-javascript">var buffer = new ArrayBuffer(24);
 
 // ... read the data into the buffer ...
 
 var idView = new Uint32Array(buffer, 0, 1);
 var usernameView = new Uint8Array(buffer, 4, 16);
-var amountDueView = new Float32Array(buffer, 20, 1);</pre>
+var amountDueView = new Float32Array(buffer, 20, 1);</code></pre>
 <p>现在你就可以通过<code>amountDueView[0]</code>的方式访问数量。</p>
 <div class="note">
 <p><strong>提示：</strong>C语言结构体的<a class="external" href="http://en.wikipedia.org/wiki/Data_structure_alignment" rel="noopener" title="http://en.wikipedia.org/wiki/Data_structure_alignment">数据对齐</a>与平台相关。因此需要防范和考虑不同平台的字节填充对齐。</p>
 </div>
 <h3 id="转换为普通数组">转换为普通数组</h3>
 <p>在处理完一个类型化数组后，有时需要把它转为普通数组，以便可以可以像普通数据一种操作访问。可以调用 <a href="Reference/Global_Objects/Array/from" title="Array.from() 方法从一个类似数组或可迭代对象中创建一个新的数组实例。"><code>Array.from</code></a>实现这种转换，如果 <code>Array.from</code> 不支持的话，也可以通过如下代码实现：</p>
-<pre class="brush: js">var typedArray = new Uint8Array([1, 2, 3, 4]),
+<pre><code  class="language-javascript">var typedArray = new Uint8Array([1, 2, 3, 4]),
     normalArray = Array.prototype.slice.call(typedArray);
 normalArray.length === 4;
-normalArray.constructor === Array;</pre>
+normalArray.constructor === Array;</code></pre>
 <h2 id="规范">规范</h2>
 <table class="standard-table">
 <tbody>
