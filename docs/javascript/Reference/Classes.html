@@ -1,0 +1,499 @@
+<article id="wikiArticle">
+<div></div>
+<p>ECMAScript 2015 中引入的 JavaScript 类实质上是 JavaScript 现有的基于原型的继承的语法糖。类语法<strong>不会</strong>为JavaScript引入新的面向对象的继承模型。</p>
+<h2 id="定义类">定义类</h2>
+<p>类实际上是个“特殊的<a href="Reference/Functions">函数</a>”，就像你能够定义的<a href="Reference/Operators/function">函数表达式</a>和<a href="Reference/Statements/function">函数声明</a>一样，类语法有两个组成部分：<a href="Reference/Operators/class">类表达式</a>和<a href="Reference/Statements/class">类声明</a>。</p>
+<h3 id="类声明">类声明</h3>
+<p>定义一个类的一种方法是使用一个<strong>类声明</strong>。要声明一个类，你可以使用带有<code>class</code>关键字的类名（这里是“Rectangle”）。</p>
+<pre class="brush: js">class Rectangle {
+  constructor(height, width) {
+    this.height = height;
+    this.width = width;
+  }
+}</pre>
+<h4 id="提升">提升</h4>
+<p><strong>函数声明</strong>和<strong>类声明</strong>之间的一个重要区别是函数声明会<a class="glossaryLink" href="/en-US/docs/Glossary/Hoisting" title="提升: Hoisting is a term you will not find used in any normative specification prose prior to ECMAScript® 2015 Language Specification. Hoisting was thought up as a general way of thinking about how execution contexts (specifically the creation and execution phases) work in JavaScript. However, the concept can be a little confusing at first.">提升</a>，类声明不会。你首先需要声明你的类，然后访问它，否则像下面的代码会抛出一个<a href="Reference/Global_Objects/ReferenceError" title="ReferenceError（引用错误） 对象代表当一个不存在的变量被引用时发生的错误。"><code>ReferenceError</code></a>：</p>
+<pre class="brush: js example-bad">let p = new Rectangle(); 
+// ReferenceError
+
+class Rectangle {}
+</pre>
+<h3 id="类表达式">类表达式</h3>
+<p>一个<strong>类表达式</strong>是定义一个类的另一种方式。类表达式可以是被命名的或匿名的。赋予一个命名类表达式的名称是类的主体的本地名称。</p>
+<pre class="brush: js">/* 匿名类 */ 
+let Rectangle = class {
+  constructor(height, width) {
+    this.height = height;
+    this.width = width;
+  }
+};
+
+/* 命名的类 */ 
+let Rectangle = class Rectangle {
+  constructor(height, width) {
+    this.height = height;
+    this.width = width;
+  }
+};
+</pre>
+<div class="blockIndicator note">
+<p><strong>注意:</strong> 类<strong>表达式</strong>也同样受到类<strong>声明</strong>中提到的提升问题的困扰。</p>
+</div>
+<h2 id="类体和方法定义">类体和方法定义</h2>
+<p>一个类的类体是一对花括号/大括号 <code>{}</code> 中的部分。这是你定义类成员的位置，如方法或构造函数。</p>
+<h3 id="严格模式">严格模式</h3>
+<p>类声明和类表达式的主体都执行在<a href="https://developer.mozilla.orgReference/Strict_mode">严格模式</a>下。比如，构造函数，静态方法，原型方法，getter和setter都在严格模式下执行。</p>
+<h3 id="构造函数">构造函数</h3>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/constructor">constructor</a>方法是一个特殊的方法，这种方法用于创建和初始化一个由<code>class</code>创建的对象。一个类只能拥有一个名为 “constructor”的特殊方法。如果类包含多个<code>constructor</code>的方法，则将抛出 一个<a href="Reference/Global_Objects/SyntaxError" title="SyntaxError 对象代表尝试解析语法上不合法的代码的错误。"><code>SyntaxError</code></a> 。</p>
+<p>一个构造函数可以使用 <code>super</code><strong> </strong>关键字来调用一个父类的构造函数。</p>
+<h3 id="原型方法">原型方法</h3>
+<p>参见<a href="Reference/Functions/Method_definitions">方法定义</a>。</p>
+<pre class="brush: js">class Rectangle {
+    // constructor
+    constructor(height, width) {
+        this.height = height;
+        this.width = width;
+    }
+    // Getter
+    get area() {
+        return this.calcArea()
+    }
+    // Method
+    calcArea() {
+        return this.height * this.width;
+    }
+}
+const square = new Rectangle(10, 10);
+
+console.log(square.area);
+// 100
+</pre>
+<h3 id="静态方法">静态方法</h3>
+<p><code><a href="Reference/Classes/static">static</a></code> 关键字用来定义一个类的一个静态方法。调用静态方法不需要<a href="Introduction_to_Object-Oriented_JavaScript#The_object_(class_instance)">实例化</a>该类，但不能通过一个类实例调用静态方法。静态方法通常用于为一个应用程序创建工具函数。</p>
+<pre class="brush: js">class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    static distance(a, b) {
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+
+        return Math.hypot(dx, dy);
+    }
+}
+
+const p1 = new Point(5, 5);
+const p2 = new Point(10, 10);
+
+console.log(Point.distance(p1, p2));
+</pre>
+<h3 id="用原型和静态方法包装">用原型和静态方法包装</h3>
+<p>当一个对象调用静态或原型方法时，如果该对象没有“this”值（或“this”作为布尔，字符串，数字，未定义或null) ，那么“this”值在被调用的函数内部将为 <strong><code>undefined</code></strong>。不会发生自动包装。即使我们以非严格模式编写代码，它的行为也是一样的，因为所有的函数、方法、构造函数、getters或setters都在严格模式下执行。因此如果我们没有指定this的值，this值将为<code><strong>undefined</strong></code>。</p>
+<pre class="brush: js">class Animal { 
+  speak() {
+    return this;
+  }
+  static eat() {
+    return this;
+  }
+}
+
+let obj = new Animal();
+obj.speak(); // Animal {}
+let speak = obj.speak;
+speak(); // undefined
+
+Animal.eat() // class Animal
+let eat = Animal.eat;
+eat(); // undefined</pre>
+<p>如果我们使用传统的基于函数的类来编写上述代码，那么基于调用该函数的“this”值将发生自动装箱。</p>
+<pre class="brush: js">function Animal() { }
+
+Animal.prototype.speak = function() {
+  return this;
+}
+
+Animal.eat = function() {
+  return this;
+}
+
+let obj = new Animal();
+let speak = obj.speak;
+speak(); // global object
+
+let eat = Animal.eat;
+eat(); // global object</pre>
+<h2 id="使用_extends_创建子类">使用 <code>extends</code> 创建子类</h2>
+<p><code><a href="Reference/Classes/extends">extends</a></code> 关键字在类声明或类表达式中用于创建一个类作为另一个类的一个子类。</p>
+<pre class="brush: js">class Animal { 
+  constructor(name) {
+    this.name = name;
+  }
+  
+  speak() {
+    console.log(this.name + ' makes a noise.');
+  }
+}
+
+class Dog extends Animal {
+  speak() {
+    console.log(this.name + ' barks.');
+  }
+}
+
+var d = new Dog('Mitzie');
+// 'Mitzie barks.'
+d.speak();
+</pre>
+<p>如果子类中存在构造函数，则需要在使用“this”之前首先调用 super()。</p>
+<p>也可以扩展传统的基于函数的“类”：</p>
+<pre class="brush: js">function Animal (name) {
+  this.name = name;  
+}
+Animal.prototype.speak = function () {
+  console.log(this.name + ' makes a noise.');
+}
+
+class Dog extends Animal {
+  speak() {
+    super.speak();
+    console.log(this.name + ' barks.');
+  }
+}
+
+var d = new Dog('Mitzie');
+d.speak();</pre>
+<p>请注意，类不能继承常规（非可构造）对象。如果要继承常规对象，可以改用<a href="Reference/Global_Objects/Object/setPrototypeOf" title="如果对象的[[Prototype]]被修改成不可扩展(通过 Object.isExtensible()查看)，就会抛出 TypeError异常。如果prototype参数不是一个对象或者null(例如，数字，字符串，boolean，或者 undefined)，则什么都不做。否则，该方法将obj的[[Prototype]]修改为新的值。"><code>Object.setPrototypeOf()</code></a>：</p>
+<pre class="brush: js">var Animal = {
+  speak() {
+    console.log(this.name + ' makes a noise.');
+  }
+};
+
+class Dog {
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+Object.setPrototypeOf(Dog.prototype, Animal);// If you do not do this you will get a TypeError when you invoke speak
+
+var d = new Dog('Mitzie');
+d.speak(); // Mitzie makes a noise.</pre>
+<h2 id="Species">Species</h2>
+<p>你可能希望在派生数组类 <em><code>MyArray</code> </em>中返回 <a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a>对象。这种 species 方式允许你覆盖默认的构造函数。</p>
+<p>例如，当使用像<a href="Reference/Global_Objects/Array/map" title="map() 方法创建一个新数组，其结果是该数组中的每个元素都调用一个提供的函数后返回的结果。"><code>map()</code></a>返回默认构造函数的方法时，您希望这些方法返回一个父<code>Array</code>对象，而不是<code>MyArray</code>对象。<a href="Reference/Global_Objects/Symbol/species" title="知名的 Symbol.species 是个函数值属性，其被构造函数用以创建派生对象。"><code>Symbol.species</code></a> 符号可以让你这样做：</p>
+<pre class="brush: js">class MyArray extends Array {
+  // Overwrite species to the parent Array constructor
+  static get [Symbol.species]() { return Array; }
+}
+var a = new MyArray(1,2,3);
+var mapped = a.map(x =&gt; x * x);
+
+console.log(mapped instanceof MyArray); 
+// false
+console.log(mapped instanceof Array);   
+// true
+</pre>
+<h2 id="使用_super_调用超类">使用 <code>super</code> 调用超类</h2>
+<p><code><a href="Reference/Operators/super">super</a></code> 关键字用于调用对象的父对象上的函数。</p>
+<pre class="brush: js">class Cat { 
+  constructor(name) {
+    this.name = name;
+  }
+  
+  speak() {
+    console.log(this.name + ' makes a noise.');
+  }
+}
+
+class Lion extends Cat {
+  speak() {
+    super.speak();
+    console.log(this.name + ' roars.');
+  }
+}
+</pre>
+<h2 id="Mix-ins">Mix-ins</h2>
+<p>抽象子类或者 mix-ins 是类的模板。 一个 ECMAScript 类只能有一个单超类，所以想要从工具类来多重继承的行为是不可能的。子类继承的只能是父类提供的功能性。因此，例如，从工具类的多重继承是不可能的。该功能必须由超类提供。</p>
+<p>一个以超类作为输入的函数和一个继承该超类的子类作为输出可以用于在ECMAScript中实现混合：</p>
+<pre class="brush: js">var calculatorMixin = Base =&gt; class extends Base {
+  calc() { }
+};
+
+var randomizerMixin = Base =&gt; class extends Base {
+  randomize() { }
+};</pre>
+<p>使用 mix-ins 的类可以像下面这样写：</p>
+<pre class="brush: js">class Foo { }
+class Bar extends calculatorMixin(randomizerMixin(Foo)) { }</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-class-definitions" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Class definitions</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/7.0/#sec-class-definitions" hreflang="en" lang="en" rel="noopener">ECMAScript 2016 (ECMA-262)<br/><small lang="zh-CN">Class definitions</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/8.0/#sec-class-definitions" hreflang="en" lang="en" rel="noopener">ECMAScript 2017 (ECMA-262)<br/><small lang="zh-CN">Class definitions</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-class-definitions" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Class definitions</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容">浏览器兼容</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>classes</code></th><td class="bc-supports-yes bc-browser-chrome bc-has-history"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect1"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> From Chrome 42 to 48 strict mode is required. Non-strict mode support can be enabled using the flag "Enable Experimental JavaScript".</dd></dl></section></td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              13</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-unknown bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              13</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-unknown bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs bc-has-history"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div><section class="bc-history" id="sect2"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 4.0.0: this feature is behind the <code>--use_strict</code> runtime flag.</dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 5.0.0: this feature is behind the <code>--harmony</code> runtime flag.</dd></dl></section></td></tr><tr><th scope="row"><a href="Reference/Classes/constructor"><code>constructor</code></a></th><td class="bc-supports-yes bc-browser-chrome bc-has-history"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect3"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> From Chrome 42 to 48 strict mode is required. Non-strict mode support can be enabled using the flag "Enable Experimental JavaScript".</dd></dl></section></td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              13</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-unknown bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              13</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-unknown bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs bc-has-history"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div><section class="bc-history" id="sect4"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 4.0.0: this feature is behind the <code>--use_strict</code> runtime flag.</dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 5.0.0: this feature is behind the <code>--harmony</code> runtime flag.</dd></dl></section></td></tr><tr><th scope="row"><a href="Reference/Classes/extends"><code>extends</code></a></th><td class="bc-supports-yes bc-browser-chrome bc-has-history"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect5"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> From Chrome 42 to 48 strict mode is required. Non-strict mode support can be enabled using the flag "Enable Experimental JavaScript".</dd></dl></section></td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              13</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-unknown bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              13</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-unknown bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs bc-has-history"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div><section class="bc-history" id="sect6"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 4.0.0: this feature is behind the <code>--use_strict</code> runtime flag.</dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 5.0.0: this feature is behind the <code>--harmony</code> runtime flag.</dd></dl></section></td></tr><tr><th scope="row"><a href="Reference/Classes/static"><code>static</code></a></th><td class="bc-supports-yes bc-browser-chrome bc-has-history"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect7"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> From Chrome 42 to 48 strict mode is required. Non-strict mode support can be enabled using the flag "Enable Experimental JavaScript".</dd></dl></section></td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              13</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-unknown bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              13</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-unknown bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs bc-has-history"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div><section class="bc-history" id="sect8"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 4.0.0: this feature is behind the <code>--use_strict</code> runtime flag.</dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 5.0.0: this feature is behind the <code>--harmony</code> runtime flag.</dd></dl></section></td></tr></tbody></table><section class="bc-legend" id="sect9"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><span class="bc-supports-unknown bc-supports">
+<abbr class="bc-level bc-level-unknown only-icon" title="Compatibility unknown">
+<span>Compatibility unknown</span>
+                  
+                </abbr></span></dt><dd>Compatibility unknown</dd><dt><abbr class="only-icon" title="See implementation notes."><span>See implementation notes.</span><i class="ic-footnote"></i></abbr></dt><dd>See implementation notes.</dd><dt><abbr class="only-icon" title="User must explicitly enable this feature."><span>User must explicitly enable this feature.</span><i class="ic-disabled"></i></abbr></dt><dd>User must explicitly enable this feature.</dd></dl></section></div><p></p>
+<h2 id="在Scratchpad中运行">在Scratchpad中运行</h2>
+<p><br/>
+ 一个类不能被重新定义。如果你正在使用Scratchpad中的代码（Firefox菜单工具&gt; Web Developer&gt; Scratchpad），并且您运行了两次具有相同名称的类的定义，那么你将遇到一个令人困惑的SyntaxError：let &lt;class name&gt;。</p>
+<p>要重新运行定义，请使用Scratchpad菜单 执行&gt;重新加载并运行。<br/>
+ 请为这个bug投票 <a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1428672" rel="noopener">#1428672</a>。</p>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="/en-US/docs/Web/JavaScript/Reference/Functions">Functions</a></li>
+<li><a href="/en-US/docs/Web/JavaScript/Reference/Statements/class"><code>class</code> declaration</a></li>
+<li><a href="/en-US/docs/Web/JavaScript/Reference/Operators/class"><code>class</code> expression</a></li>
+<li><a href="Reference/Operators/super" title="super关键字用于访问和调用一个对象的父对象上的函数。"><code>super</code></a></li>
+<li><a class="external" href="https://hacks.mozilla.org/2015/07/es6-in-depth-classes/" rel="noopener">Blog post: "ES6 In Depth: Classes"</a></li>
+<li><a class="external" href="https://github.com/tc39/proposal-class-fields" rel="noopener">Fields and public/private class properties proposal (stage 3)</a></li>
+</ul>
+</article>

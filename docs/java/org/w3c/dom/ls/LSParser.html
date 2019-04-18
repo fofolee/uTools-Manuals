@@ -1,0 +1,693 @@
+<div class="header">
+<div class="subTitle">
+     compact2, compact3 
+   </div>
+<div class="subTitle">
+     org.w3c.dom.ls 
+   </div>
+<h2 class="title" title="Interface LSParser">Interface LSParser</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">LSParser</span></pre>
+<div class="block">
+<span>能够从各种输入源构建或增加DOM树的对象的接口。</span>
+<p> <span><code>LSParser</code>提供了一个用于解析XML和构建相应的DOM文档结构的API。</span> <span>可以通过调用<code>DOMImplementationLS.createLSParser()</code>方法获得一个<code>LSParser</code>实例。</span> </p>
+<p> <span>如[ <a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407">DOM Level 3 Core</a> ]中所述，当首先通过LSParser可以获得文档时：</span> </p>
+<ul>
+<li> <span>将不会有两个类型为NODE_TEXT的相邻节点，并且永远不会有空文本节点。</span> </li>
+<li> <span>预计<code>Attr</code>节点的<code>value</code>和<code>nodeValue</code>属性最初返回<a href="http://www.w3.org/TR/2004/REC-xml-20040204#AVNormalize">XML 1.0 normalized value</a> 。</span> <span>然而，如果将参数“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-validate-if-schema">validate-if-schema</a> ”和“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-datatype-normalization">datatype-normalization</a> ”设置为<code>true</code> ，则根据所使用的属性标准化，属性值可能与通过XML 1.0属性归一化获得的属性值不同。</span> <span>如果参数“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-datatype-normalization">datatype-normalization</a> ”设置为<code>false</code> ，所述XML 1.0属性标准化保证发生，并且如果所述属性列表中不包含的命名空间声明，则<code>attributes</code>上属性<code>Element</code>节点代表属性<b>[属性]</b>在[定义<a href="http://www.w3.org/TR/2004/REC-xml-infoset-20040204/">XML Information Set</a> ]。</span> </li>
+</ul>
+<p> <span>异步<code>LSParser</code>对象预期也将实现<code>events::EventTarget</code>接口，以便事件侦听器可以在异步<code>LSParser</code>对象上注册。</span> </p>
+<p> <span>异步<code>LSParser</code>对象支持的事件是：</span> </p>
+<dl>
+<dt>
+<span>加载</span>
+</dt>
+<dd>
+<span><code>LSParser</code>完成加载文档。</span>
+<span>另请参阅<code>LSLoadEvent</code>界面的定义。</span>
+</dd>
+<dt>
+<span>进展</span>
+</dt>
+<dd>
+<span>当数据被解析时， <code>LSParser</code>表示进展。</span>
+<span>这个规范并不会试图准确地定义进度事件应该被调度的时间。</span>
+<span>这是有意留作为实现依赖的。</span>
+<span>以下是应用程序如何调度进度事件的一个示例：解析器开始接收数据后，将调度progress事件以指示解析开始。</span>
+<span>从那里开始，为接收和处理的每4096字节的数据调度进度事件。</span>
+<span>这只是一个例子，而实现可以选择在解析时随时调度进度事件，或者根本不派发进度事件。</span>
+<span>另请参阅<code>LSProgressEvent</code>界面的定义。</span>
+</dd>
+</dl>
+<p> <span><b>注意：</b>本规范中定义的所有事件都使用命名空间URI <code>"http://www.w3.org/2002/DOMLS"</code> 。</span> </p>
+<p> <span>解析输入源时，通过错误处理程序（ <code>LSParser.domConfig</code>的“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-error-handler">error-handler</a> ”参数）向应用程序报告错误。</span> <span>此规范绝对不会在解析XML或任何其他标记时定义可能发生的所有可能的错误，但会定义一些常见的错误情况。</span> <span>本<code>DOMError.type</code>定义的错误和警告的类型（ <code>DOMError.type</code> ）有：</span> </p>
+<dl>
+<dt>
+<code>"check-character-normalization-failure" [error]</code>
+</dt>
+<dd>
+<span>如果参数“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-check-character-normalization">check-character-normalization</a> ”设置为true并且遇到无法正常化检查的字符串，则引发。</span>
+</dd>
+<dt>
+<code>"doctype-not-allowed" [fatal]</code>
+</dt>
+<dd>
+<span>如果配置参数“disallow-doctype”设置为<code>true</code> ，并<code>true</code>一个doctype，则引发。</span>
+</dd>
+<dt>
+<code>"no-input-specified" [fatal]</code>
+</dt>
+<dd>
+<span><code>LSInput</code>对象中指定加载文档时没有指定输入。</span>
+</dd>
+<dt>
+<code>"pi-base-uri-not-preserved" [warning]</code>
+</dt>
+<dd>
+<span>如果在处理指令的基本URI无法保留的位置遇到处理指令，则引发。</span>
+<span>如果将配置参数“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-entities">entities</a> ”设置为<code>false</code>并解析了以下XML文件，则会出现此警告的情况的一个示例：</span>
+<pre>  <span>&lt;!DOCTYPE root [ &lt;!ENTITY e SYSTEM 'subdir/myentity.ent' ]&gt;
+ &lt;root&gt; &amp;e; &lt;/root&gt;</span> </pre>
+<span>而<code>subdir/myentity.ent</code>包含：</span>
+<pre>  <span>&lt;one&gt; &lt;two/&gt; &lt;/one&gt; &lt;?pi 3.14159?&gt;
+ &lt;more/&gt;</span> </pre>
+</dd>
+<dt>
+<code>"unbound-prefix-in-entity" [warning]</code>
+</dt>
+<dd>
+<span>如果配置参数“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-namespaces">namespaces</a> ”设置为<code>true</code> ，并且在实体的替换文本中遇到未绑定的命名空间前缀，则可能会引发实现相关警告。</span>
+<span>不会强制执行此警告，因为某些现有的解析器可能无法在实体的替换文本中识别未绑定的命名空间前缀。</span>
+</dd>
+<dt>
+<code>"unknown-character-denormalization" [fatal]</code>
+</dt>
+<dd>
+<span>如果配置参数“ignore-unknown-character-denormalisation”设置为<code>false</code>并且遇到处理器无法确定归一化属性的字符，则引发。</span>
+</dd>
+<dt>
+<code>"unsupported-encoding" [fatal]</code>
+</dt>
+<dd>
+<span>如果遇到不受支持的编码，则引发。</span>
+</dd>
+<dt>
+<code>"unsupported-media-type" [fatal]</code>
+</dt>
+<dd>
+<span>如果配置参数“supported-media-types-only-only”设置为<code>true</code>并且遇到不支持的介质类型，则引发。</span>
+</dd>
+</dl>
+<p> <span>除了提出定义的错误和警告之外，预计实施将会针对任何其他错误和警告情况（如IO错误（未找到文件，拒绝许可，...），XML格式良好错误，等等。</span> </p>
+<p> <span>另见<a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-LS-20040407">Document Object Model (DOM) Level 3 Load and Save Specification</a> 。</span> </p>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static short</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#ACTION_APPEND_AS_CHILDREN">ACTION_APPEND_AS_CHILDREN</a></span></code>
+<div class="block">
+              将解析操作的结果附加到上下文节点的子节点。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static short</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#ACTION_INSERT_AFTER">ACTION_INSERT_AFTER</a></span></code>
+<div class="block">
+              将解析操作的结果作为上下文节点的紧跟同步插入。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static short</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#ACTION_INSERT_BEFORE">ACTION_INSERT_BEFORE</a></span></code>
+<div class="block">
+              将解析操作的结果作为前一个上下文节点的同级插入。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static short</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#ACTION_REPLACE">ACTION_REPLACE</a></span></code>
+<div class="block">
+              用解析操作的结果替换上下文节点。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static short</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#ACTION_REPLACE_CHILDREN">ACTION_REPLACE_CHILDREN</a></span></code>
+<div class="block">
+              用解析操作的结果替换上下文节点的所有子节点。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#abort--">abort</a></span>()</code>
+<div class="block">
+              中止加载当前由 
+             <code>LSParser</code>加载的 
+             <code>LSParser</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#getAsync--">getAsync</a></span>()</code>
+<div class="block">
+<code>true</code>如果 
+             <code>LSParser</code>是异步的， 
+             <code>false</code>如果是同步的。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#getBusy--">getBusy</a></span>()</code>
+<div class="block">
+<code>true</code>如果 
+             <code>LSParser</code>当前正在加载一个文件，否则 
+             <code>false</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../../org/w3c/dom/DOMConfiguration.html" title="interface in org.w3c.dom">DOMConfiguration</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#getDomConfig--">getDomConfig</a></span>()</code>
+<div class="block">
+              解析输入源时使用的 
+             <code>DOMConfiguration</code>对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../../org/w3c/dom/ls/LSParserFilter.html" title="interface in org.w3c.dom.ls">LSParserFilter</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#getFilter--">getFilter</a></span>()</code>
+<div class="block">
+              当提供过滤器时，在构建DOM树结构时，实现将调用过滤器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../../../org/w3c/dom/Document.html" title="interface in org.w3c.dom">Document</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#parse-org.w3c.dom.ls.LSInput-">parse</a></span>(<a href="../../../../org/w3c/dom/ls/LSInput.html" title="interface in org.w3c.dom.ls">LSInput</a> input)</code>
+<div class="block">
+              从一个标识的资源中解析XML文档 
+             <code>LSInput</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../../org/w3c/dom/Document.html" title="interface in org.w3c.dom">Document</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#parseURI-java.lang.String-">parseURI</a></span>(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> uri)</code>
+<div class="block">
+              从由URI引用[ 
+             <a href="http://www.ietf.org/rfc/rfc2396.txt">IETF RFC 2396</a> ]标识的位置解析XML文档。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../../org/w3c/dom/Node.html" title="interface in org.w3c.dom">Node</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#parseWithContext-org.w3c.dom.ls.LSInput-org.w3c.dom.Node-short-">parseWithContext</a></span>(<a href="../../../../org/w3c/dom/ls/LSInput.html" title="interface in org.w3c.dom.ls">LSInput</a> input, <a href="../../../../org/w3c/dom/Node.html" title="interface in org.w3c.dom">Node</a> contextArg, short action)</code>
+<div class="block">
+              从由所标识的资源中解析XML片段 
+             <code>LSInput</code>和在与所指定的位置插入内容到现有文件 
+             <code>context</code>个 
+             <code>action</code>参数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/w3c/dom/ls/LSParser.html#setFilter-org.w3c.dom.ls.LSParserFilter-">setFilter</a></span>(<a href="../../../../org/w3c/dom/ls/LSParserFilter.html" title="interface in org.w3c.dom.ls">LSParserFilter</a> filter)</code>
+<div class="block">
+              当提供过滤器时，在构建DOM树结构时，实现将调用过滤器。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="ACTION_APPEND_AS_CHILDREN">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ACTION_APPEND_AS_CHILDREN</h4> <pre>static final short ACTION_APPEND_AS_CHILDREN</pre>
+<div class="block">
+<span>将解析操作的结果附加到上下文节点的子节点。</span>
+<span>要使此操作正常工作，上下文节点必须是<code>Element</code>或<code>DocumentFragment</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#org.w3c.dom.ls.LSParser.ACTION_APPEND_AS_CHILDREN">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ACTION_REPLACE_CHILDREN">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ACTION_REPLACE_CHILDREN</h4> <pre>static final short ACTION_REPLACE_CHILDREN</pre>
+<div class="block">
+<span>用解析操作的结果替换上下文节点的所有子节点。</span>
+<span>为了使此动作有效，上下文节点必须是<code>Element</code> ，一个<code>Document</code> ，或<code>DocumentFragment</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#org.w3c.dom.ls.LSParser.ACTION_REPLACE_CHILDREN">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ACTION_INSERT_BEFORE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ACTION_INSERT_BEFORE</h4> <pre>static final short ACTION_INSERT_BEFORE</pre>
+<div class="block">
+<span>将解析操作的结果作为前一个上下文节点的同级插入。</span>
+<span>要使此操作工作，上下文节点的父级必须是<code>Element</code>或<code>DocumentFragment</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#org.w3c.dom.ls.LSParser.ACTION_INSERT_BEFORE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ACTION_INSERT_AFTER">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ACTION_INSERT_AFTER</h4> <pre>static final short ACTION_INSERT_AFTER</pre>
+<div class="block">
+<span>将解析操作的结果作为上下文节点的紧跟同步插入。</span>
+<span>要使此操作工作，上下文节点的父级必须是<code>Element</code>或<code>DocumentFragment</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#org.w3c.dom.ls.LSParser.ACTION_INSERT_AFTER">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ACTION_REPLACE">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>ACTION_REPLACE</h4> <pre>static final short ACTION_REPLACE</pre>
+<div class="block">
+<span>用解析操作的结果替换上下文节点。</span>
+<span>要使此操作正常工作，上下文节点必须具有父级，父级必须为<code>Element</code>或<code>DocumentFragment</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#org.w3c.dom.ls.LSParser.ACTION_REPLACE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getDomConfig--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDomConfig</h4> <pre><a href="../../../../org/w3c/dom/DOMConfiguration.html" title="interface in org.w3c.dom">DOMConfiguration</a> getDomConfig()</pre>
+<div class="block">
+<span>解析输入源时使用的<code>DOMConfiguration</code>对象。</span>
+<span>这个<code>DOMConfiguration</code>是特定于解析操作的。</span>
+<span>从这个无参数值<code>DOMConfiguration</code>对象被自动传递到<code>DOMConfiguration</code>对象上的<code>Document</code>所创建或使用的，由所述解析操作。</span>
+<span>DOM应用程序负责将所需的参数值从该<code>DOMConfiguration</code>对象传递到<code>DOMConfiguration</code>对象引用的<code>Document</code>对象。</span>
+<br/>
+<span>除了上识别的参数<a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#DOMConfiguration">DOMConfiguration</a>在[定义的接口<a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407">DOM Level 3 Core</a> ]时， <code>DOMConfiguration</code>对象为<code>LSParser</code>添加或修改下列参数：</span>
+<dl>
+<dt>
+<code>"charset-overrides-xml-encoding"</code>
+</dt>
+<dd>
+<dl>
+<dt>
+<code>true</code>
+</dt>
+<dd>
+<span>[ <em>可选</em> ]（ <em>默认</em> ）如果诸如HTTP [ <a href="http://www.ietf.org/rfc/rfc2616.txt">IETF RFC 2616</a> ]之类的较高级别的协议提供正在处理的输入流的字符编码的指示，则将覆盖XML声明或Text声明中指定的任何编码（另见第4.3节.3，“实体中的字符编码”，[ <a href="http://www.w3.org/TR/2004/REC-xml-20040204">XML 1.0</a> ]）。</span>
+<span>在LSInput中显式设置编码会<code>LSInput</code>协议中的任何编码。</span>
+</dd>
+<dt>
+<code>false</code>
+</dt>
+<dd>
+<span>[ <em>必需</em> ]解析器忽略来自上级协议的任何字符集编码信息。</span>
+</dd>
+</dl>
+</dd>
+<dt>
+<code>"disallow-doctype"</code>
+</dt>
+<dd>
+<dl>
+<dt>
+<code>true</code>
+</dt>
+<dd>
+<span>[ <em>可选</em> ]如果在解析文档时找到了一个doctype节点，则会抛出一个致命的<b>“doctype-not-allowed”</b>错误。</span>
+<span>这在处理不允许doctype节点的SOAP信封的东西时很有用。</span>
+</dd>
+<dt>
+<code>false</code>
+</dt>
+<dd>
+<span>[ <em>必需</em> ]（ <em>默认</em> ）允许文档中的doctype节点。</span>
+</dd>
+</dl>
+</dd>
+<dt>
+<code>"ignore-unknown-character-denormalizations"</code>
+</dt>
+<dd>
+<dl>
+<dt>
+<code>true</code>
+</dt>
+<dd>
+<span>[ <em>必需</em> ]（ <em>默认</em> ）如果在支持[ <a href="http://www.w3.org/TR/2004/REC-xml11-20040204/">XML 1.1</a> ]时验证完全归一化，则处理器遇到不能确定归一化属性的字符，则处理器将忽略由这些字符引起的任何可能的非规格化。</span>
+<span>[ <a href="http://www.w3.org/TR/2004/REC-xml-20040204">XML 1.0</a> ]忽略此参数。</span>
+</dd>
+<dt>
+<code>false</code>
+</dt>
+<dd>
+<span>[ <em>可选</em> ]如果遇到处理器无法确定归一化属性的字符，则报告致命的<b>“未知字符反规范化”</b>错误。</span>
+</dd>
+</dl>
+</dd>
+<dt>
+<code>"infoset"</code>
+</dt>
+<dd>
+<span>有关此参数的<code>DOMConfiguration</code> ，请参阅DOMConfiguration的定义。</span>
+<span>与在[ <a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407">DOM Level 3 Core</a> ]，该参数将默认为<code>true</code>为<code>LSParser</code> 。</span>
+</dd>
+<dt>
+<code>"namespaces"</code>
+</dt>
+<dd>
+<dl>
+<dt>
+<code>true</code>
+</dt>
+<dd>
+<span>[ <em>必需</em> ]（ <em>默认</em> ）执行[ <a href="http://www.w3.org/TR/1999/REC-xml-names-19990114/">XML Namespaces</a> ]和[ <a href="http://www.w3.org/TR/2004/REC-xml-names11-20040204/">XML Namespaces 1.1</a> ]中定义的<a href="http://www.w3.org/TR/1999/REC-xml-names-19990114/">命名</a> <a href="http://www.w3.org/TR/2004/REC-xml-names11-20040204/">空间处理</a> 。</span>
+</dd>
+<dt>
+<code>false</code>
+</dt>
+<dd>
+<span>[ <em>可选</em> ]不要执行命名空间处理。</span>
+</dd>
+</dl>
+</dd>
+<dt>
+<code>"resource-resolver"</code>
+</dt>
+<dd>
+<span>[ <em>必需</em> ]对<code>LSResourceResolver</code>对象的引用，或null。</span>
+<span>如果遇到外部资源（如外部XML实体或XML模式位置）时，这个参数的值不为空，执行将要求<code>LSResourceResolver</code>在这个参数中引用解决了资源。</span>
+</dd>
+<dt>
+<code>"supported-media-types-only"</code>
+</dt>
+<dd>
+<dl>
+<dt>
+<code>true</code>
+</dt>
+<dd>
+<span>[ <em>可选</em> ]检查解析资源的媒体类型是否支持媒体类型。</span>
+<span>如果遇到不支持的介质类型，将会引发类型<b>“unsupported-media-type”</b>的致命错误。</span>
+<span>必须始终接受[ <a href="http://www.ietf.org/rfc/rfc3023.txt">IETF RFC 3023</a> ]中定义的媒体类型。</span>
+</dd>
+<dt>
+<code>false</code>
+</dt>
+<dd>
+<span>[ <em>必需</em> ]（ <em>默认</em> ）接受任何媒体类型。</span>
+</dd>
+</dl>
+</dd>
+<dt>
+<code>"validate"</code>
+</dt>
+<dd>
+<span>有关此参数的<code>DOMConfiguration</code> ，请参阅DOMConfiguration的定义。</span>
+<span>与[ <a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407">DOM Level 3 Core</a> ]不同，即使该参数设置为<code>false</code> ，内部子集的处理也始终<code>false</code> 。</span>
+</dd>
+<dt>
+<code>"validate-if-schema"</code>
+</dt>
+<dd>
+<span>有关此参数的<code>DOMConfiguration</code> ，请参阅DOMConfiguration的定义。</span>
+<span>与[ <a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407">DOM Level 3 Core</a> ]不同，即使将此参数设置为<code>false</code> ，也始终会执行内部子集的<code>false</code> 。</span>
+</dd>
+<dt>
+<code>"well-formed"</code>
+</dt>
+<dd>
+<span>有关此参数的<code>DOMConfiguration</code> ，请参阅DOMConfiguration的定义。</span>
+<span>与[ <a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407">DOM Level 3 Core</a> ]不同，此参数不能设置为<code>false</code> 。</span>
+</dd>
+</dl>
+</div> </li>
+</ul> <a name="getFilter--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getFilter</h4> <pre><a href="../../../../org/w3c/dom/ls/LSParserFilter.html" title="interface in org.w3c.dom.ls">LSParserFilter</a> getFilter()</pre>
+<div class="block">
+<span>当提供过滤器时，在构建DOM树结构时，实现将调用过滤器。</span>
+<span>过滤器可以选择从正在构造的文档中删除元素，或者提前终止解析。</span>
+<br/>
+<span>在DOMConfiguration参数<code>DOMConfiguration</code>操作已被应用之后调用过滤器。</span>
+<span>例如，如果“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-validate">validate</a> ”设置为<code>true</code> ，则在调用过滤器之前完成验证。</span>
+</div> </li>
+</ul> <a name="setFilter-org.w3c.dom.ls.LSParserFilter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setFilter</h4> <pre>void setFilter(<a href="../../../../org/w3c/dom/ls/LSParserFilter.html" title="interface in org.w3c.dom.ls">LSParserFilter</a> filter)</pre>
+<div class="block">
+<span>当提供过滤器时，在构建DOM树结构时，实现将调用过滤器。</span>
+<span>过滤器可以选择从正在构造的文档中删除元素，或者提前终止解析。</span>
+<br/>
+<span>被请求的操作后，该过滤器调用<code>DOMConfiguration</code>参数已经被应用。</span>
+<span>例如，如果“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-validate">validate</a> ”设置为<code>true</code> ，则在调用过滤器之前完成验证。</span>
+</div> </li>
+</ul> <a name="getAsync--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAsync</h4> <pre>boolean getAsync()</pre>
+<div class="block">
+<code>true</code>如果 
+           <code>LSParser</code>是异步的， 
+           <code>false</code>如果是同步的。 
+          </div> </li>
+</ul> <a name="getBusy--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getBusy</h4> <pre>boolean getBusy()</pre>
+<div class="block">
+<code>true</code>如果 
+           <code>LSParser</code>当前正在加载一个文件，否则 
+           <code>false</code> 。 
+          </div> </li>
+</ul> <a name="parse-org.w3c.dom.ls.LSInput-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parse</h4> <pre><a href="../../../../org/w3c/dom/Document.html" title="interface in org.w3c.dom">Document</a> parse(<a href="../../../../org/w3c/dom/ls/LSInput.html" title="interface in org.w3c.dom.ls">LSInput</a> input)
+        throws <a href="../../../../org/w3c/dom/DOMException.html" title="class in org.w3c.dom">DOMException</a>,
+               <a href="../../../../org/w3c/dom/ls/LSException.html" title="class in org.w3c.dom.ls">LSException</a></pre>
+<div class="block">
+            从由 
+           <code>LSInput</code>的资源中解析XML文档。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>input</code> - 要从中读取文档的来源的 
+            <code>LSInput</code> 。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>如果<code>LSParser</code>是同步<code>LSParser</code> ，则返回新创建和填充的<code>Document</code> 。</span>
+<span>如果<code>LSParser</code>是异步的， <code>null</code>被返回，因为文档对象可能还没有被构造的本方法返回时。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../org/w3c/dom/DOMException.html" title="class in org.w3c.dom">DOMException</a></code> - INVALID_STATE_ERR：如果 
+            <code>LSParser</code>的 
+            <code>LSParser.busy</code>属性为 
+            <code>true</code>则 
+            <code>true</code> 。 
+           </dd>
+<dd>
+<span><code><a href="../../../../org/w3c/dom/ls/LSException.html" title="class in org.w3c.dom.ls">LSException</a></code> - PARSE_ERR：如果<code>LSParser</code>无法加载XML文档，则引发。</span>
+<span>如果DOM应用程序希望获取有关错误的详细信息， <code>DOMErrorHandler</code>使用参数“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-error-handler">error-handler</a> ”附加一个<code>DOMErrorHandler</code> 。</span>
+</dd>
+</dl> </li>
+</ul> <a name="parseURI-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parseURI</h4> <pre><a href="../../../../org/w3c/dom/Document.html" title="interface in org.w3c.dom">Document</a> parseURI(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> uri)
+           throws <a href="../../../../org/w3c/dom/DOMException.html" title="class in org.w3c.dom">DOMException</a>,
+                  <a href="../../../../org/w3c/dom/ls/LSException.html" title="class in org.w3c.dom.ls">LSException</a></pre>
+<div class="block">
+<span>从URI引用[ <a href="http://www.ietf.org/rfc/rfc2396.txt">IETF RFC 2396</a> ]标识的位置解析XML文档。</span>
+<span>如果URI包含片段标识符（参见[ <a href="http://www.ietf.org/rfc/rfc2396.txt">IETF RFC 2396</a> ]中的第4.1节），则该规范未定义该行为，此规范的未来版本可能会定义该行为。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>uri</code> - 要读取的XML文档的位置。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>如果<code>LSParser</code>是同步<code>LSParser</code> ，则返回新创建和填充的<code>Document</code> ，如果发生错误，则返回<code>null</code> 。</span>
+<span>如果<code>LSParser</code>是异步的， <code>null</code>被返回，因为文档对象可能还没有被构造的本方法返回时。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../org/w3c/dom/DOMException.html" title="class in org.w3c.dom">DOMException</a></code> - INVALID_STATE_ERR：如果 
+            <code>LSParser.busy</code>属性为 
+            <code>true</code>则 
+            <code>true</code> 。 
+           </dd>
+<dd>
+<span><code><a href="../../../../org/w3c/dom/ls/LSException.html" title="class in org.w3c.dom.ls">LSException</a></code> - PARSE_ERR：如果<code>LSParser</code>无法加载XML文档，则引发。</span>
+<span>如果DOM应用程序希望获得有关错误的详细信息， <code>DOMErrorHandler</code>使用参数“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-error-handler">error-handler</a> ”附加<code>DOMErrorHandler</code> 。</span>
+</dd>
+</dl> </li>
+</ul> <a name="parseWithContext-org.w3c.dom.ls.LSInput-org.w3c.dom.Node-short-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parseWithContext</h4> <pre><a href="../../../../org/w3c/dom/Node.html" title="interface in org.w3c.dom">Node</a> parseWithContext(<a href="../../../../org/w3c/dom/ls/LSInput.html" title="interface in org.w3c.dom.ls">LSInput</a> input,
+                      <a href="../../../../org/w3c/dom/Node.html" title="interface in org.w3c.dom">Node</a> contextArg,
+                      short action)
+               throws <a href="../../../../org/w3c/dom/DOMException.html" title="class in org.w3c.dom">DOMException</a>,
+                      <a href="../../../../org/w3c/dom/ls/LSException.html" title="class in org.w3c.dom.ls">LSException</a></pre>
+<div class="block">
+<span>从由<code>LSInput</code>的资源中解析XML片段，并将内容插入到使用<code>context</code>和<code>action</code>参数指定的位置的现有文档中。</span>
+<span>当解析输入流时，上下文节点（或其父，取决于结果将插入的位置）用于解析未绑定的命名空间前缀。</span>
+<span>上下文节点的<code>ownerDocument</code>节点（或节点本身，如果节点类型为<code>DOCUMENT_NODE</code> ）用于解析默认属性和实体引用。</span>
+<br/>
+<span>当新数据插入到文档中时，每个新的直接子节点或上下文节点的兄弟节点发起至少一个突变事件。</span>
+<br/>
+<span>如果上下文节点是<code>Document</code>节点和行动是<code>ACTION_REPLACE_CHILDREN</code> ，然后就是作为上下文节点传递的文档将被改变，以使得其<code>xmlEncoding</code> ， <code>documentURI</code> ， <code>xmlVersion</code> ， <code>inputEncoding</code> ， <code>xmlStandalone</code> ，以及所有其他的此类属性都设置为它们如果使用<code>LSParser.parse()</code>解析输入源，将被设置为。</span>
+<br/>
+<span>该方法始终是同步的，即使<code>LSParser</code>是异步的（ <code>LSParser.async</code>是<code>true</code> ）。</span>
+<br/>
+<span>如果在分析中发生错误，呼叫者通过通知<code>ErrorHandler</code>与“相关实例<a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-error-handler">error-handler</a>所述的”参数<code>DOMConfiguration</code> 。</span>
+<br/>
+<span>当调用<code>parseWithContext</code>时，将忽略以下配置参数的值，并将始终使用其默认值：“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-validate">validate</a> ”，“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-validate-if-schema">validate-if-schema</a> ”和“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-element-content-whitespace">element-content-whitespace</a> ”。</span>
+<span>其他参数将被正常处理，解析器预计将调用<code>LSParserFilter</code>就像整个文档被解析一样。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>input</code> - 要从中读取源文档的<code>LSInput</code> 。</span>
+<span>源文档必须是XML片段，即除了完整的XML文档之外的任何内容（除了上下文节点类型为<code>DOCUMENT_NODE</code> ，操作为<code>ACTION_REPLACE_CHILDREN</code> ），DOCTYPE（内部子集），实体声明，符号声明或XML或文本声明。</span>
+</dd>
+<dd>
+<span><code>contextArg</code> - 用作要解析的数据的上下文的节点。</span>
+<span>该节点必须是<code>Document</code>节点， <code>DocumentFragment</code>节点或作为<code>Element</code>节点的子节点允许的类型的节点，例如它不能是<code>Attribute</code>节点。</span>
+</dd>
+<dd>
+<span><code>action</code> - 此参数描述在插入的新集合节点和上下文节点的现有子节点之间应采取的操作。</span>
+<span>上述<code>ACTION_TYPES</code>中定义了<code>ACTION_TYPES</code>组可能的操作。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>返回作为解析操作结果的节点。</span>
+<span>如果结果是多个顶级节点，则返回第一个节点。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<span><code><a href="../../../../org/w3c/dom/DOMException.html" title="class in org.w3c.dom">DOMException</a></code> - HIERARCHY_REQUEST_ERR：如果内容无法替代，则在上下文节点之前，之后或之后插入（在[ <a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407">DOM Level 3 Core</a> ]中也可以看到<code>Node.insertBefore</code>或<code>Node.replaceChild</code> ））。</span>
+<br/>
+<span>NOT_SUPPORTED_ERR：如果<code>LSParser</code>不支持此方法，或者如果上下文节点的类型为<code>Document</code> ，并且DOM实现不支持替换<code>DocumentType</code>子<code>Element</code>或<code>Element</code>子节点，则<code>DocumentType</code> 。</span>
+<br/>
+<span>NO_MODIFICATION_ALLOWED_ERR：如果上下文节点是只读节点并且内容正在追加到其子列表，或者上下文节点的父节点是只读节点，并且内容正在其子节点列表中，则引发。</span>
+<br/>
+<span>INVALID_STATE_ERR：如果<code>LSParser.busy</code>属性为<code>true</code>则<code>true</code> 。</span>
+</dd>
+<dd>
+<span><code><a href="../../../../org/w3c/dom/ls/LSException.html" title="class in org.w3c.dom.ls">LSException</a></code> - PARSE_ERR：如果<code>LSParser</code>无法加载XML片段，则引发。</span>
+<span>如果DOM应用程序希望获得有关错误的详细信息， <code>DOMErrorHandler</code>使用参数“ <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#parameter-error-handler">error-handler</a> ”附加一个<code>DOMErrorHandler</code> 。</span>
+</dd>
+</dl> </li>
+</ul> <a name="abort--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>abort</h4> <pre>void abort()</pre>
+<div class="block">
+<span>中止当前由<code>LSParser</code>加载的文档的加载。</span>
+<span>如果<code>LSParser</code>当前不忙，则调用此方法什么也不做。</span>
+</div> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

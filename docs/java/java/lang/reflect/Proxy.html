@@ -1,0 +1,425 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.lang.reflect 
+   </div>
+<h2 class="title" title="Class Proxy">Class Proxy</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.lang.reflect.Proxy</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">Proxy</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../../java/io/Serializable.html" title="interface in java.io">Serializable</a></pre>
+<div class="block">
+<span><code>Proxy</code>提供了创建动态代理类和实例的静态方法，它也是由这些方法创建的所有动态代理类的超类。</span>
+<p> <span>为某个接口创建代理<code>Foo</code> ：</span> </p>
+<pre>  <span>InvocationHandler handler = new MyInvocationHandler(...);
+     Class&lt;?&gt; proxyClass = Proxy.getProxyClass(Foo.class.getClassLoader(), Foo.class);
+     Foo f = (Foo) proxyClass.getConstructor(InvocationHandler.class).
+                     newInstance(handler);</span> </pre>
+<span>或更简单地：</span>
+<pre>  <span>Foo f = (Foo) Proxy.newProxyInstance(Foo.class.getClassLoader(),
+                                          new Class&lt;?&gt;[] { Foo.class },
+                                          handler);</span> </pre>
+<p> <span><i>动态代理类</i> （以下简称为<i>代理类</i> ）是一个实现在类创建时在运行时指定的接口列表的类，具有如下所述的行为。</span> <span><i>代理接口</i>是由代理类实现的接口。</span> <span><i>代理实例</i>是代理类的一个实例。</span> <span>每个代理实例都有一个关联的<i>调用处理程序</i>对象，它实现了接口<a href="../../../java/lang/reflect/InvocationHandler.html" title="java.lang.reflect中的接口"><code>InvocationHandler</code></a> 。</span> <span>通过其代理接口之一的代理实例上的方法调用将被分派到实例调用处理程序的<a href="../../../java/lang/reflect/InvocationHandler.html#invoke-java.lang.Object-java.lang.reflect.Method-java.lang.Object:A-"><code>invoke</code></a>方法，传递代理实例， <code>java.lang.reflect.Method</code>被调用方法的<code>java.lang.reflect.Method</code>对象以及包含参数的类型<code>Object</code> Object的数组。</span> <span>调用处理程序适当地处理编码方法调用，并且返回的结果将作为方法在代理实例上调用的结果返回。</span> </p>
+<p> <span>代理类具有以下属性：</span> </p>
+<ul>
+<li> <span>代理类是<em>公共的，最终的，而不是抽象的，</em>如果所有代理接口都是公共的。</span> </li>
+<li> <span>如果任何代理接口<em>是非公开的，</em>代理类<em>是非公开的，最终的，而不是抽象的</em> 。</span> </li>
+<li> <span>代理类的不合格名称未指定。</span> <span>然而，以字符串<code>"$Proxy"</code>开头的类名空间应该保留给代理类。</span> </li>
+<li> <span>一个代理类扩展了<code>java.lang.reflect.Proxy</code> 。</span> </li>
+<li> <span>代理类完全按照相同的顺序实现其创建时指定的接口。</span> </li>
+<li> <span>如果一个代理类实现一个非公共接口，那么它将被定义在与该接口相同的包中。</span> <span>否则，代理类的包也是未指定的。</span> <span>请注意，程序包密封不会阻止在运行时在特定程序包中成功定义代理类，并且类也不会由同一类加载器定义，并且与特定签名者具有相同的包。</span> </li>
+<li> <span>由于代理类实现了在其创建时指定的所有接口， <code>getInterfaces</code>在其<code>类</code>对象上调用<code>getInterfaces</code>将返回一个包含相同列表接口的数组（按其创建时指定的顺序），在其<code>类</code>对象上调用<code>getMethods</code>将返回一个数组的<code>方法</code>对象，其中包括这些接口中的所有方法，并调用<code>getMethod</code>将在代理接口中找到可以预期的方法。</span> </li>
+<li> <span><a href="../../../java/lang/reflect/Proxy.html#isProxyClass-java.lang.Class-"><code>Proxy.isProxyClass</code></a>方法将返回true，如果它通过代理类 - 由<code>Proxy.getProxyClass</code>返回的类或由<code>Proxy.newProxyInstance</code>返回的对象的类 - 否则为false。</span> </li>
+<li> <span>所述<code>java.security.ProtectionDomain</code>代理类的是相同由引导类装载程序装载系统类，如<code>java.lang.Object</code> ，因为是由受信任的系统代码生成代理类的代码。</span> <span>此保护域通常将被授予<code>java.security.AllPermission</code> 。</span> </li>
+<li> <span>每个代理类有一个公共构造一个参数，该接口的实现<a href="../../../java/lang/reflect/InvocationHandler.html" title="java.lang.reflect中的接口"><code>InvocationHandler</code></a> ，设置调用处理程序的代理实例。</span> <span>而不必使用反射API来访问公共构造函数，也可以通过调用<a href="../../../java/lang/reflect/Proxy.html#newProxyInstance-java.lang.ClassLoader-java.lang.Class:A-java.lang.reflect.InvocationHandler-"><code>Proxy.newProxyInstance</code></a>方法来创建代理实例，该方法将调用<a href="../../../java/lang/reflect/Proxy.html#getProxyClass-java.lang.ClassLoader-java.lang.Class...-"><code>Proxy.getProxyClass</code></a>的操作与调用处理程序一起调用构造函数。</span> </li>
+</ul>
+<p> <span>代理实例具有以下属性：</span> </p>
+<ul>
+<li> <span>给定代理实例<code>proxy</code>和其代理类<code>Foo</code> ，以下表达式将返回true：</span> <pre>  <span><code> proxy instanceof Foo</code></span> </pre> <span>并且以下演员操作将会成功（而不是投掷一个<code>ClassCastException</code> ）：</span> <pre>  <span><code> (Foo) proxy</code></span> </pre></li>
+<li> <span>每个代理实例都有一个关联的调用处理程序，它被传递给它的构造函数。</span> <span>静态<a href="../../../java/lang/reflect/Proxy.html#getInvocationHandler-java.lang.Object-"><code>Proxy.getInvocationHandler</code></a>方法将返回与作为其参数传递的代理实例关联的调用处理程序。</span> </li>
+<li> <span>代理实例上的接口方法调用将被编码并分派到调用处理程序的<a href="../../../java/lang/reflect/InvocationHandler.html#invoke-java.lang.Object-java.lang.reflect.Method-java.lang.Object:A-"><code>invoke</code></a>方法，如该方法的文档所述。</span> </li>
+<li> <span><code>hashCode</code> ， <code>equals</code>在代理实例上的<code>toString</code>中声明的<code>java.lang.Object</code>或<code>toString</code>或<code>toString</code>或<code>toString</code>方法将被编码并分派到调用处理程序的<code>invoke</code>方法，方法与接口方法调用被编码和调度相同。</span> <span>传递给<code>invoke</code>的<code>方法</code>对象的声明类将为<code>java.lang.Object</code> 。</span> <span>从<code>java.lang.Object</code>的代理实例的其他公共方法不会被代理类覆盖，因此这些方法的调用与<code>java.lang.Object</code> 。</span> </li>
+</ul>
+<h3> <span>多代理接口中复制的方法</span> </h3>
+<p> <span>当代理类的两个或多个接口包含具有相同名称和参数签名的方法时，代理类接口的顺序变得重要。</span> <span>当在代理实例上调用这种<i>重复方法</i>时，传递给调用处理程序的<code>方法</code>对象不一定是其声明类可以通过调用代理方法的接口的引用类型进行分配的对象。</span> <span>存在此限制，因为生成的代理类中的相应方法实现无法确定其调用的接口。</span> <span>因此，当在代理实例上调用重复的方法时，代理类的<code>方法</code>列表中包含方法（直接或通过超级接口继承）的最重要的接口中的方法的Method对象被传递给调用处理程序的<code>invoke</code>方法，而不管方法调用发生的引用类型。</span> </p>
+<p> <span>如果代理接口包含具有相同的名称和参数签名的方法<code>hashCode</code> ， <code>equals</code> ，或<code>toString</code>的方法<code>java.lang.Object</code> ，当这种方法在代理实例调用时， <code>方法</code>传递到调用处理程序对象将有<code>java.lang.Object</code>为申报班</span> <span>换句话说， <code>java.lang.Object</code>的公共非最终方法<code>java.lang.Object</code>上先于所有代理接口，以确定哪个<code>方法</code>对象传递给调用处理程序。</span> </p>
+<p> <span>还要注意，当将一个重复的方法分派到调用处理程序时， <code>invoke</code>方法可能只会将可分配给<i>所有</i>可以调用的<i>所有</i>代理接口中的方法的<code>throws</code>子句中的一种异常类型的检查异常类型抛出通过。</span> <span>如果<code>invoke</code>方法抛出经过检查的异常是不能分配给任何通过它可以通过调用代理接口中的方法声明的异常类型，那么选中<code>UndeclaredThrowableException</code>将通过代理实例调用抛出。</span> <span>此限制意味着，并非所有通过调用返回的异常类型<code>getExceptionTypes</code>上<code>方法</code>传递给对象<code>invoke</code>方法一定可以成功地抛出<code>invoke</code>方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.3 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/reflect/InvocationHandler.html" title="java.lang.reflect中的接口"><code>InvocationHandler</code></a> ， <a href="../../../serialized-form.html#java.lang.reflect.Proxy">Serialized Form</a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected <a href="../../../java/lang/reflect/InvocationHandler.html" title="interface in java.lang.reflect">InvocationHandler</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/reflect/Proxy.html#h">h</a></span></code>
+<div class="block">
+              该代理实例的调用处理程序。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/reflect/Proxy.html#Proxy-java.lang.reflect.InvocationHandler-">Proxy</a></span>(<a href="../../../java/lang/reflect/InvocationHandler.html" title="interface in java.lang.reflect">InvocationHandler</a> h)</code>
+<div class="block">
+              从一个子类（通常是一个动态代理类）构造一个新的 
+             <code>Proxy</code>实例，具有指定的调用处理程序的值。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>static <a href="../../../java/lang/reflect/InvocationHandler.html" title="interface in java.lang.reflect">InvocationHandler</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/reflect/Proxy.html#getInvocationHandler-java.lang.Object-">getInvocationHandler</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> proxy)</code>
+<div class="block">
+              返回指定代理实例的调用处理程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/reflect/Proxy.html#getProxyClass-java.lang.ClassLoader-java.lang.Class...-">getProxyClass</a></span>(<a href="../../../java/lang/ClassLoader.html" title="class in java.lang">ClassLoader</a> loader, <a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt;... interfaces)</code>
+<div class="block">
+              给出类加载器和接口数组的代理类的 
+             <code>java.lang.Class</code>对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/reflect/Proxy.html#isProxyClass-java.lang.Class-">isProxyClass</a></span>(<a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; cl)</code>
+<div class="block">
+              如果且仅当使用 
+             <code>getProxyClass</code>方法或 
+             <code>newProxyInstance</code>方法将指定的类动态生成为代理类时，则返回true。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>static <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/reflect/Proxy.html#newProxyInstance-java.lang.ClassLoader-java.lang.Class:A-java.lang.reflect.InvocationHandler-">newProxyInstance</a></span>(<a href="../../../java/lang/ClassLoader.html" title="class in java.lang">ClassLoader</a> loader, <a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt;[] interfaces, <a href="../../../java/lang/reflect/InvocationHandler.html" title="interface in java.lang.reflect">InvocationHandler</a> h)</code>
+<div class="block">
+              返回指定接口的代理类的实例，该接口将方法调用分派给指定的调用处理程序。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="h">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>h</h4> <pre>protected <a href="../../../java/lang/reflect/InvocationHandler.html" title="interface in java.lang.reflect">InvocationHandler</a> h</pre>
+<div class="block">
+            该代理实例的调用处理程序。 
+          </div> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="Proxy-java.lang.reflect.InvocationHandler-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>Proxy</h4> <pre>protected Proxy(<a href="../../../java/lang/reflect/InvocationHandler.html" title="interface in java.lang.reflect">InvocationHandler</a> h)</pre>
+<div class="block">
+            从一个子类（通常是一个动态代理类）构造一个新的 
+           <code>Proxy</code>实例，该实例具有调用处理程序的指定值。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>h</code> - 此代理实例的调用处理程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果给定的调用处理程序 
+            <code>h</code>是 
+            <code>null</code> 。 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getProxyClass-java.lang.ClassLoader-java.lang.Class...-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getProxyClass</h4> <pre>public static <a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; getProxyClass(<a href="../../../java/lang/ClassLoader.html" title="class in java.lang">ClassLoader</a> loader,
+                                     <a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt;... interfaces)
+                              throws <a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></pre>
+<div class="block">
+<span>给定类加载器和接口数组的代理类的<code>java.lang.Class</code>对象。</span>
+<span>代理类将由指定的类加载器定义，并将实现所有提供的接口。</span>
+<span>如果任何给定的接口是非公开的，则代理类将是非公开的。</span>
+<span>如果类加载器已经定义了接口相同置换的代理类，那么将返回现有的代理类;</span>
+<span>否则，这些接口的代理类将被动态生成并由类加载器定义。</span>
+<p> <span>对可能传递给<code>Proxy.getProxyClass</code>的参数有几个<code>Proxy.getProxyClass</code> ：</span> </p>
+<ul>
+<li> <span><code>interfaces</code>数组中的所有<code>类</code>对象都必须表示接口，而不是类或原始类型。</span> </li>
+<li> <span><code>interfaces</code>数组中没有两个元素可能是指相同的<code>类</code>对象。</span> </li>
+<li> <span>所有的接口类型必须通过指定的类加载器的名称可见。</span> <span>换句话说，对于类加载器<code>cl</code>和每个接口<code>i</code> ，以下表达式必须为真：</span> <pre>  <span>Class.forName(i.getName(), false, cl) == i</span> </pre></li>
+<li> <span>所有非公共接口必须在同一个包中;</span> <span>否则代理类将不可能实现所有接口，而不管其中定义了什么包。</span> </li>
+<li> <span>对于具有相同签名的指定接口的任何成员方法集合：</span>
+<ul>
+<li> <span>如果任何方法的返回类型是原始类型或void，则所有方法必须具有相同的返回类型。</span> </li>
+<li> <span>否则，其中一个方法必须具有一个返回类型，该类型可以分配给其余方法的所有返回类型。</span> </li>
+</ul></li>
+<li> <span>生成的代理类不能超过虚拟机对类施加的任何限制。</span> <span>例如，VM可以将类可以实现的接口数量限制为65535;</span> <span>在这种情况下， <code>interfaces</code>阵列的大小不得超过65535。</span> </li>
+</ul>
+<p> <span>如果任何这些限制被违反， <code>Proxy.getProxyClass</code>将抛出一个<code>IllegalArgumentException</code> 。</span> <span>如果<code>interfaces</code>数组参数或其任何元素为<code>null</code> ，则将抛出一个<code>NullPointerException</code> 。</span> </p>
+<p> <span>请注意，指定的代理接口的顺序是重要的：具有相同组合的接口但不同顺序的代理类的两个请求将导致两个不同的代理类。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>loader</code> - 类加载器来定义代理类 
+           </dd>
+<dd>
+<code>interfaces</code> - 要实现的代理类的接口列表 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在指定的类加载器中定义并实现指定接口的代理类 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果对可能传递给 
+            <code>getProxyClass</code>的参数的任何 
+            <code>getProxyClass</code>被违反 
+           </dd>
+<dd>
+<span><code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果存在安全管理员<em>s</em> ，并且满足以下任何条件：</span>
+<ul>
+<li> <span>给定的<code>loader</code>是<code>null</code> ，并且调用者的类加载器不是<code>null</code> ，并且调用<a href="../../../java/lang/SecurityManager.html#checkPermission-java.security.Permission-"><code>s.checkPermission</code></a>与<code>RuntimePermission("getClassLoader")</code>权限被拒绝访问。</span> </li>
+<li> <span>对于每个代理接口， <code>intf</code> ，呼叫者的类加载器是不一样的或类加载器的一个祖先<code>intf</code>和调用<a href="../../../java/lang/SecurityManager.html#checkPackageAccess-java.lang.String-"><code>s.checkPackageAccess()</code></a>拒绝访问<code>intf</code> 。</span> </li>
+</ul>
+</dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>interfaces</code>数组参数或其任何元素是 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> <a name="newProxyInstance-java.lang.ClassLoader-java.lang.Class:A-java.lang.reflect.InvocationHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>newProxyInstance</h4> <pre>public static <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> newProxyInstance(<a href="../../../java/lang/ClassLoader.html" title="class in java.lang">ClassLoader</a> loader,
+                                      <a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt;[] interfaces,
+                                      <a href="../../../java/lang/reflect/InvocationHandler.html" title="interface in java.lang.reflect">InvocationHandler</a> h)
+                               throws <a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></pre>
+<div class="block">
+<span>返回指定接口的代理类的实例，该接口将方法调用分派给指定的调用处理程序。</span>
+<p> <span><code>Proxy.newProxyInstance</code>因为与<code>IllegalArgumentException</code>相同的原因而<code>Proxy.getProxyClass</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>loader</code> - 类加载器来定义代理类 
+           </dd>
+<dd>
+<code>interfaces</code> - 代理类实现的接口列表 
+           </dd>
+<dd>
+<code>h</code> - 调度方法调用的调用处理函数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             具有由指定的类加载器定义并实现指定接口的代理类的指定调用处理程序的代理实例 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果对可能传递给 
+            <code>getProxyClass</code>有任何 
+            <code>getProxyClass</code>被违反 
+           </dd>
+<dd>
+<span><code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> -如果安全管理器<em>，S</em>存在任何下列条件得到满足：</span>
+<ul>
+<li> <span>给定的<code>loader</code>是<code>null</code> ，并且调用者的类加载器不是<code>null</code> ，并且调用<a href="../../../java/lang/SecurityManager.html#checkPermission-java.security.Permission-"><code>s.checkPermission</code></a>与<code>RuntimePermission("getClassLoader")</code>权限拒绝访问;</span> </li>
+<li> <span>对于每个代理接口， <code>intf</code> ，呼叫者的类加载器是不一样的或类加载器的祖先<code>intf</code>和调用<a href="../../../java/lang/SecurityManager.html#checkPackageAccess-java.lang.String-"><code>s.checkPackageAccess()</code></a>拒绝访问<code>intf</code> ;</span> </li>
+<li> <span>任何给定的代理接口的是非公和呼叫者类是不在同一<a href="../../../java/lang/Package.html" title="java.lang中的类">runtime package</a>作为非公共接口和调用<a href="../../../java/lang/SecurityManager.html#checkPermission-java.security.Permission-"><code>s.checkPermission</code></a>与<code>ReflectPermission("newProxyInPackage.{package name}")</code>权限拒绝访问。</span> </li>
+</ul>
+</dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>interfaces</code>数组参数或其任何元素是 
+            <code>null</code> ，或者如果调用处理程序 
+            <code>h</code>是 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> <a name="isProxyClass-java.lang.Class-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isProxyClass</h4> <pre>public static boolean isProxyClass(<a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; cl)</pre>
+<div class="block">
+<span>如果且仅当使用<code>getProxyClass</code>方法或<code>newProxyInstance</code>方法将指定的类动态生成为代理类时，则返回true。</span>
+<p> <span>这种方法的可靠性对于使用它来做出安全决策的能力很重要，所以它的实现不应该只是测试所讨论的类是否扩展了<code>Proxy</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>cl</code> - 要测试的班级 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果该类是代理类， 
+            <code>false</code> false 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>cl</code>是 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> <a name="getInvocationHandler-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getInvocationHandler</h4> <pre>public static <a href="../../../java/lang/reflect/InvocationHandler.html" title="interface in java.lang.reflect">InvocationHandler</a> getInvocationHandler(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> proxy)
+                                              throws <a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></pre>
+<div class="block">
+            返回指定代理实例的调用处理程序。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>proxy</code> - 用于返回调用处理程序的代理实例 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             代理实例的调用处理程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数不是代理实例 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> -如果安全管理器 
+            <em>，S</em>存在，并且调用者的类加载器是不一样或类加载器的调用处理程序和调用的祖先 
+            <a href="../../../java/lang/SecurityManager.html#checkPackageAccess-java.lang.String-"><code>s.checkPackageAccess()</code></a>拒绝访问到调用处理程序的类。 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

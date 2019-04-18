@@ -1,0 +1,552 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     javax.sql.rowset.spi 
+   </div>
+<h2 class="title" title="Class SyncFactory">Class SyncFactory</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.sql.rowset.spi.SyncFactory</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public class <span class="typeNameLabel">SyncFactory</span>
+extends <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span>服务提供者接口（SPI）机制，生成<code>SyncProvider</code>实例，由断开的<code>RowSet</code>对象使用。</span>
+<span><code>SyncProvider</code>实例又提供<code>javax.sql.RowSetReader</code>对象<code>RowSet</code>对象需要填充数据和<code>javax.sql.RowSetWriter</code>对象，它需要将其数据的更改传播回底层数据源。</span>
+<p> <span>因为<code>SyncFactory</code>类中的方法都是静态的，所以每个Java VM只有一个<code>SyncFactory</code>对象。</span> <span>这确保了<code>RowSet</code>实现可以从其获得<code>SyncProvider</code>实现的单一来源。</span> </p>
+<h3> <span>1.0概述</span> </h3>
+<span><code>SyncFactory</code>类提供了可用同步提供程序实现（ <code>SyncProvider</code>对象）的内部注册表。</span>
+<span>可以查询此注册表以确定哪些同步提供程序可用。</span>
+<span>以下代码行获取当前注册的提供者的枚举。</span>
+<pre>  <span>java.util.Enumeration e = SyncFactory.getRegisteredProviders();</span> </pre>
+<span>所有标准的<code>RowSet</code>实现必须至少提供两个提供者：</span>
+<ul>
+<li> <span>一个乐观的供应商，用于<code>CachedRowSet</code>实现或从中派生的实现</span> </li>
+<li> <span>一个XML提供程序，用于读取和写入XML，例如与<code>WebRowSet</code>对象</span> </li>
+</ul>
+<span>注意，JDBC RowSet实现包括<code>SyncProvider</code>实现<code>RIOptimisticProvider</code>和<code>RIXmlProvider</code> ，其满足这个要求。</span>
+<p> <span><code>SyncFactory</code>类提供访问器方法来协助应用程序确定当前在哪个同步提供程序中注册了<code>SyncFactory</code> 。</span> </p>
+<p> <span>其他方法让<code>RowSet</code>持久性提供者在工厂机制中注册或取消注册。</span> <span>这允许在运行时向<code>RowSet</code>对象提供额外的同步提供程序实现。</span> </p>
+<p> <span>应用程序可以应用一定程度的过滤来确定<code>SyncProvider</code>实现提供的<code>SyncProvider</code>级别。</span> <span>以下标准确定提供程序是否可用于<code>RowSet</code>对象：</span> </p>
+<ol>
+<li> <span>如果特定提供者由<code>RowSet</code>对象指定，并且<code>SyncFactory</code>不包含对该提供程序的<code>SyncFactoryException</code> ，则会抛出<code>SyncFactoryException</code> ，指出找不到同步提供程序。</span> </li>
+<li> <span>如果<code>RowSet</code>实现是用指定的提供者实例化的，并且指定的提供者已被正确地注册，则提供所请求的提供者。</span> <span>否则<code>SyncFactoryException</code>被抛出。</span> </li>
+<li> <span>如果<code>RowSet</code>对象未指定<code>SyncProvider</code>实现，并且没有额外的<code>SyncProvider</code>实现可用，则提供参考实现提供程序。</span> </li>
+</ol>
+<h3> <span>2.0注册<code>SyncProvider</code>实现</span> </h3>
+<p> <span>供应商和开发者可以注册<code>SyncProvider</code>使用以下机制中的一个实施方式。</span> </p>
+<ul>
+<li> <span><b>使用命令行</b></span> <br/> <span>提供程序的名称在命令行中提供，这将将提供程序添加到系统属性。</span> <span>例如：</span> <pre>  <span>-Drowset.provider.classname=com.fred.providers.HighAvailabilityProvider</span> </pre></li>
+<li> <span><b>使用标准属性文件</b></span> <br/> <span>参考实现的目标是与J2SE 1.5一起发布，其中将包括可以手动编辑的附加资源文件。</span> <span>以下是参考实现中包含的属性文件的示例：</span> <pre>  <span>#Default JDBC RowSet sync providers listing
+   #
+
+   # Optimistic synchronization provider
+   rowset.provider.classname.0=com.sun.rowset.providers.RIOptimisticProvider
+   rowset.provider.vendor.0=Oracle Corporation
+   rowset.provider.version.0=1.0
+
+   # XML Provider using standard XML schema
+   rowset.provider.classname.1=com.sun.rowset.providers.RIXMLProvider
+   rowset.provider.vendor.1=Oracle Corporation
+   rowset.provider.version.1=1.0</span> </pre> <span><code>SyncFactory</code>检查此文件并注册它包含的<code>SyncProvider</code>实现。</span> <span>开发人员或供应商可以将其他实现添加到此文件。</span> <span>例如，这是一个可能的补充：</span> <pre>  <span>rowset.provider.classname.2=com.fred.providers.HighAvailabilityProvider
+     rowset.provider.vendor.2=Fred, Inc.
+     rowset.provider.version.2=1.0</span> </pre></li>
+<li> <span><b>使用JNDI上下文</b></span> <br/> <span>可用的提供者可以在JNDI上下文中注册， <code>SyncFactory</code>将尝试从该JNDI上下文中加载<code>SyncProvider</code>实现。</span> <span>例如，以下代码片段在JNDI上下文中注册提供者实现。</span> <span>这是部署者通常会做的。</span> <span>在这个例子中， <code>MyProvider</code>正在注册到CosNaming命名空间，它是J2EE资源使用的命名空间。</span> <pre>  <span>import javax.naming.*;
+
+    Hashtable svrEnv = new  Hashtable();
+    srvEnv.put(Context.INITIAL_CONTEXT_FACTORY, "CosNaming");
+
+    Context ctx = new InitialContext(svrEnv);
+    com.fred.providers.MyProvider = new MyProvider();
+    ctx.rebind("providers/MyProvider", syncProvider);</span> </pre></li>
+</ul>
+<span>接下来，应用程序将使用<code>SyncFactory</code>实例注册JNDI上下文。</span>
+<span>这允许<code>SyncFactory</code>在JNDI上下文中浏览<code>SyncProvider</code>实现。</span>
+<pre>  <span>Hashtable appEnv = new Hashtable();
+    appEnv.put(Context.INITIAL_CONTEXT_FACTORY, "CosNaming");
+    appEnv.put(Context.PROVIDER_URL, "iiop://hostname/providers");
+    Context ctx = new InitialContext(appEnv);
+
+    SyncFactory.registerJNDIContext(ctx);</span> </pre>
+<span>如果一个<code>RowSet</code>对象尝试获取一个<code>MyProvider</code>对象， <code>SyncFactory</code>将尝试找到它。</span>
+<span>首先，它在系统属性中搜索它，然后查找资源文件，最后它检查已设置的JNDI上下文。</span>
+<span><code>SyncFactory</code>实例验证所请求的提供者是<code>SyncProvider</code>抽象类的有效扩展，然后将其提供给<code>RowSet</code>对象。</span>
+<span>在以下代码片段中，创建一个新的<code>CachedRowSet</code>对象，并使用<i>env</i>进行<code>MyProvider</code> ，其中包含绑定到<code>MyProvider</code> 。</span>
+<pre>  <span>Hashtable env = new Hashtable();
+    env.put(SyncFactory.ROWSET_SYNC_PROVIDER, "com.fred.providers.MyProvider");
+    CachedRowSet crs = new com.sun.rowset.CachedRowSetImpl(env);</span> </pre>
+<span>有关这些机制的更多详细信息，请参见<code>javax.sql.rowset.spi</code>封装规范。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../javax/sql/rowset/spi/SyncProvider.html" title="javax.sql.rowset.spi中的类"><code>SyncProvider</code></a> ， <a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="javax.sql.rowset.spi中的类"><code>SyncFactoryException</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#ROWSET_SYNC_PROVIDER">ROWSET_SYNC_PROVIDER</a></span></code>
+<div class="block">
+              同步提供程序实现名称的标准属性ID。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#ROWSET_SYNC_PROVIDER_VERSION">ROWSET_SYNC_PROVIDER_VERSION</a></span></code>
+<div class="block">
+              同步提供程序实现版本标记的标准属性ID。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#ROWSET_SYNC_VENDOR">ROWSET_SYNC_VENDOR</a></span></code>
+<div class="block">
+              同步提供程序实现供应商名称的标准属性ID。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>static <a href="../../../../javax/sql/rowset/spi/SyncProvider.html" title="class in javax.sql.rowset.spi">SyncProvider</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#getInstance-java.lang.String-">getInstance</a></span>(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> providerID)</code>
+<div class="block">
+              返回 
+             <code>SyncProvider</code>通过 
+             <i>providerID</i>鉴定实例。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#getLogger--">getLogger</a></span>()</code>
+<div class="block">
+              返回应用程序的记录对象，以检索SyncProvider实现发布的同步事件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static <a href="../../../../java/util/Enumeration.html" title="interface in java.util">Enumeration</a>&lt;<a href="../../../../javax/sql/rowset/spi/SyncProvider.html" title="class in javax.sql.rowset.spi">SyncProvider</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#getRegisteredProviders--">getRegisteredProviders</a></span>()</code>
+<div class="block">
+              返回当前注册的同步提供程序的枚举。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>static <a href="../../../../javax/sql/rowset/spi/SyncFactory.html" title="class in javax.sql.rowset.spi">SyncFactory</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#getSyncFactory--">getSyncFactory</a></span>()</code>
+<div class="block">
+              返回 
+             <code>SyncFactory</code>单身人士。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#registerProvider-java.lang.String-">registerProvider</a></span>(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> providerID)</code>
+<div class="block">
+              将给定的同步提供程序添加到工厂注册表。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#setJNDIContext-javax.naming.Context-">setJNDIContext</a></span>(<a href="../../../../javax/naming/Context.html" title="interface in javax.naming">Context</a> ctx)</code>
+<div class="block">
+              设置可以从JNDI命名空间中检索SyncProvider实现的初始JNDI上下文 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#setLogger-java.util.logging.Logger-">setLogger</a></span>(<a href="../../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a> logger)</code>
+<div class="block">
+              设置由所使用的日志对象 
+             <code>SyncProvider</code>通过所提供的实施 
+             <code>SyncFactory</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#setLogger-java.util.logging.Logger-java.util.logging.Level-">setLogger</a></span>(<a href="../../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a> logger, <a href="../../../../java/util/logging/Level.html" title="class in java.util.logging">Level</a> level)</code>
+<div class="block">
+              设置由 
+             <code>SyncFactory</code> SPI提供的 
+             <code>SyncProvider</code>实现使用的日志记录对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncFactory.html#unregisterProvider-java.lang.String-">unregisterProvider</a></span>(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> providerID)</code>
+<div class="block">
+              从工厂SPI寄存器中删除指定的当前注册的同步提供程序。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="ROWSET_SYNC_PROVIDER">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ROWSET_SYNC_PROVIDER</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> ROWSET_SYNC_PROVIDER</pre>
+<div class="block">
+            同步提供程序实现名称的标准属性ID。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.sql.rowset.spi.SyncFactory.ROWSET_SYNC_PROVIDER">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ROWSET_SYNC_VENDOR">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ROWSET_SYNC_VENDOR</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> ROWSET_SYNC_VENDOR</pre>
+<div class="block">
+            同步提供程序实现供应商名称的标准属性ID。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.sql.rowset.spi.SyncFactory.ROWSET_SYNC_VENDOR">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ROWSET_SYNC_PROVIDER_VERSION">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>ROWSET_SYNC_PROVIDER_VERSION</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> ROWSET_SYNC_PROVIDER_VERSION</pre>
+<div class="block">
+            同步提供程序实现版本标记的标准属性ID。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.sql.rowset.spi.SyncFactory.ROWSET_SYNC_PROVIDER_VERSION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="registerProvider-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>registerProvider</h4> <pre>public static void registerProvider(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> providerID)
+                             throws <a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></pre>
+<div class="block">
+<span>将给定的同步提供程序添加到工厂注册表。</span>
+<span>在提供了指导原则<code>SyncProvider</code>规范要求的命名约定<code>SyncProvider</code>实现。</span>
+<p> <span>可以通过将SyncProvider实例绑定到JNDI命名空间来注册绑定到JNDI上下文的同步提供程序。</span> </p>
+<pre>  <span><code> SyncProvider p = new MySyncProvider(); InitialContext ic = new InitialContext(); ic.bind ("jdbc/rowset/MySyncProvider", p); </code></span> </pre>
+<span>此外，初始JNDI上下文应与被设定<code>SyncFactory</code>使用<code>setJNDIContext</code>方法。</span>
+<span><code>SyncFactory</code>利用此上下文来搜索绑定到JNDI上下文及其子节点的可用<code>SyncProvider</code>对象。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>providerID</code> - 一个 
+            <code>String</code>对象，其中注册了同步提供程序的唯一ID 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></code> - 如果尝试提供一个空的或空的提供者名称 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../javax/sql/rowset/spi/SyncFactory.html#setJNDIContext-javax.naming.Context-"><code>setJNDIContext(javax.naming.Context)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSyncFactory--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSyncFactory</h4> <pre>public static <a href="../../../../javax/sql/rowset/spi/SyncFactory.html" title="class in javax.sql.rowset.spi">SyncFactory</a> getSyncFactory()</pre>
+<div class="block">
+            返回 
+           <code>SyncFactory</code>单身人士。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>SyncFactory</code>例子 
+           </dd>
+</dl> </li>
+</ul> <a name="unregisterProvider-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>unregisterProvider</h4> <pre>public static void unregisterProvider(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> providerID)
+                               throws <a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></pre>
+<div class="block">
+            从工厂SPI寄存器中删除指定的当前注册的同步提供程序。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>providerID</code> - 同步提供程序的唯一ID 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></code> - 如果尝试取消注册尚未注册的SyncProvider实现。 
+           </dd>
+</dl> </li>
+</ul> <a name="getInstance-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getInstance</h4> <pre>public static <a href="../../../../javax/sql/rowset/spi/SyncProvider.html" title="class in javax.sql.rowset.spi">SyncProvider</a> getInstance(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> providerID)
+                                throws <a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></pre>
+<div class="block">
+            返回 
+           <code>SyncProvider</code>通过 
+           <i>providerID</i>鉴定实例。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>providerID</code> - 提供商的唯一标识符 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>SyncProvider</code>实现 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></code> - 如果找不到 
+            <code>null</code> ，providerID为 
+            <code>null</code> ，或尝试调用此提供程序时遇到某些错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="getRegisteredProviders--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRegisteredProviders</h4> <pre>public static <a href="../../../../java/util/Enumeration.html" title="interface in java.util">Enumeration</a>&lt;<a href="../../../../javax/sql/rowset/spi/SyncProvider.html" title="class in javax.sql.rowset.spi">SyncProvider</a>&gt; getRegisteredProviders()
+                                                        throws <a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></pre>
+<div class="block">
+<span>返回当前注册的同步提供程序的枚举。</span>
+<span>A <code>RowSet</code>实现可以使用枚举中的任何提供者作为其<code>SyncProvider</code>对象。</span>
+<p> <span>至少应允许使用JDBC驱动程序存储RowSet内容数据的引用同步提供程序。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             枚举枚举在本厂注册的可用同步提供程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></code> - 如果获得注册的提供者发生错误 
+           </dd>
+</dl> </li>
+</ul> <a name="setLogger-java.util.logging.Logger-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setLogger</h4> <pre>public static void setLogger(<a href="../../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a> logger)</pre>
+<div class="block">
+<span>设置由所使用的日志对象<code>SyncProvider</code>通过所提供的实施<code>SyncFactory</code> 。</span>
+<span>所有<code>SyncProvider</code>实现都可以将其事件记录到此对象，并且应用程序可以使用<code>getLogger</code>方法检索此对象的<code>getLogger</code> 。</span>
+<p> <span>此方法检查是否有一个<code>SQLPermission</code>对象在允许该方法成功之前授予权限<code>setSyncFactory</code> 。</span> <span>如果一个<code>SecurityManager</code>存在，它的<code>checkPermission</code>方法拒绝调用<code>setLogger</code> ，这种方法抛出一个<code>java.lang.SecurityException</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>logger</code> - 记录器对象实例 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果存在安全管理员，并且其 
+            <code>checkPermission</code>方法拒绝呼叫 
+            <code>setLogger</code>
+</dd>
+<dd>
+<code><a href="../../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果记录器为空 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../java/lang/SecurityManager.html#checkPermission-java.security.Permission-"><code>SecurityManager.checkPermission(java.security.Permission)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setLogger-java.util.logging.Logger-java.util.logging.Level-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setLogger</h4> <pre>public static void setLogger(<a href="../../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a> logger,
+                             <a href="../../../../java/util/logging/Level.html" title="class in java.util.logging">Level</a> level)</pre>
+<div class="block">
+<span>设置由<code>SyncFactory</code> SPI提供的<code>SyncProvider</code>实现使用的日志记录对象。</span>
+<span>所有<code>SyncProvider</code>实现都可以将其事件记录到此对象，并且应用程序可以使用<code>getLogger</code>方法检索此对象的<code>getLogger</code> 。</span>
+<p> <span>此方法检查是否有一个<code>SQLPermission</code>对象授予权限<code>setSyncFactory</code>然后允许该方法成功。</span> <span>如果一个<code>SecurityManager</code>存在，并且它的<code>checkPermission</code>方法拒绝调用<code>setLogger</code> ，此方法抛出一个<code>java.lang.SecurityException</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>logger</code> - 一个记录器对象实例 
+           </dd>
+<dd>
+<code>level</code> - 一个Level对象实例，指示需要记录的程度 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果存在安全管理员，并且其 
+            <code>checkPermission</code>方法拒绝调用 
+            <code>setLogger</code>
+</dd>
+<dd>
+<code><a href="../../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果记录器为空 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../java/lang/SecurityManager.html#checkPermission-java.security.Permission-"><code>SecurityManager.checkPermission(java.security.Permission)</code></a> ， <a href="../../../../java/util/logging/LoggingPermission.html" title="java.util.logging中的类"><code>LoggingPermission</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getLogger--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLogger</h4> <pre>public static <a href="../../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a> getLogger()
+                        throws <a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></pre>
+<div class="block">
+            返回应用程序的记录对象，以检索SyncProvider实现发布的同步事件。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>Logger</code>已被指定使用 
+            <code>SyncProvider</code>实现 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></code> - 如果没有设置日志对象。 
+           </dd>
+</dl> </li>
+</ul> <a name="setJNDIContext-javax.naming.Context-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>setJNDIContext</h4> <pre>public static void setJNDIContext(<a href="../../../../javax/naming/Context.html" title="interface in javax.naming">Context</a> ctx)
+                           throws <a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></pre>
+<div class="block">
+<span>设置可以从JNDI命名空间中检索SyncProvider实现的初始JNDI上下文</span>
+<p> <span>此方法检查是否有一个<code>SQLPermission</code>对象在允许该方法成功之前授予权限<code>setSyncFactory</code> 。</span> <span>如果一个<code>SecurityManager</code>存在，并且它的<code>checkPermission</code>方法拒绝调用<code>setJNDIContext</code> ，这个方法会抛出一个<code>java.lang.SecurityException</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ctx</code> - 有效的JNDI上下文 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/sql/rowset/spi/SyncFactoryException.html" title="class in javax.sql.rowset.spi">SyncFactoryException</a></code> - 如果提供的JNDI上下文为空 
+           </dd>
+<dd>
+<code><a href="../../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果存在安全管理员，并且其 
+            <code>checkPermission</code>方法拒绝调用 
+            <code>setJNDIContext</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../java/lang/SecurityManager.html#checkPermission-java.security.Permission-"><code>SecurityManager.checkPermission(java.security.Permission)</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

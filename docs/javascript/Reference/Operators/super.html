@@ -1,0 +1,201 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong>super</strong>关键字用于访问和调用一个对象的父对象上的函数。</p>
+<p><code>super.prop</code>和<code>super[expr]</code>表达式在<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes">类</a>和<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer">对象字面量</a>任何<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions">方法定义</a>中都是有效的。</p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox">super([arguments]); 
+// 调用 父对象/父类 的构造函数
+
+super.functionOnParent([arguments]); 
+// 调用 父对象/父类 上的方法
+</pre>
+<h2 id="描述">描述</h2>
+<p>在构造函数中使用时，<code>super</code>关键字将单独出现，并且必须在使用<code>this</code>关键字之前使用。<code>super</code>关键字也可以用来调用父对象上的函数。</p>
+<h2 id="示例">示例</h2>
+<h3 id="在类中使用super">在类中使用<code>super</code></h3>
+<p>以下代码片段来自于 <a class="external" href="https://github.com/GoogleChrome/samples/blob/gh-pages/classes-es6/index.html" rel="noopener">classes sample</a>。</p>
+<pre class="brush: js">class Polygon {
+  constructor(height, width) {
+    this.name = 'Polygon';
+    this.height = height;
+    this.width = width;
+  }
+  sayName() {
+    console.log('Hi, I am a ', this.name + '.');
+  }
+}
+
+class Square extends Polygon {
+  constructor(length) {
+    this.height; 
+    // ReferenceError，super 需要先被调用！
+    
+/*
+   这里，它调用父类的构造函数的 length, 
+   作为Polygon 的 width和 height.
+*/ 
+    super(length, length);
+    
+/*
+    注意: 在派生的类中, 在你可以使用'this'之前, 必须先调用super()。
+    忽略这, 这将导致引用错误。
+*/
+    this.name = 'Square';
+  }
+
+  get area() {
+    return this.height * this.width;
+  }
+
+  set area(value) {
+    this.area = value;
+  } 
+}</pre>
+<h3 id="调用父类上的静态方法">调用父类上的静态方法</h3>
+<p>你也可以用 super 调用父类的<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/static">静态方法</a>。</p>
+<pre class="brush: js">class Human {
+  constructor() {}
+  static ping() {
+    return 'ping';
+  }
+}
+
+class Computer extends Human {
+  constructor() {}
+  static pingpong() {
+    return super.ping() + ' pong';
+  }
+}
+Computer.pingpong(); // 'ping pong'</pre>
+<h3 id="删除_super_上的属性将抛出异常">删除 super 上的属性将抛出异常</h3>
+<p>你不能使用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete">delete 操作符</a> 加 <code>super.prop</code> 或者 <code>super[expr]</code> 去删除父类的属性，这样做会抛出 <a href="Reference/Global_Objects/ReferenceError" title="ReferenceError（引用错误） 对象代表当一个不存在的变量被引用时发生的错误。"><code>ReferenceError</code></a>。</p>
+<pre class="brush: js">class Base {
+  constructor() {}
+  foo() {}
+}
+class Derived extends Base {
+  constructor() {}
+  delete() {
+    delete super.foo;
+  }
+}
+
+new Derived().delete(); 
+// ReferenceError: invalid delete involving 'super'.</pre>
+<h3 id="Super.prop_不能覆写不可写属性"><code>Super.prop</code> 不能覆写不可写属性</h3>
+<p>当使用 <a href="Reference/Global_Objects/Object/defineProperty" title="Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。"><code>Object.defineProperty</code></a> 定义一个属性为不可写时，<code>super</code>将不能重写这个属性的值。</p>
+<pre class="brush: js">class X {
+  constructor() {
+    Object.defineProperty(this, "prop", {
+      configurable: true,
+      writable: false, 
+      value: 1
+    });
+  } 
+  f() { 
+    super.prop = 2;
+  }
+}
+
+let x = new X();
+
+x.f();
+// TypeError: "prop" is read-only
+console.log(x.prop); 
+// 1</pre>
+<h3 id="在对象字面量中使用super.prop">在对象字面量中使用<code>super.prop</code></h3>
+<p><code>Super</code>也可以在<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer">object initializer / literal</a> 符号中使用。在下面的例子中，两个对象各定义了一个方法。在第二个对象中, 我们使用<code>super</code>调用了第一个对象中的方法。 当然，这需要我们先利用 <a href="Reference/Global_Objects/Object/setPrototypeOf" title="如果对象的[[Prototype]]被修改成不可扩展(通过 Object.isExtensible()查看)，就会抛出 TypeError异常。如果prototype参数不是一个对象或者null(例如，数字，字符串，boolean，或者 undefined)，则什么都不做。否则，该方法将obj的[[Prototype]]修改为新的值。"><code>Object.setPrototypeOf()</code></a> 将<code>obj2</code>的原型加到<code>obj1</code>上，然后才能够使用<code>super</code>调用 <code>obj1</code>上的<code>method1</code>。</p>
+<pre class="brush: js">var obj1 = {
+  method1() {
+    console.log("method 1");
+  }
+}
+
+var obj2 = {
+  method2() {
+   super.method1();
+  }
+}
+
+Object.setPrototypeOf(obj2, obj1);
+obj2.method2(); 
+// logs "method 1"
+</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-super-keyword" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">super</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-super-keyword" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">super</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容">浏览器兼容</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>super</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              42</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              42</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              42</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4.0</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd></dl></section></div><p></p>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="/en-US/docs/Web/JavaScript/Reference/Classes">Classes</a></li>
+</ul>
+</article>

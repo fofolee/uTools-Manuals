@@ -1,0 +1,559 @@
+<article id="wikiArticle">
+<div></div>
+<p>这部分描述了JavaScript的词法。ECMAScript源码文本会被从左到右扫描，并被转换为一系列的输入元素，包括tokens、控制符、行终止符、注释和空白符。ECMAScript定义了一些关键字、字面量以及行尾分号补全的规则。</p>
+<h2 id="Unicode_格式控制符">Unicode 格式控制符</h2>
+<p>Unicode 格式控制符用于控制对源码文本的解释，但是并不会显示出来。</p>
+<table class="standard-table">
+<caption>Unicode编码表示的格式控制符</caption>
+<tbody>
+<tr>
+<th>代码点</th>
+<th>名称</th>
+<th>缩写</th>
+<th>说明</th>
+</tr>
+<tr>
+<td><code>U+200C</code></td>
+<td>零宽度非结合子</td>
+<td>&lt;ZWNJ&gt;</td>
+<td>放置在一些经常会被当成连字的字符之间，用于将它们分别以独立形式显示（<a class="external" href="http://en.wikipedia.org/wiki/Zero-width_non-joiner" rel="noopener">Wikipedia</a>）</td>
+</tr>
+<tr>
+<td><code>U+200D</code></td>
+<td>零宽度结合子</td>
+<td>&lt;ZWJ&gt;</td>
+<td>放置在一些通常不会被标记为连字的字符之间，用于将这些字符以连字形式显示（<a class="external" href="http://en.wikipedia.org/wiki/Zero-width_joiner" rel="noopener">Wikipedia</a>）</td>
+</tr>
+<tr>
+<td><code>U+FEFF</code></td>
+<td>字节流方向标识</td>
+<td>&lt;BOM&gt;</td>
+<td>在脚本开头使用，除了将脚本标记为Unicode格式以外，还用来标记文本的字节流方向（<a class="external" href="http://en.wikipedia.org/wiki/Byte_order_mark" rel="noopener">Wikipedia</a>）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="空白符">空白符</h2>
+<p>空白符提升了源码的可读性，并将标记 (tokens) 区分开。这些符号通常不影响源码的功能。通常可以用<a class="external" href="http://en.wikipedia.org/wiki/Minification_%28programming%29" rel="noopener">压缩器</a>来移除源码中的空白，减少数据传输量。</p>
+<table class="standard-table">
+<caption>空白符</caption>
+<tbody>
+<tr>
+<th>代码点</th>
+<th>名称</th>
+<th>缩写</th>
+<th>说明</th>
+<th>转义序列</th>
+</tr>
+<tr>
+<td>U+0009</td>
+<td>制表符</td>
+<td>&lt;HT&gt;</td>
+<td>水平制表符</td>
+<td>\t</td>
+</tr>
+<tr>
+<td>U+000B</td>
+<td>垂直制表符</td>
+<td>&lt;VT&gt;</td>
+<td>垂直制表符</td>
+<td>\v</td>
+</tr>
+<tr>
+<td>U+000C</td>
+<td>分页符</td>
+<td>&lt;FF&gt;</td>
+<td>分页符（<a class="external" href="http://en.wikipedia.org/wiki/Page_break#Form_feed" rel="noopener">Wikipedia</a>）</td>
+<td>\f</td>
+</tr>
+<tr>
+<td>U+0020</td>
+<td>空格</td>
+<td>&lt;SP&gt;</td>
+<td>空格</td>
+<td> </td>
+</tr>
+<tr>
+<td>U+00A0</td>
+<td>无间断空格</td>
+<td>&lt;NBSP&gt;</td>
+<td>在该空格处不会换行</td>
+<td> </td>
+</tr>
+<tr>
+<td>Others</td>
+<td>其他Unicode空白</td>
+<td>&lt;USP&gt;</td>
+<td><a class="external" href="http://en.wikipedia.org/wiki/Space_%28punctuation%29#Spaces_in_Unicode" rel="noopener">Wikipedia上对Unicode空白的介绍</a></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="行终止符">行终止符</h2>
+<p>除了空白符之外，行终止符也可以提高源码的可读性。不同的是，行终止符可以影响JavaScript代码的执行。行终止符也会影响<a href="#Automatic_semicolon_insertion">自动分号补全</a>的执行。在<a href="/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">正则表达式</a>中，行终止符会被<strong>\s</strong>匹配。</p>
+<p>在ECMAScript中，只有下列Unicode字符会被当成行终止符，其他的行终止符（比如Next Line、NEL、U+0085等）都会被当成空白。</p>
+<table class="standard-table">
+<caption>行终止符</caption>
+<tbody>
+<tr>
+<th>编码</th>
+<th>名称</th>
+<th>缩写</th>
+<th>说明</th>
+<th>转义序列</th>
+</tr>
+<tr>
+<td>U+000A</td>
+<td>换行符</td>
+<td>&lt;LF&gt;</td>
+<td>在UNIX系统中起新行</td>
+<td>\n</td>
+</tr>
+<tr>
+<td>U+000D</td>
+<td>回车符</td>
+<td>&lt;CR&gt;</td>
+<td>在Commodore和早期的Mac系统中起新行</td>
+<td>\r</td>
+</tr>
+<tr>
+<td>U+2028</td>
+<td>行分隔符</td>
+<td>&lt;LS&gt;</td>
+<td><a class="external" href="http://en.wikipedia.org/wiki/Newline" rel="noopener">Wikipedia</a></td>
+<td> </td>
+</tr>
+<tr>
+<td>U+2029</td>
+<td>段分隔符</td>
+<td>&lt;PS&gt;</td>
+<td><a class="external" href="http://en.wikipedia.org/wiki/Newline" rel="noopener">Wikipedia</a></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="注释">注释</h2>
+<p>注释用来在源码中增加提示、笔记、建议、警告等信息，可以帮助阅读和理解源码。在调试时，可以用来将一段代码屏蔽掉，防止其运行。</p>
+<p>JavaScript中有两种生成注释的方法。</p>
+<p>第一种是<strong>单行注释</strong> (single-line comment)，使用<code>//</code>，会将该行中符号以后的文本都视为注释：</p>
+<pre class="brush: js">function comment() {
+  // 这是行注释
+  console.log("Hello world!");
+}
+comment();
+</pre>
+<p>第二种是<strong>多行注释</strong> (multiple-line comment)，使用<code>/* */</code> ，这种方式更加灵活：</p>
+<p>比如，可以使用多行注释来实现单行注释：</p>
+<pre class="brush: js">function comment() {
+  /* 单行注释 */
+  console.log("Hello world!");
+}
+comment();</pre>
+<p>也可以用来实现多行注释：</p>
+<pre class="brush: js">function comment() {
+  /* 多行注释，
+     直到终止符号才结束 */
+  console.log("Hello world!");
+}
+comment();</pre>
+<p>多行注释也可以用于单行间注释，这样会造成代码可读性变差，所以要谨慎使用：</p>
+<pre class="brush: js">function comment(x) {
+  console.log("Hello " + x /* 引入x的值 */ + " !");
+}
+comment("world");</pre>
+<p>另外，块注释也可以用来屏蔽一段代码，只要将这段代码用块注释包裹起来就可以了：</p>
+<pre class="brush: js">function comment() {
+  /* console.log("Hello world!"); */
+}
+comment();</pre>
+<p>注释中的<code>console.log()</code>的调用始终无效。这种方式可以屏蔽任意多行的代码。</p>
+<h2 id="关键字">关键字</h2>
+<h3 id="ECMAScript_6中的保留关键字">ECMAScript 6中的保留关键字</h3>
+<div class="threecolumns">
+<ul>
+<li><a href="Reference/Statements/break" title="break 语句中止当前循环，switch语句或label 语句，并把程序控制流转到紧接着被中止语句后面的语句。"><code>break</code></a></li>
+<li><a href="Reference/Statements/switch" title="switch 语句评估一个表达式，将表达式的值与case子句匹配，并执行与该情况相关联的语句。"><code>case</code></a></li>
+<li><a href="Reference/Statements/try...catch" title="try...catch语句将能引发错误的代码放在try块中，并且对应一个响应，然后有异常被抛出。"><code>catch</code></a></li>
+<li><a href="Reference/Statements/class" title="class 声明创建一个基于原型继承的具有给定名称的新类。"><code>class</code></a></li>
+<li><a href="Reference/Statements/const" title="常量是块级作用域，很像使用 let 语句定义的变量。常量的值不能通过重新赋值来改变，并且不能重新声明。"><code>const</code></a></li>
+<li><a href="Reference/Statements/continue" title="continue 语句结束当前（或标签）的循环语句的本次迭代，并继续执行循环的下一次迭代。"><code>continue</code></a></li>
+<li><a href="Reference/Statements/debugger" title="debugger 语句调用任何可用的调试功能，例如设置断点。 如果没有调试功能可用，则此语句不起作用。"><code>debugger</code></a></li>
+<li><a href="Reference/Statements/default" title="default 关键字可以在 JavaScript 的两种情况下使用：在 switch ，或 export 中。"><code>default</code></a></li>
+<li><a href="Reference/Operators/delete" title="delete 操作符用于删除对象的某个属性；如果没有指向这个属性的引用，那它最终会被释放。"><code>delete</code></a></li>
+<li><a href="Reference/Statements/do...while" title="do...while 语句创建一个执行指定语句的循环，直到condition值为 false。在执行statement 后检测condition，所以指定的statement至少执行一次。"><code>do</code></a></li>
+<li><a href="Reference/Statements/if...else" title="当指定条件为真，if 语句会执行一段语句。如果条件为假，则执行另一段语句。"><code>else</code></a></li>
+<li><a href="Reference/Statements/export" title="有两种不同的导出方式，每种方式对应于上述的一种语法："><code>export</code></a></li>
+<li><a href="Reference/Statements/class" title="class 声明创建一个基于原型继承的具有给定名称的新类。"><code>extends</code></a></li>
+<li><a href="Reference/Statements/try...catch" title="try...catch语句将能引发错误的代码放在try块中，并且对应一个响应，然后有异常被抛出。"><code>finally</code></a></li>
+<li><a href="Reference/Statements/for" title="for 语句用于创建一个循环，它包含了三个可选的表达式，三个可选的表达式包围在圆括号中并由分号分隔， 后跟一个在循环中执行的语句（通常是一个块语句）。"><code>for</code></a></li>
+<li><a href="Reference/Statements/function" title="函数声明定义一个具有指定参数的函数。"><code>function</code></a></li>
+<li><a href="Reference/Statements/if...else" title="当指定条件为真，if 语句会执行一段语句。如果条件为假，则执行另一段语句。"><code>if</code></a></li>
+<li><a href="Reference/Statements/import" title='import语句用于导入由另一个模块导出的绑定。无论是否声明了 strict mode ，导入的模块都运行在严格模式下。在浏览器中， import语句只能在声明了type="module"的script的标签中使用。'><code>import</code></a></li>
+<li><a href="Reference/Operators/in" title="如果指定的属性在指定的对象或其原型链中，则in 运算符返回true。"><code>in</code></a></li>
+<li><a href="Reference/Operators/instanceof" title="instanceof运算符用于测试构造函数的prototype属性是否出现在对象的原型链中的任何位置"><code>instanceof</code></a></li>
+<li><a href="Reference/Operators/new" title="new 运算符创建一个用户定义的对象类型的实例或具有构造函数的内置对象的实例。"><code>new</code></a></li>
+<li><a href="Reference/Statements/return" title="return语句终止函数的执行，并返回一个指定的值给函数调用者。"><code>return</code></a></li>
+<li><a href="Reference/Operators/super" title="super关键字用于访问和调用一个对象的父对象上的函数。"><code>super</code></a></li>
+<li><a href="Reference/Statements/switch" title="switch 语句评估一个表达式，将表达式的值与case子句匹配，并执行与该情况相关联的语句。"><code>switch</code></a></li>
+<li><a href="Reference/Operators/this" title="与其他语言相比，函数的 this 关键字在 JavaScript 中的表现略有不同，此外，在严格模式和非严格模式之间也会有一些差别。"><code>this</code></a></li>
+<li><a href="Reference/Statements/throw" title="throw语句用来抛出一个用户自定义的异常。当前函数的执行将被停止（throw之后的语句将不会执行），并且控制将被传递到调用堆栈中的第一个catch块。如果调用者函数中没有catch块，程序将会终止。"><code>throw</code></a></li>
+<li><a href="Reference/Statements/try...catch" title="try...catch语句将能引发错误的代码放在try块中，并且对应一个响应，然后有异常被抛出。"><code>try</code></a></li>
+<li><a href="Reference/Operators/typeof" title="typeof操作符返回一个字符串，表示未经计算的操作数的类型。"><code>typeof</code></a></li>
+<li><a href="Reference/Statements/var" title="variable 语句声明了一个变量，可选地将其初始化为一个值。"><code>var</code></a></li>
+<li><a href="Reference/Operators/void" title="void 运算符 对给定的表达式进行求值，然后返回 undefined。"><code>void</code></a></li>
+<li><a href="Reference/Statements/while" title="while 语句可以在某个条件表达式为真的前提下，循环执行指定的一段代码，直到那个表达式不为真时结束循环。"><code>while</code></a></li>
+<li><a href="Reference/Statements/with" title="JavaScript查找某个未使用命名空间的变量时，会通过作用域链来查找，作用域链是跟执行代码的context或者包含这个变量的函数有关。'with'语句將某个对象添加的作用域链的顶部，如果在statement中有某个未使用命名空间的变量，跟作用域链中的某个属性同名，则这个变量将指向这个属性值。如果沒有同名的属性，则将拋出ReferenceError异常。"><code>with</code></a></li>
+<li><a href="Reference/Operators/yield" title="yield 关键字用来暂停和恢复一个生成器函数（(function* 或遗留的生成器函数）。"><code>yield</code></a></li>
+<li> </li>
+</ul>
+</div>
+<h3 id="未来保留关键字">未来保留关键字</h3>
+<p>在ECMAScript规格中，这些关键字被当成关键字保留。目前它们没有特殊功能，但是在未来某个时间可能会加上。所以这些关键字不能当成标识符使用。这些关键字在严格模式和非严格模式中均不能使用。</p>
+<ul>
+<li><code>enum</code></li>
+</ul>
+<p>以下关键字只在严格模式中被当成保留关键字：</p>
+<div class="threecolumns">
+<ul>
+<li><code>implements</code></li>
+<li><code>interface</code></li>
+<li><a href="Reference/Statements/let" title="let允许你声明一个作用域被限制在块级中的变量、语句或者表达式。与var关键字不同的是，var声明的变量只能是全局或者整个函数块的。"><code>let</code></a></li>
+<li><code>package</code></li>
+<li><code>private</code></li>
+<li><code>protected</code></li>
+<li><code>public</code></li>
+<li><code>static</code></li>
+</ul>
+</div>
+<p> </p>
+<p>以下关键字只在模块代码中被当成保留关键字：</p>
+<ul>
+<li><code>await</code></li>
+</ul>
+<h4 id="之前标准中的保留关键字">之前标准中的保留关键字</h4>
+<p>这里是之前版本中的ECMAScript（1到3）中的保留关键字：</p>
+<div class="threecolumns">
+<ul>
+<li><code>abstract</code></li>
+<li><code>boolean</code></li>
+<li><code>byte</code></li>
+<li><code>char</code></li>
+<li><code>double</code></li>
+<li><code>final</code></li>
+<li><code>float</code></li>
+<li><code>goto</code></li>
+<li><code>int</code></li>
+<li><code>long</code></li>
+<li><code>native</code></li>
+<li><code>short</code></li>
+<li><code>synchronized</code></li>
+<li><code>transient</code></li>
+<li><code>volatile</code></li>
+</ul>
+</div>
+<p>另外，直接量<code>null</code>、<code>true</code>和<code>false</code>同样不能被当成标识使用。</p>
+<h3 id="保留字的使用">保留字的使用</h3>
+<p>事实上保留字是仅针对标识符(Identifier)的文法定义而言的(而非标识符名(IdentifierName)的文法定义). 如 <a class="external" href="http://es5.github.com/#A.1" rel="noopener">es5.github.com/#A.1</a>中所描述的, 这些都是不排斥保留字的标识符名.</p>
+<pre class="brush: js">a.import
+a["import"]
+a = { import: "test" }.
+</pre>
+<p>另一方面，如下用法是不允许的。因为它是一个标识符，而标识符的文法定义是除保留字以外的标识符名。标识符用于函数声明式和函数表达式.</p>
+<pre class="brush: js">function import() {} // Illegal.</pre>
+<h2 id="直接量">直接量</h2>
+<h3 id="空直接量">空直接量</h3>
+<p><code>更多信息可以参考<a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/null">null</a></code></p>
+<pre class="brush: js">null</pre>
+<h3 id="布尔直接量">布尔直接量</h3>
+<p>更多信息可以参考<a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean"><code>Boolean</code></a></p>
+<pre class="brush: js">true
+false</pre>
+<h3 id="数值直接量">数值直接量</h3>
+<h4 id="十进制">十进制</h4>
+<pre class="brush: js">1234567890
+42
+
+// 谨慎使用0开头的数值
+
+0888 // 转换为十进制888
+0777 // 转换为八进制777，十进制511
+</pre>
+<p>请注意，十进制数值直接量可以以0开头，但是如果0以后的最高位比8小，数值将会被认为是八进制而不会报错。更多信息可以参考<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=957513" rel="noopener" title="`DecimalIntegerLiteral` can never be `0` directly followed by `8` or `9`">bug 957513</a>和<a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt#Octal_interpretations_with_no_radix"><code>parseInt()</code></a>。</p>
+<h4 id="二进制">二进制</h4>
+<p>二进制表示为开头是0后接大写或小写的B（<code>0b</code>或者<code>0B</code>）。这是ECMAScript 6中的新语法，可以参考下面的浏览器兼容性表格。如果<code>0b</code>之后有除了0或1以外的数字，将会抛出<code><a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError">SyntaxError</a></code>：“Missing binary digits after 0b”。</p>
+<pre class="brush: js">var FLT_SIGNBIT  = 0b10000000000000000000000000000000; // 2147483648
+var FLT_EXPONENT = 0b01111111100000000000000000000000; // 2139095040
+var FLT_MANTISSA = 0B00000000011111111111111111111111; // 8388607</pre>
+<h4 id="八进制">八进制</h4>
+<p>八进制表示为开头是0后接大写或小写的O（<code>0o</code>或<code>0O</code>）。这是ECMAScript 6中的新语法，可以参考下面的浏览器兼容性表格。如果有不在（01234567）中的数字，将会抛出<code><a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError">SyntaxError</a></code>：“Missing octal digits after 0o”。</p>
+<pre class="brush: js">var n = 0O755; // 493
+var m = 0o644; // 420
+
+// 用0开头也可以实现（请查看上方十进制有关部分）
+0755
+0644
+</pre>
+<h4 id="十六进制">十六进制</h4>
+<p>十六进制表示为开头是0后接大写或小写的X（<code>0x</code>或<code>0X</code>）。如果有不在（0123456789ABCDEF）中的数字，将会抛出<code><a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError">SyntaxError</a></code>：“Identifier starts immediately after numeric literal”。</p>
+<pre class="brush: js">0xFFFFFFFFFFFFFFFFF // 295147905179352830000
+0x123456789ABCDEF   // 81985529216486900
+0XA                 // 10
+</pre>
+<h3 id="对象直接量">对象直接量</h3>
+<p>更多信息可以参考<a href="Reference/Global_Objects/Object" title="Object 构造函数创建一个对象包装器。"><code>Object</code></a>和<a href="/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer">对象初始化器</a>。</p>
+<pre class="brush: js">var o = { a: "foo", b: "bar", c: 42 };
+
+// ES6中的简略表示方法
+var a = "foo", b = "bar", c = 42;
+var o = {a, b, c};
+// 不需要这样
+var o = { a: a, b: b, c: c };
+</pre>
+<h3 id="数组直接量">数组直接量</h3>
+<p>更多信息可以参考<a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a>。</p>
+<pre class="brush: js">[1954, 1974, 1990, 2014]</pre>
+<h3 id="字符串直接量">字符串直接量</h3>
+<pre class="brush: js">'foo'
+"bar"</pre>
+<h4 id="十六进制转义序列">十六进制转义序列</h4>
+<pre class="brush: js">'\xA9' // "©"
+</pre>
+<h4 id="Unicode转义序列">Unicode转义序列</h4>
+<p>Unicode转义序列要求在<code>\u</code>之后至少有四个字符。</p>
+<pre class="brush: js">'\u00A9' // "©"</pre>
+<h4 id="Unicode编码转义">Unicode编码转义</h4>
+<p>ECMAScript 6新增特性。使用Unicode编码转义，任何字符都可以被转义为十六进制编码。最高可以用到<code>0x10FFFF</code>。使用单纯的Unicode转义通常需要写成分开的两半以达到相同的效果。</p>
+<p>可以参考<a href="Reference/Global_Objects/String/fromCodePoint" title="String.fromCodePoint() 静态方法返回使用指定的代码点序列创建的字符串。"><code>String.fromCodePoint()</code></a>和<a href="Reference/Global_Objects/String/codePointAt" title="codePointAt() 方法返回 一个 Unicode 编码点值的非负整数。"><code>String.prototype.codePointAt()</code></a>。</p>
+<pre class="brush: js">'\u{2F804}'
+
+// 使用单纯Unicode转义
+'\uD87E\uDC04'</pre>
+<h3 id="正则表达式直接量">正则表达式直接量</h3>
+<p>更多信息可以参考<a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp"><code>RegExp</code></a>。</p>
+<pre class="brush: js">/ab+c/g
+
+// 一个空的正则表达式直接量
+// 必须有一个空的非捕获分组
+// 以避免被当成是行注释符号
+/(?:)/</pre>
+<h3 id="模板直接量">模板直接量</h3>
+<p>更多信息可以参考<a href="/en-US/docs/Web/JavaScript/Reference/template_strings">template strings</a>。</p>
+<pre class="brush: js">`string text`
+
+`string text line 1
+ string text line 2`
+
+`string text ${expression} string text`
+
+tag `string text ${expression} string text`</pre>
+<h2 id="自动分号补全">自动分号补全</h2>
+<p>一些<a href="/en-US/docs/Web/JavaScript/Reference/Statements">JavaScript语句</a>必须用分号结束，所以会被自动分号补全 (ASI)影响：</p>
+<ul>
+<li>空语句</li>
+<li><code>let</code>、<code>const</code>、变量声明</li>
+<li><code>import</code>、<code>export</code>、模块定义</li>
+<li>表达式语句</li>
+<li><code>debugger</code></li>
+<li><code>continue</code>、<code>break</code>、<code>throw</code></li>
+<li><code>return</code></li>
+</ul>
+<p>ECMAScript规格提到<a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-rules-of-automatic-semicolon-insertion" rel="noopener">自动分号补全的三个规则</a>。</p>
+<p>1. 当出现一个不允许的<a href="#Line_terminators">行终止符</a>或“}”时，会在其之前插入一个分号。</p>
+<pre class="brush: js">{ 1 2 } 3 
+
+// 将会被ASI转换为 
+
+{ 1 2 ;} 3;</pre>
+<p>2. 当捕获到标识符输入流的结尾，并且无法将单个输入流转换为一个完整的程序时，将在结尾插入一个分号。</p>
+<p>在下面这段中，由于在<code>b</code>和<code>++</code>之间出现了一个行终止符，所以<code>++</code>未被当成变量<code>b</code>的<a href="/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment">后置运算符</a>。</p>
+<pre class="brush: js">a = b
+++c
+
+// 将被ASI转换为
+
+a = b;
+++c;
+</pre>
+<p>3. 当语句中包含语法中的限制产品后跟一个行终止符的时候，将会在结尾插入一个分号。带“这里没有行终止符”规则的语句有：</p>
+<ul>
+<li>后置运算符（<code>++</code>和<code>--）</code></li>
+<li><code>continue</code></li>
+<li><code>break</code></li>
+<li><code>return</code></li>
+<li><code>yield</code>, <code>yield*</code></li>
+<li><code>module</code></li>
+</ul>
+<pre class="brush: js">return
+a + b
+
+// 将被ASI转换为
+
+return;
+a + b;
+</pre>
+<h2 id="规格">规格</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规格</th>
+<th scope="col">状态</th>
+<th scope="col">备注</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%201st%20edition,%20June%201997.pdf" hreflang="en" lang="en" rel="noopener" title="ECMAScript 1st Edition (ECMA-262)">ECMAScript 1st Edition (ECMA-262)</a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>初始定义</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-7" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">Lexical Conventions</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-ecmascript-language-lexical-grammar" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Lexical Grammar</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>增加：二进制和八进制数值直接量，Unicode编码转义直接量、模板直接量</td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容">浏览器兼容</h2>
+<p></p><div class="blockIndicator warning"><strong><a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">We're converting our compatibility data into a machine-readable JSON format</a></strong>.
+            This compatibility table still uses the old format,
+            because we haven't yet converted the data it contains.
+            <strong><a class="new" href="/zh-CN/docs/MDN/Contribute/Structures/Compatibility_tables" rel="nofollow">Find out how you can help!</a></strong></div>
+<div class="htab">
+<a id="AutoCompatibilityTable" name="AutoCompatibilityTable"></a>
+<ul>
+<li class="selected"><a>Desktop</a></li>
+<li><a>Mobile</a></li>
+</ul>
+</div><p></p>
+<div id="compat-desktop">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>特性</th>
+<th>Chrome</th>
+<th>Firefox (Gecko)</th>
+<th>Internet Explorer</th>
+<th>Opera</th>
+<th>Safari</th>
+</tr>
+<tr>
+<td>基础支持</td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+</tr>
+<tr>
+<td>二进制和八进制数值</td>
+<td>41</td>
+<td><a href="/en-US/Firefox/Releases/25" title="Released on 2013-10-29.">25</a> (25)</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td>28</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+</tr>
+<tr>
+<td>Unicode编码转义<br/>
+    (<code>\u{}</code>)</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><a href="/en-US/Firefox/Releases/40" title="Released on 2015-08-11.">40</a> (40)</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+</tr>
+<tr>
+<td>对象直接量的简易表示</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><a href="/en-US/Firefox/Releases/33" title="Released on 2014-10-14.">33</a> (33)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+<tr>
+<td>模板直接量</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><a href="/en-US/Firefox/Releases/34" title="Released on 2014-12-01.">34</a> (34)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="compat-mobile">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>特性</th>
+<th>Android</th>
+<th>Chrome for Android</th>
+<th>Firefox Mobile (Gecko)</th>
+<th>IE Mobile</th>
+<th>Opera Mobile</th>
+<th>Safari Mobile</th>
+</tr>
+<tr>
+<td>基础支持</td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+</tr>
+<tr>
+<td>二进制和八进制数值</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td>41</td>
+<td>33.0 (33)</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+</tr>
+<tr>
+<td>Unicode编码转义<br/>
+    (<code>\u{}</code>)</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td>40.0 (40)</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+</tr>
+<tr>
+<td>对象直接量的简易表示</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td>33.0 (33)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+<tr>
+<td>模板直接量</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td>34.0 (34)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="Firefox特殊提示">Firefox特殊提示</h2>
+<ul>
+<li>在Firefox 5（JavaScript 1.8.6）之前的版本上，储备关键字可以在非严格模式中被使用。这个问题在Firefox 5中被修复。</li>
+</ul>
+<h2 id="See_also">See also</h2>
+<ul>
+<li><a class="external" href="http://whereswalden.com/2013/08/12/micro-feature-from-es6-now-in-firefox-aurora-and-nightly-binary-and-octal-numbers/" rel="noopener">Jeff Walden: Binary and octal numbers</a></li>
+<li><a class="external" href="http://mathiasbynens.be/notes/javascript-escapes" rel="noopener">Mathias Bynens: JavaScript character escape sequences</a></li>
+<li><a href="Reference/Boolean" title="此页面仍未被本地化, 期待您的翻译!"><code>Boolean</code></a></li>
+<li><a href="Reference/Global_Objects/Number" title="JavaScript 的 Number 对象是经过封装的能让你处理数字值的对象。Number 对象由 Number() 构造器创建。"><code>Number</code></a></li>
+<li><a href="Reference/RegExp" title="此页面仍未被本地化, 期待您的翻译!"><code>RegExp</code></a></li>
+<li><a href="Reference/String" title="此页面仍未被本地化, 期待您的翻译!"><code>String</code></a></li>
+</ul>
+</article>

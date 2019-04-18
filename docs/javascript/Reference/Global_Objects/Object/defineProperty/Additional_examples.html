@@ -1,0 +1,274 @@
+<article id="wikiArticle">
+<div></div>
+<p>本页为<a href="Reference/Global_Objects/Object/defineProperty" title="Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。"><code>Object.defineProperty()</code></a>提供一个附加示例。</p>
+<h2 id="使用二进制标志代替属性来描述对象">使用二进制标志代替属性来描述对象</h2>
+<p>如果你通过<a href="Reference/Global_Objects/Object/defineProperty" title="Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。"><code>Object.defineProperty()</code></a>方法定义了许多属性，你可以通过<a href="Reference/Operators/Bitwise_Operators#Signed_32-bit_integers" title="按位操作符（Bitwise operators） 将其操作数（operands）当作32位的比特序列（由0和1组成），而不是十进制、十六进制或八进制数值。例如，十进制数9，用二进制表示则为1001。按位操作符操作数字的二进制形式，但是返回值依然是标准的JavaScript数值。"><code>二进制标志</code></a>使用相同的描述对象，一次次重新定义每个属性。</p>
+<pre class="brush: js">var oDesc = {};
+function setProp (nMask, oObj, sKey, vVal_fGet, fSet) {
+  if (nMask &amp; 8) {
+    // accessor descriptor
+    if (vVal_fGet) {
+      oDesc.get = vVal_fGet;
+    } else {
+      delete oDesc.get;
+    }
+    if (fSet) {
+      oDesc.set = fSet;
+    } else {
+      delete oDesc.set;
+    }
+    delete oDesc.value;
+    delete oDesc.writable;
+  } else {
+    // data descriptor
+    if (arguments.length &gt; 3) {
+      oDesc.value = vVal_fGet;
+    } else {
+      delete oDesc.value;
+    }
+    oDesc.writable = Boolean(nMask &amp; 4);
+    delete oDesc.get;
+    delete oDesc.set;
+  }
+  oDesc.enumerable = Boolean(nMask &amp; 1);
+  oDesc.configurable = Boolean(nMask &amp; 2);
+  Object.defineProperty(oObj, sKey, oDesc);
+  return oObj;
+}
+
+/*
+* :: function setProp ::
+*
+* nMask is a bitmask:
+*  flag 0x1: property is enumerable,
+*  flag 0x2: property is configurable,
+*  flag 0x4: property is writable,
+*  flag 0x8: property is accessor descriptor.
+* oObj is the object on which to define the property;
+* sKey is the name of the property to be defined or modified;
+* vVal_fGet is the value to assign to a data descriptor or the getter function
+* to assign to an accessor descriptor (depending on the bitmask);
+* fSet is the setter function to assign to an accessor descriptor;
+*
+* Bitmask possible values:
+*
+*  0  : readonly data descriptor - not configurable, not enumerable (0000).
+*  1  : readonly data descriptor - not configurable, enumerable (0001).
+*  2  : readonly data descriptor - configurable, not enumerable (0010).
+*  3  : readonly data descriptor - configurable, enumerable (0011).
+*  4  : writable data descriptor - not configurable, not enumerable (0100).
+*  5  : writable data descriptor - not configurable, enumerable (0101).
+*  6  : writable data descriptor - configurable, not enumerable (0110).
+*  7  : writable data descriptor - configurable, enumerable (0111).
+*  8  : accessor descriptor - not configurable, not enumerable (1000).
+*  9  : accessor descriptor - not configurable, enumerable (1001).
+*  10 : accessor descriptor - configurable, not enumerable (1010).
+*  11 : accessor descriptor - configurable, enumerable (1011).
+*
+*  Note: If the flag 0x8 is setted to "accessor descriptor" the flag 0x4 (writable)
+*  will be ignored. If not, the fSet argument will be ignored.
+*/
+
+// creating a new empty object
+var myObj = {};
+
+// adding a writable data descriptor - not configurable, not enumerable
+setProp(4, myObj, 'myNumber', 25);
+
+// adding a readonly data descriptor - not configurable, enumerable
+setProp(1, myObj, 'myString', 'Hello world!');
+
+// adding an accessor descriptor - not configurable, enumerable
+setProp(9, myObj, 'myArray', function() {
+  for (var iBit = 0, iFlag = 1, aBoolArr = [false];
+    iFlag &lt; this.myNumber + 1 || (this.myNumber &amp; iFlag);
+    iFlag = iFlag &lt;&lt; 1
+  ) {
+    aBoolArr[iBit++] = Boolean(this.myNumber &amp; iFlag);
+  }
+  return aBoolArr;
+}, function(aNewMask) {
+  for (var nNew = 0, iBit = 0; iBit &lt; aNewMask.length; iBit++) {
+    nNew |= Boolean(aNewMask[iBit]) &lt;&lt; iBit;
+  }
+  this.myNumber = nNew;
+});
+
+// adding a writable data descriptor (undefined value) - configurable, enumerable
+setProp(7, myObj, 'myUndefined');
+
+// adding an accessor descriptor (only getter) - configurable, enumerable
+setProp(11, myObj, 'myDate', function() { return new Date(); });
+
+// adding an accessor descriptor (only setter) - not configurable, not enumerable
+setProp(8, myObj, 'myAlert', null, function(sTxt) { alert(sTxt); });
+
+myObj.myAlert = myObj.myDate.toLocaleString() + '\n\n' + myObj.myString +
+  '\nThe number ' + myObj.myNumber + ' represents the following bitmask: ' +
+  myObj.myArray.join(', ') + '.';
+
+// listing the enumerable properties
+var sList = 'Here are the enumerable properties of myObj object:\n';
+for (var sProp in myObj) {
+  sList += '\nmyObj.' + sProp + ' =&gt; ' + myObj[sProp] + ';'
+}
+
+alert(sList);
+</pre>
+<h2 id="创建一个新的Object.setProperty()_方法">创建一个新的<code>Object.setProperty()</code> 方法</h2>
+<p>你可以对通过匿名构造函数和<a href="Reference/Global_Objects/Object" title="Object 构造函数创建一个对象包装器。"><code>Object</code></a>的名为<code>setProperty()</code>的自定义方法获取的描述符对象做同样的事情：</p>
+<pre class="brush: js">// creating a new Object method named Object.setProperty()
+
+new (function() {
+  var oDesc = this;
+  Object.setProperty = function(nMask, oObj, sKey, vVal_fGet, fSet) {
+    if (nMask &amp; 8) {
+      // accessor descriptor
+      if (vVal_fGet) {
+        oDesc.get = vVal_fGet;
+      } else {
+        delete oDesc.get;
+      }
+      if (fSet) {
+        oDesc.set = fSet;
+      } else {
+        delete oDesc.set;
+      }
+      delete oDesc.value;
+      delete oDesc.writable;
+    } else {
+      // data descriptor
+      if (arguments.length &gt; 3) {
+        oDesc.value = vVal_fGet;
+      } else {
+        delete oDesc.value;
+      }
+      oDesc.writable = Boolean(nMask &amp; 4);
+      delete oDesc.get;
+      delete oDesc.set;
+    }
+    oDesc.enumerable = Boolean(nMask &amp; 1);
+    oDesc.configurable = Boolean(nMask &amp; 2);
+    Object.defineProperty(oObj, sKey, oDesc);
+    return oObj;
+  };
+})();
+
+// creating a new empty object
+var myObj = {};
+
+// adding a writable data descriptor - not configurable, not enumerable
+Object.setProperty(4, myObj, 'myNumber', 25);
+
+// adding a readonly data descriptor - not configurable, enumerable
+Object.setProperty(1, myObj, 'myString', 'Hello world!');
+
+// etc. etc.
+
+</pre>
+<div class="note"><strong>注意：</strong><code>Object.setProperty()</code>方法是一个 JavaScript 新的原生方法的提议（参见<a class="external" href="https://bugs.ecmascript.org/show_bug.cgi?id=335" rel="external noopener">ECMAScript bug 335</a>）。</div>
+<h3 id="语法">语法</h3>
+<pre class="syntaxbox">Object.setProperty(<var>bitmask</var>, <var>obj</var>, <var>prop</var>[, <var>value/getter</var>[, <var>setter</var>]])</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>bitmask</code></dt>
+<dd>描述符位掩码（见下文）。</dd>
+<dt><code>obj</code></dt>
+<dd>目标对象。</dd>
+<dt><code>prop</code></dt>
+<dd>将要被定义或修改的属性。</dd>
+<dt><code>value/getter</code></dt>
+<dd>可选。要分配给数据描述符的值或要分配给访问器描述符的getter函数（取决于位掩码）。</dd>
+<dt><code>setter</code></dt>
+<dd>可选。setter 函数将分配到可访问描述符。如果<code>0x8</code>标识已经设置， 这个参数将会被忽略。</dd>
+</dl>
+<h3 id="描述">描述</h3>
+<p>除了用描述符位掩码替换的描述符对象外，非原生<code>Object.setProperty()</code>方法与原生<code>Object.defineProperty()</code>方法类似。 <code>bitmask</code>参数具有以下结构：</p>
+<dl>
+<dt>flag <code>0x1</code></dt>
+<dd>属性可枚举。</dd>
+<dt>flag <code>0x2</code></dt>
+<dd>属性可配置。</dd>
+<dt>flag <code>0x4</code></dt>
+<dd>属性可写入。</dd>
+<dt>flag <code>0x8</code></dt>
+<dd>属性为可访问描述符（其实就是一个 key: function）</dd>
+</dl>
+<p>所以，描述位掩码可以有以下可能的值：</p>
+<ul>
+<li><strong><code>0</code></strong>: 位掩码表示只读数据描述符 — not configurable, not enumerable (<code>0000</code>).</li>
+<li><strong><code>1</code></strong>: 位掩码表示只读数据描述符 — not configurable, enumerable (<code>0001</code>).</li>
+<li><strong><code>2</code></strong>: 位掩码表示只读数据描述符 — configurable, not enumerable (<code>0010</code>).</li>
+<li><strong><code>3</code></strong>: 位掩码表示只读数据描述符 — configurable, enumerable (<code>0011</code>).</li>
+<li><strong><code>4</code></strong>: 位掩码表示可写数据描述符 — not configurable, not enumerable (<code>0100</code>).</li>
+<li><strong><code>5</code></strong>: 位掩码表示可写数据描述符 — not configurable, enumerable (<code>0101</code>).</li>
+<li><strong><code>6</code></strong>: T位掩码表示可写数据描述符 — configurable, not enumerable (<code>0110</code>).</li>
+<li><strong><code>7</code></strong>: T位掩码表示可写数据描述符 — configurable, enumerable (<code>0111</code>).</li>
+<li><strong><code>8</code></strong>: 位掩码表示可访问数据描述符 — not configurable, not enumerable (<code>1000</code>).</li>
+<li><strong><code>9</code></strong>: 位掩码表示可访问数据描述符 — not configurable, enumerable (<code>1001</code>).</li>
+<li><strong><code>10</code></strong>: 位掩码表示可访问数据描述符 — configurable, not enumerable (<code>1010</code>).</li>
+<li><strong><code>11</code></strong>: 位掩码表示可访问数据描述符 — configurable, enumerable (<code>1011</code>).</li>
+</ul>
+<div class="note"><strong>注意：</strong>如果标志<code>0x8</code>被设置为访问描述符，则标志<code>0x4</code>（可写）将被忽略。否则，<code>setter</code>参数将被忽略。</div>
+<h2 id="HTMLSelectElement.selectedIndex_实现">HTMLSelectElement.selectedIndex 实现</h2>
+<p>你也可以使用本地方法 <code>Object.defineProperty()</code>。用以下例子展现如何实现<a href="/zh-CN/docs/Web/API/HTMLSelectElement" title="The HTMLSelectElement interface represents a &lt;select&gt; HTML Element. These elements also share all of the properties and methods of other HTML elements via the HTMLElement interface."><code>HTMLSelectElement</code></a> 和 <a href="/zh-CN/docs/Web/API/HTMLSelectElement/selectedIndex" title="HTMLSelectElement.selectedIndex 是一个长整型数，它反映了被选中的第一个&lt;option&gt; 元素的索引值。值为-1时表明没有元素被选中。"><code>selectedIndex</code></a>单选框组属性。</p>
+<pre class="brush: html">&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /&gt;
+&lt;title&gt;Radio group selectedIndex example&lt;/title&gt;
+&lt;script type="text/javascript"&gt;
+Object.defineProperty(NodeList.prototype, 'selectedIndex', {
+  get: function() {
+    var nIndex = this.length - 1;
+    while (nIndex &gt; -1 &amp;&amp; !this[nIndex].checked) {
+      nIndex--;
+    }
+    return nIndex;
+  },
+
+  set: function(nNewIndex) {
+    if (isNaN(nNewIndex)) {
+      return;
+    }
+    var nOldIndex = this.selectedIndex;
+    if (nOldIndex &gt; -1) {
+      this[nOldIndex].checked = false;
+    }
+    if (nNewIndex &gt; -1) {
+      this[nNewIndex].checked = true;
+    }
+  },
+
+  enumerable: true,
+  configurable: false
+});
+
+// try it!
+function checkForm() {
+  var nSelectedIndex = document.myForm.myRadioGroup.selectedIndex;
+  if (nSelectedIndex &lt; 0) {
+    alert('Select a gadget!!');
+    return false;
+  }
+  alert('Congratulations!! You selected the ' + document.myForm.myRadioGroup[nSelectedIndex].value + '.');
+  return true;
+}
+&lt;/script&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+  &lt;form name="myForm" onsubmit="return(checkForm());"&gt;
+    &lt;fieldset&gt;&lt;legend&gt;Select a gadget&lt;/legend&gt;
+      &lt;p&gt;&lt;input type="radio" name="myRadioGroup" id="ourShirt" value="shirt" /&gt; &lt;label for="ourShirt"&gt;shirt&lt;/label&gt;&lt;br /&gt;
+      &lt;input type="radio" name="myRadioGroup" id="ourPants" value="pants" /&gt; &lt;label for="ourPants"&gt;pants&lt;/label&gt;&lt;br /&gt;
+      &lt;input type="radio" name="myRadioGroup" id="ourBelt" value="belt" /&gt; &lt;label for="ourBelt"&gt;belt&lt;/label&gt;&lt;br /&gt;
+      &lt;input type="radio" name="myRadioGroup" id="ourShoes" value="shoes" /&gt; &lt;label for="ourShoes"&gt;shoes&lt;/label&gt;&lt;/p&gt;
+      &lt;p&gt;&lt;span style="cursor:pointer;text-decoration:underline;color:#0000ff;" onclick="document.myForm.myRadioGroup.selectedIndex=2;"&gt;Select our favorite gadget ;-)&lt;/span&gt;&lt;/p&gt;
+      &lt;p&gt;&lt;input type="submit" value="Order!" /&gt;
+    &lt;/fieldset&gt;
+  &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+</article>

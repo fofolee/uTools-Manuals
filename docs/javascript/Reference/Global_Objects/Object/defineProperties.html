@@ -1,0 +1,198 @@
+<article id="wikiArticle">
+<p></p><p></p>
+<p><strong><code>Object.defineProperties()</code> </strong>方法直接在一个对象上定义新的属性或修改现有属性，并返回该对象。</p>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre><code>Object.defineProperties(<var>obj</var>, <var>props</var>)</code></pre>
+<h3 id="Parameters" name="Parameters">参数</h3>
+<dl>
+<dt><code>obj</code></dt>
+<dd>在其上定义或修改属性的对象。</dd>
+<dt><code>props</code></dt>
+<dd>要定义其可枚举属性或修改的属性描述符的对象。对象中存在的属性描述符主要有两种：数据描述符和访问器描述符（更多详情，请参阅<a href="Reference/Global_Objects/Object/defineProperty" title="Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。"><code>Object.defineProperty()</code></a>）。描述符具有以下键：</dd>
+<dd>
+<dl>
+<dt><code>configurable</code></dt>
+<dd><code>true</code> 当且仅当该属性描述符的类型可以被改变并且该属性可以从对应对象中删除。<br/>
+<strong>默认为 <code>false</code></strong></dd>
+<dt><code>enumerable</code></dt>
+<dd><code>true</code> 当且仅当在枚举相应对象上的属性时该属性显现。<br/>
+<strong>默认为 <code>false</code></strong></dd>
+</dl>
+<dl>
+<dt><code>value</code></dt>
+<dd>与属性关联的值。可以是任何有效的JavaScript值（数字，对象，函数等）。<br/>
+<strong>默认为 <a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a>.</strong></dd>
+<dt><code>writable</code></dt>
+<dd><code>true</code>当且仅当与该属性相关联的值可以用<a href="Reference/Operators/Assignment_Operators" title="赋值运算符（assignment operator）基于右值（right operand）的值，给左值（left operand）赋值。">assignment operator</a>改变时。<br/>
+<strong>默认为 <code>false</code></strong></dd>
+</dl>
+<dl>
+<dt><code>get</code></dt>
+<dd>作为该属性的 getter 函数，如果没有 getter 则为<a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a>。函数返回值将被用作属性的值。<br/>
+<strong>默认为 <a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a></strong></dd>
+<dt><code>set</code></dt>
+<dd>作为属性的 setter 函数，如果没有 setter 则为<a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a>。函数将仅接受参数赋值给该属性的新值。<br/>
+<strong>默认为 <a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a></strong></dd>
+</dl>
+</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>传递给函数的对象。</p>
+<h2 id="描述">描述</h2>
+<p><code>Object.defineProperties</code>本质上定义了<code>obj</code> 对象上<code>props</code>的可枚举属性相对应的所有属性。</p>
+<h2 id="例子">例子</h2>
+<pre class="brush: js">var obj = {};
+Object.defineProperties(obj, {
+  'property1': {
+    value: true,
+    writable: true
+  },
+  'property2': {
+    value: 'Hello',
+    writable: false
+  }
+  // etc. etc.
+});</pre>
+<h2 id="Polyfill">Polyfill</h2>
+<p>假设一个原始的执行环境，所有的名称和属性都引用它们的初始值，<code>Object.defineProperties</code>几乎完全等同于（注意<code>isCallable</code>中的注释）以下JavaScript中的重新实现：</p>
+<pre class="brush: js">function defineProperties(obj, properties) {
+  function convertToDescriptor(desc) {
+    function hasProperty(obj, prop) {
+      return Object.prototype.hasOwnProperty.call(obj, prop);
+    }
+
+    function isCallable(v) {
+      // NB: modify as necessary if other values than functions are callable.
+      return typeof v === 'function';
+    }
+
+    if (typeof desc !== 'object' || desc === null)
+      throw new TypeError('bad desc');
+
+    var d = {};
+
+    if (hasProperty(desc, 'enumerable'))
+      d.enumerable = !!desc.enumerable;
+    if (hasProperty(desc, 'configurable'))
+      d.configurable = !!desc.configurable;
+    if (hasProperty(desc, 'value'))
+      d.value = desc.value;
+    if (hasProperty(desc, 'writable'))
+      d.writable = !!desc.writable;
+    if (hasProperty(desc, 'get')) {
+      var g = desc.get;
+
+      if (!isCallable(g) &amp;&amp; typeof g !== 'undefined')
+        throw new TypeError('bad get');
+      d.get = g;
+    }
+    if (hasProperty(desc, 'set')) {
+      var s = desc.set;
+      if (!isCallable(s) &amp;&amp; typeof s !== 'undefined')
+        throw new TypeError('bad set');
+      d.set = s;
+    }
+
+    if (('get' in d || 'set' in d) &amp;&amp; ('value' in d || 'writable' in d))
+      throw new TypeError('identity-confused descriptor');
+
+    return d;
+  }
+
+  if (typeof obj !== 'object' || obj === null)
+    throw new TypeError('bad obj');
+
+  properties = Object(properties);
+
+  var keys = Object.keys(properties);
+  var descs = [];
+
+  for (var i = 0; i &lt; keys.length; i++)
+    descs.push([keys[i], convertToDescriptor(properties[keys[i]])]);
+
+  for (var i = 0; i &lt; descs.length; i++)
+    Object.defineProperty(obj, descs[i][0], descs[i][1]);
+
+  return obj;
+}</pre>
+<h2 id="规范" style="margin-bottom: 20px; line-height: 30px;">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-15.2.3.7" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">Object.defineProperties</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition. Implemented in JavaScript 1.8.5</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-object.defineproperties" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Object.defineProperties</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-object.defineproperties" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Object.defineProperties</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>defineProperties</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              11.6</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              11.5</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+<h2 id="See_also" name="See_also">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Object/defineProperty" title="Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。"><code>Object.defineProperty()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/keys" title="Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致 。"><code>Object.keys()</code></a></li>
+<li><a href="Enumerability_and_ownership_of_properties">属性的可枚举性和所有权</a></li>
+</ul>
+</article>

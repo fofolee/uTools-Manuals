@@ -1,0 +1,339 @@
+<div class="content guide with-sidebar migration-vue-router-guide">
+<h1>从 Vue Router 0.7.x 迁移</h1>
+<blockquote>
+<p>只有 Vue Router 2 是与 Vue 2 相互兼容的，所以如果你更新了 Vue ，你也需要更新 Vue Router 。这也是我们在主文档中将迁移路径的详情添加进来的原因。<br/>有关使用 Vue Router 2 的完整教程，请参阅 <a href="https://router.vuejs.org/zh-cn/" rel="noopener" target="_blank">Vue Router 文档</a>。</p>
+</blockquote>
+<h2 id="Router-初始化"><a class="headerlink" href="#Router-初始化" title="Router 初始化"></a>Router 初始化</h2><h3 id="router-start-替换"><a class="headerlink" href="#router-start-替换" title="router.start 替换"></a><code>router.start</code> <sup>替换</sup></h3><p>不再会有一个特殊的 API 用来初始化包含 Vue Router 的 app ，这意味着不再是：</p>
+<pre><code class="hljs js">router.start({
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;router-view&gt;&lt;/router-view&gt;'</span>
+}, <span class="hljs-string">'#app'</span>)</code></pre>
+<p>你只需要传一个路由属性给 Vue 实例：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#app'</span>,
+  <span class="hljs-attr">router</span>: router,
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;router-view&gt;&lt;/router-view&gt;'</span>
+})</code></pre>
+<p>或者，如果你使用的是运行时构建 (runtime-only) 方式：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#app'</span>,
+  <span class="hljs-attr">router</span>: router,
+  <span class="hljs-attr">render</span>: <span class="hljs-function"><span class="hljs-params">h</span> =&gt;</span> h(<span class="hljs-string">'router-view'</span>)
+})</code></pre>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>router.start</code> 被调用的示例。</p>
+</div>
+<h2 id="Route-定义"><a class="headerlink" href="#Route-定义" title="Route 定义"></a>Route 定义</h2><h3 id="router-map-替换"><a class="headerlink" href="#router-map-替换" title="router.map 替换"></a><code>router.map</code> <sup>替换</sup></h3><p>路由现在被定义为一个在 router 实例里的一个 <a href="https://router.vuejs.org/zh-cn/essentials/getting-started.html#javascript" rel="noopener" target="_blank"><code>routes</code> 选项</a>数组。所以这些路由：</p>
+<pre><code class="hljs js">router.map({
+  <span class="hljs-string">'/foo'</span>: {
+    <span class="hljs-attr">component</span>: Foo
+  },
+  <span class="hljs-string">'/bar'</span>: {
+    <span class="hljs-attr">component</span>: Bar
+  }
+})</code></pre>
+<p>会以这种方式定义：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> router = <span class="hljs-keyword">new</span> VueRouter({
+  <span class="hljs-attr">routes</span>: [
+    { <span class="hljs-attr">path</span>: <span class="hljs-string">'/foo'</span>, <span class="hljs-attr">component</span>: Foo },
+    { <span class="hljs-attr">path</span>: <span class="hljs-string">'/bar'</span>, <span class="hljs-attr">component</span>: Bar }
+  ]
+})</code></pre>
+<p>考虑到不同浏览器中遍历对象不能保证会使用相同的键值，这种数组的语法可以保证更多可预测的路由匹配。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>router.map</code> 被调用的示例。</p>
+</div>
+<h3 id="router-on-移除"><a class="headerlink" href="#router-on-移除" title="router.on 移除"></a><code>router.on</code> <sup>移除</sup></h3><p>如果你需要在启动的 app 时通过代码生成路由，你可以动态地向路由数组推送定义来完成这个操作。举个例子：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 普通的路由</span>
+<span class="hljs-keyword">var</span> routes = [
+  <span class="hljs-comment">// ...</span>
+]
+
+<span class="hljs-comment">// 动态生成的路由</span>
+marketingPages.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">page</span>) </span>{
+  routes.push({
+    <span class="hljs-attr">path</span>: <span class="hljs-string">'/marketing/'</span> + page.slug
+    component: {
+      <span class="hljs-attr">extends</span>: MarketingComponent
+      data: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+        <span class="hljs-keyword">return</span> { <span class="hljs-attr">page</span>: page }
+      }
+    }
+  })
+})
+
+<span class="hljs-keyword">var</span> router = <span class="hljs-keyword">new</span> Router({
+  <span class="hljs-attr">routes</span>: routes
+})</code></pre>
+<p>如果你需要在 router 被实例化后增加新的路由，你可以把 router 原来的匹配方式换成一个包括你新添的加路由的匹配方式：</p>
+<pre><code class="hljs js">router.match = createMatcher(
+  [{
+    <span class="hljs-attr">path</span>: <span class="hljs-string">'/my/new/path'</span>,
+    <span class="hljs-attr">component</span>: MyComponent
+  }].concat(router.options.routes)
+)</code></pre>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>router.on</code> 被调用的示例。</p>
+</div>
+<h3 id="router-beforeEach-changed"><a class="headerlink" href="#router-beforeEach-changed" title="router.beforeEach changed"></a><code>router.beforeEach</code> <sup>changed</sup></h3><p><code>router.beforeEach</code> 现在是异步工作的，并且携带一个 <code>next</code> 函数作为其第三个参数。</p>
+<pre><code class="hljs js">router.beforeEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">transition</span>) </span>{
+  <span class="hljs-keyword">if</span> (transition.to.path === <span class="hljs-string">'/forbidden'</span>) {
+    transition.abort()
+  } <span class="hljs-keyword">else</span> {
+    transition.next()
+  }
+})</code></pre>
+<pre><code class="hljs js">router.beforeEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">to, from, next</span>) </span>{
+  <span class="hljs-keyword">if</span> (to.path === <span class="hljs-string">'/forbidden'</span>) {
+    next(<span class="hljs-literal">false</span>)
+  } <span class="hljs-keyword">else</span> {
+    next()
+  }
+})</code></pre>
+<h3 id="subRoutes-换名"><a class="headerlink" href="#subRoutes-换名" title="subRoutes 换名"></a><code>subRoutes</code> <sup>换名</sup></h3><p>出于 Vue Router 和其他路由库一致性的考虑，重命名为<a href="https://router.vuejs.org/zh-cn/essentials/nested-routes.html" rel="noopener" target="_blank"><code>children</code></a></p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>subRoutes</code> 选项的示例。</p>
+</div>
+<h3 id="router-redirect-替换"><a class="headerlink" href="#router-redirect-替换" title="router.redirect 替换"></a><code>router.redirect</code> <sup>替换</sup></h3><p>现在用一个<a href="https://router.vuejs.org/zh-cn/essentials/redirect-and-alias.html" rel="noopener" target="_blank">路由定义的选项</a>作为代替。举个例子，你将会更新：</p>
+<pre><code class="hljs js">router.redirect({
+  <span class="hljs-string">'/tos'</span>: <span class="hljs-string">'/terms-of-service'</span>
+})</code></pre>
+<p>成像下面的<code>routes</code>配置里定义的样子：</p>
+<pre><code class="hljs js">{
+  <span class="hljs-attr">path</span>: <span class="hljs-string">'/tos'</span>,
+  <span class="hljs-attr">redirect</span>: <span class="hljs-string">'/terms-of-service'</span>
+}</code></pre>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>router.redirect</code> 被调用的示例。</p>
+</div>
+<h3 id="router-alias-替换"><a class="headerlink" href="#router-alias-替换" title="router.alias 替换"></a><code>router.alias</code> <sup>替换</sup></h3><p>现在是你进行 alias 操作的<a href="https://router.vuejs.org/zh-cn/essentials/redirect-and-alias.html" rel="noopener" target="_blank">路由定义里的一个选项</a>。举个例子，你需要在你的<code>routes</code>定义里将：</p>
+<pre><code class="hljs js">router.alias({
+  <span class="hljs-string">'/manage'</span>: <span class="hljs-string">'/admin'</span>
+})</code></pre>
+<p>配置这个样子：</p>
+<pre><code class="hljs js">{
+  <span class="hljs-attr">path</span>: <span class="hljs-string">'/admin'</span>,
+  <span class="hljs-attr">component</span>: AdminPanel,
+  <span class="hljs-attr">alias</span>: <span class="hljs-string">'/manage'</span>
+}</code></pre>
+<p>如果你需要进行多次 alias 操作，你也可以使用一个数组语法去实现：</p>
+<pre><code class="hljs js">alias: [<span class="hljs-string">'/manage'</span>, <span class="hljs-string">'/administer'</span>, <span class="hljs-string">'/administrate'</span>]</code></pre>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行<a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a>找到 <code>router.alias</code> 被调用的示例。</p>
+</div>
+<h3 id="任意的-Route-属性-替换"><a class="headerlink" href="#任意的-Route-属性-替换" title="任意的 Route 属性 替换"></a>任意的 Route 属性 <sup>替换</sup></h3><p>现在任意的 route 属性必须在新 meta 属性的作用域内，以避免和以后的新特性发生冲突。举个例子，如果你以前这样定义：</p>
+<pre><code class="hljs js"><span class="hljs-string">'/admin'</span>: {
+  <span class="hljs-attr">component</span>: AdminPanel,
+  <span class="hljs-attr">requiresAuth</span>: <span class="hljs-literal">true</span>
+}</code></pre>
+<p>你现在需要把它更新成：</p>
+<pre><code class="hljs js">{
+  <span class="hljs-attr">path</span>: <span class="hljs-string">'/admin'</span>,
+  <span class="hljs-attr">component</span>: AdminPanel,
+  <span class="hljs-attr">meta</span>: {
+    <span class="hljs-attr">requiresAuth</span>: <span class="hljs-literal">true</span>
+  }
+}</code></pre>
+<p>如果在一个路由上访问一个属性，你仍然会通过 meta 。举个例子：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">if</span> (route.meta.requiresAuth) {
+  <span class="hljs-comment">// ...</span>
+}</code></pre>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到任意的路由不在 meta 作用域下的示例。</p>
+</div>
+<h3 id="URL-中的-Query-数组-语法-移除"><a class="headerlink" href="#URL-中的-Query-数组-语法-移除" title="URL 中的 Query 数组 [] 语法 移除"></a>URL 中的 Query 数组 [] 语法 <sup>移除</sup></h3><p>当传递数组给 query 参数时，URL 语法不再是 <code>/foo?users[]=Tom&amp;users[]=Jerry</code>，取而代之，新语法是 <code>/foo?users=Tom&amp;users=Jerry</code>，此时 <code>$route.query.users</code> 将仍旧是一个数组，不过如果在该 query 中只有一个参数：<code>/foo?users=Tom</code>，当直接访问该路由时，vue-router 将无法知道我们期待的 <code>users</code> 是个数组。因此，可以考虑添加一个计算属性并且在每个使用 <code>$route.query.users</code> 的地方以该计算属性代替：</p>
+<pre><code class="hljs javascript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-comment">// ...</span>
+  computed: {
+    <span class="hljs-comment">// 此计算属性将始终是个数组</span>
+    users () {
+      <span class="hljs-keyword">const</span> users = <span class="hljs-keyword">this</span>.$route.query.users
+      <span class="hljs-keyword">return</span> <span class="hljs-built_in">Array</span>.isArray(users) ? users : [users]
+    }
+  }
+}</code></pre>
+<h2 id="Route-匹配"><a class="headerlink" href="#Route-匹配" title="Route 匹配"></a>Route 匹配</h2><p>路由匹配现在使用 <a href="https://github.com/pillarjs/path-to-regexp" rel="noopener" target="_blank">path-to-regexp</a> 这个包，这将会使得工作与之前相比更加灵活。</p>
+<h3 id="一个或者更多的命名参数-改变"><a class="headerlink" href="#一个或者更多的命名参数-改变" title="一个或者更多的命名参数 改变"></a>一个或者更多的命名参数 <sup>改变</sup></h3><p>语法稍微有些许改变，所以以<code>/category/*tags</code>为例，应该被更新为<code>/category/:tags+</code>。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到弃用路由语法的示例。</p>
+</div>
+<h2 id="链接"><a class="headerlink" href="#链接" title="链接"></a>链接</h2><h3 id="v-link-替换"><a class="headerlink" href="#v-link-替换" title="v-link 替换"></a><code>v-link</code> <sup>替换</sup></h3><p><code>v-link</code> 指令已经被一个新的 <a href="https://router.vuejs.org/zh-cn/api/router-link.html" rel="noopener" target="_blank"><code>&lt;router-link&gt;</code> 组件</a>指令替代，这一部分的工作已经被 Vue 2 中的组件完成。这将意味着在任何情况下，如果你拥有这样一个链接：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">v-link</span>=<span class="hljs-string">"'/about'"</span>&gt;</span>About<span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span></code></pre>
+<p>你需要把它更新成：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">router-link</span> <span class="hljs-attr">to</span>=<span class="hljs-string">"/about"</span>&gt;</span>About<span class="hljs-tag">&lt;/<span class="hljs-name">router-link</span>&gt;</span></code></pre>
+<p>注意：<code>&lt;router-link&gt;</code>不支持<code>target="_blank"</code>属性，如果你想打开一个新标签页，你必须用<code>&lt;a&gt;</code>标签。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>v-link</code> 指令的示例。</p>
+</div>
+<h3 id="v-link-active-替换"><a class="headerlink" href="#v-link-active-替换" title="v-link-active 替换"></a><code>v-link-active</code> <sup>替换</sup></h3><p><code>v-link-active</code> 也因为指定了一个在 <a href="https://router.vuejs.org/zh-cn/api/router-link.html" rel="noopener" target="_blank"><code>&lt;router-link&gt;</code> 组件</a>上的 tag 属性而被弃用了。举个例子，你需要更新：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">li</span> <span class="hljs-attr">v-link-active</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">v-link</span>=<span class="hljs-string">"'/about'"</span>&gt;</span>About<span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></code></pre>
+<p>成这个写法：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">router-link</span> <span class="hljs-attr">tag</span>=<span class="hljs-string">"li"</span> <span class="hljs-attr">to</span>=<span class="hljs-string">"/about"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">a</span>&gt;</span>About<span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">router-link</span>&gt;</span></code></pre>
+<p> <code>&lt;a&gt;</code>标签将会成为真实的链接 (并且可以获取到正确的跳转)，但是激活的类将会被应用在外部的<code>&lt;li&gt;</code>标签上。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>v-link-active</code> 指令的示例</p>
+</div>
+<h2 id="编程导航"><a class="headerlink" href="#编程导航" title="编程导航"></a>编程导航</h2><h3 id="router-go-改变"><a class="headerlink" href="#router-go-改变" title="router.go 改变"></a><code>router.go</code> <sup>改变</sup></h3><p>为了与 <a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API" rel="noopener" target="_blank">HTML5 History API</a> 保持一致性，<code>router.go</code> 已经被用来作为 <a href="https://router.vuejs.org/zh-cn/essentials/navigation.html#routergon" rel="noopener" target="_blank">后退/前进导航</a>，<a href="https://router.vuejs.org/zh-cn/essentials/navigation.html#routerpushlocation" rel="noopener" target="_blank"><code>router.push</code> </a> 用来导向特殊页面。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> ，找到 <code>router.go</code> 和 <code>router.push</code> 指令被调用的示例。</p>
+</div>
+<h2 id="路由选择：Modes"><a class="headerlink" href="#路由选择：Modes" title="路由选择：Modes"></a>路由选择：Modes</h2><h3 id="hashbang-false-移除"><a class="headerlink" href="#hashbang-false-移除" title="hashbang: false 移除"></a><code>hashbang: false</code> <sup>移除</sup></h3><p>Hashbangs 将不再为谷歌需要去爬去一个网址，所以他们将不再成为哈希策略的默认选项。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>hashbang: false</code> 选项的示。</p>
+</div>
+<h3 id="history-true-替换"><a class="headerlink" href="#history-true-替换" title="history: true 替换"></a><code>history: true</code> <sup>替换</sup></h3><p>所有路由模型选项将被简化成一个单个的<a href="https://router.vuejs.org/zh-cn/api/options.html#mode" rel="noopener" target="_blank"><code>mode</code> 选项</a>。你需要更新：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> router = <span class="hljs-keyword">new</span> VueRouter({
+  <span class="hljs-attr">history</span>: <span class="hljs-string">'true'</span>
+})</code></pre>
+<p>成这个写法：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> router = <span class="hljs-keyword">new</span> VueRouter({
+  <span class="hljs-attr">mode</span>: <span class="hljs-string">'history'</span>
+})</code></pre>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>history: true</code> 选项的示。</p>
+</div>
+<h3 id="abstract-true-替换"><a class="headerlink" href="#abstract-true-替换" title="abstract: true 替换"></a><code>abstract: true</code> <sup>替换</sup></h3><p>所有路由模型选项将被简化成一个单个的<a href="https://router.vuejs.org/zh-cn/api/options.html#mode" rel="noopener" target="_blank"><code>mode</code> 选项</a>。你需要更新：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> router = <span class="hljs-keyword">new</span> VueRouter({
+  <span class="hljs-attr">abstract</span>: <span class="hljs-string">'true'</span>
+})</code></pre>
+<p>成这个写法：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> router = <span class="hljs-keyword">new</span> VueRouter({
+  <span class="hljs-attr">mode</span>: <span class="hljs-string">'abstract'</span>
+})</code></pre>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>abstract: true</code> 选项的示例。</p>
+</div>
+<h2 id="路由选项：Misc"><a class="headerlink" href="#路由选项：Misc" title="路由选项：Misc"></a>路由选项：Misc</h2><h3 id="saveScrollPosition-替换"><a class="headerlink" href="#saveScrollPosition-替换" title="saveScrollPosition 替换"></a><code>saveScrollPosition</code> <sup>替换</sup></h3><p>它已经被替换为可以接受一个函数的 <a href="https://router.vuejs.org/zh-cn/advanced/scroll-behavior.html" rel="noopener" target="_blank"><code>scrollBehavior</code> 选项</a>，所以滑动行为可以完全的被定制化处理 - 甚至为每次路由进行定制也可以满足。这将会开启很多新的可能，但是简单的复制旧的行为：</p>
+<pre><code class="hljs js">saveScrollPosition: <span class="hljs-literal">true</span></code></pre>
+<p>你可以替换为：</p>
+<pre><code class="hljs js">scrollBehavior: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">to, from, savedPosition</span>) </span>{
+  <span class="hljs-keyword">return</span> savedPosition || { <span class="hljs-attr">x</span>: <span class="hljs-number">0</span>, <span class="hljs-attr">y</span>: <span class="hljs-number">0</span> }
+}</code></pre>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移路径</a> 找到 <code>saveScrollPosition: true</code> 选项的示例。</p>
+</div>
+<h3 id="root-换名"><a class="headerlink" href="#root-换名" title="root 换名"></a><code>root</code> <sup>换名</sup></h3><p>为了与 <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base" rel="noopener" target="_blank">HTML 的<code>&lt;base&gt;</code> 标签</a>保持一致性，重命名为 <code>base</code>。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移路径</a> 找到 <code>root</code> 选项的示例。</p>
+</div>
+<h3 id="transitionOnLoad-移除"><a class="headerlink" href="#transitionOnLoad-移除" title="transitionOnLoad 移除"></a><code>transitionOnLoad</code> <sup>移除</sup></h3><p>由于 Vue 的过渡系统 <a href="transitions.html#初始渲染的过渡"><code>appear</code> transition control</a> 的存在，这个选项将不再需要。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移路径</a> 找到 <code>transitionOnLoad: true</code> 选项的示例。</p>
+</div>
+<h3 id="suppressTransitionError-移除"><a class="headerlink" href="#suppressTransitionError-移除" title="suppressTransitionError 移除"></a><code>suppressTransitionError</code> <sup>移除</sup></h3><p>出于简化钩子的考虑被移除。如果你真的需要抑制过渡错误，你可以使用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch" rel="noopener" target="_blank"><code>try</code>…<code>catch</code></a> 作为替代。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移指令</a> 找到 <code>suppressTransitionError: true</code> 选项的示例。</p>
+</div>
+<h2 id="路由挂钩"><a class="headerlink" href="#路由挂钩" title="路由挂钩"></a>路由挂钩</h2><h3 id="activate-替换"><a class="headerlink" href="#activate-替换" title="activate 替换"></a><code>activate</code> <sup>替换</sup></h3><p>使用 <a href="https://router.vuejs.org/zh-cn/advanced/navigation-guards.html#组件内的钩子" rel="noopener" target="_blank"><code>beforeRouteEnter</code></a> 这一组件进行替代。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移路径</a> 找到 <code>beforeRouteEnter</code> 钩子的示例。</p>
+</div>
+<h3 id="canActivate-替换"><a class="headerlink" href="#canActivate-替换" title="canActivate 替换"></a><code>canActivate</code> <sup>替换</sup></h3><p>使用<a href="https://router.vuejs.org/en/advanced/navigation-guards.html#perroute-guard" rel="noopener" target="_blank"><code>beforeEnter</code></a> 在路由中作为替代。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移路径</a> 找到 <code>canActivate</code> 钩子的示例。</p>
+</div>
+<h3 id="deactivate-移除"><a class="headerlink" href="#deactivate-移除" title="deactivate 移除"></a><code>deactivate</code> <sup>移除</sup></h3><p>使用<a href="../api/#beforeDestroy"><code>beforeDestroy</code></a> 或者 <a href="../api/#destroyed"><code>destroyed</code></a> 钩子作为替代。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移路径</a> 找到 <code>deactivate</code> 钩子的示例。</p>
+</div>
+<h3 id="canDeactivate-替换"><a class="headerlink" href="#canDeactivate-替换" title="canDeactivate 替换"></a><code>canDeactivate</code> <sup>替换</sup></h3><p>在组件中使用<a href="https://router.vuejs.org/zh-cn/advanced/navigation-guards.html#组件内的钩子" rel="noopener" target="_blank"><code>beforeRouteLeave</code></a> 作为替代。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移路径</a> 找到 <code>canDeactivate</code> 钩子的示例。</p>
+</div>
+<h3 id="canReuse-false-移除"><a class="headerlink" href="#canReuse-false-移除" title="canReuse: false 移除"></a><code>canReuse: false</code> <sup>移除</sup></h3><p>在新的 Vue 路由中将不再被使用。</p>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>canReuse: false</code> 选项的示例。</p>
+</div>
+<h3 id="data-替换"><a class="headerlink" href="#data-替换" title="data 替换"></a><code>data</code> <sup>替换</sup></h3><p><code>$route</code>属性是响应式的，所以你可以就使用一个 watcher 去响应路由的改变，就像这样：</p>
+<pre><code class="hljs js">watch: {
+  <span class="hljs-string">'$route'</span>: <span class="hljs-string">'fetchData'</span>
+},
+<span class="hljs-attr">methods</span>: {
+  <span class="hljs-attr">fetchData</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-comment">// ...</span>
+  }
+}</code></pre>
+<div class="upgrade-path">
+<h4>升级路径</h4>
+<p>运行 <a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移助手</a> 找到 <code>data</code> 钩子的示例。</p>
+</div>
+<h3 id="loadingRouteData-移除"><a class="headerlink" href="#loadingRouteData-移除" title="$loadingRouteData 移除"></a><code>$loadingRouteData</code> <sup>移除</sup></h3><p>定义你自己的属性 (例如：<code>isLoading</code>)，然后在路由上的 watcher 中更新加载状态。举个例子，如果使用 <a href="https://github.com/mzabriskie/axios" rel="noopener" target="_blank">axios</a> 获取数据：</p>
+<pre><code class="hljs js">data: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">posts</span>: [],
+    <span class="hljs-attr">isLoading</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">fetchError</span>: <span class="hljs-literal">null</span>
+  }
+},
+<span class="hljs-attr">watch</span>: {
+  <span class="hljs-string">'$route'</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>
+    self.isLoading = <span class="hljs-literal">true</span>
+    self.fetchData().then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      self.isLoading = <span class="hljs-literal">false</span>
+    })
+  }
+},
+<span class="hljs-attr">methods</span>: {
+  <span class="hljs-attr">fetchData</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>
+    <span class="hljs-keyword">return</span> axios.get(<span class="hljs-string">'/api/posts'</span>)
+      .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">response</span>) </span>{
+        self.posts = response.data.posts
+      })
+      .catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
+        self.fetchError = error
+      })
+  }
+}</code></pre>
+<div class="guide-links">
+<span>← <a href="migration.html">从 Vue 1.x 迁移</a></span>
+<span style="float: right;"><a href="migration-vuex.html">从 Vuex 0.6.x 迁移到 1.0</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srcmigration-vue-router.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

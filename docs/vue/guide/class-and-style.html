@@ -1,0 +1,120 @@
+<div class="content guide with-sidebar class-and-style-guide">
+<h1>Class 与 Style 绑定</h1>
+<p>操作元素的 class 列表和内联样式是数据绑定的一个常见需求。因为它们都是属性，所以我们可以用 <code>v-bind</code> 处理它们：只需要通过表达式计算出字符串结果即可。不过，字符串拼接麻烦且易错。因此，在将 <code>v-bind</code> 用于 <code>class</code> 和 <code>style</code> 时，Vue.js 做了专门的增强。表达式结果的类型除了字符串之外，还可以是对象或数组。</p>
+<h2 id="绑定-HTML-Class"><a class="headerlink" href="#绑定-HTML-Class" title="绑定 HTML Class"></a>绑定 HTML Class</h2><h3 id="对象语法"><a class="headerlink" href="#对象语法" title="对象语法"></a>对象语法</h3><p>我们可以传给 <code>v-bind:class</code> 一个对象，以动态地切换 class：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-bind:class</span>=<span class="hljs-string">"{ active: isActive }"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>上面的语法表示 <code>active</code> 这个 class 存在与否将取决于数据属性 <code>isActive</code> 的 <a href="https://developer.mozilla.org/zh-CN/docs/Glossary/Truthy" rel="noopener" target="_blank">truthiness</a>。</p>
+<p>你可以在对象中传入更多属性来动态切换多个 class。此外，<code>v-bind:class</code> 指令也可以与普通的 class 属性共存。当有如下模板:</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>
+  <span class="hljs-attr">class</span>=<span class="hljs-string">"static"</span>
+  <span class="hljs-attr">v-bind:class</span>=<span class="hljs-string">"{ active: isActive, 'text-danger': hasError }"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>和如下 data：</p>
+<pre><code class="hljs js">data: {
+  <span class="hljs-attr">isActive</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">hasError</span>: <span class="hljs-literal">false</span>
+}</code></pre>
+<p>结果渲染为：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"static active"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>当 <code>isActive</code> 或者 <code>hasError</code> 变化时，class 列表将相应地更新。例如，如果 <code>hasError</code> 的值为 <code>true</code>，class 列表将变为 <code>"static active text-danger"</code>。</p>
+<p>绑定的数据对象不必内联定义在模板里：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-bind:class</span>=<span class="hljs-string">"classObject"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js">data: {
+  <span class="hljs-attr">classObject</span>: {
+    <span class="hljs-attr">active</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-string">'text-danger'</span>: <span class="hljs-literal">false</span>
+  }
+}</code></pre>
+<p>渲染的结果和上面一样。我们也可以在这里绑定一个返回对象的<a href="computed.html">计算属性</a>。这是一个常用且强大的模式：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-bind:class</span>=<span class="hljs-string">"classObject"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js">data: {
+  <span class="hljs-attr">isActive</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">error</span>: <span class="hljs-literal">null</span>
+},
+<span class="hljs-attr">computed</span>: {
+  <span class="hljs-attr">classObject</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">active</span>: <span class="hljs-keyword">this</span>.isActive &amp;&amp; !<span class="hljs-keyword">this</span>.error,
+      <span class="hljs-string">'text-danger'</span>: <span class="hljs-keyword">this</span>.error &amp;&amp; <span class="hljs-keyword">this</span>.error.type === <span class="hljs-string">'fatal'</span>
+    }
+  }
+}</code></pre>
+<h3 id="数组语法"><a class="headerlink" href="#数组语法" title="数组语法"></a>数组语法</h3><p>我们可以把一个数组传给 <code>v-bind:class</code>，以应用一个 class 列表：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-bind:class</span>=<span class="hljs-string">"[activeClass, errorClass]"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js">data: {
+  <span class="hljs-attr">activeClass</span>: <span class="hljs-string">'active'</span>,
+  <span class="hljs-attr">errorClass</span>: <span class="hljs-string">'text-danger'</span>
+}</code></pre>
+<p>渲染为：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"active text-danger"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>如果你也想根据条件切换列表中的 class，可以用三元表达式：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-bind:class</span>=<span class="hljs-string">"[isActive ? activeClass : '', errorClass]"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>这样写将始终添加 <code>errorClass</code>，但是只有在 <code>isActive</code> 是 truthy<sup><a href="#footnote-1">[1]</a></sup> 时才添加 <code>activeClass</code>。</p>
+<p>不过，当有多个条件 class 时这样写有些繁琐。所以在数组语法中也可以使用对象语法：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-bind:class</span>=<span class="hljs-string">"[{ active: isActive }, errorClass]"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<h3 id="用在组件上"><a class="headerlink" href="#用在组件上" title="用在组件上"></a>用在组件上</h3><blockquote>
+<p>这个章节假设你已经对 <a href="components.html">Vue 组件</a>有一定的了解。当然你也可以先跳过这里，稍后再回过头来看。</p>
+</blockquote>
+<p>当在一个自定义组件上使用 <code>class</code> 属性时，这些类将被添加到该组件的根元素上面。这个元素上已经存在的类不会被覆盖。</p>
+<p>例如，如果你声明了这个组件：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'my-component'</span>, {
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;p class="foo bar"&gt;Hi&lt;/p&gt;'</span>
+})</code></pre>
+<p>然后在使用它的时候添加一些 class：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">my-component</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"baz boo"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">my-component</span>&gt;</span></code></pre>
+<p>HTML 将被渲染为:</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"foo bar baz boo"</span>&gt;</span>Hi<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></code></pre>
+<p>对于带数据绑定 class 也同样适用：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">my-component</span> <span class="hljs-attr">v-bind:class</span>=<span class="hljs-string">"{ active: isActive }"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">my-component</span>&gt;</span></code></pre>
+<p>当 <code>isActive</code> 为 truthy<sup><a href="#footnote-1">[1]</a></sup> 时，HTML 将被渲染成为：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"foo bar active"</span>&gt;</span>Hi<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></code></pre>
+<h2 id="绑定内联样式"><a class="headerlink" href="#绑定内联样式" title="绑定内联样式"></a>绑定内联样式</h2><h3 id="对象语法-1"><a class="headerlink" href="#对象语法-1" title="对象语法"></a>对象语法</h3><p><code>v-bind:style</code> 的对象语法十分直观——看着非常像 CSS，但其实是一个 JavaScript 对象。CSS 属性名可以用驼峰式 (camelCase) 或短横线分隔 (kebab-case，记得用单引号括起来) 来命名：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-bind:style</span>=<span class="hljs-string">"{ color: activeColor, fontSize: fontSize + 'px' }"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js">data: {
+  <span class="hljs-attr">activeColor</span>: <span class="hljs-string">'red'</span>,
+  <span class="hljs-attr">fontSize</span>: <span class="hljs-number">30</span>
+}</code></pre>
+<p>直接绑定到一个样式对象通常更好，这会让模板更清晰：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-bind:style</span>=<span class="hljs-string">"styleObject"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js">data: {
+  <span class="hljs-attr">styleObject</span>: {
+    <span class="hljs-attr">color</span>: <span class="hljs-string">'red'</span>,
+    <span class="hljs-attr">fontSize</span>: <span class="hljs-string">'13px'</span>
+  }
+}</code></pre>
+<p>同样的，对象语法常常结合返回对象的计算属性使用。</p>
+<h3 id="数组语法-1"><a class="headerlink" href="#数组语法-1" title="数组语法"></a>数组语法</h3><p><code>v-bind:style</code> 的数组语法可以将多个样式对象应用到同一个元素上：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-bind:style</span>=<span class="hljs-string">"[baseStyles, overridingStyles]"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<h3 id="自动添加前缀"><a class="headerlink" href="#自动添加前缀" title="自动添加前缀"></a>自动添加前缀</h3><p>当 <code>v-bind:style</code> 使用需要添加<a href="https://developer.mozilla.org/zh-CN/docs/Glossary/Vendor_Prefix" rel="noopener" target="_blank">浏览器引擎前缀</a>的 CSS 属性时，如 <code>transform</code>，Vue.js 会自动侦测并添加相应的前缀。</p>
+<h3 id="多重值"><a class="headerlink" href="#多重值" title="多重值"></a>多重值</h3><blockquote>
+<p>2.3.0+</p>
+</blockquote>
+<p>从 2.3.0 起你可以为 <code>style</code> 绑定中的属性提供一个包含多个值的数组，常用于提供多个带前缀的值，例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">:style</span>=<span class="hljs-string">"{ display: ['-webkit-box', '-ms-flexbox', 'flex'] }"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>这样写只会渲染数组中最后一个被浏览器支持的值。在本例中，如果浏览器支持不带浏览器前缀的 flexbox，那么就只会渲染 <code>display: flex</code>。</p>
+<p><small><br/><strong>译者注</strong><br/><a id="footnote-1"></a>[1] truthy 不是 <code>true</code>，详见 <a href="https://developer.mozilla.org/zh-CN/docs/Glossary/Truthy" rel="noopener" target="_blank">MDN</a> 的解释。<br/></small></p>
+<div class="guide-links">
+<span>← <a href="computed.html">计算属性和侦听器</a></span>
+<span style="float: right;"><a href="conditional.html">条件渲染</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srcclass-and-style.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

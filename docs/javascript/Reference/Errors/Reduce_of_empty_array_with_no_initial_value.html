@@ -1,0 +1,66 @@
+<article id="wikiArticle">
+<div></div>
+<p><font face="x-locale-heading-primary, zillaslab, Palatino, Palatino Linotype, x-locale-heading-secondary, serif"><span style="font-size: 40px;"><strong>消息</strong></span></font></p>
+<p> 
+ </p><pre class="syntaxbox">TypeError: reduce of empty array with no initial value
+</pre>
+<font face="x-locale-heading-primary, zillaslab, Palatino, Palatino Linotype, x-locale-heading-secondary, serif"><span style="font-size: 40px;"><strong>错误类型</strong></span></font><p></p>
+<p> 
+ </p><p><a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a></p>
+<font face="x-locale-heading-primary, zillaslab, Palatino, Palatino Linotype, x-locale-heading-secondary, serif"><span style="font-size: 40px;"><strong>哪里出问题了？</strong></span></font><p></p>
+<p> 
+ </p><p>在javascript里有几种减少函数：</p>
+<p></p>
+<ul>
+<li><a href="Reference/Global_Objects/Array/reduce" title="reduce() 方法对数组中的每个元素执行一个由您提供的reducer函数(升序执行)，将其结果汇总为单个返回值。"><code>Array.prototype.reduce()</code></a>, <a href="Reference/Global_Objects/Array/reduceRight" title="reduceRight() 方法接受一个函数作为累加器（accumulator）和数组的每个值（从右到左）将其减少为单个值。"><code>Array.prototype.reduceRight()</code></a> and</li>
+<li><a href="Reference/Global_Objects/TypedArray/reduce" title="reduce() 方法接受一个函数作为参数，这个函数作为一个累加器，从左到右遍历整个类型数组，最后返回一个单一的值. 这个方法和Array.prototype.reduce()使用了同样的算法. TypedArray 是一个 类型数组."><code>TypedArray.prototype.reduce()</code></a>,  <a href="Reference/Global_Objects/TypedArray/reduceRight" title="reduceRight()在累加器和类型化数组的每个元素上（从右到左）调用函数，使其归约为单一的值。这个方法的算法和 Array.prototype.reduceRight()相同。 TypedArray 是这里的类型化数组类型 之一。"><code>TypedArray.prototype.reduceRight()</code></a>).</li>
+</ul>
+<p>这些函数有选择性的接收 <code>initialValue</code> (将会被用作回调函数第一次被调用的参数)。然而，如果没有初始值提供，它会用 <a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a> 或 <a href="Reference/Global_Objects/TypedArray" title="一个TypedArray 对象描述一个底层的二进制数据缓存区的一个类似数组(array-like)视图。事实上，没有名为 TypedArray的全局对象，也没有一个名为的 TypedArray构造函数。相反，有许多不同的全局对象，下面会列出这些针对特定元素类型的类型化数组的构造函数。在下面的页面中，你会找到一些不管什么类型都公用的属性和方法。"><code>TypedArray</code></a> 的第一个元素作为初始值。当提供一个空数组的时候这个错误会出现，因为那种情况下没有初始值被返回。</p>
+<p><font face="x-locale-heading-primary, zillaslab, Palatino, Palatino Linotype, x-locale-heading-secondary, serif"><span style="font-size: 40px;"><strong>例子</strong></span></font></p>
+<p> 
+ </p><h3 id="无效的情况">无效的情况</h3>
+<p></p>
+<p>当和过滤器(<a href="Reference/Global_Objects/Array/filter" title="filter() 方法创建一个新数组, 其包含通过所提供函数实现的测试的所有元素。"><code>Array.prototype.filter()</code></a>, <a href="Reference/Global_Objects/TypedArray/filter" title="filter()创建新的类型化数组，含有所有通过了测试的元素，测试由提供的函数实现。这个方法的算法和 Array.prototype.filter()相同。 TypedArray 是这里的 类型化数组类型 之一。"><code>TypedArray.prototype.filter()</code></a>)结合的时候会经常出现列表中所有元素被移除的情况。因此导致初始值为空。</p>
+<pre class="brush: js example-bad">var ints = [0, -1, -2, -3, -4, -5];
+ints.filter(x =&gt; x &gt; 0)         // removes all elements
+    .reduce((x, y) =&gt; x + y)    // no more elements to use for the initial value.</pre>
+<p>类似的，当选择器中有瑕疵的时候相同的问题会发生，或者是列表中未预期的数量的元素：</p>
+<pre class="brush: js example-bad">var names = document.getElementsByClassName("names");
+var name_list = Array.prototype.reduce.call(names, (acc, name) =&gt; acc + ", " + name);
+</pre>
+<h3 id="有效的情况">有效的情况</h3>
+<p>这个问题可以有两种解决办法：</p>
+<p>一种是提供一个初始值作为操作符的中立元素，比如加法里的0，乘法里的1，或者是合并中的一个空字符串。</p>
+<pre class="brush: js example-good">var ints = [0, -1, -2, -3, -4, -5];
+ints.filter(x =&gt; x &lt; 0)         // removes all elements
+    .reduce((x, y) =&gt; x + y, 0) // the initial value is the neutral element of the addition
+</pre>
+<p>另一种办法是两方处理空的情况，要么在调用 <code>reduce</code>之前，或者是在添加一个未预料的初始虚拟址后的回调函数中：</p>
+<pre class="brush: js example-good">var names = document.getElementsByClassName("names");
+
+var name_list1 = "";
+if (names1.length &gt;= 1)
+  name_list1 = Array.prototype.reduce.call(names, (acc, name) =&gt; acc + ", " + name);
+// name_list1 == "" when names is empty.
+
+var name_list2 = Array.prototype.reduce.call(names, (acc, name) =&gt; {
+  if (acc == "") // initial value
+    return name;
+  return acc + ", " + name;
+}, "");
+// name_list2 == "" when names is empty.
+</pre>
+<p><font face="x-locale-heading-primary, zillaslab, Palatino, Palatino Linotype, x-locale-heading-secondary, serif"><span style="font-size: 40px;"><strong>另见：</strong></span></font></p>
+<p> 
+ </p><ul>
+<li><a href="Reference/Global_Objects/Array/reduce" title="reduce() 方法对数组中的每个元素执行一个由您提供的reducer函数(升序执行)，将其结果汇总为单个返回值。"><code>Array.prototype.reduce()</code></a></li>
+<li><a href="Reference/Global_Objects/Array/reduceRight" title="reduceRight() 方法接受一个函数作为累加器（accumulator）和数组的每个值（从右到左）将其减少为单个值。"><code>Array.prototype.reduceRight()</code></a></li>
+<li><a href="Reference/Global_Objects/TypedArray/reduce" title="reduce() 方法接受一个函数作为参数，这个函数作为一个累加器，从左到右遍历整个类型数组，最后返回一个单一的值. 这个方法和Array.prototype.reduce()使用了同样的算法. TypedArray 是一个 类型数组."><code>TypedArray.prototype.reduce()</code></a></li>
+<li><a href="Reference/Global_Objects/TypedArray/reduceRight" title="reduceRight()在累加器和类型化数组的每个元素上（从右到左）调用函数，使其归约为单一的值。这个方法的算法和 Array.prototype.reduceRight()相同。 TypedArray 是这里的类型化数组类型 之一。"><code>TypedArray.prototype.reduceRight()</code></a></li>
+<li><a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a></li>
+<li><a href="Reference/Global_Objects/TypedArray" title="一个TypedArray 对象描述一个底层的二进制数据缓存区的一个类似数组(array-like)视图。事实上，没有名为 TypedArray的全局对象，也没有一个名为的 TypedArray构造函数。相反，有许多不同的全局对象，下面会列出这些针对特定元素类型的类型化数组的构造函数。在下面的页面中，你会找到一些不管什么类型都公用的属性和方法。"><code>TypedArray</code></a></li>
+<li><a href="Reference/Global_Objects/Array/filter" title="filter() 方法创建一个新数组, 其包含通过所提供函数实现的测试的所有元素。"><code>Array.prototype.filter()</code></a></li>
+<li><a href="Reference/Global_Objects/TypedArray/filter" title="filter()创建新的类型化数组，含有所有通过了测试的元素，测试由提供的函数实现。这个方法的算法和 Array.prototype.filter()相同。 TypedArray 是这里的 类型化数组类型 之一。"><code>TypedArray.prototype.filter()</code></a></li>
+</ul>
+<p></p>
+</article>

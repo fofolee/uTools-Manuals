@@ -1,0 +1,167 @@
+<div class="content guide with-sidebar components-registration-guide">
+<h1>组件注册</h1>
+<blockquote>
+<p>该页面假设你已经阅读过了<a href="components.html">组件基础</a>。如果你还对组件不太了解，推荐你先阅读它。</p>
+</blockquote>
+<h2 id="组件名"><a class="headerlink" href="#组件名" title="组件名"></a>组件名</h2><p>在注册一个组件的时候，我们始终需要给它一个名字。比如在全局注册的时候我们已经看到了：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'my-component-name'</span>, { <span class="hljs-comment">/* ... */</span> })</code></pre>
+<p>该组件名就是 <code>Vue.component</code> 的第一个参数。</p>
+<p>你给予组件的名字可能依赖于你打算拿它来做什么。当直接在 DOM 中使用一个组件 (而不是在字符串模板或<a href="single-file-components.html">单文件组件</a>) 的时候，我们强烈推荐遵循 <a href="https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name" rel="noopener" target="_blank">W3C 规范</a>中的自定义组件名 (字母全小写且必须包含一个连字符)。这会帮助你避免和当前以及未来的 HTML 元素相冲突。</p>
+<p>你可以在<a href="../style-guide/#基础组件名-强烈推荐">风格指南</a>中查阅到关于组件名的其它建议。</p>
+<h3 id="组件名大小写"><a class="headerlink" href="#组件名大小写" title="组件名大小写"></a>组件名大小写</h3><p>定义组件名的方式有两种：</p>
+<h4 id="使用-kebab-case"><a class="headerlink" href="#使用-kebab-case" title="使用 kebab-case"></a>使用 kebab-case</h4><pre><code class="hljs js">Vue.component(<span class="hljs-string">'my-component-name'</span>, { <span class="hljs-comment">/* ... */</span> })</code></pre>
+<p>当使用 kebab-case (短横线分隔命名) 定义一个组件时，你也必须在引用这个自定义元素时使用 kebab-case，例如 <code>&lt;my-component-name&gt;</code>。</p>
+<h4 id="使用-PascalCase"><a class="headerlink" href="#使用-PascalCase" title="使用 PascalCase"></a>使用 PascalCase</h4><pre><code class="hljs js">Vue.component(<span class="hljs-string">'MyComponentName'</span>, { <span class="hljs-comment">/* ... */</span> })</code></pre>
+<p>当使用 PascalCase (首字母大写命名) 定义一个组件时，你在引用这个自定义元素时两种命名法都可以使用。也就是说 <code>&lt;my-component-name&gt;</code> 和 <code>&lt;MyComponentName&gt;</code> 都是可接受的。注意，尽管如此，直接在 DOM (即非字符串的模板) 中使用时只有 kebab-case 是有效的。</p>
+<h2 id="全局注册"><a class="headerlink" href="#全局注册" title="全局注册"></a>全局注册</h2><p>到目前为止，我们只用过 <code>Vue.component</code> 来创建组件：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'my-component-name'</span>, {
+  <span class="hljs-comment">// ... 选项 ...</span>
+})</code></pre>
+<p>这些组件是<strong>全局注册的</strong>。也就是说它们在注册之后可以用在任何新创建的 Vue 根实例 (<code>new Vue</code>) 的模板中。比如：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'component-a'</span>, { <span class="hljs-comment">/* ... */</span> })
+Vue.component(<span class="hljs-string">'component-b'</span>, { <span class="hljs-comment">/* ... */</span> })
+Vue.component(<span class="hljs-string">'component-c'</span>, { <span class="hljs-comment">/* ... */</span> })
+
+<span class="hljs-keyword">new</span> Vue({ <span class="hljs-attr">el</span>: <span class="hljs-string">'#app'</span> })</code></pre>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"app"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">component-a</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component-a</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">component-b</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component-b</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">component-c</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component-c</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>在所有子组件中也是如此，也就是说这三个组件<em>在各自内部</em>也都可以相互使用。</p>
+<h2 id="局部注册"><a class="headerlink" href="#局部注册" title="局部注册"></a>局部注册</h2><p>全局注册往往是不够理想的。比如，如果你使用一个像 webpack 这样的构建系统，全局注册所有的组件意味着即便你已经不再使用一个组件了，它仍然会被包含在你最终的构建结果中。这造成了用户下载的 JavaScript 的无谓的增加。</p>
+<p>在这些情况下，你可以通过一个普通的 JavaScript 对象来定义组件：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> ComponentA = { <span class="hljs-comment">/* ... */</span> }
+<span class="hljs-keyword">var</span> ComponentB = { <span class="hljs-comment">/* ... */</span> }
+<span class="hljs-keyword">var</span> ComponentC = { <span class="hljs-comment">/* ... */</span> }</code></pre>
+<p>然后在 <code>components</code> 选项中定义你想要使用的组件：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#app'</span>,
+  <span class="hljs-attr">components</span>: {
+    <span class="hljs-string">'component-a'</span>: ComponentA,
+    <span class="hljs-string">'component-b'</span>: ComponentB
+  }
+})</code></pre>
+<p>对于 <code>components</code> 对象中的每个属性来说，其属性名就是自定义元素的名字，其属性值就是这个组件的选项对象。</p>
+<p>注意<strong>局部注册的组件在其子组件中<em>不可用</em></strong>。例如，如果你希望 <code>ComponentA</code> 在 <code>ComponentB</code> 中可用，则你需要这样写：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> ComponentA = { <span class="hljs-comment">/* ... */</span> }
+
+<span class="hljs-keyword">var</span> ComponentB = {
+  <span class="hljs-attr">components</span>: {
+    <span class="hljs-string">'component-a'</span>: ComponentA
+  },
+  <span class="hljs-comment">// ...</span>
+}</code></pre>
+<p>或者如果你通过 Babel 和 webpack 使用 ES2015 模块，那么代码看起来更像：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">import</span> ComponentA <span class="hljs-keyword">from</span> <span class="hljs-string">'./ComponentA.vue'</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">components</span>: {
+    ComponentA
+  },
+  <span class="hljs-comment">// ...</span>
+}</code></pre>
+<p>注意在 ES2015+ 中，在对象中放一个类似 <code>ComponentA</code> 的变量名其实是 <code>ComponentA: ComponentA</code> 的缩写，即这个变量名同时是：</p>
+<ul>
+<li>用在模板中的自定义元素的名称</li>
+<li>包含了这个组件选项的变量名</li>
+</ul>
+<h2 id="模块系统"><a class="headerlink" href="#模块系统" title="模块系统"></a>模块系统</h2><p>如果你没有通过 <code>import</code>/<code>require</code> 使用一个模块系统，也许可以暂且跳过这个章节。如果你使用了，那么我们会为你提供一些特殊的使用说明和注意事项。</p>
+<h3 id="在模块系统中局部注册"><a class="headerlink" href="#在模块系统中局部注册" title="在模块系统中局部注册"></a>在模块系统中局部注册</h3><p>如果你还在阅读，说明你使用了诸如 Babel 和 webpack 的模块系统。在这些情况下，我们推荐创建一个 <code>components</code> 目录，并将每个组件放置在其各自的文件中。</p>
+<p>然后你需要在局部注册之前导入每个你想使用的组件。例如，在一个假设的 <code>ComponentB.js</code> 或 <code>ComponentB.vue</code> 文件中：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">import</span> ComponentA <span class="hljs-keyword">from</span> <span class="hljs-string">'./ComponentA'</span>
+<span class="hljs-keyword">import</span> ComponentC <span class="hljs-keyword">from</span> <span class="hljs-string">'./ComponentC'</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">components</span>: {
+    ComponentA,
+    ComponentC
+  },
+  <span class="hljs-comment">// ...</span>
+}</code></pre>
+<p>现在 <code>ComponentA</code> 和 <code>ComponentC</code> 都可以在 <code>ComponentB</code> 的模板中使用了。</p>
+<h3 id="基础组件的自动化全局注册"><a class="headerlink" href="#基础组件的自动化全局注册" title="基础组件的自动化全局注册"></a>基础组件的自动化全局注册</h3><p>可能你的许多组件只是包裹了一个输入框或按钮之类的元素，是相对通用的。我们有时候会把它们称为<a href="../style-guide/#基础组件名-强烈推荐">基础组件</a>，它们会在各个组件中被频繁的用到。</p>
+<p>所以会导致很多组件里都会有一个包含基础组件的长列表：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">import</span> BaseButton <span class="hljs-keyword">from</span> <span class="hljs-string">'./BaseButton.vue'</span>
+<span class="hljs-keyword">import</span> BaseIcon <span class="hljs-keyword">from</span> <span class="hljs-string">'./BaseIcon.vue'</span>
+<span class="hljs-keyword">import</span> BaseInput <span class="hljs-keyword">from</span> <span class="hljs-string">'./BaseInput.vue'</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">components</span>: {
+    BaseButton,
+    BaseIcon,
+    BaseInput
+  }
+}</code></pre>
+<p>而只是用于模板中的一小部分：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">BaseInput</span>
+  <span class="hljs-attr">v-model</span>=<span class="hljs-string">"searchText"</span>
+  @<span class="hljs-attr">keydown.enter</span>=<span class="hljs-string">"search"</span>
+/&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">BaseButton</span> @<span class="hljs-attr">click</span>=<span class="hljs-string">"search"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">BaseIcon</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"search"</span>/&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">BaseButton</span>&gt;</span></code></pre>
+<p>幸好如果你使用了 webpack (或在内部使用了 webpack 的 <a href="https://github.com/vuejs/vue-cli" rel="noopener" target="_blank">Vue CLI 3+</a>)，那么就可以使用 <code>require.context</code> 只全局注册这些非常通用的基础组件。这里有一份可以让你在应用入口文件 (比如 <code>src/main.js</code>) 中全局导入基础组件的示例代码：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">import</span> Vue <span class="hljs-keyword">from</span> <span class="hljs-string">'vue'</span>
+<span class="hljs-keyword">import</span> upperFirst <span class="hljs-keyword">from</span> <span class="hljs-string">'lodash/upperFirst'</span>
+<span class="hljs-keyword">import</span> camelCase <span class="hljs-keyword">from</span> <span class="hljs-string">'lodash/camelCase'</span>
+
+<span class="hljs-keyword">const</span> requireComponent = <span class="hljs-built_in">require</span>.context(
+  <span class="hljs-comment">// 其组件目录的相对路径</span>
+  <span class="hljs-string">'./components'</span>,
+  <span class="hljs-comment">// 是否查询其子目录</span>
+  <span class="hljs-literal">false</span>,
+  <span class="hljs-comment">// 匹配基础组件文件名的正则表达式</span>
+  /Base[A-Z]\w+\.(vue|js)$/
+)
+
+requireComponent.keys().forEach(<span class="hljs-function"><span class="hljs-params">fileName</span> =&gt;</span> {
+  <span class="hljs-comment">// 获取组件配置</span>
+  <span class="hljs-keyword">const</span> componentConfig = requireComponent(fileName)
+
+  <span class="hljs-comment">// 获取组件的 PascalCase 命名</span>
+  <span class="hljs-keyword">const</span> componentName = upperFirst(
+    camelCase(
+      <span class="hljs-comment">// 获取和目录深度无关的文件名</span>
+      fileName
+        .split(<span class="hljs-string">'/'</span>)
+        .pop()
+        .replace(<span class="hljs-regexp">/\.\w+$/</span>, <span class="hljs-string">''</span>)
+    )
+  )
+
+  <span class="hljs-comment">// 全局注册组件</span>
+  Vue.component(
+    componentName,
+    <span class="hljs-comment">// 如果这个组件选项是通过 `export default` 导出的，</span>
+    <span class="hljs-comment">// 那么就会优先使用 `.default`，</span>
+    <span class="hljs-comment">// 否则回退到使用模块的根。</span>
+    componentConfig.default || componentConfig
+  )
+})</code></pre>
+<p>记住<strong>全局注册的行为必须在根 Vue 实例 (通过 <code>new Vue</code>) 创建之前发生</strong>。<a href="https://github.com/chrisvfritz/vue-enterprise-boilerplate/blob/master/src/components/_globals.js" rel="noopener" target="_blank">这里</a>有一个真实项目情景下的示例。</p>
+<div class="guide-links">
+<span>← <a href="components.html">组件基础</a></span>
+<span style="float: right;"><a href="components-props.html">Prop</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srccomponents-registration.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

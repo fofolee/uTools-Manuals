@@ -1,0 +1,2271 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     java.util.prefs 
+   </div>
+<h2 class="title" title="Class AbstractPreferences">Class AbstractPreferences</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">java.util.prefs.Preferences</a></li>
+<li>
+<ul class="inheritance">
+<li>java.util.prefs.AbstractPreferences</li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">AbstractPreferences</span>
+extends <a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></pre>
+<div class="block">
+<span>此类提供的骨干实现的<a href="../../../java/util/prefs/Preferences.html" title="java.util.prefs中的类"><code>Preferences</code></a>类，大大简化了实现的任务。</span>
+<p> <span><strong>这个类只适用于<tt>Preferences的</tt>实现者。</strong></span> <span><strong><tt>Preferences</tt>工厂的普通用户不需要参考本文档。</strong></span> <span><strong><a href="../../../java/util/prefs/Preferences.html" title="java.util.prefs中的类"><code>Preferences</code></a>文档应该足够了。</strong></span> </p>
+<p> <span>实现者必须重写九个抽象服务提供者接口（SPI）方法： <a href="../../../java/util/prefs/AbstractPreferences.html#getSpi-java.lang.String-"><code>getSpi(String)</code></a> ， <a href="../../../java/util/prefs/AbstractPreferences.html#putSpi-java.lang.String-java.lang.String-"><code>putSpi(String,String)</code></a> ， <a href="../../../java/util/prefs/AbstractPreferences.html#removeSpi-java.lang.String-"><code>removeSpi(String)</code></a> ， <a href="../../../java/util/prefs/AbstractPreferences.html#childSpi-java.lang.String-"><code>childSpi(String)</code></a> ， <a href="../../../java/util/prefs/AbstractPreferences.html#removeNodeSpi--"><code>removeNodeSpi()</code></a> ， <a href="../../../java/util/prefs/AbstractPreferences.html#keysSpi--"><code>keysSpi()</code></a> ， <a href="../../../java/util/prefs/AbstractPreferences.html#childrenNamesSpi--"><code>childrenNamesSpi()</code></a> ， <a href="../../../java/util/prefs/AbstractPreferences.html#syncSpi--"><code>syncSpi()</code></a>和<a href="../../../java/util/prefs/AbstractPreferences.html#flushSpi--"><code>flushSpi()</code></a> 。</span> <span>所有具体的方法都精确地指定了如何在这些SPI方法之上实现它们。</span> <span>如果默认实现由于任何原因（例如性能）而不能令人满意，则实施者可以自行决定覆盖一个或多个具体方法。</span> </p>
+<p> <span>SPI方法分为三组关于异常行为。</span> <span><tt>getSpi</tt>方法不应该抛出异常，但并不重要，因为此方法抛出的任何异常将被<code>get(String,String)</code> <a href="../../../java/util/prefs/AbstractPreferences.html#get-java.lang.String-java.lang.String-">截取</a> ，这将返回给调用者指定的默认值。</span> <span><tt>removeNodeSpi, keysSpi, childrenNamesSpi, syncSpi</tt>和<tt>flushSpi</tt>方法被指定为抛出<a href="../../../java/util/prefs/BackingStoreException.html" title="java.util.prefs中的类"><code>BackingStoreException</code></a> ，并且如果无法执行该操作，则需要执行该抛出异常。</span> <span>该异常向外传播，导致相应的API方法失败。</span> </p>
+<p> <span>其余的SPI方法<a href="../../../java/util/prefs/AbstractPreferences.html#putSpi-java.lang.String-java.lang.String-"><code>putSpi(String,String)</code></a> ， <a href="../../../java/util/prefs/AbstractPreferences.html#removeSpi-java.lang.String-"><code>removeSpi(String)</code></a>和<a href="../../../java/util/prefs/AbstractPreferences.html#childSpi-java.lang.String-"><code>childSpi(String)</code></a>有更复杂的异常行为。</span> <span>他们没有指定扔<tt>BackingStoreException</tt> ，因为他们通常可以服从他们的合同，即使后备店不可用。</span> <span>这是真的，因为他们没有返回任何信息，并且它们的影响不需要永久性，直到后来调用<a href="../../../java/util/prefs/Preferences.html#flush--"><code>Preferences.flush()</code></a>或<a href="../../../java/util/prefs/Preferences.html#sync--"><code>Preferences.sync()</code></a> 。</span> <span>一般来说，这些SPI方法不应该抛出异常。</span> <span>在一些实现中，可能存在这样的情况，这些呼叫甚至不能排队所请求的操作以供稍后处理。</span> <span>即使在这种情况下，通常最好简单地忽略调用和返回，而不是抛出异常。</span> <span>在这种情况下，然而<tt>，flush()</tt>和<tt>sync</tt>所有后续调用应该返回<tt>false，</tt>为返回<tt>true</tt>将意味着以前的所有操作都成功地成为永久性。</span> </p>
+<p> <span>有一种情况下， <tt>putSpi, removeSpi and childSpi</tt> <i>应该</i>抛出异常：如果调用者对底层操作系统没有足够的权限来执行请求的操作。</span> <span>例如，如果非特权用户尝试修改系统首选项，这将在大多数系统上发生。</span> <span>（所需的权限将从实现到实现有所不同，在某些实现中，它们是修改文件系统中某些目录的内容的权利;在其他实现中，它们是修改注册表中某些密钥的内容的权利。）在任何在这种情况下，通常不宜让程序继续执行，就好像这些操作将在以后永久存在一样。</span> <span>虽然在这种情况下实现不需要抛出异常，但是鼓励它们这样做。</span> <span>A <a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a>将是适当的。</span> </p>
+<p> <span>大多数SPI方法需要实现在首选节点读取或写入信息。</span> <span>实施者应该注意，另一个VM可能同时从后备存储中删除该节点。</span> <span>重新创建节点（如果已被删除）的实施是有责任的。</span> </p>
+<p> <span>实现说明：在Sun的默认<tt>Preferences</tt>实现中，用户的身份从底层操作系统继承，并且在虚拟机的生命周期内不会更改。</span> <span>应当认识到，服务器端<tt>Preferences</tt>实现可能具有从请求到请求的用户身份变化，通过使用静态<a href="../../../java/lang/ThreadLocal.html" title="java.lang中的类"><code>ThreadLocal</code></a>实例隐含地传递给<tt>Preferences</tt>方法。</span> <span><i>强烈</i>鼓励这种实现的作者在访问偏好时（例如通过<a href="../../../java/util/prefs/AbstractPreferences.html#get-java.lang.String-java.lang.String-"><code>get(String,String)</code></a>或<a href="../../../java/util/prefs/AbstractPreferences.html#put-java.lang.String-java.lang.String-"><code>put(String,String)</code></a>方法）来确定用户，而不是将用户永久关联到每个<tt>Preferences</tt>实例。</span> <span>后一种行为与正常<tt>Preferences的</tt>使用<tt>冲突</tt> ，会导致很大的混乱。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/util/prefs/Preferences.html" title="java.util.prefs中的类"><code>Preferences</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#lock">lock</a></span></code>
+<div class="block">
+              监视器用于锁定此节点的对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#newNode">newNode</a></span></code>
+<div class="block">
+              如果此节点在创建此对象之前在后台存储中不存在，则此字段应为 
+             <tt>true</tt> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.java.util.prefs.Preferences">
+<!-- --> </a> <h3>Fields inherited from class java.util.prefs.<a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></h3> <code><a href="../../../java/util/prefs/Preferences.html#MAX_KEY_LENGTH">MAX_KEY_LENGTH</a>, <a href="../../../java/util/prefs/Preferences.html#MAX_NAME_LENGTH">MAX_NAME_LENGTH</a>, <a href="../../../java/util/prefs/Preferences.html#MAX_VALUE_LENGTH">MAX_VALUE_LENGTH</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#AbstractPreferences-java.util.prefs.AbstractPreferences-java.lang.String-">AbstractPreferences</a></span>(<a href="../../../java/util/prefs/AbstractPreferences.html" title="class in java.util.prefs">AbstractPreferences</a> parent, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              创建具有指定父项和相对于其父对象的指定名称的首选项节点。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#absolutePath--">absolutePath</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>absolutePath</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#absolutePath--"><code>Preferences.absolutePath()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#addNodeChangeListener-java.util.prefs.NodeChangeListener-">addNodeChangeListener</a></span>(<a href="../../../java/util/prefs/NodeChangeListener.html" title="interface in java.util.prefs">NodeChangeListener</a> ncl)</code>
+<div class="block">
+              注册指定的侦听器以接收该节点的 
+             <i>节点更改事件</i> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#addPreferenceChangeListener-java.util.prefs.PreferenceChangeListener-">addPreferenceChangeListener</a></span>(<a href="../../../java/util/prefs/PreferenceChangeListener.html" title="interface in java.util.prefs">PreferenceChangeListener</a> pcl)</code>
+<div class="block">
+              注册指定的侦听器以接收此首选项节点的 
+             <i>优先级更改事件</i> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>protected <a href="../../../java/util/prefs/AbstractPreferences.html" title="class in java.util.prefs">AbstractPreferences</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#cachedChildren--">cachedChildren</a></span>()</code>
+<div class="block">
+              返回此节点的所有已知未被删除的子节点。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#childrenNames--">childrenNames</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>children</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#childrenNames--"><code>Preferences.childrenNames()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>protected abstract <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#childrenNamesSpi--">childrenNamesSpi</a></span>()</code>
+<div class="block">
+              返回此首选项节点的子节点的名称。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>protected abstract <a href="../../../java/util/prefs/AbstractPreferences.html" title="class in java.util.prefs">AbstractPreferences</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#childSpi-java.lang.String-">childSpi</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              返回此首选项节点的命名子节点，如果它不存在则创建它。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#clear--">clear</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>clear</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#clear--"><code>Preferences.clear()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#exportNode-java.io.OutputStream-">exportNode</a></span>(<a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os)</code>
+<div class="block">
+              实现 
+             <tt>exportNode</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#exportNode-java.io.OutputStream-"><code>Preferences.exportNode(OutputStream)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#exportSubtree-java.io.OutputStream-">exportSubtree</a></span>(<a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os)</code>
+<div class="block">
+              实现 
+             <tt>exportSubtree</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#exportSubtree-java.io.OutputStream-"><code>Preferences.exportSubtree(OutputStream)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#flush--">flush</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>flush</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#flush--"><code>Preferences.flush()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>protected abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#flushSpi--">flushSpi</a></span>()</code>
+<div class="block">
+              此方法在此节点锁定时被调用。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#get-java.lang.String-java.lang.String-">get</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> def)</code>
+<div class="block">
+              实现 
+             <tt>get</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#getBoolean-java.lang.String-boolean-">getBoolean</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, boolean def)</code>
+<div class="block">
+              实现 
+             <tt>getBoolean</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#getBoolean-java.lang.String-boolean-"><code>Preferences.getBoolean(String,boolean)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>byte[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#getByteArray-java.lang.String-byte:A-">getByteArray</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, byte[] def)</code>
+<div class="block">
+              实现 
+             <tt>getByteArray</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#getByteArray-java.lang.String-byte:A-"><code>Preferences.getByteArray(String,byte[])</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>protected <a href="../../../java/util/prefs/AbstractPreferences.html" title="class in java.util.prefs">AbstractPreferences</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#getChild-java.lang.String-">getChild</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> nodeName)</code>
+<div class="block">
+              如果命名的子项存在，则返回它，否则 
+             <tt>返回null</tt> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#getDouble-java.lang.String-double-">getDouble</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, double def)</code>
+<div class="block">
+              实现 
+             <tt>getDouble</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#getDouble-java.lang.String-double-"><code>Preferences.getDouble(String,double)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>float</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#getFloat-java.lang.String-float-">getFloat</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, float def)</code>
+<div class="block">
+              实现 
+             <tt>getFloat</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#getFloat-java.lang.String-float-"><code>Preferences.getFloat(String,float)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#getInt-java.lang.String-int-">getInt</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, int def)</code>
+<div class="block">
+              实现 
+             <tt>getInt</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#getInt-java.lang.String-int-"><code>Preferences.getInt(String,int)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#getLong-java.lang.String-long-">getLong</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, long def)</code>
+<div class="block">
+              实现 
+             <tt>getLong</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#getLong-java.lang.String-long-"><code>Preferences.getLong(String,long)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>protected abstract <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#getSpi-java.lang.String-">getSpi</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key)</code>
+<div class="block">
+              返回与此首选项节点上的指定键或 
+             <tt>null</tt>相关联的值，如果没有关联此键，或不能在这个时间来确定所述关联。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#isRemoved--">isRemoved</a></span>()</code>
+<div class="block">
+              返回 
+             <tt>true</tt>如果此节点（或其祖先）已经被除去的 
+             <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#isUserNode--">isUserNode</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>isUserNode</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#isUserNode--"><code>Preferences.isUserNode()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#keys--">keys</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>keys</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#keys--"><code>Preferences.keys()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code>protected abstract <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#keysSpi--">keysSpi</a></span>()</code>
+<div class="block">
+              返回在此首选项节点中具有关联值的所有键。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#name--">name</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>name</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#name--"><code>Preferences.name()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#node-java.lang.String-">node</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> path)</code>
+<div class="block">
+              实现 
+             <tt>node</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#node-java.lang.String-"><code>Preferences.node(String)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#nodeExists-java.lang.String-">nodeExists</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> path)</code>
+<div class="block">
+              实现 
+             <tt>nodeExists</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#nodeExists-java.lang.String-"><code>Preferences.nodeExists(String)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#parent--">parent</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>parent</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#parent--"><code>Preferences.parent()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#put-java.lang.String-java.lang.String-">put</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> value)</code>
+<div class="block">
+              实现 
+             <tt>put</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#put-java.lang.String-java.lang.String-"><code>Preferences.put(String,String)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i30">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#putBoolean-java.lang.String-boolean-">putBoolean</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, boolean value)</code>
+<div class="block">
+              实现 
+             <tt>putBoolean</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#putBoolean-java.lang.String-boolean-"><code>Preferences.putBoolean(String,boolean)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i31">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#putByteArray-java.lang.String-byte:A-">putByteArray</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, byte[] value)</code>
+<div class="block">
+              实现 
+             <tt>putByteArray</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#putByteArray-java.lang.String-byte:A-"><code>Preferences.putByteArray(String,byte[])</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i32">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#putDouble-java.lang.String-double-">putDouble</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, double value)</code>
+<div class="block">
+              实现 
+             <tt>putDouble</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#putDouble-java.lang.String-double-"><code>Preferences.putDouble(String,double)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i33">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#putFloat-java.lang.String-float-">putFloat</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, float value)</code>
+<div class="block">
+              实现 
+             <tt>putFloat</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#putFloat-java.lang.String-float-"><code>Preferences.putFloat(String,float)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i34">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#putInt-java.lang.String-int-">putInt</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, int value)</code>
+<div class="block">
+              实现 
+             <tt>putInt</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#putInt-java.lang.String-int-"><code>Preferences.putInt(String,int)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i35">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#putLong-java.lang.String-long-">putLong</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, long value)</code>
+<div class="block">
+              实现 
+             <tt>putLong</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#putLong-java.lang.String-long-"><code>Preferences.putLong(String,long)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i36">
+<td class="colFirst"><code>protected abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#putSpi-java.lang.String-java.lang.String-">putSpi</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> value)</code>
+<div class="block">
+              将给定的键值关联放入此首选项节点。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i37">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#remove-java.lang.String-">remove</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key)</code>
+<div class="block">
+              实现 
+             <tt>remove(String)</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#remove-java.lang.String-"><code>Preferences.remove(String)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i38">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--">removeNode</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>removeNode()</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#removeNode--"><code>Preferences.removeNode()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i39">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#removeNodeChangeListener-java.util.prefs.NodeChangeListener-">removeNodeChangeListener</a></span>(<a href="../../../java/util/prefs/NodeChangeListener.html" title="interface in java.util.prefs">NodeChangeListener</a> ncl)</code>
+<div class="block">
+              删除指定的 
+             <tt>NodeChangeListener，</tt>因此它不再接收更改事件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i40">
+<td class="colFirst"><code>protected abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#removeNodeSpi--">removeNodeSpi</a></span>()</code>
+<div class="block">
+              删除此首选项节点，使其无效及其包含的任何首选项。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i41">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#removePreferenceChangeListener-java.util.prefs.PreferenceChangeListener-">removePreferenceChangeListener</a></span>(<a href="../../../java/util/prefs/PreferenceChangeListener.html" title="interface in java.util.prefs">PreferenceChangeListener</a> pcl)</code>
+<div class="block">
+              删除指定的首选项更改侦听器，因此它不再接收首选项更改事件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i42">
+<td class="colFirst"><code>protected abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#removeSpi-java.lang.String-">removeSpi</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key)</code>
+<div class="block">
+              删除此首选项节点上指定键的关联（如果有）。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i43">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#sync--">sync</a></span>()</code>
+<div class="block">
+              实现 
+             <tt>sync</tt>方法按照在本说明书中 
+             <a href="../../../java/util/prefs/Preferences.html#sync--"><code>Preferences.sync()</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i44">
+<td class="colFirst"><code>protected abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#syncSpi--">syncSpi</a></span>()</code>
+<div class="block">
+              此方法在此节点锁定时被调用。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i45">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/prefs/AbstractPreferences.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回此首选项节点的绝对路径名。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.util.prefs.Preferences">
+<!-- --> </a> <h3>Methods inherited from class java.util.prefs.<a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></h3> <code><a href="../../../java/util/prefs/Preferences.html#importPreferences-java.io.InputStream-">importPreferences</a>, <a href="../../../java/util/prefs/Preferences.html#systemNodeForPackage-java.lang.Class-">systemNodeForPackage</a>, <a href="../../../java/util/prefs/Preferences.html#systemRoot--">systemRoot</a>, <a href="../../../java/util/prefs/Preferences.html#userNodeForPackage-java.lang.Class-">userNodeForPackage</a>, <a href="../../../java/util/prefs/Preferences.html#userRoot--">userRoot</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="newNode">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>newNode</h4> <pre>protected boolean newNode</pre>
+<div class="block">
+<span>如果此节点在创建此对象之前在后台存储中不存在，则此字段应为<tt>true</tt> 。</span>
+<span>该字段初始化为false，但可以由子类构造函数设置为true（此后不应修改）。</span>
+<span>此字段指示创建完成时是否应触发节点更改事件。</span>
+</div> </li>
+</ul> <a name="lock">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>lock</h4> <pre>protected final <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> lock</pre>
+<div class="block">
+<span>监视器用于锁定此节点的对象。</span>
+<span>该对象优先于节点本身，以减少由于锁定节点而导致的故意或无意拒绝服务的可能性。</span>
+<span>为了避免死锁，一个节点<i>永远不会</i>被一个线程锁定，该线程在该节点的后代保持锁定。</span>
+</div> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="AbstractPreferences-java.util.prefs.AbstractPreferences-java.lang.String-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>AbstractPreferences</h4> <pre>protected AbstractPreferences(<a href="../../../java/util/prefs/AbstractPreferences.html" title="class in java.util.prefs">AbstractPreferences</a> parent,
+                              <a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</pre>
+<div class="block">
+            创建具有指定父项和相对于其父对象的指定名称的首选项节点。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>parent</code> - 此首选项节点的父级，如果为根，则为null。 
+           </dd>
+<dd>
+<code>name</code> - 此首选项节点相对于其父节点的名称，如果是根， 
+            <tt>则为""</tt> 。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <tt>name</tt>包含斜杠（ 
+            <tt>'/'</tt> ），或 
+            <tt>parent</tt>是 
+            <tt>null</tt> ，并且名称不是 
+            <tt>""</tt> 。 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="put-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>put</h4> <pre>public void put(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                <a href="../../../java/lang/String.html" title="class in java.lang">String</a> value)</pre>
+<div class="block">
+<span>实现<tt>put</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#put-java.lang.String-java.lang.String-"><code>Preferences.put(String,String)</code></a> 。</span>
+<p> <span>此实现检查密钥和值是否合法，获取此偏好节点的锁定，检查节点是否尚未被删除，调用<a href="../../../java/util/prefs/AbstractPreferences.html#putSpi-java.lang.String-java.lang.String-"><code>putSpi(String,String)</code></a> ，如果有任何偏好更改侦听器，则将通知事件入队由事件分派线程处理。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#put-java.lang.String-java.lang.String-">put</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 指定值与之关联的键。 
+           </dd>
+<dd>
+<code>value</code> - 与指定键相关联的值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果键或值为 
+            <tt>null</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <tt>key.length()</tt>超过 
+            <tt>MAX_KEY_LENGTH</tt>或 
+            <tt>value.length</tt>超过 
+            <tt>MAX_VALUE_LENGTH</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+</dl> </li>
+</ul> <a name="get-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>get</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> get(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                  <a href="../../../java/lang/String.html" title="class in java.lang">String</a> def)</pre>
+<div class="block">
+<span>实现<tt>get</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a> 。</span>
+<p> <span>这个实现首先检查<tt>key</tt>是否<tt>null</tt>抛出一个<tt>NullPointerException</tt>如果是这种情况。</span> <span>然后它获取此首选节点的锁，检查节点是否尚未被删除，调用<a href="../../../java/util/prefs/AbstractPreferences.html#getSpi-java.lang.String-"><code>getSpi(String)</code></a> ，并返回结果，除非<tt>getSpi</tt>调用返回<tt>null</tt>或引发异常，在这种情况下，此调用返回<tt>def</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-">get</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 其关联值要返回的键。 
+           </dd>
+<dd>
+<code>def</code> - 在此首选项节点没有与 
+            <tt>key相关联的</tt>值的情况下返回的值。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与key相关 
+            <tt>联</tt>的值，或 
+            <tt>def，</tt>如果没有值与 
+            <tt>key相关联</tt> 。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dd>
+<span><code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果键是<tt>null</tt> 。</span>
+<span>（A <tt>null</tt>默认<i>是</i>允许的。）</span>
+</dd>
+</dl> </li>
+</ul> <a name="remove-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>remove</h4> <pre>public void remove(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key)</pre>
+<div class="block">
+<span>实现<tt>remove(String)</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#remove-java.lang.String-"><code>Preferences.remove(String)</code></a> 。</span>
+<p> <span>此实现获取此首选项节点的锁定，检查节点是否尚未被删除，调用<a href="../../../java/util/prefs/AbstractPreferences.html#removeSpi-java.lang.String-"><code>removeSpi(String)</code></a> ，如果有任何偏好更改侦听器，则将通知事件入队由事件分派线程处理。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#remove-java.lang.String-">remove</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 要从偏好节点删除其映射的密钥。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <tt>key</tt>是 
+            <tt>null</tt> .. 
+           </dd>
+</dl> </li>
+</ul> <a name="clear--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>clear</h4> <pre>public void clear()
+           throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>实现<tt>clear</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#clear--"><code>Preferences.clear()</code></a> 。</span>
+<p> <span>此实现获得此首选项节点的锁定，调用<a href="../../../java/util/prefs/AbstractPreferences.html#keys--"><code>keys()</code></a>获取一个键数组，并且遍历每个键上调用<a href="../../../java/util/prefs/AbstractPreferences.html#remove-java.lang.String-"><code>remove(String)</code></a>的数组。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#clear--">clear</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成，或无法与之通信。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#removeNode--"><code>Preferences.removeNode()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="putInt-java.lang.String-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>putInt</h4> <pre>public void putInt(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                   int value)</pre>
+<div class="block">
+<span>实现<tt>putInt</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#putInt-java.lang.String-int-"><code>Preferences.putInt(String,int)</code></a> 。</span>
+<p> <span>此实现将value <tt>转换</tt>为<tt><code>Integer.toString(int)</code></tt>的字符串， <a href="../../../java/lang/Integer.html#toString-int-">并对</a>结果调用<a href="../../../java/util/prefs/AbstractPreferences.html#put-java.lang.String-java.lang.String-"><code>put(String,String)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#putInt-java.lang.String-int-">putInt</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 与字符串形式的值相关联的键。 
+           </dd>
+<dd>
+<code>value</code> - 其字符串形式与键相关联的值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果键是 
+            <tt>null</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <tt>key.length()</tt>超过 
+            <tt>MAX_KEY_LENGTH</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#getInt-java.lang.String-int-"><code>Preferences.getInt(String,int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getInt-java.lang.String-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getInt</h4> <pre>public int getInt(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                  int def)</pre>
+<div class="block">
+<span>实现<tt>getInt</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#getInt-java.lang.String-int-"><code>Preferences.getInt(String,int)</code></a> 。</span>
+<p> <span>此实现调用<a href="../../../java/util/prefs/AbstractPreferences.html#get-java.lang.String-java.lang.String-"><code><tt>get(key, null)</tt></code></a> 。</span> <span>如果返回值不为空，则实现将其转换为<tt>int</tt> （ <a href="../../../java/lang/Integer.html#parseInt-java.lang.String-"><code>Integer.parseInt(String)</code>）</a> 。</span> <span>如果尝试成功，则返回值由此方法返回。</span> <span>否则返回<tt>def</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#getInt-java.lang.String-int-">getInt</a></code>在类 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 其关联值将作为int返回的键。 
+           </dd>
+<dd>
+<code>def</code> - 如果此首选项节点没有与 
+            <tt>key</tt>关联的值或相关联的值不能被解释为int，则返回的值。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过如果相关联的值不存在，或者可以不被解释为一个int与 
+            <tt>key</tt>此首选项节点，或 
+            <tt>def</tt>相关联的字符串所表示的int值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <tt>key</tt>是 
+            <tt>null</tt> 。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#putInt-java.lang.String-int-"><code>Preferences.putInt(String,int)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="putLong-java.lang.String-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>putLong</h4> <pre>public void putLong(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                    long value)</pre>
+<div class="block">
+<span>实现<tt>putLong</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#putLong-java.lang.String-long-"><code>Preferences.putLong(String,long)</code></a> 。</span>
+<p> <span>此实现将value <tt>转换</tt>为<tt><code>Long.toString(long)</code></tt>的字符串， <a href="../../../java/lang/Long.html#toString-long-">并对</a>结果调用<a href="../../../java/util/prefs/AbstractPreferences.html#put-java.lang.String-java.lang.String-"><code>put(String,String)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#putLong-java.lang.String-long-">putLong</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 与字符串形式的值相关联的键。 
+           </dd>
+<dd>
+<code>value</code> - 其字符串形式与键相关联的值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果键是 
+            <tt>null</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <tt>key.length()</tt>超过 
+            <tt>MAX_KEY_LENGTH</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#getLong-java.lang.String-long-"><code>Preferences.getLong(String,long)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getLong-java.lang.String-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLong</h4> <pre>public long getLong(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                    long def)</pre>
+<div class="block">
+<span>实现<tt>getLong</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#getLong-java.lang.String-long-"><code>Preferences.getLong(String,long)</code></a> 。</span>
+<p> <span>此实现调用<a href="../../../java/util/prefs/AbstractPreferences.html#get-java.lang.String-java.lang.String-"><code><tt>get(key, null)</tt></code></a> 。</span> <span>如果返回值不为空，则该实现将尝试将其转换为<tt>long</tt>与<a href="../../../java/lang/Long.html#parseLong-java.lang.String-"><code>Long.parseLong(String)</code></a> 。</span> <span>如果尝试成功，则返回值由此方法返回。</span> <span>否则返回<tt>def</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#getLong-java.lang.String-long-">getLong</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 其关联值将作为长期返回的键。 
+           </dd>
+<dd>
+<code>def</code> - 如果此首选项节点没有与 
+            <tt>key</tt>相关联的值或相关联的值不能被解释为长时间，则返回值。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过如果相关联的值不存在，或者可以不被解释为长与 
+            <tt>key</tt>此首选项节点，或 
+            <tt>def</tt>相关联的字符串所表示的长值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <tt>key</tt>是 
+            <tt>null</tt> 。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#putLong-java.lang.String-long-"><code>Preferences.putLong(String,long)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="putBoolean-java.lang.String-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>putBoolean</h4> <pre>public void putBoolean(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                       boolean value)</pre>
+<div class="block">
+<span>实现<tt>putBoolean</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#putBoolean-java.lang.String-boolean-"><code>Preferences.putBoolean(String,boolean)</code></a> 。</span>
+<p> <span>此实现将value <tt>转换</tt>为<tt><code>String.valueOf(boolean)</code></tt>的字符串， <a href="../../../java/lang/String.html#valueOf-boolean-">并对</a>结果调用<a href="../../../java/util/prefs/AbstractPreferences.html#put-java.lang.String-java.lang.String-"><code>put(String,String)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#putBoolean-java.lang.String-boolean-">putBoolean</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 与字符串形式的值相关联的键。 
+           </dd>
+<dd>
+<code>value</code> - 其字符串形式与键关联的值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果键是 
+            <tt>null</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <tt>key.length()</tt>超过 
+            <tt>MAX_KEY_LENGTH</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#getBoolean-java.lang.String-boolean-"><code>Preferences.getBoolean(String,boolean)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getBoolean-java.lang.String-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getBoolean</h4> <pre>public boolean getBoolean(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                          boolean def)</pre>
+<div class="block">
+<span>实现<tt>getBoolean</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#getBoolean-java.lang.String-boolean-"><code>Preferences.getBoolean(String,boolean)</code></a> 。</span>
+<p> <span>此实现调用<a href="../../../java/util/prefs/AbstractPreferences.html#get-java.lang.String-java.lang.String-"><code><tt>get(key, null)</tt></code></a> 。</span> <span>如果返回值为非空值，则使用<a href="../../../java/lang/String.html#equalsIgnoreCase-java.lang.String-"><code>String.equalsIgnoreCase(String)</code></a>与<tt>"true"</tt>进行<a href="../../../java/lang/String.html#equalsIgnoreCase-java.lang.String-">比较</a> 。</span> <span>如果比较返回<tt>true</tt> ，此调用返回<tt>true</tt> 。</span> <span>否则，原始返回值与<tt>"false"</tt>进行比较，再次使用<a href="../../../java/lang/String.html#equalsIgnoreCase-java.lang.String-"><code>String.equalsIgnoreCase(String)</code></a> 。</span> <span>如果比较返回<tt>true</tt> ，则此调用返回<tt>false</tt> 。</span> <span>否则，此调用返回<tt>def</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#getBoolean-java.lang.String-boolean-">getBoolean</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 将其关联值作为布尔值返回的键。 
+           </dd>
+<dd>
+<code>def</code> - 如果此首选项节点没有与 
+            <tt>key</tt>相关联的值或相关联的值不能被解释为布尔值，则返回的值。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过如果相关联的值不存在或不能被解释为一个布尔与 
+            <tt>key</tt>此首选项节点，或 
+            <tt>def</tt>相关联的字符串所表示的布尔值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <tt>key</tt>是 
+            <tt>null</tt> 。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#putBoolean-java.lang.String-boolean-"><code>Preferences.putBoolean(String,boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="putFloat-java.lang.String-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>putFloat</h4> <pre>public void putFloat(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                     float value)</pre>
+<div class="block">
+<span>实现<tt>putFloat</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#putFloat-java.lang.String-float-"><code>Preferences.putFloat(String,float)</code></a> 。</span>
+<p> <span>此实现将value <tt>转换</tt>为<tt><code>Float.toString(float)</code></tt>的字符串， <a href="../../../java/lang/Float.html#toString-float-">并对</a>结果调用<a href="../../../java/util/prefs/AbstractPreferences.html#put-java.lang.String-java.lang.String-"><code>put(String,String)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#putFloat-java.lang.String-float-">putFloat</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 与字符串形式的值相关联的键。 
+           </dd>
+<dd>
+<code>value</code> - 其字符串形式与键相关联的值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果键是 
+            <tt>null</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <tt>key.length()</tt>超过 
+            <tt>MAX_KEY_LENGTH</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#getFloat-java.lang.String-float-"><code>Preferences.getFloat(String,float)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getFloat-java.lang.String-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getFloat</h4> <pre>public float getFloat(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                      float def)</pre>
+<div class="block">
+<span>实现<tt>getFloat</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#getFloat-java.lang.String-float-"><code>Preferences.getFloat(String,float)</code></a> 。</span>
+<p> <span>此实现调用<a href="../../../java/util/prefs/AbstractPreferences.html#get-java.lang.String-java.lang.String-"><code><tt>get(key, null)</tt></code></a> 。</span> <span>如果返回值为非空值，则实现将尝试将其转换为<tt>float</tt> （ <a href="../../../java/lang/Float.html#parseFloat-java.lang.String-"><code>Float.parseFloat(String)</code>）</a> 。</span> <span>如果尝试成功，则返回值由此方法返回。</span> <span>否则返回<tt>def</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#getFloat-java.lang.String-float-">getFloat</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 其关联值将作为浮点数返回的键。 
+           </dd>
+<dd>
+<code>def</code> - 如果此首选项节点没有与 
+            <tt>key</tt>关联的值或相关联的值不能被解释为浮点数，则返回值。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过如果相关联的值不存在或不能被解释为float与 
+            <tt>key</tt>此首选项节点，或 
+            <tt>def</tt>相关联的字符串所表示的浮点值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <tt>key</tt>是 
+            <tt>null</tt> 。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#putFloat-java.lang.String-float-"><code>Preferences.putFloat(String,float)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="putDouble-java.lang.String-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>putDouble</h4> <pre>public void putDouble(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                      double value)</pre>
+<div class="block">
+<span>实现<tt>putDouble</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#putDouble-java.lang.String-double-"><code>Preferences.putDouble(String,double)</code></a> 。</span>
+<p> <span>此实现将value <tt>转换</tt>为<tt><code>Double.toString(double)</code></tt>的字符串， <a href="../../../java/lang/Double.html#toString-double-">并对</a>结果调用<a href="../../../java/util/prefs/AbstractPreferences.html#put-java.lang.String-java.lang.String-"><code>put(String,String)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#putDouble-java.lang.String-double-">putDouble</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 与字符串形式的值相关联的键。 
+           </dd>
+<dd>
+<code>value</code> - 其字符串形式与键相关联的值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果键是 
+            <tt>null</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <tt>key.length()</tt>超过 
+            <tt>MAX_KEY_LENGTH</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#getDouble-java.lang.String-double-"><code>Preferences.getDouble(String,double)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getDouble-java.lang.String-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDouble</h4> <pre>public double getDouble(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                        double def)</pre>
+<div class="block">
+<span>实现<tt>getDouble</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#getDouble-java.lang.String-double-"><code>Preferences.getDouble(String,double)</code></a> 。</span>
+<p> <span>此实现调用<a href="../../../java/util/prefs/AbstractPreferences.html#get-java.lang.String-java.lang.String-"><code><tt>get(key, null)</tt></code></a> 。</span> <span>如果返回值不为空，则该实现尝试将其转换为<tt>double</tt>与<a href="../../../java/lang/Double.html#parseDouble-java.lang.String-"><code>Double.parseDouble(String)</code></a> 。</span> <span>如果尝试成功，则返回值由此方法返回。</span> <span>否则返回<tt>def</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#getDouble-java.lang.String-double-">getDouble</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 其关联值将作为双重返回的键。 
+           </dd>
+<dd>
+<code>def</code> - 如果此首选项节点没有与 
+            <tt>key</tt>相关联的值或相关联的值不能被解释为双精度，则返回值。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过如果相关联的值不存在，或者可以不被解释为一个双用 
+            <tt>key</tt>此首选项节点，或 
+            <tt>def</tt>相关联的字符串所表示的双值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <tt>key</tt>是 
+            <tt>null</tt> 。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#putDouble-java.lang.String-double-"><code>Preferences.putDouble(String,double)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="putByteArray-java.lang.String-byte:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>putByteArray</h4> <pre>public void putByteArray(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                         byte[] value)</pre>
+<div class="block">
+            实现 
+           <tt>putByteArray</tt>方法按照在本说明书中 
+           <a href="../../../java/util/prefs/Preferences.html#putByteArray-java.lang.String-byte:A-"><code>Preferences.putByteArray(String,byte[])</code></a> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#putByteArray-java.lang.String-byte:A-">putByteArray</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 与字符串形式的值相关联的键。 
+           </dd>
+<dd>
+<code>value</code> - 其字符串形式与键关联的值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果键或值为 
+            <tt>null</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果key.length（）超过MAX_KEY_LENGTH，或者如果value.length超过MAX_VALUE_LENGTH * 3/4。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#getByteArray-java.lang.String-byte:A-"><code>Preferences.getByteArray(String,byte[])</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getByteArray-java.lang.String-byte:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getByteArray</h4> <pre>public byte[] getByteArray(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                           byte[] def)</pre>
+<div class="block">
+            实现 
+           <tt>getByteArray</tt>方法按照在本说明书中 
+           <a href="../../../java/util/prefs/Preferences.html#getByteArray-java.lang.String-byte:A-"><code>Preferences.getByteArray(String,byte[])</code></a> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#getByteArray-java.lang.String-byte:A-">getByteArray</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 其相关值将作为字节数组返回的键。 
+           </dd>
+<dd>
+<code>def</code> - 如果此首选项节点没有与 
+            <tt>key</tt>相关联的值或相关联的值不能被解释为字节数组，则返回值。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过如果相关联的值不存在，或者可以不被解释为一个字节数组 
+            <tt>key</tt>此首选项节点，或 
+            <tt>def</tt>相关联的字符串所表示的字节数组值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dd>
+<span><code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果<tt>key</tt>是<tt>null</tt> 。</span>
+<span>（为<tt>def</tt>甲<tt>null</tt>值<i>是</i>允许的。）</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#get-java.lang.String-java.lang.String-"><code>Preferences.get(String,String)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#putByteArray-java.lang.String-byte:A-"><code>Preferences.putByteArray(String,byte[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="keys--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>keys</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] keys()
+              throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>实现<tt>keys</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#keys--"><code>Preferences.keys()</code></a> 。</span>
+<p> <span>此实现获取此偏好节点的锁定，检查节点是否尚未被删除并调用<a href="../../../java/util/prefs/AbstractPreferences.html#keysSpi--"><code>keysSpi()</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#keys--">keys</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在此首选项节点中具有关联值的键的数组。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成，或无法与之通信。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+</dl> </li>
+</ul> <a name="childrenNames--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>childrenNames</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] childrenNames()
+                       throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>实现<tt>children</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#childrenNames--"><code>Preferences.childrenNames()</code></a> 。</span>
+<p> <span>此实现获取此偏好节点的锁定，检查节点是否尚未被删除，构造一个<tt>初始化</tt>为已缓存的子节点（该节点的“子缓存”中的子节点）的<a href="../../../java/util/prefs/AbstractPreferences.html#childrenNamesSpi--">TreeSet</a> ，调用<a href="../../../java/util/prefs/AbstractPreferences.html#childrenNamesSpi--"><code>childrenNamesSpi()</code></a> ，并添加所有返回子名进入集合。</span> <span>使用<tt>toArray</tt>方法将树集的元素转储到<tt>String</tt>数组中，并返回此数组。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#childrenNames--">childrenNames</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此偏好节点的子节点名称。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成，或无法与之通信。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/AbstractPreferences.html#cachedChildren--"><code>cachedChildren()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="cachedChildren--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>cachedChildren</h4> <pre>protected final <a href="../../../java/util/prefs/AbstractPreferences.html" title="class in java.util.prefs">AbstractPreferences</a>[] cachedChildren()</pre>
+<div class="block">
+            返回此节点的所有已知未被删除的子节点。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个节点的所有已知的未被删除的子节点。 
+           </dd>
+</dl> </li>
+</ul> <a name="parent--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parent</h4> <pre>public <a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a> parent()</pre>
+<div class="block">
+<span>实现<tt>parent</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#parent--"><code>Preferences.parent()</code></a> 。</span>
+<p> <span>此实现获取此首选项节点的锁定，检查节点是否尚未被删除并返回传递给该节点的构造函数的父值。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#parent--">parent</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此首选项节点的父级。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+</dl> </li>
+</ul> <a name="node-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>node</h4> <pre>public <a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a> node(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> path)</pre>
+<div class="block">
+<span>实现<tt>node</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#node-java.lang.String-"><code>Preferences.node(String)</code></a> 。</span>
+<p> <span>此实现获取此首选节点的锁定并检查节点是否尚未被删除。</span> <span>如果<tt>path</tt>为<tt>""</tt> ，则返回该节点;</span> <span>如果<tt>path</tt>为<tt>"/"</tt> ，则返回该节点的根。</span> <span>如果在<tt>path</tt>的第一个字符不是<tt>'/'，</tt>落实分解到<tt>path</tt>令牌和递归遍历从该节点到指定节点的路径，“消费”的姓名和<tt>path</tt>在遍历的每一步斜线。</span> <span>在每个步骤中，当前节点被锁定，并且为命名节点检查节点的子缓存。</span> <span>如果没有找到，该名称将被检查，以确保其长度不超过<tt>MAX_NAME_LENGTH</tt> 。</span> <span>然后调用<a href="../../../java/util/prefs/AbstractPreferences.html#childSpi-java.lang.String-"><code>childSpi(String)</code></a>方法，结果存储在该节点的子缓存中。</span> <span>如果新创建的对象的<tt><code>newNode</code></tt>对象的<a href="../../../java/util/prefs/AbstractPreferences.html#newNode"><code>newNode</code></a>字段为<tt>true</tt> ，并且有任何节点更改侦听器，则会将通知事件排入队列中，以便事件分派线程进行处理。</span> </p>
+<p> <span>当没有更多的令牌时，通过此方法返回由<tt>88643086887714</tt>返回的子缓存中发现的最后一个值。</span> <span>如果在遍历期间，两个<tt>884630868900</tt>令牌<tt>连续</tt>出现，或者最后一个令牌是<tt>"/"</tt> （而不是一个名称），则抛出适当的<tt>IllegalArgumentException</tt> 。</span> </p>
+<p> <span>如果<tt>path</tt>的第一个字符是<tt>'/'（</tt>指示绝对路径名）此首节点的锁被打破<tt>path</tt>成标记之前下降，而这种方法递归地遍历从根（而不是从本节点开始）开始的路径。</span> <span>遍历与所描述的相对路径名称相同。</span> <span>根据<code>locking invariant</code>，在根节点开始遍历之前，将该节点上的锁删除是避免死锁<a href="../../../java/util/prefs/AbstractPreferences.html#lock">可能性的关键</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#node-java.lang.String-">node</a></code>在 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>path</code> - 要返回的首选项节点的路径名。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             指定的首选项节点。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果路径名称无效（即，它包含多个连续的斜杠字符，或以斜线字符结尾且长度超过一个字符）。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#flush--"><code>Preferences.flush()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="nodeExists-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>nodeExists</h4> <pre>public boolean nodeExists(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> path)
+                   throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>实现<tt>nodeExists</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#nodeExists-java.lang.String-"><code>Preferences.nodeExists(String)</code></a> 。</span>
+<p> <span>这个实现非常类似于<a href="../../../java/util/prefs/AbstractPreferences.html#node-java.lang.String-"><code>node(String)</code></a> ，除了使用<a href="../../../java/util/prefs/AbstractPreferences.html#getChild-java.lang.String-"><code>getChild(String)</code></a>而不是<a href="../../../java/util/prefs/AbstractPreferences.html#childSpi-java.lang.String-"><code>childSpi(String)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#nodeExists-java.lang.String-">nodeExists</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>path</code> - 要检查其存在的节点的路径名。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果指定的节点存在，则为true。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成，或无法与之通信。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果路径名无效（即，它包含多个连续的斜杠字符，或以斜杠字符结尾且长度超过一个字符）。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除，并且 
+            <tt>pathname</tt>不是空字符串（ 
+            <tt>""</tt> ）。 
+           </dd>
+</dl> </li>
+</ul> <a name="removeNode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removeNode</h4> <pre>public void removeNode()
+                throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>实现<tt>removeNode()</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#removeNode--"><code>Preferences.removeNode()</code></a> 。</span>
+<p> <span>该实现检查以查看该节点是否为根;</span> <span>如果是这样，它会引发适当的异常。</span> <span>然后，它锁定该节点的父节点，并调用遍历通过此节点生成的子树的递归辅助方法。</span> <span>递归方法锁定调用它的节点，检查它尚未被删除的节点，然后确保其所有子<a href="../../../java/util/prefs/AbstractPreferences.html#childrenNamesSpi--">节点</a>被缓存：调用<a href="../../../java/util/prefs/AbstractPreferences.html#childrenNamesSpi--"><code>childrenNamesSpi()</code></a>方法，并检查每个返回的子名称，缓存。</span> <span>如果一个小孩尚未缓存，则调用<a href="../../../java/util/prefs/AbstractPreferences.html#childSpi-java.lang.String-"><code>childSpi(String)</code></a>方法为其创建一个<tt>Preferences</tt>实例，并将此实例放入子缓存中。</span> <span>然后，辅助方法在其子缓存中包含的每个节点上递归调用自身。</span> <span>接下来，它调用<a href="../../../java/util/prefs/AbstractPreferences.html#removeNodeSpi--"><code>removeNodeSpi()</code></a> ，将其标记为已删除，并将其自身从其父级缓存中删除。</span> <span>最后，如果有任何节点更改侦听器，它会将通知事件排入队列，以便事件发送线程进行处理。</span> </p>
+<p> <span>请注意，所有祖先始终调用助手方法，直到“最近的未删除祖先”被锁定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#removeNode--">removeNode</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果在根节点上调用此方法。 
+           </dd>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器故障而无法完成此操作，或无法与之通信。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#flush--"><code>Preferences.flush()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="name--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>name</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> name()</pre>
+<div class="block">
+<span>实现<tt>name</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#name--"><code>Preferences.name()</code></a> 。</span>
+<p> <span>此实现仅返回传递给此节点构造函数的名称。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#name--">name</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此首选项节点的名称，相对于其父节点。 
+           </dd>
+</dl> </li>
+</ul> <a name="absolutePath--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>absolutePath</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> absolutePath()</pre>
+<div class="block">
+<span>实现<tt>absolutePath</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#absolutePath--"><code>Preferences.absolutePath()</code></a> 。</span>
+<p> <span>此实现仅返回在构建此节点时计算的绝对路径名（基于传递给此节点的构造函数的名称以及传递给此节点的祖先构造函数的名称）。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#absolutePath--">absolutePath</a></code>在 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个偏好节点的绝对路径名。 
+           </dd>
+</dl> </li>
+</ul> <a name="isUserNode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isUserNode</h4> <pre>public boolean isUserNode()</pre>
+<div class="block">
+<span>实现<tt>isUserNode</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#isUserNode--"><code>Preferences.isUserNode()</code></a> 。</span>
+<p> <span>该实现将此节点的根节点（存储在私有字段中）与<a href="../../../java/util/prefs/Preferences.html#userRoot--"><code>Preferences.userRoot()</code></a>返回的值进行<a href="../../../java/util/prefs/Preferences.html#userRoot--">比较</a> 。</span> <span>如果两个对象引用相同，则此方法返回true。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#isUserNode--">isUserNode</a></code>在 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>true</tt>如果此首选项节点位于用户首选项树 
+            <tt>false（</tt>如果它在系统偏好树中）。 
+           </dd>
+</dl> </li>
+</ul> <a name="addPreferenceChangeListener-java.util.prefs.PreferenceChangeListener-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addPreferenceChangeListener</h4> <pre>public void addPreferenceChangeListener(<a href="../../../java/util/prefs/PreferenceChangeListener.html" title="interface in java.util.prefs">PreferenceChangeListener</a> pcl)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">描述从类别复制： <code><a href="../../../java/util/prefs/Preferences.html#addPreferenceChangeListener-java.util.prefs.PreferenceChangeListener-">Preferences</a></code></span>
+</div>
+<div class="block">
+<span>注册指定的侦听器以接收此首选项节点的<i>优先级更改事件</i> 。</span>
+<span>当偏好被添加到该节点，从该节点移除时，或者当与偏好相关联的值被改变时，生成偏好改变事件。</span>
+<span>（偏好改变事件<i>不会</i>由所产生的<a href="../../../java/util/prefs/Preferences.html#removeNode--"><code>Preferences.removeNode()</code></a>方法，该方法生成<i>事件</i> 。优选变化事件<i>是</i>由<tt>clear</tt>方法生成的<i>节点的变化</i> 。）</span>
+<p> <span>事件只能保证在与注册的侦听器相同的JVM中进行的更改，尽管某些实现可能会为此JVM之外的更改生成事件。</span> <span>可能在更改持续存在之前生成事件。</span> <span>当在该节点的后代修改首选项时，不会生成事件;</span> <span>想要这样的事件的主叫必须向每个后代注册。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#addPreferenceChangeListener-java.util.prefs.PreferenceChangeListener-">addPreferenceChangeListener</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pcl</code> - 要添加的首选项更改侦听器。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#removePreferenceChangeListener-java.util.prefs.PreferenceChangeListener-"><code>Preferences.removePreferenceChangeListener(PreferenceChangeListener)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#addNodeChangeListener-java.util.prefs.NodeChangeListener-"><code>Preferences.addNodeChangeListener(NodeChangeListener)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="removePreferenceChangeListener-java.util.prefs.PreferenceChangeListener-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removePreferenceChangeListener</h4> <pre>public void removePreferenceChangeListener(<a href="../../../java/util/prefs/PreferenceChangeListener.html" title="interface in java.util.prefs">PreferenceChangeListener</a> pcl)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">描述从类别复制： <code><a href="../../../java/util/prefs/Preferences.html#removePreferenceChangeListener-java.util.prefs.PreferenceChangeListener-">Preferences</a></code></span>
+</div>
+<div class="block">
+            删除指定的首选项更改侦听器，因此它不再接收首选项更改事件。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#removePreferenceChangeListener-java.util.prefs.PreferenceChangeListener-">removePreferenceChangeListener</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pcl</code> - 要删除的首选项更改侦听器。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#addPreferenceChangeListener-java.util.prefs.PreferenceChangeListener-"><code>Preferences.addPreferenceChangeListener(PreferenceChangeListener)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="addNodeChangeListener-java.util.prefs.NodeChangeListener-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addNodeChangeListener</h4> <pre>public void addNodeChangeListener(<a href="../../../java/util/prefs/NodeChangeListener.html" title="interface in java.util.prefs">NodeChangeListener</a> ncl)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">描述从类别： <code><a href="../../../java/util/prefs/Preferences.html#addNodeChangeListener-java.util.prefs.NodeChangeListener-">Preferences</a></code>复制</span>
+</div>
+<div class="block">
+<span>注册指定的侦听器以接收该节点的<i>节点更改事件</i> 。</span>
+<span>当子节点添加到该节点或从该节点移除时，将生成节点更改事件。</span>
+<span>（单个<a href="../../../java/util/prefs/Preferences.html#removeNode--"><code>Preferences.removeNode()</code></a>调用导致多个<i>节点更改事件</i> ，一个针对<a href="../../../java/util/prefs/Preferences.html#removeNode--">根除</a>去节点的子树中的每个节点）。</span>
+<p> <span>事件只能保证在与注册的侦听器相同的JVM中进行的更改，尽管某些实现可能会为此JVM之外的更改生成事件。</span> <span>在更改变得永久之前可能会生成事件。</span> <span>当添加或删除此节点的间接后代时，不会生成事件;</span> <span>想要这样的事件的主叫必须向每个后代注册。</span> </p>
+<p> <span>关于节点创建几乎不能保证。</span> <span>因为在访问时隐式创建节点，所以实现可能不可行，以确定子访问之前是否存在子节点（例如，因为后台存储不可达或缓存的信息已过期）。</span> <span>在这种情况下，实现既不需要生成节点更改事件，也不禁止这样做。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#addNodeChangeListener-java.util.prefs.NodeChangeListener-">addNodeChangeListener</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ncl</code> - 要添加的 
+            <tt>NodeChangeListener</tt> 。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#removeNodeChangeListener-java.util.prefs.NodeChangeListener-"><code>Preferences.removeNodeChangeListener(NodeChangeListener)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#addPreferenceChangeListener-java.util.prefs.PreferenceChangeListener-"><code>Preferences.addPreferenceChangeListener(PreferenceChangeListener)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="removeNodeChangeListener-java.util.prefs.NodeChangeListener-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removeNodeChangeListener</h4> <pre>public void removeNodeChangeListener(<a href="../../../java/util/prefs/NodeChangeListener.html" title="interface in java.util.prefs">NodeChangeListener</a> ncl)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">描述从类别复制： <code><a href="../../../java/util/prefs/Preferences.html#removeNodeChangeListener-java.util.prefs.NodeChangeListener-">Preferences</a></code></span>
+</div>
+<div class="block">
+            删除指定的 
+           <tt>NodeChangeListener，</tt>因此它不再接收更改事件。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#removeNodeChangeListener-java.util.prefs.NodeChangeListener-">removeNodeChangeListener</a></code>在 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ncl</code> - 要删除的 
+            <tt>NodeChangeListener</tt> 。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#addNodeChangeListener-java.util.prefs.NodeChangeListener-"><code>Preferences.addNodeChangeListener(NodeChangeListener)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="putSpi-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>putSpi</h4> <pre>protected abstract void putSpi(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key,
+                               <a href="../../../java/lang/String.html" title="class in java.lang">String</a> value)</pre>
+<div class="block">
+<span>将给定的键值关联放入此首选项节点。</span>
+<span>保证<tt>key</tt>和<tt>value</tt>是非空的和合法的长度。</span>
+<span>此外，保证该节点尚未被删除。</span>
+<span>（实施者不需要检查任何这些事情。）</span>
+<p> <span>这个方法是用这个节点上的锁来调用的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 关键 
+           </dd>
+<dd>
+<code>value</code> - 值 
+           </dd>
+</dl> </li>
+</ul> <a name="getSpi-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSpi</h4> <pre>protected abstract <a href="../../../java/lang/String.html" title="class in java.lang">String</a> getSpi(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key)</pre>
+<div class="block">
+<span>返回与此首选项节点上的指定键或<tt>null</tt>相关联的值，如果没有关联此键，或不能在这个时间来确定所述关联。</span>
+<span>保证<tt>key</tt>不为空。</span>
+<span>此外，保证该节点尚未被删除。</span>
+<span>（实现者不需要检查这些东西。）</span>
+<p> <span>一般来说，这种方法在任何情况下都不应该抛出异常。</span> <span>但是，如果它抛出异常，该异常将被截获并被视为<tt>null</tt>返回值。</span> </p>
+<p> <span>这个方法是用这个节点上的锁来调用的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 关键 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与此首选项节点上的指定键或 
+            <tt>null</tt>相关联的值，如果有此键的关联，或该关联不能在这个时间来确定。 
+           </dd>
+</dl> </li>
+</ul> <a name="removeSpi-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removeSpi</h4> <pre>protected abstract void removeSpi(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> key)</pre>
+<div class="block">
+<span>删除此首选项节点上指定键的关联（如果有）。</span>
+<span>保证<tt>key</tt>不为空。</span>
+<span>此外，保证该节点尚未被删除。</span>
+<span>（实现者不需要检查这些东西。）</span>
+<p> <span>这个方法是用这个节点上的锁来调用的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>key</code> - 关键 
+           </dd>
+</dl> </li>
+</ul> <a name="removeNodeSpi--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removeNodeSpi</h4> <pre>protected abstract void removeNodeSpi()
+                               throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>删除此首选项节点，使其无效及其包含的任何首选项。</span>
+<span>命名的孩子在进行此调用时不会有后代（即， <a href="../../../java/util/prefs/Preferences.html#removeNode--"><code>Preferences.removeNode()</code></a>方法以自下而上的方式重复此方法，在删除节点本身之前删除节点的后代）。</span>
+<p> <span>这个方法是使用该节点及其父节点（以及作为单个调用到<a href="../../../java/util/prefs/Preferences.html#removeNode--"><code>Preferences.removeNode()</code></a>的结果被删除的所有祖先）保持的锁来调用的。</span> </p>
+<p> <span>在节点（或祖先）上调用<tt>flush</tt>方法之前，删除节点不需要持续。</span> </p>
+<p> <span>如果这个节点抛出一个<tt>BackingStoreException</tt> ，这个例外会传出超出封闭的<a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>调用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成，或无法与之通信。 
+           </dd>
+</dl> </li>
+</ul> <a name="keysSpi--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>keysSpi</h4> <pre>protected abstract <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] keysSpi()
+                             throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>返回在此首选项节点中具有关联值的所有键。</span>
+<span>（如果此节点没有首选项，则返回的数组的大小为零）。保证该节点尚未被删除。</span>
+<p> <span>这个方法是用这个节点上的锁来调用的。</span> </p>
+<p> <span>如果这个节点抛出一个<tt>BackingStoreException</tt> ，这个例外会传出超出封闭的<a href="../../../java/util/prefs/AbstractPreferences.html#keys--"><code>keys()</code></a>调用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在此首选项节点中具有关联值的键的数组。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成，或无法与之通信。 
+           </dd>
+</dl> </li>
+</ul> <a name="childrenNamesSpi--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>childrenNamesSpi</h4> <pre>protected abstract <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] childrenNamesSpi()
+                                      throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>返回此首选项节点的子节点的名称。</span>
+<span>（如果此节点没有子节点，则返回的数组的大小为零）。此方法不需要返回任何已缓存的节点的名称，但可能没有损害。</span>
+<p> <span>这个方法是用这个节点上的锁来调用的。</span> </p>
+<p> <span>如果这个节点抛出一个<tt>BackingStoreException</tt> ，这个例外会传出超出封闭的<a href="../../../java/util/prefs/AbstractPreferences.html#childrenNames--"><code>childrenNames()</code></a>调用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个包含此首选项节点的子节点名称的数组。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成，或无法与之通信。 
+           </dd>
+</dl> </li>
+</ul> <a name="getChild-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getChild</h4> <pre>protected <a href="../../../java/util/prefs/AbstractPreferences.html" title="class in java.util.prefs">AbstractPreferences</a> getChild(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> nodeName)
+                                throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>如果命名的子项存在，返回命名的子<tt>节点</tt> ，否则<tt>返回null</tt> 。</span>
+<span>保证<tt>nodeName</tt>不为空，不为空，不含斜杠字符（'/'），不能超过<a href="../../../java/util/prefs/Preferences.html#MAX_NAME_LENGTH"><code>Preferences.MAX_NAME_LENGTH</code>个</a>字符。</span>
+<span>此外，保证该节点尚未被删除。</span>
+<span>（如果他选择覆盖这种方法，那么实现者不需要检查这些事情。）</span>
+<p> <span>最后，保证命名的节点在上一次被删除之前没有被这个方法的先前调用返回，或<a href="../../../java/util/prefs/AbstractPreferences.html#childSpi-java.lang.String-"><code>childSpi(java.lang.String)</code></a> 。</span> <span>换句话说，缓存的值将始终优先于调用此方法。</span> <span>（如果他选择覆盖此方法，那么实现者不需要维护自己先前返回的孩子的缓存。）</span> </p>
+<p> <span>此实现获取此首选项节点的锁定，调用<a href="../../../java/util/prefs/AbstractPreferences.html#childrenNames--"><code>childrenNames()</code></a>获取此节点子节点名称的数组，然后迭代数组，将每个子节点的名称与指定的节点名称进行比较。</span> <span>如果子节点具有正确的名称，则调用<a href="../../../java/util/prefs/AbstractPreferences.html#childSpi-java.lang.String-"><code>childSpi(String)</code></a>方法，并返回结果节点。</span> <span>如果迭代完成而没有找到指定的名称，则返回<tt>null</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nodeName</code> - 要搜索的小孩的姓名。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             命名的子项（如果存在），如果不存在则为null。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障或无法与其进行通信，此操作无法完成。 
+           </dd>
+</dl> </li>
+</ul> <a name="childSpi-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>childSpi</h4> <pre>protected abstract <a href="../../../java/util/prefs/AbstractPreferences.html" title="class in java.util.prefs">AbstractPreferences</a> childSpi(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</pre>
+<div class="block">
+<span>返回此首选项节点的命名子节点，如果它不存在则创建它。</span>
+<span>保证<tt>name</tt>非空，非空，不包含斜杠字符（'/'），不超过<a href="../../../java/util/prefs/Preferences.html#MAX_NAME_LENGTH"><code>Preferences.MAX_NAME_LENGTH</code>个</a>字符。</span>
+<span>此外，保证该节点尚未被删除。</span>
+<span>（实施者不需要检查任何这些事情。）</span>
+<p> <span>最后，可以保证命名的节点尚未通过这种方法或者以前调用返回<a href="../../../java/util/prefs/AbstractPreferences.html#getChild-java.lang.String-"><code>getChild(String)</code></a>它移除最后一次了。</span> <span>换句话说，缓存的值将始终优先于调用此方法。</span> <span>子类不需要维护自己先前返回的子节点的缓存。</span> </p>
+<p> <span>实现者必须确保返回的节点尚未被删除。</span> <span>如果先前删除了这个节点的一个相似的子节点，那么实现者必须返回一个新构建的<tt>AbstractPreferences</tt>节点;</span> <span>一旦删除，一个<tt>AbstractPreferences</tt>节点不能“复苏”。</span> </p>
+<p> <span>如果此方法导致创建节点，则在此节点或其祖先（或后代）上调用<tt>flush</tt>方法之前，不会保证此节点是持久的。</span> </p>
+<p> <span>这个方法是用这个节点上的锁来调用的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 相对于此首选项节点返回的子节点的名称。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             命名的子节点。 
+           </dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+            返回此首选项节点的绝对路径名。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#toString--">toString</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             对象的字符串表示形式。 
+           </dd>
+</dl> </li>
+</ul> <a name="sync--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>sync</h4> <pre>public void sync()
+          throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>实现<tt>sync</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#sync--"><code>Preferences.sync()</code></a> 。</span>
+<p> <span>此实现调用一个递归帮助程序来锁定此节点，调用它上的syncSpi（），解锁该节点，并递归地调用每个“高速缓存的子”的方法。</span> <span>缓存的子节点是此虚拟机中已创建但未随后删除的此节点的子节点。</span> <span>实际上，该方法对根据此节点的“高速缓存子树”进行深度优先遍历，仅在该节点被锁定时调用子树中每个节点上的syncSpi（）。</span> <span>请注意，syncSpi（）是从上而下调用的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#sync--">sync</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成，或无法与之通信。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/AbstractPreferences.html#flush--"><code>flush()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="syncSpi--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>syncSpi</h4> <pre>protected abstract void syncSpi()
+                         throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>此方法在此节点锁定时被调用。</span>
+<span>此方法的合同是将存储在此节点的任何缓存首选项与存储在后备存储中的任何内容进行同步。</span>
+<span>（这是完全可能的，这点上不支持存储存在，可能是因为它已被其他虚拟机删除，或者因为它尚未创建）。注意，在这个任意子节点，此方法<i>不应</i>同步偏好节点。</span>
+<span>如果后台存储自动同步整个子树，则鼓励实现者重写sync（），而不是仅仅覆盖此方法。</span>
+<p> <span>如果这个节点抛出一个<tt>BackingStoreException</tt> ，这个例外会传出超出封闭的<a href="../../../java/util/prefs/AbstractPreferences.html#sync--"><code>sync()</code></a>调用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障或无法与之通信，此操作无法完成。 
+           </dd>
+</dl> </li>
+</ul> <a name="flush--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>flush</h4> <pre>public void flush()
+           throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>实现<tt>flush</tt>方法按照在本说明书中<a href="../../../java/util/prefs/Preferences.html#flush--"><code>Preferences.flush()</code></a> 。</span>
+<p> <span>此实现调用一个递归帮助程序来锁定此节点，调用其上的flushSpi（），解锁此节点，并递归地在每个“缓存的子节点”上调用此方法。</span> <span>缓存的子节点是此虚拟机中已创建但未随后删除的此节点的子节点。</span> <span>实际上，此方法会深入第一遍遍历此节点的“缓存子树”，在子树中的每个节点上调用flushSpi（），而只锁定该节点。</span> <span>请注意，flushSpi（）是从上而下调用的。</span> </p>
+<p> <span>如果在使用<a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除的节点上调用此方法，则在此节点上调用flushSpi（），但不调用其他节点。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#flush--">flush</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成，或无法与之通信。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/AbstractPreferences.html#flush--"><code>flush()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="flushSpi--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>flushSpi</h4> <pre>protected abstract void flushSpi()
+                          throws <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+<span>此方法在此节点锁定时被调用。</span>
+<span>此方法的合同是强制将此偏好节点的内容中的任何缓存更改加入后备存储，以保证其持久性。</span>
+<span>（这是完全可能的是，该节点上不后备存储器中存在，或者是因为它已被另一个VM删除，或因为它尚未被创建）。注意，在此任何子节点此方法<i>不应</i>冲洗喜好节点。</span>
+<span>如果后台存储自动刷新整个子树，则鼓励实现者重写flush（），而不是仅仅覆盖此方法。</span>
+<p> <span>如果这个节点抛出一个<tt>BackingStoreException</tt> ，这个例外会传出超出封闭的<a href="../../../java/util/prefs/AbstractPreferences.html#flush--"><code>flush()</code></a>调用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果由于后备存储器中的故障导致此操作无法完成或无法与之通信。 
+           </dd>
+</dl> </li>
+</ul> <a name="isRemoved--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isRemoved</h4> <pre>protected boolean isRemoved()</pre>
+<div class="block">
+<span>返回<tt>true</tt> iff此节点（或祖先）已使用<a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。</span>
+<span>此方法在返回用于跟踪此状态的私有字段的内容之前锁定此节点。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>true</tt>如果此节点（或祖先）已使用 
+            <a href="../../../java/util/prefs/AbstractPreferences.html#removeNode--"><code>removeNode()</code></a>方法删除。 
+           </dd>
+</dl> </li>
+</ul> <a name="exportNode-java.io.OutputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>exportNode</h4> <pre>public void exportNode(<a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os)
+                throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                       <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+            实现 
+           <tt>exportNode</tt>方法按照在本说明书中 
+           <a href="../../../java/util/prefs/Preferences.html#exportNode-java.io.OutputStream-"><code>Preferences.exportNode(OutputStream)</code></a> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#exportNode-java.io.OutputStream-">exportNode</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>os</code> - 发送XML文档的输出流。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果写入指定的输出流导致一个 
+            <tt>IOException</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果不能从后备存储读取偏好数据。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#importPreferences-java.io.InputStream-"><code>Preferences.importPreferences(InputStream)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="exportSubtree-java.io.OutputStream-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>exportSubtree</h4> <pre>public void exportSubtree(<a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os)
+                   throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                          <a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></pre>
+<div class="block">
+            实现 
+           <tt>exportSubtree</tt>方法按照在本说明书中 
+           <a href="../../../java/util/prefs/Preferences.html#exportSubtree-java.io.OutputStream-"><code>Preferences.exportSubtree(OutputStream)</code></a> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/prefs/Preferences.html#exportSubtree-java.io.OutputStream-">exportSubtree</a></code>在类别 
+            <code><a href="../../../java/util/prefs/Preferences.html" title="class in java.util.prefs">Preferences</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>os</code> - 发送XML文档的输出流。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果写入指定的输出流导致 
+            <tt>IOException</tt> 。 
+           </dd>
+<dd>
+<code><a href="../../../java/util/prefs/BackingStoreException.html" title="class in java.util.prefs">BackingStoreException</a></code> - 如果无法从后备存储读取偏好数据。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/prefs/Preferences.html#importPreferences-java.io.InputStream-"><code>Preferences.importPreferences(InputStream)</code></a> ， 
+            <a href="../../../java/util/prefs/Preferences.html#exportNode-java.io.OutputStream-"><code>Preferences.exportNode(OutputStream)</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

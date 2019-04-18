@@ -1,0 +1,1619 @@
+<div class="header">
+<div class="subTitle">
+     javax.swing.text.html 
+   </div>
+<h2 class="title" title="Class HTMLDocument">Class HTMLDocument</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../../javax/swing/text/AbstractDocument.html" title="class in javax.swing.text">javax.swing.text.AbstractDocument</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">javax.swing.text.DefaultStyledDocument</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.swing.text.html.HTMLDocument</li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../../../javax/swing/text/Document.html" title="javax.swing.text中的接口">Document</a> ， <a href="../../../../javax/swing/text/StyledDocument.html" title="javax.swing.text中的接口">StyledDocument</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">HTMLDocument</span>
+extends <a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">DefaultStyledDocument</a></pre>
+<div class="block">
+<span>建立HTML的文档。</span>
+<span>此模式的目的是支持浏览和编辑。</span>
+<span>因此，由HTML文档描述的结构默认情况下不会完全复制。</span>
+<span>由默认建模的元素结构由<code>HTMLDocument.HTMLReader</code>类<code>HTMLDocument.HTMLReader</code> ， <code>HTMLEditorKit.ParserCallback</code>实现了解析器期望的<code>HTMLEditorKit.ParserCallback</code>协议。</span>
+<span>要更改结构，可以继承<code>HTMLReader</code> ，并重新实现方法<a href="../../../../javax/swing/text/html/HTMLDocument.html#getReader-int-"><code>getReader(int)</code></a>以返回新的读者实现。</span>
+<span>对于文档<code>HTMLReader</code>应征询创建的默认结构的细节。</span>
+<span>意图是文档是无损的（虽然重现HTML格式可能会导致不同的格式）。</span>
+<p> <span>该文档仅建立HTML，并且不会尝试在其中存储视图属性。</span> <span>元素由<code>StyleContext.NameAttribute</code>标识，该属性应始终具有标识元素种类的类型<code>HTML.Tag</code> 。</span> <span>一些元素（如注释）被合成。</span> <span><code>HTMLFactory</code>使用此属性来确定要构建什么样的视图。</span> </p>
+<p> <span>本文档支持增量加载。</span> <span><code>TokenThreshold</code>属性控制在尝试更新文档的元素结构之前缓冲了多少解析。</span> <span>此属性由<code>EditorKit</code>设置，以便子类可以禁用它。</span> </p>
+<p> <span><code>Base</code>属性确定相对URL被解析的URL。</span> <span>默认情况下，如果属性的值为URL， <code>Document.StreamDescriptionProperty</code> 。</span> <span>如果遇到&lt;BASE&gt;标签，基地将成为该标签指定的URL。</span> <span>因为基本URL是一个属性，它当然可以直接设置。</span> </p>
+<p> <span>此文档的默认内容存储机制是间隙缓冲区（ <code>GapContent</code> ）。</span> <span>可以通过使用执行Content的构造函数来提供<code>Content</code>方法。</span> </p>
+<h2> <span>修改HTMLDocument</span> </h2>
+<p> <span>除了Document和StyledDocument提供的用于突变HTMLDocument的方法之外，HTMLDocument还提供了一些方便的方法。</span> <span>可以使用以下方法将HTML内容插入到现有文档中。</span> </p>
+<ul>
+<li> <span><a href="../../../../javax/swing/text/html/HTMLDocument.html#setInnerHTML-javax.swing.text.Element-java.lang.String-"><code>setInnerHTML(Element, String)</code></a></span> </li>
+<li> <span><a href="../../../../javax/swing/text/html/HTMLDocument.html#setOuterHTML-javax.swing.text.Element-java.lang.String-"><code>setOuterHTML(Element, String)</code></a></span> </li>
+<li> <span><a href="../../../../javax/swing/text/html/HTMLDocument.html#insertBeforeStart-javax.swing.text.Element-java.lang.String-"><code>insertBeforeStart(Element, String)</code></a></span> </li>
+<li> <span><a href="../../../../javax/swing/text/html/HTMLDocument.html#insertAfterStart-javax.swing.text.Element-java.lang.String-"><code>insertAfterStart(Element, String)</code></a></span> </li>
+<li> <span><a href="../../../../javax/swing/text/html/HTMLDocument.html#insertBeforeEnd-javax.swing.text.Element-java.lang.String-"><code>insertBeforeEnd(Element, String)</code></a></span> </li>
+<li> <span><a href="../../../../javax/swing/text/html/HTMLDocument.html#insertAfterEnd-javax.swing.text.Element-java.lang.String-"><code>insertAfterEnd(Element, String)</code></a></span> </li>
+</ul>
+<p> <span>以下示例说明使用这些方法。</span> <span>每个示例假定HTML文档以以下方式初始化：</span> </p>
+<pre>  <span>JEditorPane p = new JEditorPane();
+ p.setContentType("text/html");
+ p.setText("..."); // Document text is provided below.
+ HTMLDocument d = (HTMLDocument) p.getDocument();</span> </pre>
+<p> <span>使用以下HTML内容：</span> </p>
+<pre>  <span>&lt;html&gt;
+   &lt;head&gt;
+     &lt;title&gt;An example HTMLDocument&lt;/title&gt;
+     &lt;style type="text/css"&gt;
+       div { background-color: silver; }
+       ul { color: red; }
+     &lt;/style&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+     &lt;div id="BOX"&gt;
+       &lt;p&gt;Paragraph 1&lt;/p&gt;
+       &lt;p&gt;Paragraph 2&lt;/p&gt;
+     &lt;/div&gt;
+   &lt;/body&gt;
+ &lt;/html&gt;</span> </pre>
+<p> <span>所有修改HTML文档的方法都需要一个<a href="../../../../javax/swing/text/Element.html" title="javax.swing.text中的接口"><code>Element</code></a> 。</span> <span>可以使用方法<a href="../../../../javax/swing/text/html/HTMLDocument.html#getElement-javax.swing.text.Element-java.lang.Object-java.lang.Object-"><code>getElement(Element e, Object attribute, Object value)</code></a>从HTML文档中获取元素。</span> <span>它以深度优先顺序返回包含具有给定值的指定属性的第一个后代元素。</span> <span>例如， <code>d.getElement(d.getDefaultRootElement(), StyleConstants.NameAttribute, HTML.Tag.P)</code>返回第一个段落元素。</span> </p>
+<p> <span>定位元素的方便快捷方式是方法<a href="../../../../javax/swing/text/html/HTMLDocument.html#getElement-java.lang.String-"><code>getElement(String)</code></a> ;</span> <span>返回一个其<code>ID</code>属性与指定值匹配的元素。</span> <span>例如， <code>d.getElement("BOX")</code>返回<code>DIV</code>元素。</span> </p>
+<p> <span><a href="../../../../javax/swing/text/html/HTMLDocument.html#getIterator-javax.swing.text.html.HTML.Tag-"><code>getIterator(HTML.Tag t)</code></a>方法也可用于查找文档中指定的HTML标签的所有出现。</span> </p>
+<h3> <span>插入元素</span> </h3>
+<p> <span>可以使用方法<code>insertAfterStart</code>和<code>insertBeforeEnd</code>将元素插入任何非叶元素的现有子元素之前或之后。</span> <span>例如，如果<code>e</code>是<code>DIV</code>元素， <code>d.insertAfterStart(e, "&lt;ul&gt;&lt;li&gt;List Item&lt;/li&gt;&lt;/ul&gt;")</code>插入<code>d.insertAfterStart(e, "&lt;ul&gt;&lt;li&gt;List Item&lt;/li&gt;&lt;/ul&gt;")</code>之前的列表，并且<code>d.insertBeforeEnd(e, "&lt;ul&gt;&lt;li&gt;List Item&lt;/li&gt;&lt;/ul&gt;")</code>在最后一段之后插入列表。</span> <span><code>DIV</code>块成为新插入元素的父代。</span> </p>
+<p> <span>通过使用方法<code>insertBeforeStart</code>和<code>insertAfterEnd</code>可以在任何元素之前或之后插入<code>insertBeforeStart</code> <code>insertAfterEnd</code> 。</span> <span>例如，如果<code>e</code>是<code>DIV</code>元素， <code>d.insertBeforeStart(e, "&lt;ul&gt;&lt;li&gt;List Item&lt;/li&gt;&lt;/ul&gt;")</code>插入列表之前的<code>DIV</code>元素，而<code>d.insertAfterEnd(e, "&lt;ul&gt;&lt;li&gt;List Item&lt;/li&gt;&lt;/ul&gt;")</code>插入列表后的<code>DIV</code>元素。</span> <span>新插入的元素成为<code>DIV</code>元素的兄弟。</span> </p>
+<h3> <span>更换元素</span> </h3>
+<p> <span>可以使用方法<code>setInnerHTML</code>和<code>setOuterHTML</code>来代替<code>setInnerHTML</code>及其<code>setOuterHTML</code> 。</span> <span>例如，如果<code>e</code>是<code>DIV</code>元素， <code>d.setInnerHTML(e, "&lt;ul&gt;&lt;li&gt;List Item&lt;/li&gt;&lt;/ul&gt;")</code>用列表替换所有的孩子段落，并且<code>d.setOuterHTML(e, "&lt;ul&gt;&lt;li&gt;List Item&lt;/li&gt;&lt;/ul&gt;")</code>替换<code>DIV</code>元素本身。</span> <span>在后一种情况下，列表的父项是<code>BODY</code>元素。</span> </p>
+<h3> <span>概要</span> </h3>
+<p> <span>下表显示了上述各种方法的示例文档和结果。</span> </p>
+<span>  Example <code>insertAfterStart</code> <code>insertBeforeEnd</code> <code>insertBeforeStart</code> <code>insertAfterEnd</code> <code>setInnerHTML</code> <code>setOuterHTML</code>
+<div style="background-color: silver;">
+<p>Paragraph 1</p>
+<p>Paragraph 2</p>
+</div>
+<!--insertAfterStart-->
+<div style="background-color: silver;">
+<ul style="color: red;">
+<li>List Item</li>
+</ul>
+<p>Paragraph 1</p>
+<p>Paragraph 2</p>
+</div>
+<!--insertBeforeEnd-->
+<div style="background-color: silver;">
+<p>Paragraph 1</p>
+<p>Paragraph 2</p>
+<ul style="color: red;">
+<li>List Item</li>
+</ul>
+</div>
+<!--insertBeforeStart-->
+<ul style="color: red;">
+<li>List Item</li>
+</ul>
+<div style="background-color: silver;">
+<p>Paragraph 1</p>
+<p>Paragraph 2</p>
+</div>
+<!--insertAfterEnd-->
+<div style="background-color: silver;">
+<p>Paragraph 1</p>
+<p>Paragraph 2</p>
+</div>
+<ul style="color: red;">
+<li>List Item</li>
+</ul>
+<!--setInnerHTML-->
+<div style="background-color: silver;">
+<ul style="color: red;">
+<li>List Item</li>
+</ul>
+</div>
+<!--setOuterHTML-->
+<ul style="color: red;">
+<li>List Item</li>
+</ul> </span>
+<table border="1" cellspacing="0">
+</table>
+<p> <span><strong>警告：</strong>此类的序列化对象与将来的Swing版本不兼容。</span> <span>当前的序列化支持适用于运行相同版本的Swing的应用程序之间的短期存储或RMI。</span> <span>从1.4开始，对所有JavaBeans的长期存储的支持已经添加到<code>java.beans</code>包中。</span> <span>请参阅<a href="../../../../java/beans/XMLEncoder.html" title="java.beans中的类"><code>XMLEncoder</code></a> 。</span> </p>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.BlockElement.html" title="class in javax.swing.text.html">HTMLDocument.BlockElement</a></span></code>
+<div class="block">
+              表示HTML的结构 
+             <em>块</em>的元素。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.HTMLReader.html" title="class in javax.swing.text.html">HTMLDocument.HTMLReader</a></span></code>
+<div class="block">
+              HTML读取器，用于加载HTML元素结构的HTML文档。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.Iterator.html" title="class in javax.swing.text.html">HTMLDocument.Iterator</a></span></code>
+<div class="block">
+              迭代器迭代特定类型的标签。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.RunElement.html" title="class in javax.swing.text.html">HTMLDocument.RunElement</a></span></code>
+<div class="block">
+              表示一组文本的元素，该文本块分配有一组HTML字符级属性。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.javax.swing.text.DefaultStyledDocument">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class javax.swing.text.<a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">DefaultStyledDocument</a></h3> <code><a href="../../../../javax/swing/text/DefaultStyledDocument.AttributeUndoableEdit.html" title="class in javax.swing.text">DefaultStyledDocument.AttributeUndoableEdit</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.ElementBuffer.html" title="class in javax.swing.text">DefaultStyledDocument.ElementBuffer</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.ElementSpec.html" title="class in javax.swing.text">DefaultStyledDocument.ElementSpec</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.SectionElement.html" title="class in javax.swing.text">DefaultStyledDocument.SectionElement</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.javax.swing.text.AbstractDocument">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class javax.swing.text.<a href="../../../../javax/swing/text/AbstractDocument.html" title="class in javax.swing.text">AbstractDocument</a></h3> <code><a href="../../../../javax/swing/text/AbstractDocument.AbstractElement.html" title="class in javax.swing.text">AbstractDocument.AbstractElement</a>, <a href="../../../../javax/swing/text/AbstractDocument.AttributeContext.html" title="interface in javax.swing.text">AbstractDocument.AttributeContext</a>, <a href="../../../../javax/swing/text/AbstractDocument.BranchElement.html" title="class in javax.swing.text">AbstractDocument.BranchElement</a>, <a href="../../../../javax/swing/text/AbstractDocument.Content.html" title="interface in javax.swing.text">AbstractDocument.Content</a>, <a href="../../../../javax/swing/text/AbstractDocument.DefaultDocumentEvent.html" title="class in javax.swing.text">AbstractDocument.DefaultDocumentEvent</a>, <a href="../../../../javax/swing/text/AbstractDocument.ElementEdit.html" title="class in javax.swing.text">AbstractDocument.ElementEdit</a>, <a href="../../../../javax/swing/text/AbstractDocument.LeafElement.html" title="class in javax.swing.text">AbstractDocument.LeafElement</a></code></li>
+</ul> </li>
+</ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#AdditionalComments">AdditionalComments</a></span></code>
+<div class="block">
+              文档属性键值。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.javax.swing.text.DefaultStyledDocument">
+<!-- --> </a> <h3>Fields inherited from class javax.swing.text.<a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">DefaultStyledDocument</a></h3> <code><a href="../../../../javax/swing/text/DefaultStyledDocument.html#buffer">buffer</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#BUFFER_SIZE_DEFAULT">BUFFER_SIZE_DEFAULT</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.javax.swing.text.AbstractDocument">
+<!-- --> </a> <h3>Fields inherited from class javax.swing.text.<a href="../../../../javax/swing/text/AbstractDocument.html" title="class in javax.swing.text">AbstractDocument</a></h3> <code><a href="../../../../javax/swing/text/AbstractDocument.html#BAD_LOCATION">BAD_LOCATION</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#BidiElementName">BidiElementName</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#ContentElementName">ContentElementName</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#ElementNameAttribute">ElementNameAttribute</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#listenerList">listenerList</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#ParagraphElementName">ParagraphElementName</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#SectionElementName">SectionElementName</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.javax.swing.text.Document">
+<!-- --> </a> <h3>Fields inherited from interface javax.swing.text.<a href="../../../../javax/swing/text/Document.html" title="interface in javax.swing.text">Document</a></h3> <code><a href="../../../../javax/swing/text/Document.html#StreamDescriptionProperty">StreamDescriptionProperty</a>, <a href="../../../../javax/swing/text/Document.html#TitleProperty">TitleProperty</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#HTMLDocument--">HTMLDocument</a></span>()</code>
+<div class="block">
+              使用默认缓冲区大小和默认值 
+             <code>StyleSheet</code>构造一个HTML文档。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#HTMLDocument-javax.swing.text.AbstractDocument.Content-javax.swing.text.html.StyleSheet-">HTMLDocument</a></span>(<a href="../../../../javax/swing/text/AbstractDocument.Content.html" title="interface in javax.swing.text">AbstractDocument.Content</a> c, <a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a> styles)</code>
+<div class="block">
+              使用给定的内容存储实现和给定的样式/属性存储机制构造一个HTML文档。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#HTMLDocument-javax.swing.text.html.StyleSheet-">HTMLDocument</a></span>(<a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a> styles)</code>
+<div class="block">
+              构造具有默认内容存储实现和指定样式/属性存储机制的HTML文档。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#create-javax.swing.text.DefaultStyledDocument.ElementSpec:A-">create</a></span>(<a href="../../../../javax/swing/text/DefaultStyledDocument.ElementSpec.html" title="class in javax.swing.text">DefaultStyledDocument.ElementSpec</a>[] data)</code>
+<div class="block">
+              用给定的元素规格替换文档的内容。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>protected <a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#createBranchElement-javax.swing.text.Element-javax.swing.text.AttributeSet-">createBranchElement</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> parent, <a href="../../../../javax/swing/text/AttributeSet.html" title="interface in javax.swing.text">AttributeSet</a> a)</code>
+<div class="block">
+              创建一个可以包含其他元素的文档分支元素。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>protected <a href="../../../../javax/swing/text/AbstractDocument.AbstractElement.html" title="class in javax.swing.text">AbstractDocument.AbstractElement</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#createDefaultRoot--">createDefaultRoot</a></span>()</code>
+<div class="block">
+              创建用于表示默认文档结构的根元素。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>protected <a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#createLeafElement-javax.swing.text.Element-javax.swing.text.AttributeSet-int-int-">createLeafElement</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> parent, <a href="../../../../javax/swing/text/AttributeSet.html" title="interface in javax.swing.text">AttributeSet</a> a, int p0, int p1)</code>
+<div class="block">
+              创建直接表示文本（没有任何子代）的文档叶元素。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#fireChangedUpdate-javax.swing.event.DocumentEvent-">fireChangedUpdate</a></span>(<a href="../../../../javax/swing/event/DocumentEvent.html" title="interface in javax.swing.event">DocumentEvent</a> e)</code>
+<div class="block">
+              通知所有在此事件类型上通知有兴趣的听众。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#fireUndoableEditUpdate-javax.swing.event.UndoableEditEvent-">fireUndoableEditUpdate</a></span>(<a href="../../../../javax/swing/event/UndoableEditEvent.html" title="class in javax.swing.event">UndoableEditEvent</a> e)</code>
+<div class="block">
+              通知所有在此事件类型上通知有兴趣的听众。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../../java/net/URL.html" title="class in java.net">URL</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getBase--">getBase</a></span>()</code>
+<div class="block">
+              返回相对URL的位置。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getElement-javax.swing.text.Element-java.lang.Object-java.lang.Object-">getElement</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> e, <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> attribute, <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> value)</code>
+<div class="block">
+              返回的子元素 
+             <code>e</code>包含属性， 
+             <code>attribute</code>值为 
+             <code>value</code> ，或 
+             <code>null</code> ，如果一个也没有找到。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getElement-java.lang.String-">getElement</a></span>(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> id)</code>
+<div class="block">
+              返回给定ID为 
+             <code>Attribute</code>的元素。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/html/HTMLDocument.Iterator.html" title="class in javax.swing.text.html">HTMLDocument.Iterator</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getIterator-javax.swing.text.html.HTML.Tag-">getIterator</a></span>(<a href="../../../../javax/swing/text/html/HTML.Tag.html" title="class in javax.swing.text.html">HTML.Tag</a> t)</code>
+<div class="block">
+              获取指定的HTML标签的迭代器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/html/HTMLEditorKit.Parser.html" title="class in javax.swing.text.html">HTMLEditorKit.Parser</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getParser--">getParser</a></span>()</code>
+<div class="block">
+              返回在将HTML插入现有文档时使用的解析器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getPreservesUnknownTags--">getPreservesUnknownTags</a></span>()</code>
+<div class="block">
+              返回解析器遇到未知标记时观察到的行为。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/html/HTMLEditorKit.ParserCallback.html" title="class in javax.swing.text.html">HTMLEditorKit.ParserCallback</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getReader-int-">getReader</a></span>(int pos)</code>
+<div class="block">
+              在使用HTML加载文档时，将为读取器提供解析器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/html/HTMLEditorKit.ParserCallback.html" title="class in javax.swing.text.html">HTMLEditorKit.ParserCallback</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getReader-int-int-int-javax.swing.text.html.HTML.Tag-">getReader</a></span>(int pos, int popDepth, int pushDepth, <a href="../../../../javax/swing/text/html/HTML.Tag.html" title="class in javax.swing.text.html">HTML.Tag</a> insertTag)</code>
+<div class="block">
+              返回解析器的读取器，用于使用HTML加载文档。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getStyleSheet--">getStyleSheet</a></span>()</code>
+<div class="block">
+              使用HTML文档本身指定的文档特定显示规则（CSS）获取 
+             <code>StyleSheet</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#getTokenThreshold--">getTokenThreshold</a></span>()</code>
+<div class="block">
+              在尝试更新文档元素结构之前，获取要缓冲的令牌数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#insert-int-javax.swing.text.DefaultStyledDocument.ElementSpec:A-">insert</a></span>(int offset, <a href="../../../../javax/swing/text/DefaultStyledDocument.ElementSpec.html" title="class in javax.swing.text">DefaultStyledDocument.ElementSpec</a>[] data)</code>
+<div class="block">
+              批量插入新元素。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#insertAfterEnd-javax.swing.text.Element-java.lang.String-">insertAfterEnd</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem, <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)</code>
+<div class="block">
+              在给定元素的末尾之后插入指定为字符串的HTML。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#insertAfterStart-javax.swing.text.Element-java.lang.String-">insertAfterStart</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem, <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)</code>
+<div class="block">
+              在元素的开始处插入指定为字符串的HTML。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#insertBeforeEnd-javax.swing.text.Element-java.lang.String-">insertBeforeEnd</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem, <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)</code>
+<div class="block">
+              在元素的末尾插入指定为字符串的HTML。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#insertBeforeStart-javax.swing.text.Element-java.lang.String-">insertBeforeStart</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem, <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)</code>
+<div class="block">
+              在给定元素开始之前插入指定为字符串的HTML。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#insertUpdate-javax.swing.text.AbstractDocument.DefaultDocumentEvent-javax.swing.text.AttributeSet-">insertUpdate</a></span>(<a href="../../../../javax/swing/text/AbstractDocument.DefaultDocumentEvent.html" title="class in javax.swing.text">AbstractDocument.DefaultDocumentEvent</a> chng, <a href="../../../../javax/swing/text/AttributeSet.html" title="interface in javax.swing.text">AttributeSet</a> attr)</code>
+<div class="block">
+              更新由于文本插入而导致的文档结构。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#processHTMLFrameHyperlinkEvent-javax.swing.text.html.HTMLFrameHyperlinkEvent-">processHTMLFrameHyperlinkEvent</a></span>(<a href="../../../../javax/swing/text/html/HTMLFrameHyperlinkEvent.html" title="class in javax.swing.text.html">HTMLFrameHyperlinkEvent</a> e)</code>
+<div class="block">
+              处理 
+             <code>HyperlinkEvents</code>由在HTML文档的帧生成。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#setBase-java.net.URL-">setBase</a></span>(<a href="../../../../java/net/URL.html" title="class in java.net">URL</a> u)</code>
+<div class="block">
+              设置解析相对URL的位置。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#setInnerHTML-javax.swing.text.Element-java.lang.String-">setInnerHTML</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem, <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)</code>
+<div class="block">
+              用指定为HTML字符串的内容替换给定元素的子元素。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#setOuterHTML-javax.swing.text.Element-java.lang.String-">setOuterHTML</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem, <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)</code>
+<div class="block">
+              用指定为HTML字符串的内容替换父项中的给定元素。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#setParagraphAttributes-int-int-javax.swing.text.AttributeSet-boolean-">setParagraphAttributes</a></span>(int offset, int length, <a href="../../../../javax/swing/text/AttributeSet.html" title="interface in javax.swing.text">AttributeSet</a> s, boolean replace)</code>
+<div class="block">
+              设置段落的属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#setParser-javax.swing.text.html.HTMLEditorKit.Parser-">setParser</a></span>(<a href="../../../../javax/swing/text/html/HTMLEditorKit.Parser.html" title="class in javax.swing.text.html">HTMLEditorKit.Parser</a> parser)</code>
+<div class="block">
+              将插入html的方法使用的解析器设置为现有文档，例如 
+             <code>setInnerHTML</code>和 
+             <code>setOuterHTML</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#setPreservesUnknownTags-boolean-">setPreservesUnknownTags</a></span>(boolean preservesTags)</code>
+<div class="block">
+              确定解析器如何处理未知标签。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLDocument.html#setTokenThreshold-int-">setTokenThreshold</a></span>(int n)</code>
+<div class="block">
+              在尝试更新文档元素结构之前，设置要缓冲的令牌数。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.text.DefaultStyledDocument">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.text.<a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">DefaultStyledDocument</a></h3> <code><a href="../../../../javax/swing/text/DefaultStyledDocument.html#addDocumentListener-javax.swing.event.DocumentListener-">addDocumentListener</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#addStyle-java.lang.String-javax.swing.text.Style-">addStyle</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#getBackground-javax.swing.text.AttributeSet-">getBackground</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#getCharacterElement-int-">getCharacterElement</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#getDefaultRootElement--">getDefaultRootElement</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#getFont-javax.swing.text.AttributeSet-">getFont</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#getForeground-javax.swing.text.AttributeSet-">getForeground</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#getLogicalStyle-int-">getLogicalStyle</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#getParagraphElement-int-">getParagraphElement</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#getStyle-java.lang.String-">getStyle</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#getStyleNames--">getStyleNames</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#removeDocumentListener-javax.swing.event.DocumentListener-">removeDocumentListener</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#removeElement-javax.swing.text.Element-">removeElement</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#removeStyle-java.lang.String-">removeStyle</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#removeUpdate-javax.swing.text.AbstractDocument.DefaultDocumentEvent-">removeUpdate</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#setCharacterAttributes-int-int-javax.swing.text.AttributeSet-boolean-">setCharacterAttributes</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#setLogicalStyle-int-javax.swing.text.Style-">setLogicalStyle</a>, <a href="../../../../javax/swing/text/DefaultStyledDocument.html#styleChanged-javax.swing.text.Style-">styleChanged</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.text.AbstractDocument">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.text.<a href="../../../../javax/swing/text/AbstractDocument.html" title="class in javax.swing.text">AbstractDocument</a></h3> <code><a href="../../../../javax/swing/text/AbstractDocument.html#addUndoableEditListener-javax.swing.event.UndoableEditListener-">addUndoableEditListener</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#createPosition-int-">createPosition</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#dump-java.io.PrintStream-">dump</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#fireInsertUpdate-javax.swing.event.DocumentEvent-">fireInsertUpdate</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#fireRemoveUpdate-javax.swing.event.DocumentEvent-">fireRemoveUpdate</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getAsynchronousLoadPriority--">getAsynchronousLoadPriority</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getAttributeContext--">getAttributeContext</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getBidiRootElement--">getBidiRootElement</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getContent--">getContent</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getCurrentWriter--">getCurrentWriter</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getDocumentFilter--">getDocumentFilter</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getDocumentListeners--">getDocumentListeners</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getDocumentProperties--">getDocumentProperties</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getEndPosition--">getEndPosition</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getLength--">getLength</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getListeners-java.lang.Class-">getListeners</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getProperty-java.lang.Object-">getProperty</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getRootElements--">getRootElements</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getStartPosition--">getStartPosition</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getText-int-int-">getText</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getText-int-int-javax.swing.text.Segment-">getText</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#getUndoableEditListeners--">getUndoableEditListeners</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#insertString-int-java.lang.String-javax.swing.text.AttributeSet-">insertString</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#postRemoveUpdate-javax.swing.text.AbstractDocument.DefaultDocumentEvent-">postRemoveUpdate</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#putProperty-java.lang.Object-java.lang.Object-">putProperty</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#readLock--">readLock</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#readUnlock--">readUnlock</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#remove-int-int-">remove</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#removeUndoableEditListener-javax.swing.event.UndoableEditListener-">removeUndoableEditListener</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#render-java.lang.Runnable-">render</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#replace-int-int-java.lang.String-javax.swing.text.AttributeSet-">replace</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#setAsynchronousLoadPriority-int-">setAsynchronousLoadPriority</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#setDocumentFilter-javax.swing.text.DocumentFilter-">setDocumentFilter</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#setDocumentProperties-java.util.Dictionary-">setDocumentProperties</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#writeLock--">writeLock</a>, <a href="../../../../javax/swing/text/AbstractDocument.html#writeUnlock--">writeUnlock</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.text.Document">
+<!-- --> </a> <h3>Methods inherited from interface javax.swing.text.<a href="../../../../javax/swing/text/Document.html" title="interface in javax.swing.text">Document</a></h3> <code><a href="../../../../javax/swing/text/Document.html#addUndoableEditListener-javax.swing.event.UndoableEditListener-">addUndoableEditListener</a>, <a href="../../../../javax/swing/text/Document.html#createPosition-int-">createPosition</a>, <a href="../../../../javax/swing/text/Document.html#getEndPosition--">getEndPosition</a>, <a href="../../../../javax/swing/text/Document.html#getLength--">getLength</a>, <a href="../../../../javax/swing/text/Document.html#getProperty-java.lang.Object-">getProperty</a>, <a href="../../../../javax/swing/text/Document.html#getRootElements--">getRootElements</a>, <a href="../../../../javax/swing/text/Document.html#getStartPosition--">getStartPosition</a>, <a href="../../../../javax/swing/text/Document.html#getText-int-int-">getText</a>, <a href="../../../../javax/swing/text/Document.html#getText-int-int-javax.swing.text.Segment-">getText</a>, <a href="../../../../javax/swing/text/Document.html#insertString-int-java.lang.String-javax.swing.text.AttributeSet-">insertString</a>, <a href="../../../../javax/swing/text/Document.html#putProperty-java.lang.Object-java.lang.Object-">putProperty</a>, <a href="../../../../javax/swing/text/Document.html#remove-int-int-">remove</a>, <a href="../../../../javax/swing/text/Document.html#removeUndoableEditListener-javax.swing.event.UndoableEditListener-">removeUndoableEditListener</a>, <a href="../../../../javax/swing/text/Document.html#render-java.lang.Runnable-">render</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="AdditionalComments">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>AdditionalComments</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> AdditionalComments</pre>
+<div class="block">
+<span>文档属性键值。</span>
+<span>键的值将是一个字符串向量，这是在正文中没有发现的注释。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLDocument.AdditionalComments">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="HTMLDocument--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>HTMLDocument</h4> <pre>public HTMLDocument()</pre>
+<div class="block">
+<span>使用默认缓冲区大小和默认值<code>StyleSheet</code>构造一个HTML文档。</span>
+<span>这是构造一个便捷方法<code>HTMLDocument(Content, StyleSheet)</code> 。</span>
+</div> </li>
+</ul> <a name="HTMLDocument-javax.swing.text.html.StyleSheet-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>HTMLDocument</h4> <pre>public HTMLDocument(<a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a> styles)</pre>
+<div class="block">
+<span>构造具有默认内容存储实现和指定样式/属性存储机制的HTML文档。</span>
+<span>这是构造一个便捷方法<code>HTMLDocument(Content, StyleSheet)</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>styles</code> - 风格 
+           </dd>
+</dl> </li>
+</ul> <a name="HTMLDocument-javax.swing.text.AbstractDocument.Content-javax.swing.text.html.StyleSheet-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>HTMLDocument</h4> <pre>public HTMLDocument(<a href="../../../../javax/swing/text/AbstractDocument.Content.html" title="interface in javax.swing.text">AbstractDocument.Content</a> c,
+                    <a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a> styles)</pre>
+<div class="block">
+            使用给定的内容存储实现和给定的样式/属性存储机制构造一个HTML文档。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>c</code> - 内容的容器 
+           </dd>
+<dd>
+<code>styles</code> - 风格 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getReader-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getReader</h4> <pre>public <a href="../../../../javax/swing/text/html/HTMLEditorKit.ParserCallback.html" title="class in javax.swing.text.html">HTMLEditorKit.ParserCallback</a> getReader(int pos)</pre>
+<div class="block">
+<span>在使用HTML加载文档时，将为读取器提供解析器。</span>
+<span>这是为了返回一个<code>HTMLDocument.HTMLReader</code>的实例。</span>
+<span>子类可以重新实现此方法，以便根据需要更改文档的结构。</span>
+<span>（例如，处理自定义标签，或结构性地表示字符样式元素。）</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pos</code> - 起始位置 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             解析器使用的读取器加载文档 
+           </dd>
+</dl> </li>
+</ul> <a name="getReader-int-int-int-javax.swing.text.html.HTML.Tag-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getReader</h4> <pre>public <a href="../../../../javax/swing/text/html/HTMLEditorKit.ParserCallback.html" title="class in javax.swing.text.html">HTMLEditorKit.ParserCallback</a> getReader(int pos,
+                                              int popDepth,
+                                              int pushDepth,
+                                              <a href="../../../../javax/swing/text/html/HTML.Tag.html" title="class in javax.swing.text.html">HTML.Tag</a> insertTag)</pre>
+<div class="block">
+<span>返回解析器的读取器，用于使用HTML加载文档。</span>
+<span>这是为了返回一个<code>HTMLDocument.HTMLReader</code>的实例。</span>
+<span>子类可以重新实现此方法，以便根据需要更改文档的结构。</span>
+<span>（例如，处理自定义标签，或结构性地表示字符样式元素。）</span>
+<p> <span>这是一个方便的方法<code>getReader(int, int, int, HTML.Tag, TRUE)</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>popDepth</code> -数量 
+            <code>ElementSpec.EndTagTypes</code>在插入之前产生 
+           </dd>
+<dd>
+<code>pushDepth</code> - 
+            <code>pushDepth</code>的号码， 
+            <code>ElementSpec.StartTagTypes</code>为 
+            <code>ElementSpec.JoinNextDirection</code> ，应在插入前生成，但在生成结束标签后 
+           </dd>
+<dd>
+<code>insertTag</code> - 开始插入文档的第一个标签 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             解析器使用的读取器加载文档 
+           </dd>
+</dl> </li>
+</ul> <a name="getBase--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getBase</h4> <pre>public <a href="../../../../java/net/URL.html" title="class in java.net">URL</a> getBase()</pre>
+<div class="block">
+<span>返回相对URL的位置。</span>
+<span>默认情况下，如果文档是从URL加载的，那将是文档的URL。</span>
+<span>如果找到一个基本标签并且可以被解析，它将被用作基本位置。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             的基地位置 
+           </dd>
+</dl> </li>
+</ul> <a name="setBase-java.net.URL-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setBase</h4> <pre>public void setBase(<a href="../../../../java/net/URL.html" title="class in java.net">URL</a> u)</pre>
+<div class="block">
+<span>设置解析相对URL的位置。</span>
+<span>默认情况下，如果文档是从URL加载的，那将是文档的URL。</span>
+<span>如果找到一个基本标签并且可以被解析，它将被用作基本位置。</span>
+<p> <span>这也将<code>StyleSheet</code>设置为<code>u</code>以及文档的基数。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>u</code> - 所需的基本URL 
+           </dd>
+</dl> </li>
+</ul> <a name="insert-int-javax.swing.text.DefaultStyledDocument.ElementSpec:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>insert</h4> <pre>protected void insert(int offset,
+                      <a href="../../../../javax/swing/text/DefaultStyledDocument.ElementSpec.html" title="class in javax.swing.text">DefaultStyledDocument.ElementSpec</a>[] data)
+               throws <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></pre>
+<div class="block">
+<span>批量插入新元素。</span>
+<span>这是元素如何在文档中创建。</span>
+<span>解析确定需要什么结构，并将规范创建为描述编辑的一组令牌，同时使文档没有写锁。</span>
+<span>然后可以通过读取器在突发中调用该方法以获得较短持续时间的写锁定（即，当文档实际上被改变时）。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/DefaultStyledDocument.html#insert-int-javax.swing.text.DefaultStyledDocument.ElementSpec:A-">insert</a></code>在 
+            <code><a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">DefaultStyledDocument</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>offset</code> - 起始偏移量 
+           </dd>
+<dd>
+<code>data</code> - 元素数据 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code> - 如果给定的位置不表示相关文档中的有效位置。 
+           </dd>
+</dl> </li>
+</ul> <a name="insertUpdate-javax.swing.text.AbstractDocument.DefaultDocumentEvent-javax.swing.text.AttributeSet-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>insertUpdate</h4> <pre>protected void insertUpdate(<a href="../../../../javax/swing/text/AbstractDocument.DefaultDocumentEvent.html" title="class in javax.swing.text">AbstractDocument.DefaultDocumentEvent</a> chng,
+                            <a href="../../../../javax/swing/text/AttributeSet.html" title="interface in javax.swing.text">AttributeSet</a> attr)</pre>
+<div class="block">
+<span>更新由于文本插入而导致的文档结构。</span>
+<span>这将在写锁中发生。</span>
+<span>该实现简单地解析插入的换行内容，并为元素缓冲区建立一组指令。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/DefaultStyledDocument.html#insertUpdate-javax.swing.text.AbstractDocument.DefaultDocumentEvent-javax.swing.text.AttributeSet-">insertUpdate</a></code>在 
+            <code><a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">DefaultStyledDocument</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>chng</code> - 文件更改的说明 
+           </dd>
+<dd>
+<code>attr</code> - 属性 
+           </dd>
+</dl> </li>
+</ul> <a name="create-javax.swing.text.DefaultStyledDocument.ElementSpec:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>create</h4> <pre>protected void create(<a href="../../../../javax/swing/text/DefaultStyledDocument.ElementSpec.html" title="class in javax.swing.text">DefaultStyledDocument.ElementSpec</a>[] data)</pre>
+<div class="block">
+<span>用给定的元素规格替换文档的内容。</span>
+<span>如果加载在突发中完成，则在插入之前调用。</span>
+<span>这是唯一的方法，即将文档完全加载到一个突发中。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/DefaultStyledDocument.html#create-javax.swing.text.DefaultStyledDocument.ElementSpec:A-">create</a></code>在类 
+            <code><a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">DefaultStyledDocument</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>data</code> - 文件的新内容 
+           </dd>
+</dl> </li>
+</ul> <a name="setParagraphAttributes-int-int-javax.swing.text.AttributeSet-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setParagraphAttributes</h4> <pre>public void setParagraphAttributes(int offset,
+                                   int length,
+                                   <a href="../../../../javax/swing/text/AttributeSet.html" title="interface in javax.swing.text">AttributeSet</a> s,
+                                   boolean replace)</pre>
+<div class="block">
+<span>设置段落的属性。</span>
+<p> <span>这种方法是线程安全的，尽管大多数Swing方法都不是。</span> <span>请参阅<a href="http://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html">Concurrency in Swing</a>了解更多信息。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/StyledDocument.html#setParagraphAttributes-int-int-javax.swing.text.AttributeSet-boolean-">setParagraphAttributes</a></code>在接口 
+            <code><a href="../../../../javax/swing/text/StyledDocument.html" title="interface in javax.swing.text">StyledDocument</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/DefaultStyledDocument.html#setParagraphAttributes-int-int-javax.swing.text.AttributeSet-boolean-">setParagraphAttributes</a></code>在 
+            <code><a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">DefaultStyledDocument</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>offset</code> - 
+            <code>offset</code>的偏移量（必须至少为0） 
+           </dd>
+<dd>
+<code>length</code> - 受影响的字符数（必须至少为0） 
+           </dd>
+<dd>
+<code>s</code> - 属性 
+           </dd>
+<dd>
+<code>replace</code> - 是否替换现有属性，或合并它们 
+           </dd>
+</dl> </li>
+</ul> <a name="getStyleSheet--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getStyleSheet</h4> <pre>public <a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a> getStyleSheet()</pre>
+<div class="block">
+            使用HTML文档本身指定的文档特定显示规则（CSS）获取 
+           <code>StyleSheet</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>StyleSheet</code>
+</dd>
+</dl> </li>
+</ul> <a name="getIterator-javax.swing.text.html.HTML.Tag-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getIterator</h4> <pre>public <a href="../../../../javax/swing/text/html/HTMLDocument.Iterator.html" title="class in javax.swing.text.html">HTMLDocument.Iterator</a> getIterator(<a href="../../../../javax/swing/text/html/HTML.Tag.html" title="class in javax.swing.text.html">HTML.Tag</a> t)</pre>
+<div class="block">
+<span>获取指定的HTML标签的迭代器。</span>
+<span>这可以用于遍历包含的一组锚点，或迭代输入元素。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>t</code> - 请求 
+            <code>HTML.Tag</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             给定的HTML标签的 
+            <code>Iterator</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../javax/swing/text/html/HTML.Tag.html" title="javax.swing.text.html中的类"><code>HTML.Tag</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="createLeafElement-javax.swing.text.Element-javax.swing.text.AttributeSet-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createLeafElement</h4> <pre>protected <a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> createLeafElement(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> parent,
+                                    <a href="../../../../javax/swing/text/AttributeSet.html" title="interface in javax.swing.text">AttributeSet</a> a,
+                                    int p0,
+                                    int p1)</pre>
+<div class="block">
+<span>创建直接表示文本（没有任何子代）的文档叶元素。</span>
+<span>实现此方法以返回类型的元素<code>HTMLDocument.RunElement</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/AbstractDocument.html#createLeafElement-javax.swing.text.Element-javax.swing.text.AttributeSet-int-int-">createLeafElement</a></code>在类 
+            <code><a href="../../../../javax/swing/text/AbstractDocument.html" title="class in javax.swing.text">AbstractDocument</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>parent</code> - 父元素 
+           </dd>
+<dd>
+<code>a</code> - 元素的属性 
+           </dd>
+<dd>
+<code>p0</code> - 范围的开始（必须至少为0） 
+           </dd>
+<dd>
+<code>p1</code> - 范围的结束（必须至少为p0） 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             新元素 
+           </dd>
+</dl> </li>
+</ul> <a name="createBranchElement-javax.swing.text.Element-javax.swing.text.AttributeSet-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createBranchElement</h4> <pre>protected <a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> createBranchElement(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> parent,
+                                      <a href="../../../../javax/swing/text/AttributeSet.html" title="interface in javax.swing.text">AttributeSet</a> a)</pre>
+<div class="block">
+<span>创建一个可以包含其他元素的文档分支元素。</span>
+<span>实现此方法以返回类型的元素<code>HTMLDocument.BlockElement</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/AbstractDocument.html#createBranchElement-javax.swing.text.Element-javax.swing.text.AttributeSet-">createBranchElement</a></code>在 
+            <code><a href="../../../../javax/swing/text/AbstractDocument.html" title="class in javax.swing.text">AbstractDocument</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>parent</code> - 父元素 
+           </dd>
+<dd>
+<code>a</code> - 属性 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             元素 
+           </dd>
+</dl> </li>
+</ul> <a name="createDefaultRoot--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createDefaultRoot</h4> <pre>protected <a href="../../../../javax/swing/text/AbstractDocument.AbstractElement.html" title="class in javax.swing.text">AbstractDocument.AbstractElement</a> createDefaultRoot()</pre>
+<div class="block">
+            创建用于表示默认文档结构的根元素。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/DefaultStyledDocument.html#createDefaultRoot--">createDefaultRoot</a></code>在 
+            <code><a href="../../../../javax/swing/text/DefaultStyledDocument.html" title="class in javax.swing.text">DefaultStyledDocument</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             元素基础 
+           </dd>
+</dl> </li>
+</ul> <a name="setTokenThreshold-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setTokenThreshold</h4> <pre>public void setTokenThreshold(int n)</pre>
+<div class="block">
+            在尝试更新文档元素结构之前，设置要缓冲的令牌数。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>n</code> - 要缓冲的令牌数 
+           </dd>
+</dl> </li>
+</ul> <a name="getTokenThreshold--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTokenThreshold</h4> <pre>public int getTokenThreshold()</pre>
+<div class="block">
+<span>在尝试更新文档元素结构之前，获取要缓冲的令牌数。</span>
+<span>默认值为<code>Integer.MAX_VALUE</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             要缓冲的令牌数 
+           </dd>
+</dl> </li>
+</ul> <a name="setPreservesUnknownTags-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setPreservesUnknownTags</h4> <pre>public void setPreservesUnknownTags(boolean preservesTags)</pre>
+<div class="block">
+<span>确定解析器如何处理未知标签。</span>
+<span>如果设置为true，则将未知标签放入模型中，否则丢弃。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>preservesTags</code> - 如果未知标签应保存在模型中，则为true，否则标签将被删除 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../javax/swing/text/html/HTML.Tag.html" title="javax.swing.text.html中的类"><code>HTML.Tag</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getPreservesUnknownTags--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPreservesUnknownTags</h4> <pre>public boolean getPreservesUnknownTags()</pre>
+<div class="block">
+            返回解析器遇到未知标记时观察到的行为。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果在解析时要保留未知标签，则为true 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../javax/swing/text/html/HTML.Tag.html" title="javax.swing.text.html中的类"><code>HTML.Tag</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="processHTMLFrameHyperlinkEvent-javax.swing.text.html.HTMLFrameHyperlinkEvent-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>processHTMLFrameHyperlinkEvent</h4> <pre>public void processHTMLFrameHyperlinkEvent(<a href="../../../../javax/swing/text/html/HTMLFrameHyperlinkEvent.html" title="class in javax.swing.text.html">HTMLFrameHyperlinkEvent</a> e)</pre>
+<div class="block">
+<span>处理<code>HyperlinkEvents</code>由在HTML文档的帧生成。</span>
+<span><code>HyperlinkEvent</code>类型，如参数所示，是<code>HTMLFrameHyperlinkEvent</code> 。</span>
+<span>除了包含在典型的信息<code>HyperlinkEvent</code> ，这个事件包含对应于其中的点击发生的帧（源元件）和目标名称的元素。</span>
+<span>目标名称有4个可能的值：</span>
+<ul>
+<li> <span>_自</span> </li>
+<li> <span>_parent</span> </li>
+<li> <span>_最佳</span> </li>
+<li> <span>一个命名框架</span> </li>
+</ul>
+<span>如果目标是_self，则动作是更改<code>HTML.Attribute.SRC</code>属性的值并触发<code>ChangedUpdate</code>事件。</span>
+<p> <span>如果目标是_parent，那么它将删除父元素，它是一个&lt;FRAMESET&gt;元素，并插入一个新的&lt;FRAME&gt;元素，并将其<code>HTML.Attribute.SRC</code>属性设置为具有等于目的地URL的值，然后触发<code>RemovedUpdate</code>和<code>InsertUpdate</code> 。</span> </p>
+<p> <span>如果目标是_top，这个方法什么都不做。</span> <span>在执行一个框架的视图，即<code>FrameView</code> ，处理_top被处理。</span> <span>鉴于_top意味着替换整个文档，在文档的外部处理它将被替换是有意义的。</span> </p>
+<p> <span>如果目标是一个命名的框架，那么元素层次结构将搜索一个名称等于目标的元素，它的<code>HTML.Attribute.SRC</code>属性被更新，并且一个<code>ChangedUpdate</code>事件被触发。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>e</code> - 事件 
+           </dd>
+</dl> </li>
+</ul> <a name="setParser-javax.swing.text.html.HTMLEditorKit.Parser-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setParser</h4> <pre>public void setParser(<a href="../../../../javax/swing/text/html/HTMLEditorKit.Parser.html" title="class in javax.swing.text.html">HTMLEditorKit.Parser</a> parser)</pre>
+<div class="block">
+<span>将插入html的方法使用的解析器设置为现有文档，例如<code>setInnerHTML</code>和<code>setOuterHTML</code> 。</span>
+<p> <span><code>HTMLEditorKit.createDefaultDocument</code>将为您设置解析器。</span> <span>如果您手动创建了一个<code>HTMLDocument</code> ，请确保并相应地设置解析器。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>parser</code> - 用于文本插入的解析器 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="getParser--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getParser</h4> <pre>public <a href="../../../../javax/swing/text/html/HTMLEditorKit.Parser.html" title="class in javax.swing.text.html">HTMLEditorKit.Parser</a> getParser()</pre>
+<div class="block">
+            返回在将HTML插入现有文档时使用的解析器。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             解析器用于文本插入 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="setInnerHTML-javax.swing.text.Element-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setInnerHTML</h4> <pre>public void setInnerHTML(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem,
+                         <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)
+                  throws <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a>,
+                         <a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>用指定为HTML字符串的内容替换给定元素的子元素。</span>
+<p> <span>这将被视为至少两个事件，n个插入后跟一个删除。</span> </p>
+<p> <span>考虑以下结构（ <code>elem</code>参数为<b>粗体</b> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+       |
+     <b>&lt;div&gt;</b>
+      /  \
+    &lt;p&gt;   &lt;p&gt;</span> </pre>
+<p> <span>调用<code>setInnerHTML(elem, "&lt;ul&gt;&lt;li&gt;")</code>导致以下结构（新元素为<font color="red">红色</font> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+       |
+     <b>&lt;div&gt;</b>
+         \
+         <font color="red">&lt;ul&gt;</font>
+           \
+           <font color="red">&lt;li&gt;</font></span> </pre>
+<p> <span>参数<code>elem</code>不能是叶元素，否则抛出<code>IllegalArgumentException</code> 。</span> <span>如果<code>elem</code>或<code>htmlText</code>参数为<code>null</code> ，则不会更改文档。</span> </p>
+<p> <span>为了正常工作，文档必须有一个<code>HTMLEditorKit.Parser</code>集。</span> <span>如果文档是通过<code>createDefaultDocument</code>方法从HTMLEditorKit创建的，则将是这种情况。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>elem</code> - 其子代被替换的分支元素 
+           </dd>
+<dd>
+<code>htmlText</code> - 要解析并分配给 
+            <code>elem</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>elem</code>是叶 
+           </dd>
+<dd>
+<code><a href="../../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果尚未定义 
+            <code>HTMLEditorKit.Parser</code>
+</dd>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code>
+</dd>
+<dd>
+<code><a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="setOuterHTML-javax.swing.text.Element-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setOuterHTML</h4> <pre>public void setOuterHTML(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem,
+                         <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)
+                  throws <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a>,
+                         <a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>用指定为HTML字符串的内容替换父项中的给定元素。</span>
+<p> <span>这将被视为至少两个事件，n个插入后跟一个删除。</span> </p>
+<p> <span>当替换叶子时，如果需要，将尝试确保存在换行符。</span> <span>这可能导致插入另外的元素。</span> <span>考虑一下，如果要用&lt;img&gt;替换包含换行符的字符元素，则会创建两个元素，一个用于图像，另一个用于换行。</span> </p>
+<p> <span>如果您尝试更换元素，您最有可能会<code>setOuterHTML(getCharacterElement (getLength()), "blah")</code>两个元素，例如<code>setOuterHTML(getCharacterElement (getLength()), "blah")</code>会导致最后两个元素，一个表示“blah”，另一个表示最终元素。</span> </p>
+<p> <span>考虑以下结构（ <code>elem</code>参数<b>以粗体显示</b> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+       |
+     <b>&lt;div&gt;</b>
+      /  \
+    &lt;p&gt;   &lt;p&gt;</span> </pre>
+<p> <span>调用<code>setOuterHTML(elem, "&lt;ul&gt;&lt;li&gt;")</code>导致以下结构（新元素为<font color="red">红色</font> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+      |
+     <font color="red">&lt;ul&gt;</font>
+       \
+       <font color="red">&lt;li&gt;</font></span> </pre>
+<p> <span>如果<code>elem</code>或<code>htmlText</code>参数为<code>null</code> ，则不会更改文档。</span> </p>
+<p> <span>为了正常工作，该文档必须具有HTMLEditorKit.Parser集。</span> <span>如果文档是通过<code>createDefaultDocument</code>方法从HTMLEditorKit创建的，则将是这种情况。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>elem</code> - 要替换的元素 
+           </dd>
+<dd>
+<code>htmlText</code> - 要解析和插入的字符串代替 
+            <code>elem</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果尚未设置HTMLEditorKit.Parser 
+           </dd>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code>
+</dd>
+<dd>
+<code><a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="insertAfterStart-javax.swing.text.Element-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>insertAfterStart</h4> <pre>public void insertAfterStart(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem,
+                             <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)
+                      throws <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a>,
+                             <a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>在元素的开始处插入指定为字符串的HTML。</span>
+<p> <span>考虑以下结构（ <code>elem</code>参数为<b>粗体</b> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+       |
+     <b>&lt;div&gt;</b>
+      /  \
+    &lt;p&gt;   &lt;p&gt;</span> </pre>
+<p> <span>调用<code>insertAfterStart(elem, "&lt;ul&gt;&lt;li&gt;")</code>导致以下结构（新元素为<font color="red">红色</font> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+          |
+        <b>&lt;div&gt;</b>
+       /  |  \
+    <font color="red">&lt;ul&gt;</font> &lt;p&gt; &lt;p&gt;
+     /
+  <font color="red">&lt;li&gt;</font></span> </pre>
+<p> <span>不像<code>insertBeforeStart</code>方法，新的元素成为指定元素的<em>孩子</em> ，不是同级。</span> </p>
+<p> <span>参数<code>elem</code>不能是叶元素，否则抛出<code>IllegalArgumentException</code> 。</span> <span>如果<code>elem</code>或<code>htmlText</code>参数为<code>null</code> ，则不会更改文档。</span> </p>
+<p> <span>为了正常工作，文档必须有一个<code>HTMLEditorKit.Parser</code>集。</span> <span>如果文档是通过<code>createDefaultDocument</code>方法从HTMLEditorKit创建的，则将是这种情况。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>elem</code> - 作为新文本根的分支元素 
+           </dd>
+<dd>
+<code>htmlText</code> - 要解析并分配给 
+            <code>elem</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>elem</code>是一个叶子 
+           </dd>
+<dd>
+<code><a href="../../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果文档上尚未设置HTMLEditorKit.Parser 
+           </dd>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code>
+</dd>
+<dd>
+<code><a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="insertBeforeEnd-javax.swing.text.Element-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>insertBeforeEnd</h4> <pre>public void insertBeforeEnd(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem,
+                            <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)
+                     throws <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a>,
+                            <a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>在元素的末尾插入指定为字符串的HTML。</span>
+<p> <span>如果<code>elem</code>的孩子是叶子，而一个<code>elem.getEndOffset() - 1</code>的字符是一个换行符，这将插入到换行符之前，以便在换行符之后没有文本。</span> </p>
+<p> <span>考虑以下结构（ <code>elem</code>参数为<b>粗体</b> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+       |
+     <b>&lt;div&gt;</b>
+      /  \
+    &lt;p&gt;   &lt;p&gt;</span> </pre>
+<p> <span>调用<code>insertBeforeEnd(elem, "&lt;ul&gt;&lt;li&gt;")</code>导致以下结构（新元素为<font color="red">红色</font> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+          |
+        <b>&lt;div&gt;</b>
+       /  |  \
+     &lt;p&gt; &lt;p&gt; <font color="red">&lt;ul&gt;</font>
+               \
+               <font color="red">&lt;li&gt;</font></span> </pre>
+<p> <span>不像<code>insertAfterEnd</code>方法，新的元素成为指定元素的<em>孩子</em> ，不是同级。</span> </p>
+<p> <span>参数<code>elem</code>不能是叶元素，否则抛出<code>IllegalArgumentException</code> 。</span> <span>如果<code>elem</code>或<code>htmlText</code>参数为<code>null</code> ，则不会更改文档。</span> </p>
+<p> <span>为了使其正常工作，文档必须设置一个<code>HTMLEditorKit.Parser</code> 。</span> <span>如果文档是通过<code>createDefaultDocument</code>方法从HTMLEditorKit创建的，则将是这种情况。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>elem</code> - 要作为新文本根的元素 
+           </dd>
+<dd>
+<code>htmlText</code> - 要解析并分配给 
+            <code>elem</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>elem</code>是叶 
+           </dd>
+<dd>
+<code><a href="../../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果文档上没有设置HTMLEditorKit.Parser 
+           </dd>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code>
+</dd>
+<dd>
+<code><a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="insertBeforeStart-javax.swing.text.Element-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>insertBeforeStart</h4> <pre>public void insertBeforeStart(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem,
+                              <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)
+                       throws <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a>,
+                              <a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>在给定元素开始之前插入指定为字符串的HTML。</span>
+<p> <span>考虑以下结构（ <code>elem</code>参数是<b>粗体</b> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+       |
+     <b>&lt;div&gt;</b>
+      /  \
+    &lt;p&gt;   &lt;p&gt;</span> </pre>
+<p> <span>调用<code>insertBeforeStart(elem, "&lt;ul&gt;&lt;li&gt;")</code>导致以下结构（新元素为<font color="red">红色</font> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+         /  \
+      <font color="red">&lt;ul&gt;</font> <b>&lt;div&gt;</b>
+       /    /  \
+     <font color="red">&lt;li&gt;</font> &lt;p&gt;  &lt;p&gt;</span> </pre>
+<p> <span>与<code>insertAfterStart</code>方法不同，新元素成为指定元素的<em>兄弟</em> ，而不是子元素。</span> </p>
+<p> <span>如果<code>elem</code>或<code>htmlText</code>参数为<code>null</code> ，则不会更改文档。</span> </p>
+<p> <span>为了正常工作，文档必须有一个<code>HTMLEditorKit.Parser</code>集。</span> <span>如果文档是通过<code>createDefaultDocument</code>方法从HTMLEditorKit创建的，则将是这种情况。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>elem</code> - 内容插入之前的元素 
+           </dd>
+<dd>
+<code>htmlText</code> - 要在 
+            <code>elem</code>之前解析和插入的字符串 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果文档上尚未设置HTMLEditorKit.Parser 
+           </dd>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code>
+</dd>
+<dd>
+<code><a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="insertAfterEnd-javax.swing.text.Element-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>insertAfterEnd</h4> <pre>public void insertAfterEnd(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> elem,
+                           <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> htmlText)
+                    throws <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a>,
+                           <a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>在给定元素的末尾之后插入指定为字符串的HTML。</span>
+<p> <span>考虑以下结构（ <code>elem</code>参数为<b>粗体</b> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+       |
+     <b>&lt;div&gt;</b>
+      /  \
+    &lt;p&gt;   &lt;p&gt;</span> </pre>
+<p> <span>调用<code>insertAfterEnd(elem, "&lt;ul&gt;&lt;li&gt;")</code>导致以下结构（新元素为<font color="red">红色</font> ）。</span> </p>
+<pre>  <span>&lt;body&gt;
+         /  \
+      <b>&lt;div&gt;</b> <font color="red">&lt;ul&gt;</font>
+       / \    \
+     &lt;p&gt; &lt;p&gt;  <font color="red">&lt;li&gt;</font></span> </pre>
+<p> <span>与<code>insertBeforeEnd</code>方法不同，新元素成为指定元素的<em>兄弟</em> ，而不是子元素。</span> </p>
+<p> <span>如果<code>elem</code>或<code>htmlText</code>参数为<code>null</code> ，则不会更改文档。</span> </p>
+<p> <span>为了正常工作，文档必须有一个<code>HTMLEditorKit.Parser</code>集。</span> <span>如果文档是通过<code>createDefaultDocument</code>方法从HTMLEditorKit创建的，则将是这种情况。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>elem</code> - 内容插入后的元素 
+           </dd>
+<dd>
+<code>htmlText</code> - 要解析并在 
+            <code>elem</code>之后插入的字符串 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果文档上尚未设置HTMLEditorKit.Parser 
+           </dd>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code>
+</dd>
+<dd>
+<code><a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="getElement-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getElement</h4> <pre>public <a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> getElement(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> id)</pre>
+<div class="block">
+<span>返回给定ID为<code>Attribute</code>的元素。</span>
+<span>如果找不到元素，则返回<code>null</code> 。</span>
+<span>请注意，此方法适用于<code>Attribute</code> ， <i>而不是</i>字符标记。</span>
+<span>在以下HTML片段中： <code>&lt;a id="HelloThere"&gt;</code>属性为“id”，字符标记为“a”。</span>
+<span>这是一个方便的方法<code>getElement(RootElement, HTML.Attribute.id, id)</code> 。</span>
+<span>这不是线程安全的。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>id</code> - 表示所需 
+            <code>Attribute</code>的字符串 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该元素与指定的 
+            <code>Attribute</code>或 
+            <code>null</code>如果无法找到，或 
+            <code>null</code>如果 
+            <code>id</code>是 
+            <code>null</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../javax/swing/text/html/HTML.Attribute.html" title="javax.swing.text.html中的类"><code>HTML.Attribute</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getElement-javax.swing.text.Element-java.lang.Object-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getElement</h4> <pre>public <a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> getElement(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> e,
+                          <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> attribute,
+                          <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> value)</pre>
+<div class="block">
+<span>返回的子元素<code>e</code>包含属性， <code>attribute</code>值为<code>value</code> ，或<code>null</code> ，如果一个也没有找到。</span>
+<span>这不是线程安全的。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>e</code> - 搜索开始的根元素 
+           </dd>
+<dd>
+<code>attribute</code> - 所需的 
+            <code>Attribute</code>
+</dd>
+<dd>
+<code>value</code> -指定的值 
+            <code>Attribute</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该元素具有指定的 
+            <code>Attribute</code>和指定的 
+            <code>value</code> ，或 
+            <code>null</code>如果无法找到 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../javax/swing/text/html/HTML.Attribute.html" title="javax.swing.text.html中的类"><code>HTML.Attribute</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="fireChangedUpdate-javax.swing.event.DocumentEvent-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>fireChangedUpdate</h4> <pre>protected void fireChangedUpdate(<a href="../../../../javax/swing/event/DocumentEvent.html" title="interface in javax.swing.event">DocumentEvent</a> e)</pre>
+<div class="block">
+<span>通知所有在此事件类型上通知有兴趣的听众。</span>
+<span>事件实例使用传递给fire方法的参数进行懒惰创建。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/AbstractDocument.html#fireChangedUpdate-javax.swing.event.DocumentEvent-">fireChangedUpdate</a></code>在 
+            <code><a href="../../../../javax/swing/text/AbstractDocument.html" title="class in javax.swing.text">AbstractDocument</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>e</code> - 事件 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../javax/swing/event/EventListenerList.html" title="javax.swing.event中的类"><code>EventListenerList</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="fireUndoableEditUpdate-javax.swing.event.UndoableEditEvent-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>fireUndoableEditUpdate</h4> <pre>protected void fireUndoableEditUpdate(<a href="../../../../javax/swing/event/UndoableEditEvent.html" title="class in javax.swing.event">UndoableEditEvent</a> e)</pre>
+<div class="block">
+<span>通知所有在此事件类型上通知有兴趣的听众。</span>
+<span>事件实例使用传递给fire方法的参数进行懒惰创建。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/AbstractDocument.html#fireUndoableEditUpdate-javax.swing.event.UndoableEditEvent-">fireUndoableEditUpdate</a></code>在 
+            <code><a href="../../../../javax/swing/text/AbstractDocument.html" title="class in javax.swing.text">AbstractDocument</a></code>类 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>e</code> - 事件 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../javax/swing/event/EventListenerList.html" title="javax.swing.event中的类"><code>EventListenerList</code></a></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

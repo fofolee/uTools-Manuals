@@ -1,0 +1,187 @@
+<article id="wikiArticle">
+<div></div>
+<p><span class="seoSummary"><strong><code>new</code> 运算符</strong>创建一个用户定义的对象类型的实例或具有构造函数的内置对象的实例。</span>The <strong><code>new</code></strong> keyword does the following things:</p>
+<ol>
+<li>Creates a blank, plain JavaScript object;</li>
+<li>Links (sets the constructor of) this object to another object;</li>
+<li>Passes the newly created object from <em>Step 1</em> as the <code><strong>this</strong></code> context;</li>
+<li>Returns <code><strong>this</strong></code> if the function doesn't return its own object.</li>
+</ol>
+<p><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/expressions-newoperator.html" width="100%"></iframe></p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox">new <em>constructor</em>[([<em>arguments</em>])]</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>constructor</code></dt>
+<dd>一个指定对象实例的类型的类或函数。</dd>
+</dl>
+<dl>
+<dt><code>arguments</code></dt>
+<dd>一个用于被 <code>constructor</code> 调用的参数列表。</dd>
+</dl>
+<h2 id="描述">描述</h2>
+<p>创建一个用户自定义的对象需要两步：</p>
+<ol>
+<li>通过编写函数来定义对象类型。</li>
+<li>通过 <code>new</code> 来创建对象实例。</li>
+</ol>
+<p>创建一个对象类型，需要创建一个指定其名称和属性的函数；对象的属性可以指向其他对象，看下面的例子：</p>
+<p>当代码 <code>new <em>Foo</em>(...)</code> 执行时，会发生以下事情：</p>
+<ol>
+<li>一个继承自 <code><em>Foo</em>.prototype</code> 的新对象被创建。</li>
+<li>使用指定的参数调用构造函数 <em><code>Foo</code></em>，并将 <code><a href="Reference/Operators/this">this</a></code> 绑定到新创建的对象。<code>new <em>Foo</em></code> 等同于 <em><code>Foo</code></em><code>()</code>，也就是没有指定参数列表，<em><code>Foo</code></em> 不带任何参数调用的情况。</li>
+<li>由构造函数返回的对象就是 <code>new</code> 表达式的结果。如果构造函数没有显式返回一个对象，则使用步骤1创建的对象。（一般情况下，构造函数不返回值，但是用户可以选择主动返回对象，来覆盖正常的对象创建步骤）</li>
+</ol>
+<p>你始终可以对已定义的对象添加新的属性。例如，<code>car1.color = "black"</code> 语句给 <code>car1</code> 添加了一个新的属性 <code>color</code>，并给这个属性赋值 "<code>black</code>"。但是，这不会影响任何其他对象。要将新属性添加到相同类型的所有对象，你必须将该属性添加到 <code>Car</code> 对象类型的定义中。</p>
+<p>你可以使用 <code><a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/prototype">Function.prototype</a></code> 属性将共享属性添加到以前定义的对象类型。这定义了一个由该函数创建的所有对象共享的属性，而不仅仅是对象类型的其中一个实例。下面的代码将一个值为 <code>null</code> 的 <code>color</code> 属性添加到 <code>car</code> 类型的所有对象，然后仅在实例对象 <code>car1</code> 中用字符串 "<code>black</code>" 覆盖该值。详见 <a href="Reference/Global_Objects/Function/prototype">prototype</a>。</p>
+<pre class="brush: js">function Car() {}
+car1 = new Car();
+car2 = new Car();
+
+console.log(car1.color);    // undefined
+ 
+Car.prototype.color = "original color";
+console.log(car1.color);    // original color
+ 
+car1.color = 'black';
+console.log(car1.color);   // black
+
+console.log(car1.__proto__.color) //original color
+console.log(car2.__proto__.color) //original color
+console.log(car1.color)  // black
+console.log(car2.color) // original color
+</pre>
+<div class="note">
+<p>If you didn't write the <code>new</code> operator, <strong>the Constructor Function would be invoked like any Regular Function,</strong> <em>without creating an Object.</em><strong> </strong>In this case, the value of <code>this</code> is also different.</p>
+</div>
+<h2 id="示例">示例</h2>
+<h3 id="对象类型和对象实例">对象类型和对象实例</h3>
+<p>假设你要创建一个汽车的对象类型。你希望这个类型叫做car，这个类型具备make, model, year等属性，要做到这些，你需要写这样一个函数：</p>
+<pre class="brush: js">function Car(make, model, year) {
+   this.make = make;
+   this.model = model;
+   this.year = year;
+}
+</pre>
+<p>现在，你可以如下所示创建一个 <code>mycar</code> 的对象：</p>
+<pre class="brush: js">var mycar = new Car("Eagle", "Talon TSi", 1993);</pre>
+<p>这段代码创建了 <code>mycar</code> 并给他的属性指定值，于是 <code>mycar.make</code> 的值为"<code>Eagle</code>"， <code>mycar.year</code> 的值为1993，以此类推。</p>
+<p>你可以通过调用 <code>new</code> 来创建任意个汽车对象。例如：</p>
+<pre class="brush: js">var kenscar = new Car("Nissan", "300ZX", 1992);</pre>
+<h3 id="对象属性为其他对象">对象属性为其他对象</h3>
+<p>假设你定义了一个对象叫做 <code>person</code>：</p>
+<pre class="brush: js">function Person(name, age, sex) {
+   this.name = name;
+   this.age = age;
+   this.sex = sex;
+}
+</pre>
+<p>然后实例化两个新的 <code>person</code> 对象如下：</p>
+<pre class="brush: js">var rand = new Person("Rand McNally", 33, "M");
+var ken = new Person("Ken Jones", 39, "M");
+</pre>
+<p>然后你可以重写 <code>car</code> 的定义，添加一个值为 <code>person</code> 对象的 <code>owner</code> 属性，如下：</p>
+<pre class="brush: js">function Car(make, model, year, owner) {
+   this.make = make;
+   this.model = model;
+   this.year = year;
+   this.owner = owner;
+}
+</pre>
+<p>为了实例化新的对象，你可以用如下代码：</p>
+<pre class="brush: js">var car1 = new Car("Eagle", "Talon TSi", 1993, rand);
+var car2 = new Car("Nissan", "300ZX", 1992, ken);
+</pre>
+<p>创建对象时，并没有传字符串或数字给owner，而是传了对象 <code>rand</code> 和 <code>ken</code> 。这个时候，你可以这样来获取 <code>car2</code> 的owner的name：</p>
+<pre class="brush: js">car2.owner.name</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-new-operator" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">The new Operator</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-new-operator" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">The new Operator</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-11.2.2" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">The new Operator</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%203rd%20edition,%20December%201999.pdf#sec-11.2.2" hreflang="en" lang="en" rel="noopener">ECMAScript 3rd Edition (ECMA-262)<br/><small lang="zh-CN">The new Operator</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%201st%20edition,%20June%201997.pdf#sec-11.2.2" hreflang="en" lang="en" rel="noopener">ECMAScript 1st Edition (ECMA-262)<br/><small lang="zh-CN">The new Operator</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition. Implemented in JavaScript 1.0.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>new</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+<h2 id="参见">参见</h2>
+<ul>
+<li><a href="Reference/Function" title="此页面仍未被本地化, 期待您的翻译!"><code>Function</code></a></li>
+<li><a href="Reference/Global_Objects/Reflect/construct" title="Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args)."><code>Reflect.construct()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/prototype" title="Object.prototype 属性表示 Object 的原型对象。"><code>Object.prototype</code></a></li>
+</ul>
+</article>

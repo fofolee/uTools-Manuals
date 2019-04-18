@@ -1,0 +1,192 @@
+<article id="wikiArticle">
+<div></div>
+<p><code><strong><em>TypedArray</em>.from()</strong></code> 方法 从一个类数组或者可迭代对象中创建一个新类型数组。 这个方法和 <a href="Reference/Global_Objects/Array/from" title="Array.from() 方法从一个类似数组或可迭代对象中创建一个新的数组实例。"><code>Array.from()</code></a>类似。</p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox"><code><em>TypedArray</em>.from(source[, mapFn[, thisArg]])
+</code>
+where <em>TypedArray</em> is one of:
+
+Int8Array
+Uint8Array
+Uint8ClampedArray
+Int16Array
+Uint16Array
+Int32Array
+Uint32Array
+Float32Array
+Float64Array
+</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>source</code></dt>
+<dd>想要转换为类型数组的类数组或者可迭代对象。</dd>
+<dt><code>mapFn</code></dt>
+<dd>可选参数。如果指定了该参数，则最后生成的类型数组会经过该函数的加工处理后再返回。</dd>
+<dt><code>thisArg</code></dt>
+<dd>可选参数。执行 <code>mapFn</code> 函数时 <code>this</code> 的值。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>一个新的 <a href="Reference/Global_Objects/TypedArray" title="一个TypedArray 对象描述一个底层的二进制数据缓存区的一个类似数组(array-like)视图。事实上，没有名为 TypedArray的全局对象，也没有一个名为的 TypedArray构造函数。相反，有许多不同的全局对象，下面会列出这些针对特定元素类型的类型化数组的构造函数。在下面的页面中，你会找到一些不管什么类型都公用的属性和方法。"><code>TypedArray</code></a> 实例。</p>
+<h2 id="描述"> 描述</h2>
+<p><code><em>TypedArray</em>.from()</code> 允许你从下面两者来创建数组:</p>
+<ul>
+<li>类数组对象（拥有一个 <code>length</code> 属性和若干索引属性的任意对象）</li>
+<li><a href="Guide/iterable">可迭代对象</a>（你可以从它身上迭代出若干个元素的对象，比如有 <a href="Reference/Map" title="此页面仍未被本地化, 期待您的翻译!"><code>Map</code></a> 和 <a href="Reference/Global_Objects/Set" title="Set 对象允许你存储任何类型的唯一值，无论是原始值或者是对象引用。"><code>Set</code></a> 等）。</li>
+</ul>
+<p><code><em>TypedArray</em>.from()</code> 方法有一个可选参数 <code>mapFn</code>, 让你可以在最后生成的类型数组上再执行一次 <a href="Reference/Global_Objects/Array/map" title="map() 方法创建一个新数组，其结果是该数组中的每个元素都调用一个提供的函数后返回的结果。"><code>map</code></a> 方法后再返回。也就是说 <code><em>TypedArray</em>.from(obj, mapFn, thisArg)</code> 和<code><em>TypedArray</em>.from(Array.prototype.map.call(obj, mapFn, thisArg))</code> 是等价的。</p>
+<p> <code>from()</code> 的<code>length</code> 属性为1.</p>
+<p><a href="Reference/Global_Objects/Array/from" title="Array.from() 方法从一个类似数组或可迭代对象中创建一个新的数组实例。"><code>Array.from()</code></a> 和 <code><em>TypedArray</em>.from()</code>之间有一些微妙的区别:</p>
+<ul>
+<li>如果 <code>|this|</code> 的值传递给 <code><em>TypedArray</em>.from</code> 不是一个构造器, <code><em>TypedArray</em>.from</code> 将抛出{jsxref("TypeError")}}, 而 <code>Array.from</code> 默认将创建一个 <a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a>.</li>
+<li><code><em>TypedArray</em>.from</code> 使用<code>[Put]</code> 而 <code>rray.from</code> 使用<code>[DefineProperty]]</code>. 因此, 当和 <a href="Reference/Global_Objects/Proxy" title="Proxy 对象用于定义基本操作的自定义行为（如属性查找，赋值，枚举，函数调用等）。"><code>Proxy</code></a> 对象一起时, 它调用 <a href="Reference/Global_Objects/Proxy/handler/set" title="handler.set() 方法用于拦截设置属性值的操作"><code>handler.set</code></a> 创建一个新的元素而非 <a href="Reference/Global_Objects/Proxy/handler/defineProperty" title="handler.defineProperty() 用于拦截对对象的 Object.defineProperty() 操作。"><code>handler.defineProperty</code></a>.</li>
+<li>当 <code>from</code> 获得一个迭代器时, <code><em>TypedArray</em></code> 一开始收集迭代器中的所有值， 此时创建一个 <code>|this|</code> 的实例用于计数, 然后在实例中设置值。 <code>Array.from</code> 设置每个从迭代器其中获取的值，最后设置它的长度。</li>
+<li>当 <code>Array.from</code> 获得一个不可迭代的类数组时, it respects holes, 而 <code><em>TypedArray</em>.from</code> 将确保结果是 dense.</li>
+</ul>
+<h2 id="示例">示例</h2>
+<pre class="brush: js">// Set (iterable object)
+var s = new Set([1, 2, 3]);
+Uint8Array.from(s);
+// Uint8Array [ 1, 2, 3 ]
+
+
+// String
+Int16Array.from('123');                      
+// Int16Array [ 1, 2, 3 ]
+
+
+// Using an arrow function as the map function to
+// manipulate the elements
+Float32Array.from([1, 2, 3], x =&gt; x + x);      
+// Float32Array [ 2, 4, 6 ]
+
+
+// Generate a sequence of numbers
+Uint8Array.from({length: 5}, (v, k) =&gt; k);    
+// Uint8Array [ 0, 1, 2, 3, 4 ]
+</pre>
+<h2 id="Polyfill">Polyfill </h2>
+<p>You can partially work around this by inserting the following code at the beginning of your scripts, allowing use of much of the functionality of <font face="Consolas, Liberation Mono, Courier, monospace">from()</font> in implementations that do not natively support it.</p>
+<pre class="brush: js">if (!Int8Array.__proto__.from) {
+    (function () {
+        Int8Array.__proto__.from = function (obj, func, thisObj) {
+
+            var typedArrayClass = Int8Array.__proto__;
+            if(typeof this !== 'function') {
+                throw new TypeError('# is not a constructor');
+            }
+            if (this.__proto__ !== typedArrayClass) {
+                throw new TypeError('this is not a typed array.');
+            }
+ 
+            func = func || function (elem) {
+                    return elem;
+                };
+
+            if (typeof func !== 'function') {
+                throw new TypeError('specified argument is not a function');
+            }
+
+            obj = Object(obj);
+            if (!obj['length']) {
+                return new this(0);
+            }
+            var copy_data = [];
+            for(var i = 0; i &lt; obj.length; i++) {
+                copy_data.push(obj[i]);
+            }
+
+            copy_data = copy_data.map(func, thisObj);
+
+            var typed_array = new this(copy_data.length);
+            for(var i = 0; i &lt; typed_array.length; i++) {
+                typed_array[i] = copy_data[i];
+            }
+            return typed_array;
+        }
+    })();
+}</pre>
+<h2 id="Specifications">Specifications</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-%typedarray%.from" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">%TypedArray%.from</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-%typedarray%.from" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">%TypedArray%.from</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="Browser_compatibility">Browser compatibility</h2>
+<div>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>from</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              14</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              38</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10</td><td class="bc-supports-no bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-unknown bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              38</td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4.0.0</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><span class="bc-supports-unknown bc-supports">
+<abbr class="bc-level bc-level-unknown only-icon" title="Compatibility unknown">
+<span>Compatibility unknown</span>
+                  
+                </abbr></span></dt><dd>Compatibility unknown</dd></dl></section></div><p></p>
+</div>
+<h2 id="See_also">See also</h2>
+<ul>
+<li><a href="Reference/Global_Objects/TypedArray/of" title="TypedArray.of() 方法创建一个具有可变数量参数的新类型数组 。此方法几乎与Array.of() 相同。"><code>TypedArray.of()</code></a></li>
+<li><a href="Reference/Global_Objects/Array/from" title="Array.from() 方法从一个类似数组或可迭代对象中创建一个新的数组实例。"><code>Array.from()</code></a></li>
+<li><a href="Reference/Global_Objects/Array/map" title="map() 方法创建一个新数组，其结果是该数组中的每个元素都调用一个提供的函数后返回的结果。"><code>Array.prototype.map()</code></a></li>
+</ul>
+</article>

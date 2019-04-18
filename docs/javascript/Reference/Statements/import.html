@@ -1,0 +1,295 @@
+<article id="wikiArticle">
+<p></p><p></p>
+<p>静态的<code><strong>import</strong></code> 语句用于导入由另一个模块导出的绑定。无论是否声明了 <a href="Reference/Strict_mode" title="如果你想改变你的代码，让其工作在具有限制性JavaScript环境中，请参阅转换成严格模式。"><code>strict mode</code></a> ，导入的模块都运行在严格模式下。在浏览器中，<code>import</code> 语句只能在声明了 <code>type="module"</code> 的 <code>script</code> 的标签中使用。</p>
+<p>此外，还有一个类似函数的动态 <code>import()</code>，它不需要依赖 <code>type="module"</code> 的script标签。</p>
+<p>在 <a href="/zh-CN/docs/Web/HTML/Element/script">script</a> 标签中使用 <code>nomodule</code> 属性，可以确保向后兼容。</p>
+<p>在您希望按照一定的条件或者按需加载模块的时候，动态<code>import()</code> 是非常有用的。而静态型的 <code>import</code> 是初始化加载依赖项的最优选择，使用静态 <code>import</code> 更容易从代码静态分析工具和 <a href="/zh-CN/docs/Glossary/Tree_shaking">tree shaking</a> 中受益。</p>
+<p>语法</p>
+<pre class="syntaxbox">import <em>defaultExport</em> from "<em>module-name</em>";
+import * as <em>name</em> from "<em>module-name</em>";
+import { <em>export </em>} from "<em>module-name</em>";
+import { <em>export</em> as <em>alias </em>} from "<em>module-name</em>";
+import { <em>export1 , export2</em> } from "<em>module-name</em>";
+import { foo , bar } from "module-name/path/to/specific/un-exported/file";
+import { <em>export1 , export2</em> as <em>alias2</em> , <em>[...]</em> } from "<em>module-name</em>";
+import <em>defaultExport</em>, { <em>export</em> [ , <em>[...]</em> ] } from "<em>module-name</em>";
+import <em>defaultExport</em>, * as <em>name</em> from "<em>module-name</em>";
+import "<em>module-name</em>";
+var promise = import("module-name");//这是一个处于第三阶段的提案。
+</pre>
+<dl>
+<dt><code>defaultExport</code></dt>
+<dd>导入模块的默认导出接口的引用名。</dd>
+<dt><code>module-name</code></dt>
+<dd>要导入的模块。通常是包含目标模块的<code>.js</code>文件的相对或绝对路径名，可以不包括<code>.js</code>扩展名。某些特定的打包工具可能允许或需要使用扩展或依赖文件，它会检查比对你的运行环境。只允许单引号和双引号的字符串。</dd>
+<dt><code>name</code></dt>
+<dd>导入模块对象整体的别名，在引用导入模块时，它将作为一个命名空间来使用。</dd>
+<dt><code>export, exportN</code></dt>
+<dd>被导入模块的导出接口的名称。</dd>
+<dt><code>alias, aliasN</code></dt>
+<dd>将引用指定的导入的名称。</dd>
+</dl>
+<h2 id="描述">描述</h2>
+<p><code>name</code>参数是“导入模块对象”的名称，它将用一种名称空间来引用导入模块的接口。export参数指定单个的命名导出，而<code>import * as name</code>语法导入所有导出接口，即导入模块整体。以下示例阐明该语法。</p>
+<h3 id="导入整个模块的内容">导入整个模块的内容</h3>
+<p>这将<code>myModule</code>插入当前作用域，其中包含来自位于<code>/modules/my-module.js</code>文件中导出的所有接口。</p>
+<pre class="brush: js">import * as myModule from '/modules/my-module.js';
+</pre>
+<p>在这里，访问导出接口意味着使用模块名称（在本例为“myModule”）作为命名空间。例如，如果上面导入的模块包含一个接口<code>doAllTheAmazingThings()</code>，你可以这样调用：</p>
+<pre class="brush: js">myModule.doAllTheAmazingThings();</pre>
+<h3 id="导入单个接口">导入单个接口</h3>
+<p>给定一个名为<code>myExport</code>的对象或值，它已经从模块<code>my-module</code>导出（因为整个模块被导出）或显式地导出（使用<a href="Reference/Statements/export" title="在创建JavaScript模块时，export 语句用于从模块中导出函数、对象或原始值，以便其他程序可以通过 import 语句使用它们。"><code>export</code></a>语句），将<code>myExport</code>插入当前作用域。</p>
+<pre class="brush: js">import {myExport} from '/modules/my-module.js';</pre>
+<h3 id="导入多个接口">导入多个接口</h3>
+<p>这将<code>foo</code>和<code>bar</code>插入当前作用域。</p>
+<pre class="brush: js">import {foo, bar} from '/modules/my-module.js';</pre>
+<h3 id="导入带有别名的接口">导入带有别名的接口</h3>
+<p>你可以在导入时重命名接口。例如，将<code>shortName</code>插入当前作用域。</p>
+<pre class="brush: js">import {reallyReallyLongModuleExportName as shortName}
+  from '/modules/my-module.js';</pre>
+<h3 id="导入时重命名多个接口">导入时重命名多个接口</h3>
+<p>使用别名导入模块的多个接口。</p>
+<pre class="brush: js">import {
+  reallyReallyLongModuleMemberName as shortName, 
+  anotherLongModuleName as short
+} from '/modules/my-module.js';
+</pre>
+<h3 id="仅为副作用而导入一个模块">仅为副作用而导入一个模块</h3>
+<p>整个模块仅为副作用（中性词，无贬义含义）而导入，而不导入模块中的任何内容（接口）。 这将运行模块中的全局代码, 但实际上不导入任何值。</p>
+<pre><code>import '/modules/my-module.js';</code></pre>
+<h3 id="导入默认值">导入默认值</h3>
+<p><code><font face="Arial, x-locale-body, sans-serif"><span style="background-color: #ffffff;">引入模块可能有一个</span></font>default</code><a href="Reference/Statements/export" title="在创建JavaScript模块时，export 语句用于从模块中导出函数、对象或原始值，以便其他程序可以通过 import 语句使用它们。"><code>export</code></a>（无论它是对象，函数，类等）可用。然后可以使用<code>import</code>语句来导入这样的默认接口。</p>
+<p>最简单的用法是直接导入默认值：</p>
+<pre class="brush: js">import myDefault from '/modules/my-module.js';</pre>
+<p>也可以同时将<code>default</code>语法与上述用法（命名空间导入或命名导入）一起使用。在这种情况下，<code>default</code>导入必须首先声明。 例如：</p>
+<pre class="brush: js">import myDefault, * as myModule from '/modules/my-module.js';
+// myModule used as a namespace</pre>
+<p>或者</p>
+<pre class="brush: js">import myDefault, {foo, bar} from '/modules/my-module.js';
+// specific, named imports
+</pre>
+<h3 id="动态import">动态import</h3>
+<p>关键字import可以像调用函数一样来动态的导入模块。以这种方式调用，将返回一个 <code>promise</code>。</p>
+<p> </p>
+<pre><code>import('/modules/my-module.js')
+  .then((module) =&gt; {
+    // Do something with the module.
+  });</code>
+</pre>
+<p>这种使用方式也支持 <code>await</code> 关键字。</p>
+<pre><code>let module = await import('/modules/my-module.js');</code></pre>
+<p> </p>
+<p> </p>
+<h2 id="示例">示例</h2>
+<h3 id="标准导入">标准导入</h3>
+<p>下面的代码将会演示如何从辅助模块导入以协助处理AJAX JSON请求。</p>
+<h4 id="模块：file.js">模块：file.js</h4>
+<pre class="brush: js">function getJSON(url, callback) {
+  let xhr = new XMLHttpRequest();
+  xhr.onload = function () { 
+    callback(this.responseText) 
+  };
+  xhr.open('GET', url, true);
+  xhr.send();
+}
+
+export function getUsefulContents(url, callback) {
+  getJSON(url, data =&gt; callback(JSON.parse(data)));
+}</pre>
+<h4 id="主程序：main.js">主程序：main.js</h4>
+<pre class="brush: js">import { getUsefulContents } from '/modules/file.js';
+
+getUsefulContents('http://www.example.com',
+    data =&gt; { doSomethingUseful(data); });</pre>
+<h3 id="动态导入">动态导入</h3>
+<p>此示例展示了如何基于用户操作去加载功能模块到页面上，在例子中通过点击按钮，然后会调用模块内的函数。当然这不是能实现这个功能的唯一方式，<code>import()</code>函数也可以支持<code>await</code>。</p>
+<pre class="brush: js">const main = document.querySelector("main");
+for (const link of document.querySelectorAll("nav &gt; a")) {
+  link.addEventListener("click", e =&gt; {
+    e.preventDefault();
+
+    import('/modules/my-module.js')
+      .then(module =&gt; {
+        module.loadPageInto(main);
+      })
+      .catch(err =&gt; {
+        main.textContent = err.message;
+      });
+  });
+}</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://github.com/tc39/proposal-dynamic-import/#import" rel="noopener">"function-like" dynamic <code>import()</code>proposal</a></td>
+<td>Stage 3</td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-imports" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Imports</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/9.0/#sec-imports" hreflang="en" lang="en" rel="noopener">ECMAScript 2018 (ECMA-262)<br/><small lang="zh-CN">Imports</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/8.0/#sec-imports" hreflang="en" lang="en" rel="noopener">ECMAScript 2017 (ECMA-262)<br/><small lang="zh-CN">Imports</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/7.0/#sec-imports" hreflang="en" lang="en" rel="noopener">ECMAScript 2016 (ECMA-262)<br/><small lang="zh-CN">Imports</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-imports" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Imports</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>import</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              61</td><td class="bc-supports-yes bc-browser-edge bc-has-history"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              16<div class="bc-icons"></div><section class="bc-history" id="sect1"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              16<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              15<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 15: this feature is behind the <code>Experimental JavaScript Features</code> preference.</dd></dl></section></td><td class="bc-supports-yes bc-browser-firefox bc-has-history"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60<div class="bc-icons"></div><section class="bc-history" id="sect2"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>54 — 60<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 54 until version 60 (exclusive): this feature is behind the <code>dom.moduleScripts.enabled</code> preference. To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10.1</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              61</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              61</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android bc-has-history"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60<div class="bc-icons"></div><section class="bc-history" id="sect3"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>54 — 60<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 54 until version 60 (exclusive): this feature is behind the <code>dom.moduleScripts.enabled</code> preference. To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10.1</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-nodejs bc-has-history"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8.5.0<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect4"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8.5.0<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> files must have suffix .mjs, not .js</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 8.5.0: this feature is behind the <code>--experimental-modules</code> runtime flag.</dd></dl></section></td></tr><tr><th scope="row">Dynamic import</th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              63</td><td class="bc-supports-no bc-browser-edge bc-has-history"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect5"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> See <a class="external" href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/javascriptmoduleimport/" rel="noopener">development status</a>.</dd></dl></section></td><td class="bc-supports-yes bc-browser-firefox bc-has-history"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              66<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect6"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              66<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> See <a class="external" href="https://bugzil.la/1517546" rel="noopener">bug 1517546</a>. This flag is enabled by default on nightly builds from Nightly 67. See <a class="external" href="https://bugzil.la/1522491" rel="noopener">bug 1522491</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 66: this feature is behind the <code>javascript.options.dynamicImport</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              50</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              11.1</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              63</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              63</td><td class="bc-supports-no bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox_android bc-has-history"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              66<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect7"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              66<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> See <a class="external" href="https://bugzil.la/1517546" rel="noopener">bug 1517546</a>. This flag is enabled by default on nightly builds from Nightly 67. See <a class="external" href="https://bugzil.la/1522491" rel="noopener">bug 1522491</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 66: this feature is behind the <code>javascript.options.dynamicImport</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              50</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              11.1</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-unknown bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td></tr></tbody></table><section class="bc-legend" id="sect8"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><span class="bc-supports-unknown bc-supports">
+<abbr class="bc-level bc-level-unknown only-icon" title="Compatibility unknown">
+<span>Compatibility unknown</span>
+                  
+                </abbr></span></dt><dd>Compatibility unknown</dd><dt><abbr class="only-icon" title="See implementation notes."><span>See implementation notes.</span><i class="ic-footnote"></i></abbr></dt><dd>See implementation notes.</dd><dt><abbr class="only-icon" title="User must explicitly enable this feature."><span>User must explicitly enable this feature.</span><i class="ic-disabled"></i></abbr></dt><dd>User must explicitly enable this feature.</dd></dl></section></div><p></p>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="Reference/Statements/export" title="在创建JavaScript模块时，export 语句用于从模块中导出函数、对象或原始值，以便其他程序可以通过 import 语句使用它们。"><code>export</code></a></li>
+<li><a href="/en-US/docs/Web/JavaScript/Reference/Statements/import.meta"><code>import.meta</code></a></li>
+<li><a class="external" href="https://blogs.windows.com/msedgedev/2016/05/17/es6-modules-and-beyond/" rel="noopener">Previewing ES6 Modules and more from ES2015, ES2016 and beyond</a></li>
+<li><a class="external" href="https://hacks.mozilla.org/2015/08/es6-in-depth-modules/" rel="noopener">ES6 in Depth: Modules</a>, Hacks blog post by Jason Orendorff</li>
+<li><a class="external" href="https://hacks.mozilla.org/2018/03/es-modules-a-cartoon-deep-dive/" rel="noopener">ES modules: A cartoon deep-dive</a>, Hacks blog post by Lin Clark</li>
+<li><a class="external" href="http://exploringjs.com/es6/ch_modules.html" rel="noopener">Axel Rauschmayer's book: "Exploring JS: Modules"</a></li>
+</ul>
+</article>

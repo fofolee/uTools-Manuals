@@ -1,0 +1,1480 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.net 
+   </div>
+<h2 class="title" title="Class URI">Class URI</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.net.URI</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../java/lang/Comparable.html" title="java.lang中的接口">Comparable</a> &lt; <a href="../../java/net/URI.html" title="java.net中的类">URI</a> &gt;</span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">URI</span>
+extends <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../java/lang/Comparable.html" title="interface in java.lang">Comparable</a>&lt;<a href="../../java/net/URI.html" title="class in java.net">URI</a>&gt;, <a href="../../java/io/Serializable.html" title="interface in java.io">Serializable</a></pre>
+<div class="block">
+<span>表示统一资源标识符（URI）参考。</span>
+<p> <span>除了下面指出的一些微小偏差，这个类的一个实例表示由所定义的URI引用<a href="http://www.ietf.org/rfc/rfc2396.txt"><i>RFC 2396: Uniform Resource Identifiers (URI): Generic Syntax</i></a> ，通过修正<a href="http://www.ietf.org/rfc/rfc2732.txt"><i>RFC 2732: Format for Literal IPv6 Addresses in URLs</i></a> 。</span> <span>文字IPv6地址格式也支持scope_ids。</span> <span>描述了scope_ids的语法和用法<a href="Inet6Address.html#scoped">here</a> 。</span> <span>该类提供了用于从其组件创建URI实例或通过解析其字符串表单，访问实例的各种组件的方法以及用于归一化，解析和相对化URI实例的方法的构造函数。</span> <span>这个类的实例是不可变的。</span> </p>
+<h3> <span>URI语法和组件</span> </h3>
+<span>在最高级别，字符串形式的URI引用（以下简称为“URI”）具有语法</span>
+<blockquote>
+<span>[ <i>scheme</i> <b><code>:</code></b>] <i>scheme-specific-part</i>[ <b><code>#</code></b> <i>fragment</i>]</span>
+</blockquote>
+<span>其中方括号[...]描绘可选组件，字符<b><code>:</code></b>和<b><code>#</code></b>代表自己。</span>
+<p> <span><i>绝对</i> URI指定方案;</span> <span>一个不是绝对的URI被认为是<i>相对的</i> 。</span> <span>URI也根据它们是<i>不透明</i>还是分<i>层次分类</i> 。</span> </p>
+<p> <span><i>不透明的</i> URI是一个绝对URI，其特定于方案的部分不以斜杠字符开头（ <code>'/'</code> ）。</span> <span>不透明的URI不需要进一步解析。</span> <span>不透明URI的一些示例是：</span> </p>
+<blockquote>
+<span>
+<table cellpadding="0" cellspacing="0" summary="layout">
+<tbody>
+<tr>
+<td><code>mailto:java-net@java.sun.com</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>news:comp.lang.java</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>urn:isbn:096139210x</code></td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+<p> <span><i>分层</i> URI是绝对URI，其方案特定部分以斜杠字符开头，或相对URI，即不指定方案的URI。</span> <span>分层URI的一些示例是：</span> </p>
+<blockquote>
+<span><code>http://java.sun.com/j2se/1.3/</code> <br/> <code>docs/guide/collections/designfaq.html#28</code> <br/> <code>../../../demo/jfc/SwingSet2/src/SwingSet2.java</code> <br/> <code>file:///~/calendar</code></span>
+</blockquote>
+<p> <span>分层URI根据语法进行进一步解析</span> </p>
+<blockquote>
+<span>[ <i>scheme</i> <b><code>:</code></b>][ <b><code>//</code></b> <i>authority</i>][ <i>path</i>][ <b><code>?</code></b> <i>query</i>][ <b><code>#</code></b> <i>fragment</i>]</span>
+</blockquote>
+<span>里的人物<b><code>:</code></b> ， <b><code>/</code></b> ， <b><code>?</code></b>和<b><code>#</code></b>代表它们自身。</span>
+<span>分层URI的方案特定部分由方案和片段组件之间的字符组成。</span>
+<p> <span>如果指定了分层URI的权限组件，则<i>基于服务器或基于</i> <i>注册表</i> 。</span> <span>基于服务器的权限根据熟悉的语法进行分析</span> </p>
+<blockquote>
+<span>[ <i>user-info</i> <b><code>@</code></b>] <i>host</i>[ <b><code>:</code></b> <i>port</i>]</span>
+</blockquote>
+<span>字符<b><code>@</code></b>和<b><code>:</code></b>代表自己。</span>
+<span>目前使用的几乎所有URI方案都是基于服务器的。</span>
+<span>不以这种方式解析的权限组件被认为是基于注册表的。</span>
+<p> <span>如果分层URI的路径组件以斜杠字符（ <code>'/'</code> ）开头，则它本身被称为绝对路径组件;</span> <span>否则是相对的。</span> <span>绝对的或指定权限的分层URI的路径总是绝对的。</span> </p>
+<p> <span>总而言之，一个URI实例有以下九个组件：</span> </p>
+<blockquote>
+<span>
+<table summary="Describes the components of a URI:scheme,scheme-specific-part,authority,user-info,host,port,path,query,fragment">
+<tbody>
+<tr>
+<th><i>Component</i></th>
+<th><i>Type</i></th>
+</tr>
+<tr>
+<td>scheme</td>
+<td><code>String</code></td>
+</tr>
+<tr>
+<td>scheme-specific-part    </td>
+<td><code>String</code></td>
+</tr>
+<tr>
+<td>authority</td>
+<td><code>String</code></td>
+</tr>
+<tr>
+<td>user-info</td>
+<td><code>String</code></td>
+</tr>
+<tr>
+<td>host</td>
+<td><code>String</code></td>
+</tr>
+<tr>
+<td>port</td>
+<td><code>int</code></td>
+</tr>
+<tr>
+<td>path</td>
+<td><code>String</code></td>
+</tr>
+<tr>
+<td>query</td>
+<td><code>String</code></td>
+</tr>
+<tr>
+<td>fragment</td>
+<td><code>String</code></td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+<span>在给定的实例中，任何特定的组件是<i>未定义的</i>或者用不同的值<i>定义</i> 。</span>
+<span>未定义的字符串组件由<code>null</code> ，而未定义的整数组件由<code>-1</code> 。</span>
+<span>可以将字符串组件定义为将空字符串作为其值;</span>
+<span>这不等于该组件未定义。</span>
+<p> <span>特定组件是否在实例中定义取决于所表示的URI的类型。</span> <span>绝对URI具有方案组件。</span> <span>不透明URI具有方案，方案特定部分和可能的片段，但没有其他组件。</span> <span>分层URI总是具有路径（虽然它可以是空的）和方案特定部分（至少包含路径），并且可以具有任何其他组件。</span> <span>如果权限组件存在并且基于服务器，则将定义主机组件，并且可以定义用户信息和端口组件。</span> </p>
+<h4> <span>URI实例的操作</span> </h4>
+<span>这一类支持的关键操作是<i>规范化</i> ， <i>解决</i>和<i>相对化</i> 。</span>
+<p> <span><i>归一化</i>是从分层URI的路径组件中删除不必要的<code>"."</code>和<code>".."</code>段的过程。</span> <span>每个<code>"."</code>段都被简单地删除。</span> <span>一个<code>".."</code>段只有在非<code>".."</code>段之前<code>".."</code> 。</span> <span>规范化对不透明的URI没有影响。</span> </p>
+<p> <span><i>分辨率</i>是对另一个解决一个URI的过程中， <i>基本</i> URI。</span> <span>生成的URI由RFC 2396指定的方式由两个URI的组件构成，从原始URI中未指定的基本URI获取组件。</span> <span>对于分层URI，原始路径将根据基础路径进行解析，然后进行归一化。</span> <span>结果，例如，解决</span> </p>
+<blockquote>
+<span><code>docs/guide/collections/designfaq.html#28</code>                  (1)</span>
+</blockquote>
+<span>对基地URI <code>http://java.sun.com/j2se/1.3/</code>是结果URI</span>
+<blockquote>
+<span><code>http://docs.oracle.com/javase/1.3/docs/guide/collections/designfaq.html#28</code></span>
+</blockquote>
+<span>解析相对URI</span>
+<blockquote>
+<span><code>../../../demo/jfc/SwingSet2/src/SwingSet2.java</code>    (2)</span>
+</blockquote>
+<span>反过来，</span>
+<blockquote>
+<span><code>http://java.sun.com/j2se/1.3/demo/jfc/SwingSet2/src/SwingSet2.java</code></span>
+</blockquote>
+<span>支持绝对和相对URI的分辨率，以及分层URI情况下的绝对路径和相对路径的分辨率。</span>
+<span>解决URI <code>file:///~calendar</code>对任何其他URI只是产生原始URI，因为它是绝对的。</span>
+<span>解析相对URI（2）相对于相对基本URI（1）产生归一化但仍然相对的URI</span>
+<blockquote>
+<span><code>demo/jfc/SwingSet2/src/SwingSet2.java</code></span>
+</blockquote>
+<p> <span><i>相对论</i>最后是分辨率的倒数：对于任何两个归一化的URI <i>u</i>和<i>v</i> ，</span> </p>
+<blockquote>
+<span><i>u</i> <code>.relativize(</code> <i>u</i> <code>.resolve(</code> <i>v</i> <code>)).equals(</code> <i>v</i> <code>)</code>  and <br/> <i>u</i> <code>.resolve(</code> <i>u</i> <code>.relativize(</code> <i>v</i> <code>)).equals(</code> <i>v</i> <code>)</code>  . <br/></span>
+</blockquote>
+<span>在可能的情况下，构建包含必须相对于文档的基本URI的URI的文档时，此操作通常很有用。</span>
+<span>例如，相对于URI</span>
+<blockquote>
+<span><code>http://docs.oracle.com/javase/1.3/docs/guide/index.html</code></span>
+</blockquote>
+<span>针对基本URI</span>
+<blockquote>
+<span><code>http://java.sun.com/j2se/1.3</code></span>
+</blockquote>
+<span>产生相对URI <code>docs/guide/index.html</code> 。</span>
+<h4> <span>字符类别</span> </h4>
+<span>RFC 2396精确地指定在URI引用的各种组件中允许哪些字符。</span>
+<span>以下类别，大部分来自该规范，在下面用于描述这些约束：</span>
+<blockquote>
+<span>
+<table cellspacing="2" summary="Describes categories alpha,digit,alphanum,unreserved,punct,reserved,escaped,and other">
+<tbody>
+<tr>
+<th valign="top"><i>alpha</i></th>
+<td>The US-ASCII alphabetic characters, <code>'A'</code> through <code>'Z'</code> and <code>'a'</code> through <code>'z'</code></td>
+</tr>
+<tr>
+<th valign="top"><i>digit</i></th>
+<td>The US-ASCII decimal digit characters, <code>'0'</code> through <code>'9'</code></td>
+</tr>
+<tr>
+<th valign="top"><i>alphanum</i></th>
+<td>All <i>alpha</i> and <i>digit</i> characters</td>
+</tr>
+<tr>
+<th valign="top"><i>unreserved</i>    </th>
+<td>All <i>alphanum</i> characters together with those in the string <code>"_-!.~'()*"</code></td>
+</tr>
+<tr>
+<th valign="top"><i>punct</i></th>
+<td>The characters in the string <code>",;:$&amp;+="</code></td>
+</tr>
+<tr>
+<th valign="top"><i>reserved</i></th>
+<td>All <i>punct</i> characters together with those in the string <code>"?/[]@"</code></td>
+</tr>
+<tr>
+<th valign="top"><i>escaped</i></th>
+<td>Escaped octets, that is, triplets consisting of the percent character (<code>'%'</code>) followed by two hexadecimal digits (<code>'0'</code>-<code>'9'</code>, <code>'A'</code>-<code>'F'</code>, and <code>'a'</code>-<code>'f'</code>)</td>
+</tr>
+<tr>
+<th valign="top"><i>other</i></th>
+<td>The Unicode characters that are not in the US-ASCII character set, are not control characters (according to the <a href="../../java/lang/Character.html#isISOControl-char-"><code>Character.isISOControl</code></a> method), and are not space characters (according to the <a href="../../java/lang/Character.html#isSpaceChar-char-"><code>Character.isSpaceChar</code></a> method)  <i>(<b>Deviation from RFC 2396</b>, which is limited to US-ASCII)</i></td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+<p> <span><a name="legal-chars"></a>所有合法URI字符集由<i>未</i> <i>保留</i> ， <i>保留</i> ， <i>转义</i>和<i>其他</i>字符组成。</span> </p>
+<h4> <span>转义八位字节，引号，编码和解码</span> </h4>
+<span>RFC 2396允许转义的八位字节出现在用户信息，路径，查询和片段组件中。</span>
+<span>转义在URI中有两个目的：</span>
+<ul>
+<li><p> <span>当URI需要严格遵守RFC 2396时不包含任何<i>其他</i>字符，以<i>对</i>非US-ASCII字符<i>进行编码</i> 。</span> </p></li>
+<li><p> <span><i>引用</i>组件中其他非法的字符。</span> <span>用户信息，路径，查询和片段组件在哪些角色被视为合法和非法的情况下略有不同。</span> </p></li>
+</ul>
+<span>这些目的通过三个相关的操作在这个课程中提供：</span>
+<ul>
+<li><p> <span><a name="encode"></a>通过用UTF-8字符集中代表该字符的转义八位字节序列代替字符进行<i>编码</i> 。</span> <span>例如，欧元货币符号（ <code>'\u20AC'</code> ）编码为<code>"%E2%82%AC"</code> 。</span> <span><i>（ <b>偏离RFC 2396</b> ，不指定任何特定字符集。）</i></span> </p></li>
+<li><p> <span><a name="quote"></a>非法字符简单地通过编码<i>引用</i> 。</span> <span>例如，用空格字符替换为<code>"%20"</code> 。</span> <span>UTF-8包含US-ASCII，因此对于US-ASCII字符，此转换完全符合RFC 2396所要求的效果。</span> </p></li>
+<li><p> <span><a name="decode"></a>通过用UTF-8字符集中表示的字符序列替换转义的八位字节序列来<i>解码</i> 。</span> <span>UTF-8包含US-ASCII，因此解码具有取消引用任何引用的US-ASCII字符以及解码任何编码的非US-ASCII字符的解码效果。</span> <span>如果<a href="../nio/charset/CharsetDecoder.html#ce">decoding error</a>解码转义八位组，则错误的八位位组被更换时发生<code>'\uFFFD'</code> ，Unicode替换字符。</span> </p></li>
+</ul>
+<span>这些操作在此类的构造函数和方法中暴露如下：</span>
+<ul>
+<li><p> <span><a href="../../java/net/URI.html#URI-java.lang.String-">single-argument constructor</a>要求引用其参数中的任何非法字符，并保留任何转义的八位字节和<i>其他</i>存在的字符。</span> </p></li>
+<li><p> <span>该<a href="../../java/net/URI.html#URI-java.lang.String-java.lang.String-java.lang.String-int-java.lang.String-java.lang.String-java.lang.String-">multi-argument constructors</a>引用非法字符如要求它们出现的组件。</span> <span>百分比字符（ <code>'%'</code> ）始终由这些构造函数引用。</span> <span>任何<i>其他</i>字符都被保留。</span> </p></li>
+<li><p> <span>的<a href="../../java/net/URI.html#getRawUserInfo--"><code>getRawUserInfo</code></a> ， <a href="../../java/net/URI.html#getRawPath--"><code>getRawPath</code></a> ， <a href="../../java/net/URI.html#getRawQuery--"><code>getRawQuery</code></a> ， <a href="../../java/net/URI.html#getRawFragment--"><code>getRawFragment</code></a> ， <a href="../../java/net/URI.html#getRawAuthority--"><code>getRawAuthority</code></a>和<a href="../../java/net/URI.html#getRawSchemeSpecificPart--"><code>getRawSchemeSpecificPart</code></a>方法返回原始形式及其相应的分量的值，而不用解释任何转义八位组。</span> <span>这些方法返回的字符串可能包含转义的八位字节和<i>其他</i>字符，并且不会包含任何非法字符。</span> </p></li>
+<li><p> <span>的<a href="../../java/net/URI.html#getUserInfo--"><code>getUserInfo</code></a> ， <a href="../../java/net/URI.html#getPath--"><code>getPath</code></a> ， <a href="../../java/net/URI.html#getQuery--"><code>getQuery</code></a> ， <a href="../../java/net/URI.html#getFragment--"><code>getFragment</code></a> ， <a href="../../java/net/URI.html#getAuthority--"><code>getAuthority</code></a>和<a href="../../java/net/URI.html#getSchemeSpecificPart--"><code>getSchemeSpecificPart</code></a>方法解码任何逃脱在它们的对应部件的八位字节。</span> <span>这些方法返回的字符串可能包含<i>其他</i>字符和非法字符，并且不会包含任何转义的八位字节。</span> </p></li>
+<li><p> <span><a href="../../java/net/URI.html#toString--"><code>toString</code></a>方法返回一个包含所有必要引号的URI字符串，但可能包含<i>其他</i>字符。</span> </p></li>
+<li><p> <span><a href="../../java/net/URI.html#toASCIIString--"><code>toASCIIString</code></a>方法返回不包含任何<i>其他</i>字符的完全引用和编码的URI字符串。</span> </p></li>
+</ul>
+<h4> <span>身份</span> </h4>
+<span>对于任何URI <i>U，</i>它始终是情况</span>
+<blockquote>
+<span><code>new URI(</code> <i>u</i> <code>.toString()).equals(</code> <i>u</i> <code>)</code> .</span>
+</blockquote>
+<span>对于任何<i>URIÜ</i>不包含一个空的机构（如在之前的冗余语法如两个斜杠<code>file:///tmp/</code>以下一个主机名，但没有端口（如在）或冒号<code>http://java.sun.com:</code> ），和不除了那些必须是字符进行编码引用，以下身份也符合：</span>
+<pre>  <span>new URI(<i>u</i>.getScheme(),
+             <i>u</i>.getSchemeSpecificPart(),
+             <i>u</i>.getFragment())
+     .equals(<i>u</i>)</span> </pre>
+<span>在所有情况下，</span>
+<pre>  <span>new URI(<i>u</i>.getScheme(),
+             <i>u</i>.getUserInfo(), <i>u</i>.getAuthority(),
+             <i>u</i>.getPath(), <i>u</i>.getQuery(),
+             <i>u</i>.getFragment())
+     .equals(<i>u</i>)</span> </pre>
+<span>如果<i>你</i>是分层的，和</span>
+<pre>  <span>new URI(<i>u</i>.getScheme(),
+             <i>u</i>.getUserInfo(), <i>u</i>.getHost(), <i>u</i>.getPort(),
+             <i>u</i>.getPath(), <i>u</i>.getQuery(),
+             <i>u</i>.getFragment())
+     .equals(<i>u</i>)</span> </pre>
+<span>如果<i>u</i>是分层的，并且没有权限或基于服务器的权限。</span>
+<h4> <span>URI，URL和URN</span> </h4>
+<span>URI是统一的资源<i>标识符</i> ，而URL是统一的资源<i>定位符</i> 。</span>
+<span>因此，每个URL都是一个URI，而不是每个URI都是URL。</span>
+<span>这是因为还有另一个URI类别，统一资源<i>名称</i> （URN），它们命名资源但不指定如何定位它们。</span>
+<span>上面<code>mailto</code> <code>news</code>和<code>isbn</code> URI是URN的示例。</span>
+<p> <span>URI和URL之间的概念区别反映在这个类与<a href="../../java/net/URL.html" title="java.net中的类"><code>URL</code></a>类之间的<a href="../../java/net/URL.html" title="java.net中的类">差异</a>中。</span> </p>
+<p> <span>该类的实例表示RFC 2396定义的句法意义中的URI引用。URI可以是绝对的或相对的。</span> <span>根据通用语法解析URI字符串，而不考虑它指定的方案（如果有的话）。</span> <span>不执行主机的查找（如果有的话），并且不构造与方案相关的流处理程序。</span> <span>严格按照实例的字符内容来定义平等，散列和比较。</span> <span>换句话说，一个URI实例只是一个结构化的字符串，它支持语法，方案独立的比较，归一化，分辨率和相对性化的操作。</span> </p>
+<p> <span>相反， <a href="../../java/net/URL.html" title="java.net中的类"><code>URL</code></a>类的一个实例表示URL的句法组件以及访问其描述的资源所需的某些信息。</span> <span>URL必须是绝对的，也就是说，它必须始终指定一个方案。</span> <span>根据其方案解析URL字符串。</span> <span>始终为URL建立流处理程序，实际上不可能为没有处理程序可用的方案创建一个URL实例。</span> <span>平等和散列取决于主机的方案和互联网地址（如果有的话）;</span> <span>比较没有定义。</span> <span>换句话说，URL是一个结构化字符串，支持分辨率的语法操作以及查找主机并打开与指定资源的连接的网络I / O操作。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="http://www.ietf.org/rfc/rfc2279.txt"><i>RFC 2279: UTF-8, a transformation format of ISO 10646</i></a> ，</span>
+<br/>
+<span><a href="http://www.ietf.org/rfc/rfc2373.txt"><i>RFC 2373: IPv6 Addressing Architecture</i></a> ，</span>
+<br/>
+<span><a href="http://www.ietf.org/rfc/rfc2396.txt"><i>RFC 2396: Uniform Resource Identifiers (URI): Generic Syntax</i></a></span>
+<br/>
+<span><a href="http://www.ietf.org/rfc/rfc2732.txt"><i>RFC 2732: Format for Literal IPv6 Addresses in URLs</i></a> ，</span>
+<br/>
+<span><a href="URISyntaxException.html">URISyntaxException</a> ， <a href="../../serialized-form.html#java.net.URI">Serialized Form</a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/net/URI.html#URI-java.lang.String-">URI</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> str)</code>
+<div class="block">
+              通过解析给定的字符串构造一个URI。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/net/URI.html#URI-java.lang.String-java.lang.String-java.lang.String-">URI</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> scheme, <a href="../../java/lang/String.html" title="class in java.lang">String</a> ssp, <a href="../../java/lang/String.html" title="class in java.lang">String</a> fragment)</code>
+<div class="block">
+              从给定的组件构造一个URI。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/net/URI.html#URI-java.lang.String-java.lang.String-java.lang.String-int-java.lang.String-java.lang.String-java.lang.String-">URI</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> scheme, <a href="../../java/lang/String.html" title="class in java.lang">String</a> userInfo, <a href="../../java/lang/String.html" title="class in java.lang">String</a> host, int port, <a href="../../java/lang/String.html" title="class in java.lang">String</a> path, <a href="../../java/lang/String.html" title="class in java.lang">String</a> query, <a href="../../java/lang/String.html" title="class in java.lang">String</a> fragment)</code>
+<div class="block">
+              从给定的组件构造一个分层URI。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/net/URI.html#URI-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">URI</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> scheme, <a href="../../java/lang/String.html" title="class in java.lang">String</a> host, <a href="../../java/lang/String.html" title="class in java.lang">String</a> path, <a href="../../java/lang/String.html" title="class in java.lang">String</a> fragment)</code>
+<div class="block">
+              从给定的组件构造一个分层URI。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/net/URI.html#URI-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">URI</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> scheme, <a href="../../java/lang/String.html" title="class in java.lang">String</a> authority, <a href="../../java/lang/String.html" title="class in java.lang">String</a> path, <a href="../../java/lang/String.html" title="class in java.lang">String</a> query, <a href="../../java/lang/String.html" title="class in java.lang">String</a> fragment)</code>
+<div class="block">
+              从给定的组件构造一个分层URI。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#compareTo-java.net.URI-">compareTo</a></span>(<a href="../../java/net/URI.html" title="class in java.net">URI</a> that)</code>
+<div class="block">
+              将此URI与另一个对象进行比较，该对象必须是URI。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../java/net/URI.html" title="class in java.net">URI</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#create-java.lang.String-">create</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> str)</code>
+<div class="block">
+              通过解析给定的字符串创建一个URI。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#equals-java.lang.Object-">equals</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> ob)</code>
+<div class="block">
+              测试此URI以与另一个对象相等。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getAuthority--">getAuthority</a></span>()</code>
+<div class="block">
+              返回此URI的已解码权限组件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getFragment--">getFragment</a></span>()</code>
+<div class="block">
+              返回此URI的解码片段组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getHost--">getHost</a></span>()</code>
+<div class="block">
+              返回此URI的主机组件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getPath--">getPath</a></span>()</code>
+<div class="block">
+              返回此URI的解码路径组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getPort--">getPort</a></span>()</code>
+<div class="block">
+              返回此URI的端口号。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getQuery--">getQuery</a></span>()</code>
+<div class="block">
+              返回此URI的解码查询组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getRawAuthority--">getRawAuthority</a></span>()</code>
+<div class="block">
+              返回此URI的原始权限组件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getRawFragment--">getRawFragment</a></span>()</code>
+<div class="block">
+              返回此URI的原始片段组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getRawPath--">getRawPath</a></span>()</code>
+<div class="block">
+              返回此URI的原始路径组件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getRawQuery--">getRawQuery</a></span>()</code>
+<div class="block">
+              返回此URI的原始查询组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getRawSchemeSpecificPart--">getRawSchemeSpecificPart</a></span>()</code>
+<div class="block">
+              返回此URI的原始方案特定部分。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getRawUserInfo--">getRawUserInfo</a></span>()</code>
+<div class="block">
+              返回此URI的原始用户信息组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getScheme--">getScheme</a></span>()</code>
+<div class="block">
+              返回此URI的方案组件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getSchemeSpecificPart--">getSchemeSpecificPart</a></span>()</code>
+<div class="block">
+              返回此URI的解码方案特定部分。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#getUserInfo--">getUserInfo</a></span>()</code>
+<div class="block">
+              返回此URI的解码的用户信息组件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              返回此URI的哈希码值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#isAbsolute--">isAbsolute</a></span>()</code>
+<div class="block">
+              告诉这个URI是否是绝对的。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#isOpaque--">isOpaque</a></span>()</code>
+<div class="block">
+              告知这个URI是否不透明。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code><a href="../../java/net/URI.html" title="class in java.net">URI</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#normalize--">normalize</a></span>()</code>
+<div class="block">
+              规范此URI的路径。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code><a href="../../java/net/URI.html" title="class in java.net">URI</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#parseServerAuthority--">parseServerAuthority</a></span>()</code>
+<div class="block">
+              尝试将此URI的权限组件（如果已定义）解析为用户信息，主机和端口组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code><a href="../../java/net/URI.html" title="class in java.net">URI</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#relativize-java.net.URI-">relativize</a></span>(<a href="../../java/net/URI.html" title="class in java.net">URI</a> uri)</code>
+<div class="block">
+              相对于此URI的给定URI。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code><a href="../../java/net/URI.html" title="class in java.net">URI</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#resolve-java.lang.String-">resolve</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> str)</code>
+<div class="block">
+              通过解析给定的字符串构造一个新的URI，然后根据此URI进行解析。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code><a href="../../java/net/URI.html" title="class in java.net">URI</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#resolve-java.net.URI-">resolve</a></span>(<a href="../../java/net/URI.html" title="class in java.net">URI</a> uri)</code>
+<div class="block">
+              根据此URI解析给定的URI。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#toASCIIString--">toASCIIString</a></span>()</code>
+<div class="block">
+              将此URI的内容作为US-ASCII字符串返回。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#toString--">toString</a></span>()</code>
+<div class="block">
+              以字符串形式返回此URI的内容。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code><a href="../../java/net/URL.html" title="class in java.net">URL</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/net/URI.html#toURL--">toURL</a></span>()</code>
+<div class="block">
+              从此URI构造一个URL。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="URI-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>URI</h4> <pre>public URI(<a href="../../java/lang/String.html" title="class in java.lang">String</a> str)
+    throws <a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></pre>
+<div class="block">
+<span>通过解析给定的字符串构造一个URI。</span>
+<p> <span>该构造函数按照<a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a>附录A中的语法指定的方式解析给定的字符串， <b><i>但以下偏差除外：</i></b></span> </p>
+<ul>
+<li><p> <span>只要后面跟着非空路径，查询组件或片段组件，就允许使用空的权限组件。</span> <span>这样就可以解析URI，如<code>"file:///foo/bar"</code> ，这似乎是RFC 2396的意图，尽管语法不允许。</span> <span>如果权限组件为空，则用户信息，主机和端口组件未定义。</span> </p></li>
+<li><p> <span>允许空的相对路径;</span> <span>这似乎是RFC 2396的意图，尽管语法不允许。</span> <span>该偏差的主要后果是，如一个独立的片段<code>"#foo"</code>解析为具有空路径和所述给定片段的相对URI，并且可以是有用地<a href="#resolve-frag">resolved</a>针对基本URI。</span> </p></li>
+<li><p> <span>主机组件中的IPv4地址被严格地解析，如RFC 2732所<a href="http://www.ietf.org/rfc/rfc2732.txt">规定的</a> ：虚拟<a href="http://www.ietf.org/rfc/rfc2732.txt">四角形</a>地址的每个元素必须包含不超过三位十进制数字。</span> <span>每个元素被进一步限制为不大于255的值。</span> </p></li>
+<li><p> <span>仅包含单个域标签的主机组件中的主机名允许以<i>字母字符</i>开头。</span> <span>这似乎是<a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a>第3.2.2节的意图，尽管语法不允许。</span> <span>这种偏差的结果是分层URI的权限组件（如<code>s://123</code> ）将解析为基于服务器的权限。</span> </p></li>
+<li><p> <span>主机组件允许IPv6地址。</span> <span>IPv6地址必须由<a href="http://www.ietf.org/rfc/rfc2732.txt">RFC 2732指定的</a>方括号（ <code>'['</code>和<code>']'</code> ）括<a href="http://www.ietf.org/rfc/rfc2732.txt">起来</a> 。</span> <span>IPv6地址本身必须根据RFC 2373进行<a href="http://www.ietf.org/rfc/rfc2373.txt">解析</a> 。</span> <span>IPv6地址被进一步限制为描述不超过十六个字节的地址信息，RFC 2373中隐含的约束，但在语法中不能表达。</span> </p></li>
+<li><p> <span>在RFC 2396允许<i>转义的</i>八位字节（即用户信息，路径，查询和片段组件）以及权限组件（如果权限是基于注册表的）中，则允许<i>其他</i>类别中的字符。</span> <span>这允许URI包含除US-ASCII字符集之外的Unicode字符。</span> </p></li>
+</ul>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>str</code> - 要解析为URI的字符串 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>str</code>是 
+            <code>null</code>
+</dd>
+<dd>
+<code><a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></code> - 如果给定的字符串违反了RFC 2396，如上述偏差所增加 
+           </dd>
+</dl> </li>
+</ul> <a name="URI-java.lang.String-java.lang.String-java.lang.String-int-java.lang.String-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>URI</h4> <pre>public URI(<a href="../../java/lang/String.html" title="class in java.lang">String</a> scheme,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> userInfo,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> host,
+           int port,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> path,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> query,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> fragment)
+    throws <a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></pre>
+<div class="block">
+<span>从给定的组件构造一个分层URI。</span>
+<p> <span>如果给出一个方案，那么路径（如果也是给定的）必须是空的，或者以斜杠字符开头（ <code>'/'</code> ）。</span> <span>否则，新的URI的一个部件可以被留下通过使未定义<code>null</code>对于相应的参数，或者在所述的情况下<code>port</code>参数，通过使<code>-1</code> 。</span> </p>
+<p> <span>此构造首先建立从根据在指定的规则给定的组件的URI字符串<a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a> ，5.2节，第7步：</span> </p>
+<ol>
+<li><p> <span>最初，结果字符串为空。</span> </p></li>
+<li><p> <span>如果给出一个方案，那么它将被附加到结果，后跟一个冒号字符（ <code>':'</code> ）。</span> </p></li>
+<li><p> <span>如果给出用户信息，主机或端口，则附加字符串<code>"//"</code> 。</span> </p></li>
+<li><p> <span>如果给出了用户信息，则会附加用户信息，后跟广告字符（ <code>'@'</code> ）。</span> <span>任何字符不是在<i>毫无保留的</i> <i>，PUNCT，</i> <i>逃脱</i> ，或<i>其他</i>类别是<a href="#quote">quoted</a> 。</span> </p></li>
+<li><p> <span>如果给出主机，那么它被附加。</span> <span>如果主机是一个文字的IPv6地址，但不包含在方括号（ <code>'['</code>和<code>']'</code> ）中，则会添加方括号。</span> </p></li>
+<li><p> <span>如果给出端口号，则附加一个冒号字符（ <code>':'</code> ），后面是端口号，以十进制形式表示。</span> </p></li>
+<li><p> <span>如果给出一个路径，那么它被附加。</span> <span>任何字符不是在<i>毫无保留的</i> <i>，PUNCT，</i> <i>逃脱</i> ，或<i>其他</i>类别，以及不等于斜线字符（ <code>'/'</code> ）或商用的字符（ <code>'@'</code> ），被引用。</span> </p></li>
+<li><p> <span>如果给出查询，则附加一个问号（ <code>'?'</code> ），后跟查询。</span> <span>任何不是<a href="#legal-chars">legal URI character的字符均被</a>引用。</span> </p></li>
+<li><p> <span>最后，如果给出一个片段，则附加一个散列字符（ <code>'#'</code> ），后跟片段。</span> <span>引用不符合法定URI字符的任何字符。</span> </p></li>
+</ol>
+<p> <span>然后解析生成的URI字符串，就好像通过调用<a href="../../java/net/URI.html#URI-java.lang.String-"><code>URI(String)</code></a>构造函数一样，然后根据结果调用<a href="../../java/net/URI.html#parseServerAuthority--"><code>parseServerAuthority()</code></a>方法;</span> <span>这可能会导致<a href="../../java/net/URISyntaxException.html" title="java.net中的类"><code>URISyntaxException</code></a>被抛出。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>scheme</code> - 方案名称 
+           </dd>
+<dd>
+<code>userInfo</code> - 用户名和授权信息 
+           </dd>
+<dd>
+<code>host</code> - 主机名 
+           </dd>
+<dd>
+<code>port</code> - 端口号 
+           </dd>
+<dd>
+<code>path</code> - 路径 
+           </dd>
+<dd>
+<code>query</code> - 查询 
+           </dd>
+<dd>
+<code>fragment</code> - 片段 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></code> - 如果给定方案和路径，但路径是相对的，如果从给定组件构造的URI字符串违反RFC 2396，或者如果字符串的权限组件存在但不能被解析为基于服务器的权限 
+           </dd>
+</dl> </li>
+</ul> <a name="URI-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>URI</h4> <pre>public URI(<a href="../../java/lang/String.html" title="class in java.lang">String</a> scheme,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> authority,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> path,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> query,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> fragment)
+    throws <a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></pre>
+<div class="block">
+<span>从给定的组件构造一个分层URI。</span>
+<p> <span>如果给出一个方案，那么路径（如果也是给定的）必须是空的，或者用斜杠字符开头（ <code>'/'</code> ）。</span> <span>否则，通过传递<code>null</code>的null可能不定义新URI的组件。</span> </p>
+<p> <span>此构造首先建立从根据在指定的规则给定的组件的URI字符串<a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a> ，5.2节，第7步：</span> </p>
+<ol>
+<li><p> <span>最初，结果字符串为空。</span> </p></li>
+<li><p> <span>如果给出一个方案，那么它将被附加到结果，后跟一个冒号字符（ <code>':'</code> ）。</span> </p></li>
+<li><p> <span>如果给出<code>"//"</code>则附加字符串<code>"//"</code> ，后跟权限。</span> <span>如果权限包含文字IPv6地址，那么地址必须用方括号括起来（ <code>'['</code>和<code>']'</code> ）。</span> <span>任何字符不是在<i>未保留</i> <i>，PUNCT，</i> <i>躲过</i>或<i>其他</i>类别，和不等于所述商用在字符（ <code>'@'</code> ），是<a href="#quote">quoted</a> 。</span> </p></li>
+<li><p> <span>如果给出一个路径，那么它被附加。</span> <span>任何字符不是在<i>毫无保留的</i> <i>，PUNCT，</i> <i>逃脱</i> ，或<i>其他</i>类别，以及不等于斜线字符（ <code>'/'</code> ）或商用的字符（ <code>'@'</code> ），被引用。</span> </p></li>
+<li><p> <span>如果给出查询，则附加一个问号字符（ <code>'?'</code> ），后跟查询。</span> <span>任何不是<a href="#legal-chars">legal URI character的字符</a>都被引用。</span> </p></li>
+<li><p> <span>最后，如果给出了一个片段，则附加一个散列字符（ <code>'#'</code> ），后跟片段。</span> <span>引用不符合法定URI字符的任何字符。</span> </p></li>
+</ol>
+<p> <span>结果URI字符串的解析就好像是通过调用<a href="../../java/net/URI.html#URI-java.lang.String-"><code>URI(String)</code></a>构造函数，然后根据结果调用<a href="../../java/net/URI.html#parseServerAuthority--"><code>parseServerAuthority()</code></a>方法;</span> <span>这可能会导致<a href="../../java/net/URISyntaxException.html" title="java.net中的类"><code>URISyntaxException</code></a>被抛出。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>scheme</code> - 方案名称 
+           </dd>
+<dd>
+<code>authority</code> - 权限 
+           </dd>
+<dd>
+<code>path</code> - 路径 
+           </dd>
+<dd>
+<code>query</code> - 查询 
+           </dd>
+<dd>
+<code>fragment</code> - 片段 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></code> - 如果给定方案和路径，但路径是相对的，如果从给定组件构造的URI字符串违反RFC 2396，或者如果字符串的权限组件存在但不能被解析为基于服务器的权限 
+           </dd>
+</dl> </li>
+</ul> <a name="URI-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>URI</h4> <pre>public URI(<a href="../../java/lang/String.html" title="class in java.lang">String</a> scheme,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> host,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> path,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> fragment)
+    throws <a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></pre>
+<div class="block">
+<span>从给定的组件构造一个分层URI。</span>
+<p> <span>通过传递<code>null</code>组件可能<code>null</code> 。</span> </p>
+<p> <span>这个方便的构造函数就像调用七参数构造函数一样工作，如下所示：</span> </p>
+<blockquote>
+<span><code>new</code> <a href="../../java/net/URI.html#URI-java.lang.String-java.lang.String-java.lang.String-int-java.lang.String-java.lang.String-java.lang.String-"><code>URI</code></a> <code>(scheme, null, host, -1, path, null, fragment);</code></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>scheme</code> - 方案名称 
+           </dd>
+<dd>
+<code>host</code> - 主机名 
+           </dd>
+<dd>
+<code>path</code> - 路径 
+           </dd>
+<dd>
+<code>fragment</code> - 片段 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></code> - 如果从给定组件构造的URI字符串违反RFC 2396 
+           </dd>
+</dl> </li>
+</ul> <a name="URI-java.lang.String-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>URI</h4> <pre>public URI(<a href="../../java/lang/String.html" title="class in java.lang">String</a> scheme,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> ssp,
+           <a href="../../java/lang/String.html" title="class in java.lang">String</a> fragment)
+    throws <a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></pre>
+<div class="block">
+<span>从给定的组件构造一个URI。</span>
+<p> <span>通过传递<code>null</code>组件可能<code>null</code> 。</span> </p>
+<p> <span>此构造函数首先使用给定的组件以字符串形式构建一个URI，如下所示：</span> </p>
+<ol>
+<li><p> <span>最初，结果字符串为空。</span> </p></li>
+<li><p> <span>如果给出一个方案，那么它将被附加到结果，后跟一个冒号字符（ <code>':'</code> ）。</span> </p></li>
+<li><p> <span>如果给出了一个方案特定的部分，那么它被附加。</span> <span>任何不是<a href="#legal-chars">legal URI character的字符</a>都是<a href="#quote">quoted</a> 。</span> </p></li>
+<li><p> <span>最后，如果给出了一个片段，那么一个散列字符（ <code>'#'</code> ）被附加到字符串，后跟片断。</span> <span>引用不符合法定URI字符的任何字符。</span> </p></li>
+</ol>
+<p> <span>然后解析生成的URI字符串，以便通过调用<a href="../../java/net/URI.html#URI-java.lang.String-"><code>URI(String)</code></a>构造函数来创建新的URI实例;</span> <span>这可能会导致一个<a href="../../java/net/URISyntaxException.html" title="java.net中的类"><code>URISyntaxException</code></a>被抛出。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>scheme</code> - 方案名称 
+           </dd>
+<dd>
+<code>ssp</code> - 方案特定部分 
+           </dd>
+<dd>
+<code>fragment</code> - 片段 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></code> - 如果从给定组件构造的URI字符串违反RFC 2396 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="create-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>create</h4> <pre>public static <a href="../../java/net/URI.html" title="class in java.net">URI</a> create(<a href="../../java/lang/String.html" title="class in java.lang">String</a> str)</pre>
+<div class="block">
+<span>通过解析给定的字符串创建一个URI。</span>
+<p> <span>这种方便的工厂方法就像调用<a href="../../java/net/URI.html#URI-java.lang.String-"><code>URI(String)</code></a>构造函数一样。</span> <span><a href="../../java/net/URISyntaxException.html" title="java.net中的类">构造器</a>抛出的任何<a href="../../java/net/URISyntaxException.html" title="java.net中的类"><code>URISyntaxException</code></a>被捕获并包装在一个新的<a href="../../java/lang/IllegalArgumentException.html" title="java.lang中的类"><code>IllegalArgumentException</code></a>对象中，然后抛出该对象。</span> </p>
+<p> <span>该方法被提供用于已知给定字符串是合法URI的情况，例如对于在程序中声明的URI常量，因此它将被视为不解析的字符串的编程错误。</span> <span>使用直接投掷<a href="../../java/net/URISyntaxException.html" title="java.net中的类"><code>URISyntaxException</code>的构造函数</a>应该用于使用用户输入或可能容易发生错误的其他源构建URI的情况。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>str</code> - 要解析为URI的字符串 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             新的URI 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>str</code>是 
+            <code>null</code>
+</dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果给定的字符串违反RFC 2396 
+           </dd>
+</dl> </li>
+</ul> <a name="parseServerAuthority--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parseServerAuthority</h4> <pre>public <a href="../../java/net/URI.html" title="class in java.net">URI</a> parseServerAuthority()
+                         throws <a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></pre>
+<div class="block">
+<span>尝试将此URI的权限组件（如果已定义）解析为用户信息，主机和端口组件。</span>
+<p> <span>如果该URI的权限组件已经被识别为基于服务器的组件，那么它已经被解析为用户信息，主机和端口组件。</span> <span>在这种情况下，或者如果此URI没有权限组件，则此方法只返回此URI。</span> </p>
+<p> <span>否则，此方法再次尝试将权限组件解析为用户信息，主机和端口组件，并抛出一个异常，描述为什么无法以这种方式解析权限组件。</span> </p>
+<p> <span>提供这种方法是因为RFC 2396中<a href="http://www.ietf.org/rfc/rfc2396.txt">指定</a>的通用URI语法不能总是将格式错误的基于服务器的权限与基于注册表的合法权限区分开来。</span> <span>因此，它必须将前者的一些实例视为后者的实例。</span> <span>例如，URI字符串<code>"//foo:bar"</code>不是合法的基于服务器的权限，但它作为基于注册表的权限是合法的。</span> </p>
+<p> <span>在许多常见情况下，例如，当工作已知是URN或URL的URI时，所使用的分层URI将始终是基于服务器的。</span> <span>因此，它们必须被解析为或被视为错误。</span> <span>在这些情况下，如</span> </p>
+<blockquote>
+<span><code>URI </code> <i>u</i> <code>= new URI(str).parseServerAuthority();</code></span>
+</blockquote>
+<p> <span>可以用于确保<i>u</i>始终引用一个URI，如果它具有权限组件，则具有适当的用户信息，主机和端口组件的基于服务器的权限。</span> <span>调用此方法还可确保如果无法以该方式解析权限，则可以基于抛出的异常发出适当的诊断消息。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             其权限字段已被解析为基于服务器的权限的URI 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/net/URISyntaxException.html" title="class in java.net">URISyntaxException</a></code> - 如果此URI的权限组件被定义，但根据RFC 2396不能被解析为基于服务器的权限 
+           </dd>
+</dl> </li>
+</ul> <a name="normalize--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>normalize</h4> <pre>public <a href="../../java/net/URI.html" title="class in java.net">URI</a> normalize()</pre>
+<div class="block">
+<span>规范此URI的路径。</span>
+<p> <span>如果该URI是不透明的，或者如果其路径已经是正常形式，则返回此URI。</span> <span>否则，构造与该URI相同的新的URI，除了通过以与<a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a> ，第5.2节，第6步，子步骤c到f <a href="http://www.ietf.org/rfc/rfc2396.txt">一致</a>的方式归一化该URI的路径来计算其路径;</span> <span>那是：</span> </p>
+<ol>
+<li><p> <span>全部删除<code>"."</code>段。</span> </p></li>
+<li><p> <span>如果<code>".."</code>段之前是非<code>".."</code>段，则这两个段都将被删除。</span> <span>重复此步骤直到不再适用。</span> </p></li>
+<li><p> <span>如果路径是相对的，并且如果它的第一个段包含一个冒号字符（ <code>':'</code> ），那么一个<code>"."</code>段是前面的。</span> <span>这防止相对URI与诸如路径<code>"a:b/c/d"</code>从后来被重新解析为一个不透明带URI的方案<code>"a"</code>和的一个具体方案的部分<code>"b/c/d"</code> 。</span> <span><b><i>（偏离RFC 2396）</i></b></span> </p></li>
+</ol>
+<p> <span>如果没有足够的非<code>".."</code>段以允许其删除，则归一化路径将从一个或多个<code>".."</code>段开始。</span> <span>标准化路径将以<code>"."</code>段开头，如果通过上面的步骤3插入。</span> <span>否则，归一化路径将不包含任何<code>"."</code>或<code>".."</code>段。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与此URI相当的URI，但其路径为正常形式 
+           </dd>
+</dl> </li>
+</ul> <a name="resolve-java.net.URI-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>resolve</h4> <pre>public <a href="../../java/net/URI.html" title="class in java.net">URI</a> resolve(<a href="../../java/net/URI.html" title="class in java.net">URI</a> uri)</pre>
+<div class="block">
+<span>根据此URI解析给定的URI。</span>
+<p> <span>如果给定的URI已经是绝对的，或者这个URI是不透明的，那么返回给定的URI。</span> </p>
+<p> <span><a name="resolve-frag"></a>如果定义了给定的URI的片段组件，则其路径组件为空，并且其方案，权限和查询组件未定义，则返回具有给定片段但具有与该URI相同的所有其他组件的URI。</span> <span>这允许代表独立片段引用的URI（如<code>"#foo"</code> ）针对基本URI进行有效解决。</span> </p>
+<p> <span>否则，该方法以与<a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a>第5.2节<a href="http://www.ietf.org/rfc/rfc2396.txt">相符</a>的方式构建新的分层URI;</span> <span>那是：</span> </p>
+<ol>
+<li><p> <span>使用此URI的方案和给定的URI的查询和片段组件构建一个新的URI。</span> </p></li>
+<li><p> <span>如果给定的URI具有一个权限组件，那么新的URI的权限和路径将从给定的URI中获取。</span> </p></li>
+<li><p> <span>否则，将从该URI复制新的URI的权限组件，其路径计算如下：</span> </p>
+<ol>
+<li><p> <span>如果给定的URI的路径是绝对的，那么新的URI的路径是从给定的URI中获得的。</span> </p></li>
+<li><p> <span>否则给定的URI的路径是相对的，因此，通过根据该URI的路径解析给定URI的路径来计算新的URI的路径。</span> <span>这可以通过将URI的路径（如果有的话）的所有除了最后一个段与所给定的URI的路径连接起来，然后将结果归一化，就像通过调用<a href="../../java/net/URI.html#normalize--"><code>normalize</code></a>方法一样。</span> </p></li>
+</ol></li>
+</ol>
+<p> <span>这个方法的结果是绝对的，只有当这个URI是绝对的或给定的URI是绝对的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>uri</code> - 要针对此URI解析的URI 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             生成的URI 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>uri</code>是 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> <a name="resolve-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>resolve</h4> <pre>public <a href="../../java/net/URI.html" title="class in java.net">URI</a> resolve(<a href="../../java/lang/String.html" title="class in java.lang">String</a> str)</pre>
+<div class="block">
+<span>通过解析给定的字符串构造一个新的URI，然后根据此URI进行解析。</span>
+<p> <span>这种方便的方法就像调用它相当于评估表达式<a href="../../java/net/URI.html#resolve-java.net.URI-"><code>resolve</code></a> <code>(URI.</code> <a href="../../java/net/URI.html#create-java.lang.String-"><code>create</code></a> <code>(str))</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>str</code> - 要解析为URI的字符串 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             生成的URI 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>str</code>是 
+            <code>null</code>
+</dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果给定的字符串违反RFC 2396 
+           </dd>
+</dl> </li>
+</ul> <a name="relativize-java.net.URI-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>relativize</h4> <pre>public <a href="../../java/net/URI.html" title="class in java.net">URI</a> relativize(<a href="../../java/net/URI.html" title="class in java.net">URI</a> uri)</pre>
+<div class="block">
+<span>相对于此URI的给定URI。</span>
+<p> <span>给定URI相对于该URI的相对性计算如下：</span> </p>
+<ol>
+<li><p> <span>如果这个URI或给定的URI是不透明的，或者两个URI的方案和权限组件不相同，或者如果该URI的路径不是给定URI的路径的前缀，则给定的URI是回。</span> </p></li>
+<li><p> <span>否则，使用从给定URI获取的查询和片段组件以及通过从给定的URI的路径的开头移除该URI的路径计算的路径组件来构建新的相对层次URI。</span> </p></li>
+</ol>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>uri</code> - 相对于此URI的URI 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             生成的URI 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>uri</code>是 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> <a name="toURL--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toURL</h4> <pre>public <a href="../../java/net/URL.html" title="class in java.net">URL</a> toURL()
+          throws <a href="../../java/net/MalformedURLException.html" title="class in java.net">MalformedURLException</a></pre>
+<div class="block">
+<span>从此URI构造一个URL。</span>
+<p> <span>这种便利方法的工作原理就像调用它<code>new URL(this.toString())</code>首先检查这个URI是绝对值后评估<code>new URL(this.toString())</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             由此URI构造的URL 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果此URL不是绝对的 
+           </dd>
+<dd>
+<code><a href="../../java/net/MalformedURLException.html" title="class in java.net">MalformedURLException</a></code> - 如果无法找到URL的协议处理程序，或者在构建URL时发生其他错误 
+           </dd>
+</dl> </li>
+</ul> <a name="getScheme--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getScheme</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getScheme()</pre>
+<div class="block">
+<span>返回此URI的方案组件。</span>
+<p> <span>URI的方案组件（如果已定义）仅包含<i>字母</i>类别和字符串<code>"-.+"</code>中的字符。</span> <span>方案始终以<i>字母</i>字符开头。</span> </p>
+<p> <span>URI的方案组件不能包含转义的八位字节，因此此方法不执行任何解码。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该URI的方案组件，或 
+            <code>null</code>如果方案未定义 
+           </dd>
+</dl> </li>
+</ul> <a name="isAbsolute--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isAbsolute</h4> <pre>public boolean isAbsolute()</pre>
+<div class="block">
+<span>告诉这个URI是否是绝对的。</span>
+<p> <span>一个URI是绝对的，只有当它有一个方案组件。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果，只有这个URI是绝对的 
+           </dd>
+</dl> </li>
+</ul> <a name="isOpaque--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isOpaque</h4> <pre>public boolean isOpaque()</pre>
+<div class="block">
+<span>告知这个URI是否不透明。</span>
+<p> <span>一个URI是不透明的，如果且仅当它是绝对的，并且其特定于方案的部分不以斜杠字符（'/'）开头。</span> <span>不透明URI具有方案，方案特定部分和可能的片段;</span> <span>所有其他组件未定义。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果，只有这个URI是不透明的 
+           </dd>
+</dl> </li>
+</ul> <a name="getRawSchemeSpecificPart--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRawSchemeSpecificPart</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getRawSchemeSpecificPart()</pre>
+<div class="block">
+<span>返回此URI的原始方案特定部分。</span>
+<span>方案特定的部分永远不会被定义，尽管它可能是空的。</span>
+<p> <span>URI的方案特定部分只包含合法的URI字符。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该URI的原始方案特定部分（从不 
+            <code>null</code> ） 
+           </dd>
+</dl> </li>
+</ul> <a name="getSchemeSpecificPart--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSchemeSpecificPart</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getSchemeSpecificPart()</pre>
+<div class="block">
+<span>返回此URI的解码方案特定部分。</span>
+<p> <span>该方法返回的字符串与<a href="../../java/net/URI.html#getRawSchemeSpecificPart--"><code>getRawSchemeSpecificPart</code></a>方法返回的字符串相同，只是转义的八位字节的所有序列都为<a href="#decode">decoded</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该URI的解码方案特定部分（从不 
+            <code>null</code> ） 
+           </dd>
+</dl> </li>
+</ul> <a name="getRawAuthority--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRawAuthority</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getRawAuthority()</pre>
+<div class="block">
+<span>返回此URI的原始权限组件。</span>
+<p> <span>URI的授权组成，如果定义了仅包含商用在字符（ <code>'@'</code> ）和字符在<i>未保留</i> <i>，PUNCT，</i> <i>躲过</i> ，和<i>其他</i>类别。</span> <span>如果权限是基于服务器的，则进一步限制为具有有效的用户信息，主机和端口组件。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个URI的原始授权组成，或 
+            <code>null</code>如果权威未定义 
+           </dd>
+</dl> </li>
+</ul> <a name="getAuthority--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAuthority</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getAuthority()</pre>
+<div class="block">
+<span>返回此URI的已解码权限组件。</span>
+<p> <span>该方法返回的字符串与<a href="../../java/net/URI.html#getRawAuthority--"><code>getRawAuthority</code></a>方法返回的字符串相同，只是转义的八位字节的所有序列都为<a href="#decode">decoded</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的解码的授权部件，或 
+            <code>null</code>如果权威未定义 
+           </dd>
+</dl> </li>
+</ul> <a name="getRawUserInfo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRawUserInfo</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getRawUserInfo()</pre>
+<div class="block">
+<span>返回此URI的原始用户信息组件。</span>
+<p> <span>URI的用户信息组成部分，如果所定义，只包含在<i>未保留</i> ，字符<i>PUNCT，</i> <i>躲过</i> ，和<i>其他</i>类别。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个URI的原始用户信息组成部分，或 
+            <code>null</code>如果用户信息是未定义的 
+           </dd>
+</dl> </li>
+</ul> <a name="getUserInfo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getUserInfo</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getUserInfo()</pre>
+<div class="block">
+<span>返回此URI的解码的用户信息组件。</span>
+<p> <span>该方法返回的字符串与<a href="../../java/net/URI.html#getRawUserInfo--"><code>getRawUserInfo</code></a>方法返回的字符串相同，只是转义的八位字节的所有序列都为<a href="#decode">decoded</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的已解码的用户信息分量，或 
+            <code>null</code>如果用户信息是未定义的 
+           </dd>
+</dl> </li>
+</ul> <a name="getHost--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getHost</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getHost()</pre>
+<div class="block">
+<span>返回此URI的主机组件。</span>
+<p> <span>URI的主机组件（如果已定义）将具有以下形式之一：</span> </p>
+<ul>
+<li><p> <span>由一个或多个由句点字符（ <code>'.'</code> ）分隔的<i>标签</i>组成的<code>'.'</code> ，可选地后跟一个句点字符。</span> <span>每个标签由<i>字母</i>字符以及连字符（ <code>'-'</code> ）组成，尽管连字符不会作为标签中的第一个或最后一个字符出现。</span> <span>由两个或多个标签组成的域名的最右标签以<i>字母</i>字符开头。</span> </p></li>
+<li><p> <span>格<i>数字</i> <code>+.</code> <i>数字</i> <code>+.</code> <i>数字</i> <code>+.</code> <i>数字</i> <code>+</code>的四边形IPv4地址，其中没有<i>数字</i>序列长于三个字符，没有序列的值大于255。</span> </p></li>
+<li><p> <span>包含在方括号（ <code>'['</code>和<code>']'</code> ）中的IPv6地址，由十六进制数字，冒号字符（ <code>':'</code> ）组成，并且可能包含一个嵌入式IPv4地址。</span> <span>IPv6地址的完整语法规定在<a href="http://www.ietf.org/rfc/rfc2373.txt"><i>RFC 2373: IPv6 Addressing Architecture</i>中</a> 。</span> </p></li>
+</ul>
+<span>URI的主机组件不能包含转义的八位字节，因此此方法不执行任何解码。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个URI的主机成分，或 
+            <code>null</code>如果主机是未定义的 
+           </dd>
+</dl> </li>
+</ul> <a name="getPort--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPort</h4> <pre>public int getPort()</pre>
+<div class="block">
+<span>返回此URI的端口号。</span>
+<p> <span>URI的端口组件（如果已定义）是非负整数。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的端口部件，或 
+            <code>-1</code>如果端口是未定义的 
+           </dd>
+</dl> </li>
+</ul> <a name="getRawPath--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRawPath</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getRawPath()</pre>
+<div class="block">
+<span>返回此URI的原始路径组件。</span>
+<p> <span>一个URI的路径成分，如果定义了仅包含斜杠字符（ <code>'/'</code> ），商业-在字符（ <code>'@'</code>在<i>未保留</i> <i>，PUNCT），</i>和字符， <i>逃脱</i> ，和<i>其他</i>类别。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的路径成分，或 
+            <code>null</code>如果路径是未定义的 
+           </dd>
+</dl> </li>
+</ul> <a name="getPath--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPath</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getPath()</pre>
+<div class="block">
+<span>返回此URI的解码路径组件。</span>
+<p> <span>该方法返回的字符串与<a href="../../java/net/URI.html#getRawPath--"><code>getRawPath</code></a>方法返回的字符串相同，只是转义的八位字节的所有序列都为<a href="#decode">decoded</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的解码的路径成分，或 
+            <code>null</code>如果路径是未定义的 
+           </dd>
+</dl> </li>
+</ul> <a name="getRawQuery--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRawQuery</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getRawQuery()</pre>
+<div class="block">
+<span>返回此URI的原始查询组件。</span>
+<p> <span>URI的查询组件（如果已定义）仅包含合法的URI字符。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的原始查询组成部分，或 
+            <code>null</code>如果查询未定义 
+           </dd>
+</dl> </li>
+</ul> <a name="getQuery--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getQuery</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getQuery()</pre>
+<div class="block">
+<span>返回此URI的解码查询组件。</span>
+<p> <span>该方法返回的字符串与<a href="../../java/net/URI.html#getRawQuery--"><code>getRawQuery</code></a>方法返回的字符串相同，只是转义的八位字节的所有序列都为<a href="#decode">decoded</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的已解码的查询部件，或 
+            <code>null</code>如果查询未定义 
+           </dd>
+</dl> </li>
+</ul> <a name="getRawFragment--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRawFragment</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getRawFragment()</pre>
+<div class="block">
+<span>返回此URI的原始片段组件。</span>
+<p> <span>URI的片段组件（如果已定义）仅包含合法的URI字符。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的原始片段组成，或 
+            <code>null</code>如果片段是未定义的 
+           </dd>
+</dl> </li>
+</ul> <a name="getFragment--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getFragment</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getFragment()</pre>
+<div class="block">
+<span>返回此URI的解码片段组件。</span>
+<p> <span>该方法返回的字符串与<a href="../../java/net/URI.html#getRawFragment--"><code>getRawFragment</code></a>方法返回的字符串相同，只是转义的八位字节的所有序列都为<a href="#decode">decoded</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个URI的已解码的片段组成部分，或 
+            <code>null</code>如果片段是未定义的 
+           </dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> ob)</pre>
+<div class="block">
+<span>测试此URI以与另一个对象相等。</span>
+<p> <span>如果给定的对象不是一个URI，那么这个方法会立即返回<code>false</code> 。</span> </p>
+<p> <span>对于两个被认为相等的URI要求两者都是不透明的，或者两者都是分层的。</span> <span>他们的计划既不是未定义的，要么是平等的，不管情况如何。</span> <span>他们的片段必须既不定义也不平等。</span> </p>
+<p> <span>对于两个不相容的URI来说，它们的方案特定部分必须相等。</span> </p>
+<p> <span>对于被认为是相等的两个分层URI，它们的路径必须相等，并且它们的查询既不必定义也可以不相等。</span> <span>他们的权限必须是未定义的，或者两者都是基于注册表的，或者两者都是基于服务器的。</span> <span>如果他们的权限被定义并且是基于注册表的，那么它们必须相等。</span> <span>如果他们的权限被定义并且是基于服务器的，那么他们的主机必须相等，而不考虑这种情况，它们的端口号必须相等，并且它们的用户信息组件必须相等。</span> </p>
+<p> <span>当测试两个URI的用户信息，路径，查询，片段，权限或方案特定的部分以进行相等时，比较原始形式而不是这些组件的编码形式，并比较转义八位字节的十六进制数字，而不考虑情况。</span> </p>
+<p> <span>这种方法满足的总承包<a href="../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals</code></a>方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ob</code> - 要比较此对象的对象 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果，且仅当给定的对象是与该URI相同的URI 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+<span>返回此URI的哈希码值。</span>
+<span>哈希代码基于所有URI的组件，并满足<a href="../../java/lang/Object.html#hashCode--"><code>Object.hashCode</code></a>方法的一般合同。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的哈希码值 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="compareTo-java.net.URI-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compareTo</h4> <pre>public int compareTo(<a href="../../java/net/URI.html" title="class in java.net">URI</a> that)</pre>
+<div class="block">
+<span>将此URI与另一个对象进行比较，该对象必须是URI。</span>
+<p> <span>当比较两个URI的相应组件时，如果一个组件未定义，而另一个组件被定义，则第一个组件被认为小于第二个组件。</span> <span>除非另有说明，柱部件根据它们的天然的，区分大小写排序由作为定义的有序<a href="../../java/lang/Comparable.html#compareTo-T-"><code>String.compareTo</code></a>方法。</span> <span>要编码的字符串组件通过比较其原始形式而不是其编码形式进行比较。</span> </p>
+<p> <span>URI的排序定义如下：</span> </p>
+<ul>
+<li><p> <span>具有不同方案的两个URI根据其方案的顺序进行排序，而不考虑情况。</span> </p></li>
+<li><p> <span>分层URI被认为小于具有相同方案的不透明URI。</span> </p></li>
+<li><p> <span>具有相同方案的两个不透明的URI根据其特定于方案的部件的顺序进行排序。</span> </p></li>
+<li><p> <span>具有相同方案和方案特定部分的两个不透明URI按照其片段的顺序排列。</span> </p></li>
+<li><p> <span>具有相同方案的两个分层URI根据其权限组件的顺序进行排序：</span> </p>
+<ul>
+<li><p> <span>如果两个权限组件都是基于服务器的，则URI根据其用户信息组件进行排序;</span> <span>如果这些组件是相同的，则URI是根据其主机的顺序排序的，而不考虑情况;</span> <span>如果主机是相同的，则URI根据其端口的顺序进行排序。</span> </p></li>
+<li><p> <span>如果一个或两个权限组件是基于注册表的，则URI根据其权限组件的顺序排序。</span> </p></li>
+</ul></li>
+<li><p> <span>最后，具有相同方案和权限组件的两个分层URI根据其路径的顺序排序;</span> <span>如果他们的路径是相同的，那么根据他们的查询的顺序来排序它们;</span> <span>如果查询是相同的，那么它们根据它们的片段的顺序被排序。</span> </p></li>
+</ul>
+<p> <span>这种方法满足的总承包<a href="../../java/lang/Comparable.html#compareTo-T-"><code>Comparable.compareTo</code></a>方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Comparable.html#compareTo-T-">compareTo</a></code>中的 
+            <code><a href="../../java/lang/Comparable.html" title="interface in java.lang">Comparable</a>&lt;<a href="../../java/net/URI.html" title="class in java.net">URI</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>that</code> - 要比较此URI的对象 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             负整数，零或正整数，因为此URI小于，等于或大于给定的URI 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ClassCastException.html" title="class in java.lang">ClassCastException</a></code> - 如果给定的对象不是URI 
+           </dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>以字符串形式返回此URI的内容。</span>
+<p> <span>如果此URI是通过调用此类中的其中一个构造函数创建的，那么将返回相当于原始输入字符串的字符串，或根据原始给定组件计算的字符串。</span> <span>否则，该URI是通过归一化，解析或相对化创建的，因此根据<a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a>第5.2节第7步中规定的规则，从该URI的组件构造字符串。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#toString--">toString</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个URI的字符串形式 
+           </dd>
+</dl> </li>
+</ul> <a name="toASCIIString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toASCIIString</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toASCIIString()</pre>
+<div class="block">
+<span>将此URI的内容作为US-ASCII字符串返回。</span>
+<p> <span>如果此URI不包含<i>其他</i>类别中的任何字符，则此方法的调用将返回与<a href="../../java/net/URI.html#toString--">调用<code>toString</code></a>方法相同的值。</span> <span>否则，此方法的工作原理就是通过调用该方法，然后<a href="#encode">encoding</a>的结果。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此URI的字符串形式，根据需要进行编码，以使其仅包含US-ASCII字符集中的字符 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

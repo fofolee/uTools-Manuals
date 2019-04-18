@@ -1,0 +1,1082 @@
+<div class="header">
+<div class="subTitle">
+     java.awt 
+   </div>
+<h2 class="title" title="Class MediaTracker">Class MediaTracker</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.awt.MediaTracker</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">MediaTracker</span>
+extends <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../java/io/Serializable.html" title="interface in java.io">Serializable</a></pre>
+<div class="block">
+<span><code>MediaTracker</code>类是一个实用程序类，用于跟踪多个媒体对象的状态。</span>
+<span>媒体对象可以包括音频剪辑以及图像，但是目前只支持图像。</span>
+<p> <span>要使用媒体跟踪器，请创建一个<code>MediaTracker</code>的实例，并为每个要跟踪的图像调用其<code>addImage</code>方法。</span> <span>此外，每个图像可以被分配唯一的标识符。</span> <span>该标识符控制获取图像的优先级顺序。</span> <span>它还可以用于识别可独立等待的图像的唯一子集。</span> <span>具有较低ID的图像优先于具有较高ID号的那些加载。</span> </p>
+<p> <span>跟踪动画图像可能并不总是有用的，因为动画图像加载和绘画的多部分性质，但它是受支持的。</span> <span><code>MediaTracker</code>在第一帧完全加载时将动画图像视为完全加载。</span> <span>那时， <code>MediaTracker</code>发出信号，指示图像完全加载的任何服务员。</span> <span>如果没有<code>ImageObserver</code>在第一帧加载完成时观察图像，图像可能会自动刷新以节省资源（请参阅<a href="../../java/awt/Image.html#flush--"><code>Image.flush()</code></a> ）。</span> </p>
+<p> <span>以下是使用<code>MediaTracker</code>的示例：</span> </p>
+<p></p>
+<hr/>
+<blockquote>
+<span><pre><code>
+ import java.applet.Applet;
+ import java.awt.Color;
+ import java.awt.Image;
+ import java.awt.Graphics;
+ import java.awt.MediaTracker;
+
+ public class ImageBlaster extends Applet implements Runnable {
+      MediaTracker tracker;
+      Image bg;
+      Image anim[] = new Image[5];
+      int index;
+      Thread animator;
+
+      // Get the images for the background (id == 0)
+      // and the animation frames (id == 1)
+      // and add them to the MediaTracker
+      public void init() {
+          tracker = new MediaTracker(this);
+          bg = getImage(getDocumentBase(),
+                  "images/background.gif");
+          tracker.addImage(bg, 0);
+          for (int i = 0; i &lt; 5; i++) {
+              anim[i] = getImage(getDocumentBase(),
+                      "images/anim"+i+".gif");
+              tracker.addImage(anim[i], 1);
+          }
+      }
+
+      // Start the animation thread.
+      public void start() {
+          animator = new Thread(this);
+          animator.start();
+      }
+
+      // Stop the animation thread.
+      public void stop() {
+          animator = null;
+      }
+
+      // Run the animation thread.
+      // First wait for the background image to fully load
+      // and paint.  Then wait for all of the animation
+      // frames to finish loading. Finally, loop and
+      // increment the animation frame index.
+      public void run() {
+          try {
+              tracker.waitForID(0);
+              tracker.waitForID(1);
+          } catch (InterruptedException e) {
+              return;
+          }
+          Thread me = Thread.currentThread();
+          while (animator == me) {
+              try {
+                  Thread.sleep(100);
+              } catch (InterruptedException e) {
+                  break;
+              }
+              synchronized (this) {
+                  index++;
+                  if (index &gt;= anim.length) {
+                      index = 0;
+                  }
+              }
+              repaint();
+          }
+      }
+
+      // The background image fills the frame so we
+      // don't need to clear the applet on repaints.
+      // Just call the paint method.
+      public void update(Graphics g) {
+          paint(g);
+      }
+
+      // Paint a large red rectangle if there are any errors
+      // loading the images.  Otherwise always paint the
+      // background so that it appears incrementally as it
+      // is loading.  Finally, only paint the current animation
+      // frame if all of the frames (id == 1) are done loading,
+      // so that we don't get partial animations.
+      public void paint(Graphics g) {
+          if ((tracker.statusAll(false) &amp; MediaTracker.ERRORED) != 0) {
+              g.setColor(Color.red);
+              g.fillRect(0, 0, size().width, size().height);
+              return;
+          }
+          g.drawImage(bg, 0, 0, this);
+          if (tracker.statusID(1, false) == MediaTracker.COMPLETE) {
+              g.drawImage(anim[index], 10, 10, this);
+          }
+      }
+ }
+ </code> </pre></span>
+</blockquote>
+<hr/>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         JDK1.0 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../serialized-form.html#java.awt.MediaTracker">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#ABORTED">ABORTED</a></span></code>
+<div class="block">
+              表示媒体的下载中止了。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#COMPLETE">COMPLETE</a></span></code>
+<div class="block">
+              表示媒体下载成功的标志。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#ERRORED">ERRORED</a></span></code>
+<div class="block">
+              表示媒体的下载遇到错误的标志。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#LOADING">LOADING</a></span></code>
+<div class="block">
+              指示媒体当前正在加载的标志。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#MediaTracker-java.awt.Component-">MediaTracker</a></span>(<a href="../../java/awt/Component.html" title="class in java.awt">Component</a> comp)</code>
+<div class="block">
+              创建媒体跟踪器以跟踪给定组件的图像。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#addImage-java.awt.Image-int-">addImage</a></span>(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image, int id)</code>
+<div class="block">
+              将图像添加到此媒体跟踪器跟踪的图像列表中。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#addImage-java.awt.Image-int-int-int-">addImage</a></span>(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image, int id, int w, int h)</code>
+<div class="block">
+              将缩放图像添加到此媒体跟踪器跟踪的图像列表中。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#checkAll--">checkAll</a></span>()</code>
+<div class="block">
+              检查此媒体跟踪器跟踪的所有图像是否已完成加载。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#checkAll-boolean-">checkAll</a></span>(boolean load)</code>
+<div class="block">
+              检查此媒体跟踪器跟踪的所有图像是否已完成加载。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#checkID-int-">checkID</a></span>(int id)</code>
+<div class="block">
+              检查由该媒体跟踪器跟踪的所有标记有指定标识符的图像是否已完成加载。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#checkID-int-boolean-">checkID</a></span>(int id, boolean load)</code>
+<div class="block">
+              检查由该媒体跟踪器跟踪的所有标记有指定标识符的图像是否已完成加载。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#getErrorsAny--">getErrorsAny</a></span>()</code>
+<div class="block">
+              返回遇到错误的所有介质的列表。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#getErrorsID-int-">getErrorsID</a></span>(int id)</code>
+<div class="block">
+              返回具有遇到错误的指定ID的介质列表。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#isErrorAny--">isErrorAny</a></span>()</code>
+<div class="block">
+              检查所有图像的错误状态。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#isErrorID-int-">isErrorID</a></span>(int id)</code>
+<div class="block">
+              检查具有指定标识符的此媒体跟踪器跟踪的所有图像的错误状态。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#removeImage-java.awt.Image-">removeImage</a></span>(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image)</code>
+<div class="block">
+              从此媒体跟踪器中删除指定的图像。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#removeImage-java.awt.Image-int-">removeImage</a></span>(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image, int id)</code>
+<div class="block">
+              从该媒体跟踪器的指定跟踪ID中删除指定的图像。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#removeImage-java.awt.Image-int-int-int-">removeImage</a></span>(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image, int id, int width, int height)</code>
+<div class="block">
+              从此媒体跟踪器中删除指定的宽度，高度和ID的指定图像。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#statusAll-boolean-">statusAll</a></span>(boolean load)</code>
+<div class="block">
+              计算并返回此媒体跟踪器跟踪的所有媒体状态的按位包含 
+             <b>OR</b> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#statusID-int-boolean-">statusID</a></span>(int id, boolean load)</code>
+<div class="block">
+              使用该媒体跟踪器跟踪的指定标识符计算并返回所有媒体状态的按位包含 
+             <b>OR</b> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#waitForAll--">waitForAll</a></span>()</code>
+<div class="block">
+              开始加载此媒体跟踪器跟踪的所有图像。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#waitForAll-long-">waitForAll</a></span>(long ms)</code>
+<div class="block">
+              开始加载此媒体跟踪器跟踪的所有图像。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#waitForID-int-">waitForID</a></span>(int id)</code>
+<div class="block">
+              开始使用指定的标识符加载由此媒体跟踪器跟踪的所有图像。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/awt/MediaTracker.html#waitForID-int-long-">waitForID</a></span>(int id, long ms)</code>
+<div class="block">
+              开始使用指定的标识符加载由此媒体跟踪器跟踪的所有图像。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#toString--">toString</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="LOADING">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>LOADING</h4> <pre>public static final int LOADING</pre>
+<div class="block">
+            指示媒体当前正在加载的标志。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#statusAll-boolean-"><code>statusAll(boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#statusID-int-boolean-"><code>statusID(int, boolean)</code></a> ， 
+            <a href="../../constant-values.html#java.awt.MediaTracker.LOADING">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ABORTED">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ABORTED</h4> <pre>public static final int ABORTED</pre>
+<div class="block">
+            表示媒体的下载中止了。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#statusAll-boolean-"><code>statusAll(boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#statusID-int-boolean-"><code>statusID(int, boolean)</code></a> ， 
+            <a href="../../constant-values.html#java.awt.MediaTracker.ABORTED">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ERRORED">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ERRORED</h4> <pre>public static final int ERRORED</pre>
+<div class="block">
+            表示媒体的下载遇到错误的标志。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#statusAll-boolean-"><code>statusAll(boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#statusID-int-boolean-"><code>statusID(int, boolean)</code></a> ， 
+            <a href="../../constant-values.html#java.awt.MediaTracker.ERRORED">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="COMPLETE">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>COMPLETE</h4> <pre>public static final int COMPLETE</pre>
+<div class="block">
+            表示媒体下载成功的标志。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#statusAll-boolean-"><code>statusAll(boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#statusID-int-boolean-"><code>statusID(int, boolean)</code></a> ， 
+            <a href="../../constant-values.html#java.awt.MediaTracker.COMPLETE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="MediaTracker-java.awt.Component-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>MediaTracker</h4> <pre>public MediaTracker(<a href="../../java/awt/Component.html" title="class in java.awt">Component</a> comp)</pre>
+<div class="block">
+            创建媒体跟踪器以跟踪给定组件的图像。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>comp</code> - 最终将绘制图像的组件 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="addImage-java.awt.Image-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addImage</h4> <pre>public void addImage(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image,
+                     int id)</pre>
+<div class="block">
+<span>将图像添加到此媒体跟踪器跟踪的图像列表中。</span>
+<span>图像最终将以默认（未缩放）大小显示。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>image</code> - 要跟踪的图像 
+           </dd>
+<dd>
+<code>id</code> - 用于跟踪此图像的标识符 
+           </dd>
+</dl> </li>
+</ul> <a name="addImage-java.awt.Image-int-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addImage</h4> <pre>public void addImage(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image,
+                     int id,
+                     int w,
+                     int h)</pre>
+<div class="block">
+<span>将缩放图像添加到此媒体跟踪器跟踪的图像列表中。</span>
+<span>图像最终将以指定的宽度和高度呈现。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>image</code> - 要跟踪的图像 
+           </dd>
+<dd>
+<code>id</code> - 可用于跟踪此图像的标识符 
+           </dd>
+<dd>
+<code>w</code> - 渲染图像的宽度 
+           </dd>
+<dd>
+<code>h</code> - 呈现图像的高度 
+           </dd>
+</dl> </li>
+</ul> <a name="checkAll--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>checkAll</h4> <pre>public boolean checkAll()</pre>
+<div class="block">
+<span>检查此媒体跟踪器跟踪的所有图像是否已完成加载。</span>
+<p> <span>如果图像尚未加载，则此方法不会启动加载。</span> </p>
+<p> <span>如果在加载或缩放图像时出现错误，则该图像被认为已经完成加载。</span> <span>使用<code>isErrorAny</code>或<code>isErrorID</code>方法检查错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果所有图像已完成加载，已中止或遇到错误;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#checkAll-boolean-"><code>checkAll(boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#checkID-int-"><code>checkID(int)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="checkAll-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>checkAll</h4> <pre>public boolean checkAll(boolean load)</pre>
+<div class="block">
+<span>检查此媒体跟踪器跟踪的所有图像是否已完成加载。</span>
+<p> <span>如果<code>load</code>标志的值为<code>true</code> ，则此方法将开始加载任何尚未加载的映像。</span> </p>
+<p> <span>如果在加载或缩放图像时出现错误，则该图像被认为已经完成加载。</span> <span>使用<code>isErrorAny</code>和<code>isErrorID</code>方法检查错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>load</code> - 如果 
+            <code>true</code> ，开始加载任何尚未加载的图像 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果所有图像已完成加载，已中止或遇到错误;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#checkID-int-"><code>checkID(int)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#checkAll--"><code>checkAll()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isErrorAny--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isErrorAny</h4> <pre>public boolean isErrorAny()</pre>
+<div class="block">
+            检查所有图像的错误状态。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果此媒体跟踪器跟踪的任何图像在加载期间出现错误;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#getErrorsAny--"><code>getErrorsAny()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getErrorsAny--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getErrorsAny</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] getErrorsAny()</pre>
+<div class="block">
+            返回遇到错误的所有介质的列表。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             由此媒体跟踪器跟踪的媒体对象数组遇到错误，或者如果没有错误 
+            <code>null</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#getErrorsID-int-"><code>getErrorsID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="waitForAll--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>waitForAll</h4> <pre>public void waitForAll()
+                throws <a href="../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>开始加载此媒体跟踪器跟踪的所有图像。</span>
+<span>该方法等待直到所有被跟踪的图像都完成加载。</span>
+<p> <span>如果在加载或缩放图像时出现错误，则该图像被认为已经完成加载。</span> <span>使用<code>isErrorAny</code>或<code>isErrorID</code>方法检查错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果任何线程中断了此线程 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#waitForID-int-"><code>waitForID(int)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#waitForAll-long-"><code>waitForAll(long)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="waitForAll-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>waitForAll</h4> <pre>public boolean waitForAll(long ms)
+                   throws <a href="../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>开始加载此媒体跟踪器跟踪的所有图像。</span>
+<span>该方法等待直到所有正在被跟踪的图像已经完成加载，或者直到<code>ms</code>参数的指定时间长度为毫秒为止。</span>
+<p> <span>如果在加载或缩放图像时出现错误，则该图像被认为已经完成加载。</span> <span>使用<code>isErrorAny</code>或<code>isErrorID</code>方法检查错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ms</code> - 等待加载完成的毫秒数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果所有图像都成功加载;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果任何线程中断了此线程。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#waitForID-int-"><code>waitForID(int)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#waitForAll-long-"><code>waitForAll(long)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="statusAll-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>statusAll</h4> <pre>public int statusAll(boolean load)</pre>
+<div class="block">
+<span>计算并返回此媒体跟踪器跟踪的所有媒体状态的按位包含<b>OR</b> 。</span>
+<p> <span>由定义的可能标志<code>MediaTracker</code>类是<code>LOADING</code> ， <code>ABORTED</code> ， <code>ERRORED</code>和<code>COMPLETE</code> 。</span> <span>尚未开始加载的图像的状态为零。</span> </p>
+<p> <span>如果<code>load</code>值为<code>true</code> ，则此方法将开始加载任何尚未加载的图像。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>load</code> - 如果 
+            <code>true</code> ，开始加载任何尚未加载的图像 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             追踪所有媒体状态的按位包容性 
+            <b>OR</b>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#statusID-int-boolean-"><code>statusID(int, boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#LOADING"><code>LOADING</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#ABORTED"><code>ABORTED</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#ERRORED"><code>ERRORED</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#COMPLETE"><code>COMPLETE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="checkID-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>checkID</h4> <pre>public boolean checkID(int id)</pre>
+<div class="block">
+<span>检查由该媒体跟踪器跟踪的所有标记有指定标识符的图像是否已完成加载。</span>
+<p> <span>如果图像尚未加载，则此方法不会启动加载。</span> </p>
+<p> <span>如果在加载或缩放图像时出现错误，则该图像被认为已经完成加载。</span> <span>使用<code>isErrorAny</code>或<code>isErrorID</code>方法检查错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>id</code> - 要检查的图像的标识符 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果所有图像已完成加载，已中止或遇到错误;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#checkID-int-boolean-"><code>checkID(int, boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#checkAll--"><code>checkAll()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="checkID-int-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>checkID</h4> <pre>public boolean checkID(int id,
+                       boolean load)</pre>
+<div class="block">
+<span>检查由该媒体跟踪器跟踪的所有标记有指定标识符的图像是否已完成加载。</span>
+<p> <span>如果<code>load</code>标志的值为<code>true</code> ，则此方法将开始加载任何尚未加载的映像。</span> </p>
+<p> <span>如果在加载或缩放图像时出现错误，则该图像被认为已经完成加载。</span> <span>使用<code>isErrorAny</code>或<code>isErrorID</code>方法检查错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>id</code> - 要检查的图像的标识符 
+           </dd>
+<dd>
+<code>load</code> - 如果 
+            <code>true</code> ，开始加载任何尚未加载的图像 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果所有图像已完成加载，已中止或遇到错误;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#checkID-int-boolean-"><code>checkID(int, boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#checkAll--"><code>checkAll()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isErrorID-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isErrorID</h4> <pre>public boolean isErrorID(int id)</pre>
+<div class="block">
+            检查具有指定标识符的此媒体跟踪器跟踪的所有图像的错误状态。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>id</code> - 要检查的图像的标识符 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果具有指定标识符的任何图像在加载期间有错误;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#getErrorsID-int-"><code>getErrorsID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getErrorsID-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getErrorsID</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] getErrorsID(int id)</pre>
+<div class="block">
+            返回具有遇到错误的指定ID的介质列表。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>id</code> - 要检查的图像的标识符 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             由该媒体跟踪器跟踪具有遇到错误的指定标识符的一组媒体对象，如果没有错误 
+            <code>null</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#getErrorsAny--"><code>getErrorsAny()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="waitForID-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>waitForID</h4> <pre>public void waitForID(int id)
+               throws <a href="../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>开始使用指定的标识符加载由此媒体跟踪器跟踪的所有图像。</span>
+<span>该方法等待直到具有指定标识符的所有图像已完成加载。</span>
+<p> <span>如果在加载或缩放图像时出现错误，则该图像被认为已经完成加载。</span> <span>使用<code>isErrorAny</code>和<code>isErrorID</code>方法来检查错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>id</code> - 要检查的图像的标识符 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果任何线程已经中断了这个线程。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#waitForAll--"><code>waitForAll()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="waitForID-int-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>waitForID</h4> <pre>public boolean waitForID(int id,
+                         long ms)
+                  throws <a href="../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>开始使用指定的标识符加载由此媒体跟踪器跟踪的所有图像。</span>
+<span>该方法等待直到具有指定标识符的所有映像已完成加载，或者直到<code>ms</code>参数的指定时间长度为毫秒为止。</span>
+<p> <span>如果在加载或缩放图像时出现错误，则该图像被认为已经完成加载。</span> <span>使用<code>statusID</code> ， <code>isErrorID</code>和<code>isErrorAny</code>方法来检查错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>id</code> - 要检查的图像的标识符 
+           </dd>
+<dd>
+<code>ms</code> - 等待加载完成的时间长度（以毫秒为单位） 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果任何线程中断了此线程。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#waitForAll--"><code>waitForAll()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#waitForID-int-"><code>waitForID(int)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#statusID-int-boolean-"><code>statusID(int, boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorAny--"><code>isErrorAny()</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#isErrorID-int-"><code>isErrorID(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="statusID-int-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>statusID</h4> <pre>public int statusID(int id,
+                    boolean load)</pre>
+<div class="block">
+<span>使用该媒体跟踪器跟踪的指定标识符计算并返回所有媒体状态的按位包含<b>OR</b> 。</span>
+<p> <span>由定义的可能标志<code>MediaTracker</code>类是<code>LOADING</code> ， <code>ABORTED</code> ， <code>ERRORED</code>和<code>COMPLETE</code> 。</span> <span>尚未开始加载的图像的状态为零。</span> </p>
+<p> <span>如果<code>load</code>值为<code>true</code> ，则此方法将开始加载任何尚未加载的图像。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>id</code> - 要检查的图像的标识符 
+           </dd>
+<dd>
+<code>load</code> - 如果 
+            <code>true</code> ，开始加载任何尚未加载的图像 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             具有指定标识符的所有媒体的状态的按位包含 
+            <b>OR</b>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#statusAll-boolean-"><code>statusAll(boolean)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#LOADING"><code>LOADING</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#ABORTED"><code>ABORTED</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#ERRORED"><code>ERRORED</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#COMPLETE"><code>COMPLETE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="removeImage-java.awt.Image-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removeImage</h4> <pre>public void removeImage(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image)</pre>
+<div class="block">
+<span>从此媒体跟踪器中删除指定的图像。</span>
+<span>指定图像的所有实例都将被删除，而不考虑比例或ID。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>image</code> - 要删除的图像 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JDK1.1 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#removeImage-java.awt.Image-int-"><code>removeImage(java.awt.Image, int)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#removeImage-java.awt.Image-int-int-int-"><code>removeImage(java.awt.Image, int, int, int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="removeImage-java.awt.Image-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removeImage</h4> <pre>public void removeImage(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image,
+                        int id)</pre>
+<div class="block">
+<span>从该媒体跟踪器的指定跟踪ID中删除指定的图像。</span>
+<span>按照指定ID跟踪的所有实例<code>Image</code>被删除，无论规模如何。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>image</code> - 要删除的图像 
+           </dd>
+<dd>
+<code>id</code> - 从中删除图像的跟踪ID 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JDK1.1 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#removeImage-java.awt.Image-"><code>removeImage(java.awt.Image)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#removeImage-java.awt.Image-int-int-int-"><code>removeImage(java.awt.Image, int, int, int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="removeImage-java.awt.Image-int-int-int-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>removeImage</h4> <pre>public void removeImage(<a href="../../java/awt/Image.html" title="class in java.awt">Image</a> image,
+                        int id,
+                        int width,
+                        int height)</pre>
+<div class="block">
+<span>从此媒体跟踪器中删除指定的宽度，高度和ID的指定图像。</span>
+<span>只有指定的实例（有任何重复项）被删除。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>image</code> - 要删除的图像 
+           </dd>
+<dd>
+<code>id</code> - 从中删除图像的跟踪ID 
+           </dd>
+<dd>
+<code>width</code> - 要移除的宽度（对于unscaled为-1） 
+           </dd>
+<dd>
+<code>height</code> - 要移除的高度（-1） 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JDK1.1 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/MediaTracker.html#removeImage-java.awt.Image-"><code>removeImage(java.awt.Image)</code></a> ， 
+            <a href="../../java/awt/MediaTracker.html#removeImage-java.awt.Image-int-"><code>removeImage(java.awt.Image, int)</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

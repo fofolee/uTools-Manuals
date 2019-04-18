@@ -1,29 +1,53 @@
+// 正则转义
+RegExp.escape = function (s) {
+    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+};
+
+// 列表
+list = (path, initial, type, name ,desc) => {
+    return `<div class='info' path='${path}'>
+    <div class="initial">${initial}</div>
+    <div class="type">${type}</div>
+    <div class="name">${name}</div>
+    <div class="description">${desc}</div>
+    </div>`
+}
+
 // 显示列表
 showList = (text, index, listnum) => {
     window.info = [];
-    Object.keys(index).filter(key => {
-        let v = index[key];
-        let name = v.name;
-        let desc = v.desc
-        let reg = new RegExp(text, "i");
-        let match1 = reg.exec(name);
-        let match2 = reg.exec(desc)
-        if (match1 || match2) { 
-            let initial = name.slice(0, 1).toUpperCase();
-            if (match1) name = highlightList(name, match1[0]);
+    var obn = [];
+    var obd = [];
+    index.forEach(i => {
+        let name = i.name,
+            desc = i.desc != undefined ? i.desc : "",
+            initial = name.slice(0, 1).toUpperCase(),
+            reg = new RegExp(RegExp.escape(text), "i"),
+            match1 = reg.exec(name),
+            match2 = reg.exec(desc);
+        // 优先显示名称匹配的内容
+        if (match1) {
+            name = highlightList(name, match1[0]);
             if (match2) desc = highlightList(desc, match2[0]);
-            window.info.push(`<div class='info' path='${v.path}'>
-                          <div class="initial">${initial}</div>
-                          <div class="type">${v.type}</div>
-                          <div class="name">${name}</div>
-                          <div class="description">${desc}</div>
-                          </div>`);
+            // 置顶全字匹配的内容
+            if (i.name.toUpperCase() == text.toUpperCase()) {
+                obn.unshift(list(i.path, initial, i.type, name, desc));
+            } else {
+                obn.push(list(i.path, initial, i.type, name, desc));
+            }
+        // 其次显示描述匹配的内容
+        } else if (match2) {
+            desc = highlightList(desc, match2[0]);
+            obd.push(list(i.path, initial, i.type, name, desc));
         }
-    })
+    });
+    window.info = obn.concat(obd);
     $("#mainlist").html(window.info.slice(0, listnum).join(''));
-    $(".info:first").addClass('select');
     let num = $(".info").length
     utools.setExpendHeight(num > 11 ? 550 : 50 * num);
+    $(".select").removeClass('select');
+    $(".info:first").addClass('select');
+    window.mouseLockTime = new Date().getTime();
 }
 
 // 显示手册
@@ -34,22 +58,24 @@ showManual = path => {
     } else {
         let p = path.split('.html#')
         if (p.length == 2) {
-            var file = p[0] + '.html';
+            var f = p[0] + '.html';
             var id = '#' + p[1];
         } else {
-            var file = p[0]
+            var f = p[0]
         }
-        window.read(`${window.baseDir}/docs/${file}`, (err, data) => {
+        var file = `${window.dirs.docPath}/${f}`;
+        window.read(file, (err, data) => {
             if (!err) {
                 $("#mainlist").fadeOut();
-                $("#content").fadeOut().promise().done(() => {
-                    $("#content").html(`<div id="head">${data}</head>`).fadeIn();
-                    if (p.length == 2) {
-                        location.href = id;
-                    } else {
-                        location.href = '#head'
-                    }
+                $("#manual").fadeOut().promise().done(() => {
+                    var filePath = f.substr(0, f.lastIndexOf('/') + 1);
+                    data = data.replace(/href="(?!http)(.*?)"(.*?)(?!\#)/g, `href="${filePath}$1$2"`);
+                    data = data.replace(/src="(?!http)(.*?)"/g, `src="${filePath}$1"`);
+                    $("#manual").html(`<div id="manualHead">${data}</div>`).fadeIn();
+                    location.href = p.length == 2 ? id : '#manualHead';
                 })
+            } else {
+                console.log(err);
             }
         })
     }
@@ -57,9 +83,9 @@ showManual = path => {
 
 // 手册搜索结果高亮
 highlightManual = text => {
-    $("#content").removeHighlight() ;
+    $("#manual").removeHighlight() ;
     if (text) {
-        $("#content").highlight(text);
+        $("#manual").highlight(text);
         window.findex = 0;
     }
 }
@@ -71,16 +97,45 @@ highlightList = (string, match) => string.replace(match, `<span style="color:#ff
 init = () => {
     $("#mainlist").fadeOut(0);
     $("#options").fadeOut(0);
-    $("#content").fadeOut(0);
+    $("#manual").fadeOut(0);
+}
+
+// 检查升级
+checkUpdate = () => {
+    let cv = 'v0.0.1',
+        pg = 'https://yuanliao.info/d/356';
+    if (localStorage[cv] != 'pass') {
+        $.get(pg, data => {
+          data = /<title>\[插件\]\[程序员手册 (.*?)\](.*?) - 猿料<\/title>/.exec(data);
+            let lv = data[1],
+                desc = data[2];
+            if (lv != cv) {
+                options = {
+                    type: 'info',
+                    title: '可用更新',
+                    cancelId: 1,
+                    message: `发现新版本 ${lv}，是否前往更新？\n更新内容：\n${desc}`,
+                    buttons: ['起驾', '朕知道了', '别再烦朕']
+                };
+                window.messageBox(options, index => {
+                    if (index == 0) {
+                        window.open(pg)
+                    } else if (index == 2) {
+                        localStorage[cv] = 'pass';
+                    }
+                })
+            }
+        })
+    }
 }
 
 // 切换列表和手册视图
 toggleView = () => {
-    if ($('#content').is(':hidden')) {
-        $('#content').fadeIn();
+    if ($("#manual").is(":hidden") && $("#mainlist").is(":visible")) {
+        $("#manual").fadeIn();
         $("#mainlist").fadeOut();
-    } else {
-        $("#content").fadeOut();
+    } else if ($("#manual").is(":visible") && $("#mainlist").is(":hidden")) {
+        $("#manual").fadeOut();
         $("#mainlist").fadeIn();
     }
 }
@@ -95,18 +150,40 @@ loadList = listnum => {
 // 进入插件
 utools.onPluginEnter(({ code, type, payload }) => {
     init();
+    checkUpdate();
     if (code == 'options') {
         showOptions();
     } else {
         $("#mainlist").fadeIn();
         var allFts = getAllFeatures();
-        if (allFts[code].type == "default") {
-            window.baseDir = window.getDirname();
-        } else {
-            window.baseDir = allFts[code].path
+        switch (allFts[code].type) {
+            case "default":
+                var baseDir = window.getDirname();
+                if (window.exists(`${baseDir}/assets/${code}.css`)) {
+                    $("#manualCSS").attr("href", `assets/${code}.css`)
+                }
+                window.dirs = {
+                    idxFile: `${baseDir}/index/${code}.json`,
+                    docPath: `${baseDir}/docs`
+            }
+                break;
+            case "custom":
+                var baseDir = allFts[code].path;
+                window.dirs = {
+                    idxFile: `${baseDir}/${code}.json`,
+                    docPath: `${baseDir}`,
+                }
+                break;
+            case "dash":
+                var baseDir = allFts[code].path;
+                window.dirs = {
+                    idxFile: `${baseDir}/${code}.json`,
+                    docPath: `${baseDir}/Documents`,
+                }
+                break;
         }
         // 读取目录文件
-        window.read(`${window.baseDir}/index/${code}.json`, (err, data) => {
+        window.read(window.dirs.idxFile, (err, data) => {
             let index = JSON.parse(data);
             if (type == 'over') {
                 showList(payload, index, 500)
@@ -115,7 +192,7 @@ utools.onPluginEnter(({ code, type, payload }) => {
             }
             // 子输入框
             utools.setSubInput(({ text }) => {
-                if ($('#content').is(':hidden')) {
+                if ($('#manual').is(':hidden')) {
                     showList(text, index, 500);
                 } else {
                     highlightManual(text);
@@ -134,19 +211,23 @@ $("#mainlist").on('mousedown', '.info', function (e) {
 
 // 鼠标滑过列表，高亮
 $("#mainlist").on('mousemove', '.info', function () {
-    $(".select").removeClass('select');
-    $(this).addClass('select');
-});
+    // 设置500ms的鼠标锁
+    var mouseUnlockTime = new Date().getTime();
+    if (mouseUnlockTime - window.mouseLockTime > 500) {
+        $(".select").removeClass('select');
+        $(this).addClass('select');
+    }
+});  
 
 // 右键单击手册，退出手册
-$("#content").on('mousedown', function (e) {
+$("#manual").on('mousedown', function (e) {
     if (3 == e.which) {
         toggleView();
     }
 })
 
 // 手册中a标签
-$("#content").on('mousedown', 'a', function (e) {
+$("#manual").on('mousedown', 'a', function (e) {
     if (1 == e.which) {
         showManual($(this).attr('href'));
     }
@@ -167,7 +248,7 @@ $(document).keydown(e => {
         // 回车
         case 13:
             // 列表界面进入手册
-            if ($('#content').is(':hidden')) {
+            if ($('#manual').is(':hidden')) {
                 showManual($(".select").attr('path'));
             // 手册界面搜索下一个
             } else {

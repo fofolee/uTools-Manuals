@@ -1,0 +1,141 @@
+<article id="wikiArticle">
+<div class="warning">不建议使用<code>with</code>语句，因为它可能是混淆错误和兼容性问题的根源。有关详细信息，请参阅下面“说明”一节中的“歧义对比”部分。</div>
+<div></div>
+<div><strong>with语句 </strong>扩展一个语句的作用域链。</div>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre class="syntaxbox">with (expression) {
+    <em>statement</em>
+}
+</pre>
+<dl>
+<dt><code>expression</code></dt>
+<dd>将给定的表达式添加到在评估语句时使用的作用域链上。表达式周围的括号是必需的。</dd>
+<dt><code>statement</code></dt>
+<dd>任何语句。要执行多个语句，请使用一个<a href="Reference/Statements/block">块</a>语句 ({ ... })对这些语句进行分组。</dd>
+</dl>
+<h2 id="Description" name="Description">描述</h2>
+<p>JavaScript查找某个未使用命名空间的变量时，会通过作用域链来查找，作用域链是跟执行代码的context或者包含这个变量的函数有关。'with'语句將某个对象添加到作用域链的顶部，如果在statement中有某个未使用命名空间的变量，跟作用域链中的某个属性同名，则这个变量将指向这个属性值。如果沒有同名的属性，则将拋出<a href="Reference/Global_Objects/ReferenceError" title="ReferenceError（引用错误） 对象代表当一个不存在的变量被引用时发生的错误。"><code>ReferenceError</code></a>异常。</p>
+<div class="note">不推荐使用<code>with</code>，在 ECMAScript 5 <a href="Reference/Strict_mode">严格模式</a>中该标签已被禁止。推荐的替代方案是声明一个临时变量来承载你所需要的属性。</div>
+<h3 id="性能方面的利与弊">性能方面的利与弊</h3>
+<p><strong>利：</strong><code>with</code>语句可以在不造成性能损失的情況下，减少变量的长度。其造成的附加计算量很少。使用'with'可以减少不必要的指针路径解析运算。需要注意的是，很多情況下，也可以不使用with语句，而是使用一个临时变量来保存指针，来达到同样的效果。</p>
+<p><strong>弊：</strong><code>with</code>语句使得程序在查找变量值时，都是先在指定的对象中查找。所以那些本来不是这个对象的属性的变量，查找起来将会很慢。如果是在对性能要求较高的场合，'with'下面的statement语句中的变量，只应该包含这个指定对象的属性。</p>
+<h3 id="语义不明的弊端">语义不明的弊端</h3>
+<p><strong>弊端：</strong><code>with</code>语句使得代码不易阅读，同时使得JavaScript编译器难以在作用域链上查找某个变量，难以决定应该在哪个对象上来取值。请看下面的例子：</p>
+<pre class="brush: js">function f(x, o) {
+  with (o) 
+    print(x);
+}</pre>
+<p><code>f</code>被调用时，<code>x</code>有可能能取到值，也可能是<code>undefined</code>，如果能取到, 有可能是在o上取的值，也可能是函数的第一个参数<code>x</code>的值（如果o中没有这个属性的话）。如果你忘记在作为第二个参数的对象o中定义<code>x</code>这个属性，程序并不会报错，只是取到另一个值而已。</p>
+<p><strong>弊端：</strong>使用<code>with</code>语句的代码，无法向前兼容，特別是在使用一些原生数据类型的时候。看下面的例子：</p>
+<div>
+<pre class="brush:js">function f(foo, values) {
+    with (foo) {
+        console.log(values)
+    }
+}
+</pre>
+<p><font face="Open Sans, Arial, sans-serif">如果是在</font>ECMAScript 5环境调用<code>f([1,2,3], obj)</code>，则<code><font face="Open Sans, Arial, sans-serif">with</font></code>语句中变量<code>values</code>将指向函数的第二个参数<code>values</code>。但是，ECMAScript 6标准给<code><a href="Reference/Global_Objects/Array/prototype">Array.prototype</a></code>添加了一个新属性<code>values</code>，所有数组实例将继承这个属性。所以在ECMAScript 6环境中，<code><font face="Open Sans, Arial, sans-serif">with</font></code>语句中变量<code>values</code>将指向<code>[1,2,3].values</code>。</p>
+</div>
+<h2 id="Examples" name="Examples">示例</h2>
+<h3 id="Example:_Using_with" name="Example:_Using_with">Example: Using <code>with</code></h3>
+<p>下面的<code>with</code>语句指定<code><a href="Reference/Global_Objects/Math" title="JavaScript/Reference/Global_Objects/Math">Math</a></code>对象作为默认对象。<code>with</code>语句里面的变量，分別指向<code>Math</code>对象的<a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/PI" title="JavaScript/Reference/Global_Objects/Math/PI"><code>PI</code></a> 、<code><a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos" title="JavaScript/Reference/Global_Objects/Math/cos">cos</a><font face="Open Sans, Arial, sans-serif">和</font></code><code><a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin" title="JavaScript/Reference/Global_Objects/Math/sin">sin</a></code>函数，不用在前面添加命名空间。</p>
+<pre class="brush:js">var a, x, y;
+var r = 10;
+
+with (Math) {
+  a = PI * r * r;
+  x = r * cos(PI);
+  y = r * sin(PI / 2);
+}</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-with-statement" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">with statement</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-with-statement" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">with statement</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-12.10" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">with statement</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Now forbidden in strict mode.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%203rd%20edition,%20December%201999.pdf#sec-12.10" hreflang="en" lang="en" rel="noopener">ECMAScript 3rd Edition (ECMA-262)<br/><small lang="zh-CN">with statement</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%201st%20edition,%20June%201997.pdf#sec-12.10" hreflang="en" lang="en" rel="noopener">ECMAScript 1st Edition (ECMA-262)<br/><small lang="zh-CN">with statement</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition</td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容">浏览器兼容</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>with</code> <div class="bc-icons"><abbr class="only-icon" title="Deprecated. Not for use in new websites."><span>Deprecated</span><i class="ic-deprecated"></i></abbr></div></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><abbr class="only-icon" title="Deprecated. Not for use in new websites."><span>Deprecated. Not for use in new websites.</span><i class="ic-deprecated"></i></abbr></dt><dd>Deprecated. Not for use in new websites.</dd></dl></section></div><p></p>
+<h2 id="See_also" name="See_also">相关链接</h2>
+<ul>
+<li><a href="Reference/Statements/block" title="块语句（或其他语言的复合语句）用于组合零个或多个语句。该块由一对大括号界定，可以是labelled："><code>block</code></a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions_and_function_scope/Strict_mode">Strict mode</a></li>
+<li><a href="Reference/Global_Objects/Symbol/unscopables" title="Symbol.unscopables 指用于指定对象值，其对象自身和继承的从关联对象的 with 环境绑定中排除的属性名称。"><code>Symbol.unscopables</code></a></li>
+<li><a href="Reference/Global_Objects/Array/@@unscopables" title="Symbol属性 @@unscopable 包含了所有 ES2015 (ES6) 中新定义的且并未被更早的 ECMAScript 标准收纳的属性名。这些属性并不包含在 with 语句绑定的环境中"><code>Array.prototype[@@unscopables]</code></a></li>
+</ul>
+</article>

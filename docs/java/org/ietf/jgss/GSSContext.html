@@ -1,0 +1,1878 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     org.ietf.jgss 
+   </div>
+<h2 class="title" title="Interface GSSContext">Interface GSSContext</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">GSSContext</span></pre>
+<div class="block">
+<span>该接口封装了GSS-API安全上下文，并提供了可用于上下文的安全服务。</span>
+<span>使用本地获取的证书在对等体之间建立安全上下文。</span>
+<span>多个上下文可以同时存在于一对对等体之间，使用相同或不同的凭证集合。</span>
+<span>GSS-API以独立于底层传输协议的方式运行，并且取决于其调用应用程序来传输由对等体之间的安全上下文生成的令牌。</span>
+<p> <span>如果调用者使用默认的<code>GSSManager</code>实例来实例化上下文，则Kerberos v5 GSS-API机制被保证可用于上下文建立。</span> <span>该机制由Oid“1.2.840.113554.1.2.2”标识，并在RFC 1964中定义。</span> </p>
+<p> <span>在上下文建立阶段被启动之前，上下文发起者可以请求所建立的上下文所需的特定特征。</span> <span>并非所有底层机制都支持呼叫者可能希望的所有特征。</span> <span>在上下文建立之后，呼叫者可以通过各种查询方法检查该上下文提供的实际特性和服务。</span> <span>当使用默认的<code>GSSManager</code>实例提供的Kerberos v5 GSS-API机制时，所有可选服务将在本地可用。</span> <span>它们是相互认证，凭证授权，机密性和完整性保护以及每消息重放检测和排序。</span> <span>请注意，在GSS-API中，消息完整性是消息机密性的先决条件。</span> </p>
+<p> <span>上下文建立发生在发起者调用<a href="../../../org/ietf/jgss/GSSContext.html#initSecContext-byte:A-int-int-"><code>initSecContext</code></a>并且接受者调用<a href="../../../org/ietf/jgss/GSSContext.html#acceptSecContext-byte:A-int-int-"><code>acceptSecContext</code></a>的循环中，直到上下文<a href="../../../org/ietf/jgss/GSSContext.html#acceptSecContext-byte:A-int-int-">建立</a>为止。</span> <span>在此循环中， <code>initSecContext</code>和<code>acceptSecContext</code>方法产生应用程序发送给对等体的令牌。</span> <span>对等体通过任何这样的令牌作为输入到其<code>acceptSecContext</code>或<code>initSecContext</code>视情况而定）。</span> </p>
+<p> <span>在上下文建立阶段期间，可以调用<a href="../../../org/ietf/jgss/GSSContext.html#isProtReady--"><code>isProtReady</code></a>方法来确定上下文是否可以用于<a href="../../../org/ietf/jgss/GSSContext.html#wrap-byte:A-int-int-org.ietf.jgss.MessageProp-"><code>wrap</code></a>和<a href="../../../org/ietf/jgss/GSSContext.html#getMIC-byte:A-int-int-org.ietf.jgss.MessageProp-"><code>getMIC</code></a>的每消息<a href="../../../org/ietf/jgss/GSSContext.html#getMIC-byte:A-int-int-org.ietf.jgss.MessageProp-">操作</a> 。</span> <span>这允许应用程序对尚未完全建立的上下文使用每个消息操作。</span> </p>
+<p> <span>在上下文建立或<code>isProtReady</code>方法返回<code>true</code>之后，可以调用查询例程来确定已建立上下文的实际特性和服务。</span> <span>该应用程序还可以开始使用<a href="../../../org/ietf/jgss/GSSContext.html#wrap-byte:A-int-int-org.ietf.jgss.MessageProp-"><code>wrap</code></a>和<a href="../../../org/ietf/jgss/GSSContext.html#getMIC-byte:A-int-int-org.ietf.jgss.MessageProp-"><code>getMIC</code></a>的每消息方法来获取应用程序提供的数据的加密操作。</span> </p>
+<p> <span>当上下文不再需要时，应用程序应该调用<a href="../../../org/ietf/jgss/GSSContext.html#dispose--"><code>dispose</code></a>来释放上下文可能使用的任何系统资源。</span> </p>
+<p> <span>安全上下文通常维护关于其处理的令牌的排序和重放检测信息。</span> <span>因此，将任何令牌呈现给该上下文以用于处理的顺序可能是重要的。</span> <span>另请注意，此界面中的任何方法都不同步。</span> <span>因此，除非有某些应用程序级别同步，否则不建议在多个线程之间共享<code>GSSContext</code> 。</span> </p>
+<p> <span>最后，不同的机制提供者可能会对使用GSS-API上下文设置不同的安全限制。</span> <span>这些将由机构提供者记录。</span> <span>如果在机制层中进行这种检查，应用程序将需要确保它具有适当的权限。</span> </p>
+<p> <span>下面提供的示例代码演示了启动对等体的<code>GSSContext</code>接口的用法。</span> <span>介绍了<code>GSSContext</code>对象的不同操作，包括：对象实例化，所需标志的设置，上下文建立，实际上下文标识查询，应用数据的每消息操作，以及最后的上下文删除。</span> </p>
+<p></p>
+<pre>  <span>// Create a context using default credentials
+    // and the implementation specific default mechanism
+    GSSManager manager ...
+    GSSName targetName ...
+    GSSContext context = manager.createContext(targetName, null, null,
+                                           GSSContext.INDEFINITE_LIFETIME);
+
+    // set desired context options prior to context establishment
+    context.requestConf(true);
+    context.requestMutualAuth(true);
+    context.requestReplayDet(true);
+    context.requestSequenceDet(true);
+
+    // establish a context between peers
+
+    byte []inToken = new byte[0];
+
+    // Loop while there still is a token to be processed
+
+    while (!context.isEstablished()) {
+
+        byte[] outToken
+            = context.initSecContext(inToken, 0, inToken.length);
+
+        // send the output token if generated
+        if (outToken != null)
+            sendToken(outToken);
+
+        if (!context.isEstablished()) {
+            inToken = readToken();
+    }
+
+     // display context information
+     System.out.println("Remaining lifetime in seconds = "
+                                          + context.getLifetime());
+     System.out.println("Context mechanism = " + context.getMech());
+     System.out.println("Initiator = " + context.getSrcName());
+     System.out.println("Acceptor = " + context.getTargName());
+
+     if (context.getConfState())
+             System.out.println("Confidentiality (i.e., privacy) is available");
+
+     if (context.getIntegState())
+             System.out.println("Integrity is available");
+
+     // perform wrap on an application supplied message, appMsg,
+     // using QOP = 0, and requesting privacy service
+     byte [] appMsg ...
+
+     MessageProp mProp = new MessageProp(0, true);
+
+     byte []tok = context.wrap(appMsg, 0, appMsg.length, mProp);
+
+     sendToken(tok);
+
+     // release the local-end of the context
+     context.dispose();</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#DEFAULT_LIFETIME">DEFAULT_LIFETIME</a></span></code>
+<div class="block">
+              表示默认上下文生存期的生命周期常数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#INDEFINITE_LIFETIME">INDEFINITE_LIFETIME</a></span></code>
+<div class="block">
+              一个代表不确定上下文生命周期的生命周期。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>byte[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#acceptSecContext-byte:A-int-int-">acceptSecContext</a></span>(byte[] inToken, int offset, int len)</code>
+<div class="block">
+              在从对等体接收到令牌时，由上下文接受者调用。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#acceptSecContext-java.io.InputStream-java.io.OutputStream-">acceptSecContext</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream, <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream)</code>
+<div class="block">
+              由上下文接收方调用，使用流处理来自对等体的令牌。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#dispose--">dispose</a></span>()</code>
+<div class="block">
+              释放存储在上下文对象中的任何系统资源和加密信息，并使上下文无效。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>byte[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#export--">export</a></span>()</code>
+<div class="block">
+              导出此上下文，以便另一个进程可以导入它。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getAnonymityState--">getAnonymityState</a></span>()</code>
+<div class="block">
+              确定上下文启动器是否被上下文接受者匿名认证。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getConfState--">getConfState</a></span>()</code>
+<div class="block">
+              确定数据机密性是否可用于上下文。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getCredDelegState--">getCredDelegState</a></span>()</code>
+<div class="block">
+              确定在此上下文中是否启用凭据委派。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getDelegCred--">getDelegCred</a></span>()</code>
+<div class="block">
+              获取由上下文启动器委派给上下文接收器的凭据。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getIntegState--">getIntegState</a></span>()</code>
+<div class="block">
+              确定数据完整性是否可用于上下文。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getLifetime--">getLifetime</a></span>()</code>
+<div class="block">
+              确定此上下文的剩余生命周期。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getMech--">getMech</a></span>()</code>
+<div class="block">
+              确定在这个上下文中使用什么机制。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>byte[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getMIC-byte:A-int-int-org.ietf.jgss.MessageProp-">getMIC</a></span>(byte[] inMsg, int offset, int len, <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)</code>
+<div class="block">
+              返回包含所提供消息的加密消息完整性代码（MIC）的令牌，以传输到对等应用程序。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getMIC-java.io.InputStream-java.io.OutputStream-org.ietf.jgss.MessageProp-">getMIC</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream, <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream, <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)</code>
+<div class="block">
+              使用流生成包含所提供消息的密码MIC的令牌，以传输到对等应用程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getMutualAuthState--">getMutualAuthState</a></span>()</code>
+<div class="block">
+              确定在此上下文中是否启用了相互验证。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getReplayDetState--">getReplayDetState</a></span>()</code>
+<div class="block">
+              确定是否从此上下文为每个消息安全服务启用重放检测。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getSequenceDetState--">getSequenceDetState</a></span>()</code>
+<div class="block">
+              确定是否从此上下文为每个消息安全服务启用了序列检查。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getSrcName--">getSrcName</a></span>()</code>
+<div class="block">
+              返回上下文启动器的名称。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code><a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getTargName--">getTargName</a></span>()</code>
+<div class="block">
+              返回上下文接收器的名称。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#getWrapSizeLimit-int-boolean-int-">getWrapSizeLimit</a></span>(int qop, boolean confReq, int maxTokenSize)</code>
+<div class="block">
+              用于确定可以传递给 
+             <code>wrap</code>的消息大小的限制。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>byte[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#initSecContext-byte:A-int-int-">initSecContext</a></span>(byte[] inputBuf, int offset, int len)</code>
+<div class="block">
+              由上下文发起者调用以启动上下文创建阶段，并处理由对等体的 
+             <code>acceptSecContext</code>方法生成的任何令牌。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#initSecContext-java.io.InputStream-java.io.OutputStream-">initSecContext</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream, <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream)</code>
+<div class="block">
+              由上下文发起者调用以启动上下文创建阶段，并处理由对等体的 
+             <code>acceptSecContext</code>方法使用流生成的任何令牌。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--">isEstablished</a></span>()</code>
+<div class="block">
+              在上下文建立期间使用以确定上下文的状态。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#isInitiator--">isInitiator</a></span>()</code>
+<div class="block">
+              确定这是否是上下文启动器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#isProtReady--">isProtReady</a></span>()</code>
+<div class="block">
+              确定上下文是否准备好用于每个消息操作。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#isTransferable--">isTransferable</a></span>()</code>
+<div class="block">
+              通过使用 
+             <a href="../../../org/ietf/jgss/GSSContext.html#export--"><code>export</code></a>方法确定上下文是否可转移到其他进程。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#requestAnonymity-boolean-">requestAnonymity</a></span>(boolean state)</code>
+<div class="block">
+              要求发起人的身份不被披露给受理人。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#requestConf-boolean-">requestConf</a></span>(boolean state)</code>
+<div class="block">
+              要求为 
+             <code>wrap</code>方法启用数据机密性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#requestCredDeleg-boolean-">requestCredDeleg</a></span>(boolean state)</code>
+<div class="block">
+              请求在上下文建立期间将启动器的凭据委托给接受者。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#requestInteg-boolean-">requestInteg</a></span>(boolean state)</code>
+<div class="block">
+              要求对 
+             <code>wrap</code>和 
+             <code>getMIC</code>方法启用数据完整性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#requestLifetime-int-">requestLifetime</a></span>(int lifetime)</code>
+<div class="block">
+              为上下文请求一秒钟的生命周期。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i30">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#requestMutualAuth-boolean-">requestMutualAuth</a></span>(boolean state)</code>
+<div class="block">
+              要求在上下文建立期间进行相互验证。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i31">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#requestReplayDet-boolean-">requestReplayDet</a></span>(boolean state)</code>
+<div class="block">
+              在上下文建立之后，请求对每个消息安全服务启用重播检测。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i32">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#requestSequenceDet-boolean-">requestSequenceDet</a></span>(boolean state)</code>
+<div class="block">
+              请求在上下文建立后为每个消息安全服务启用序列检查。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i33">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#setChannelBinding-org.ietf.jgss.ChannelBinding-">setChannelBinding</a></span>(<a href="../../../org/ietf/jgss/ChannelBinding.html" title="class in org.ietf.jgss">ChannelBinding</a> cb)</code>
+<div class="block">
+              设置在上下文建立期间要使用的通道绑定。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i34">
+<td class="colFirst"><code>byte[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#unwrap-byte:A-int-int-org.ietf.jgss.MessageProp-">unwrap</a></span>(byte[] inBuf, int offset, int len, <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)</code>
+<div class="block">
+              用于在上下文的另一边处理由 
+             <code>wrap</code>方法生成的令牌。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i35">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#unwrap-java.io.InputStream-java.io.OutputStream-org.ietf.jgss.MessageProp-">unwrap</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream, <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream, <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)</code>
+<div class="block">
+              在上下文的另一边使用流来处理由 
+             <code>wrap</code>方法生成的令牌。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i36">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#verifyMIC-byte:A-int-int-byte:A-int-int-org.ietf.jgss.MessageProp-">verifyMIC</a></span>(byte[] inToken, int tokOffset, int tokLen, byte[] inMsg, int msgOffset, int msgLen, <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)</code>
+<div class="block">
+              通过提供的消息验证令牌参数中包含的密码MIC。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i37">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#verifyMIC-java.io.InputStream-java.io.InputStream-org.ietf.jgss.MessageProp-">verifyMIC</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> tokStream, <a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> msgStream, <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)</code>
+<div class="block">
+              通过提供的消息使用流来验证包含在令牌参数中的加密MIC。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i38">
+<td class="colFirst"><code>byte[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#wrap-byte:A-int-int-org.ietf.jgss.MessageProp-">wrap</a></span>(byte[] inBuf, int offset, int len, <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)</code>
+<div class="block">
+              在已建立的安全上下文中应用每消息安全服务。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i39">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSContext.html#wrap-java.io.InputStream-java.io.OutputStream-org.ietf.jgss.MessageProp-">wrap</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream, <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream, <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)</code>
+<div class="block">
+              使用流在已建立的安全上下文中应用每消息安全服务。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="DEFAULT_LIFETIME">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>DEFAULT_LIFETIME</h4> <pre>static final int DEFAULT_LIFETIME</pre>
+<div class="block">
+<span>表示默认上下文生存期的生命周期常数。</span>
+<span>该值设置为0。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#org.ietf.jgss.GSSContext.DEFAULT_LIFETIME">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="INDEFINITE_LIFETIME">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>INDEFINITE_LIFETIME</h4> <pre>static final int INDEFINITE_LIFETIME</pre>
+<div class="block">
+<span>一个代表不确定上下文生命周期的生命周期。</span>
+<span>该值必须设置为Java中的最大整数值 - <a href="../../../java/lang/Integer.html#MAX_VALUE"><code>Integer.MAX_VALUE</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#org.ietf.jgss.GSSContext.INDEFINITE_LIFETIME">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="initSecContext-byte:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>initSecContext</h4> <pre>byte[] initSecContext(byte[] inputBuf,
+                      int offset,
+                      int len)
+               throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>由上下文发起者调用以启动上下文创建阶段，并处理由对等体的<code>acceptSecContext</code>方法生成的任何令牌。</span>
+<span>该方法可以返回输出令牌，应用程序将需要通过其<code>acceptSecContext</code>方法发送给对等体进行处理。</span>
+<span>应用程序可以调用<a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--"><code>isEstablished</code></a>来确定上下文的这一方是否完成上下文建立阶段。</span>
+<span>的返回值<code>false</code>从<code>isEstablished</code>表示多个令牌被预期要被提供给<code>initSecContext</code> 。</span>
+<span>完成上下文建立后，可以通过get方法查询可用的上下文选项。</span>
+<p> <span>请注意，它有可能是<code>initSecContext</code>方法返回一个标记为同行和<code>isEstablished</code>回报<code>true</code>也。</span> <span>这表示令牌需要发送给对等体，但是上下文的本地结束现在已经完全建立了。</span> </p>
+<p> <span>一些机制提供者可能会要求呼叫者被授予启动安全上下文的权限。</span> <span>失败的权限检查可能会导致从该方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>inputBuf</code> - 对等体<code>inputBuf</code>令牌。</span>
+<span>此参数在第一次调用时被忽略，因为没有从对等体接收到令牌。</span>
+</dd>
+<dd>
+<code>offset</code> - 令牌开始的inputBuf内的偏移量。 
+           </dd>
+<dd>
+<code>len</code> - 令牌的长度。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>包含要发送到对等体的令牌的字节[]。</span>
+<span><code>null</code>表示没有生成令牌。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#DEFECTIVE_TOKEN"><code>GSSException.DEFECTIVE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MIC"><code>GSSException.BAD_MIC</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CRED"><code>GSSException.NO_CRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CREDENTIALS_EXPIRED"><code>GSSException.CREDENTIALS_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_BINDINGS"><code>GSSException.BAD_BINDINGS</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#OLD_TOKEN"><code>GSSException.OLD_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#DUPLICATE_TOKEN"><code>GSSException.DUPLICATE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="initSecContext-java.io.InputStream-java.io.OutputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>initSecContext</h4> <pre>int initSecContext(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream,
+                   <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream)
+            throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>由上下文发起者调用以启动上下文创建阶段，并处理由对等体的<code>acceptSecContext</code>方法使用流生成的任何令牌。</span>
+<span>该方法可以将输出令牌写入<code>OutpuStream</code> ，应用程序将需要通过其<code>acceptSecContext</code>调用发送给对等体进行处理。</span>
+<span>通常，应用程序将通过调用确保此<a href="../../../java/io/OutputStream.html#flush--"><code>flush</code></a>上的方法<code>OutputStream</code>封装了两个对等体之间的连接。</span>
+<span>应用程序可以确定令牌是否从此方法的返回值写入OutputStream。</span>
+<span>返回值为<code>0</code>表示没有令牌写入。</span>
+<span>应用程序可以调用<a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--"><code>isEstablished</code></a>来确定上下文的这一方是否完成上下文建立阶段。</span>
+<span>的返回值<code>false</code>从<code>isEstablished</code>表示多个令牌被预期要被提供给<code>initSecContext</code> 。</span>
+<span>完成上下文建立后，可以通过get方法查询可用的上下文选项。</span>
+<p> <span>请注意，它有可能是<code>initSecContext</code>方法返回一个标记为同行和<code>isEstablished</code>回报<code>true</code>也。</span> <span>这表示令牌需要发送给对等体，但是上下文的本地结束现在已经完全建立了。</span> </p>
+<p> <span>GSS-API认证令牌包含一个确定的开始和结束。</span> <span>该方法将尝试每次调用读取其中一个令牌，如果只有部分令牌可用，则可能会阻塞该流。</span> <span>在所有其他方面，此方法相当于基于<a href="../../../org/ietf/jgss/GSSContext.html#initSecContext-byte:A-int-int-"><code>initSecContext</code></a>的字节数组。</span> </p>
+<p> <span>一些机制提供者可能会要求呼叫者被授予启动安全上下文的权限。</span> <span>失败的权限检查可能会导致从此方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span> </p>
+<p> <span>以下示例代码演示了如何使用此方法：</span> </p>
+<p></p>
+<pre>  <span>InputStream is ...
+     OutputStream os ...
+     GSSContext context ...
+
+     // Loop while there is still a token to be processed
+
+     while (!context.isEstablished()) {
+
+         context.initSecContext(is, os);
+
+         // send output token if generated
+         os.flush();
+     }</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>inStream</code> - 包含对等体生成的令牌的InputStream。</span>
+<span>此参数在第一次调用时被忽略，因为在该点没有或将从对等体接收到令牌。</span>
+</dd>
+<dd>
+<span><code>outStream</code> - 输出令牌将被写入的OutputStream。</span>
+<span>在上下文建立的最后阶段，可能不会写入字节。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>作为要发送到对等体的令牌的一部分写入OutputStream的字节数。</span>
+<span>值为0表示不需要发送令牌。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#DEFECTIVE_TOKEN"><code>GSSException.DEFECTIVE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MIC"><code>GSSException.BAD_MIC</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CRED"><code>GSSException.NO_CRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CREDENTIALS_EXPIRED"><code>GSSException.CREDENTIALS_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_BINDINGS"><code>GSSException.BAD_BINDINGS</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#OLD_TOKEN"><code>GSSException.OLD_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#DUPLICATE_TOKEN"><code>GSSException.DUPLICATE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="acceptSecContext-byte:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>acceptSecContext</h4> <pre>byte[] acceptSecContext(byte[] inToken,
+                        int offset,
+                        int len)
+                 throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>在从对等体接收到令牌时，由上下文接受者调用。</span>
+<span>该方法可以返回输出令牌，应用程序将需要发送给对等体以进一步处理其<code>initSecContext</code>调用。</span>
+<p> <span>应用程序可以调用<a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--"><code>isEstablished</code></a>来确定该对等体的上下文建立阶段是否完成。</span> <span>的返回值<code>false</code>从<code>isEstablished</code>表示多个令牌被预期将要提供给该方法。</span> <span>完成上下文建立后，可以通过get方法查询可用的上下文选项。</span> </p>
+<p> <span>请注意，有可能是<code>acceptSecContext</code>返回一个标记为同行和<code>isEstablished</code>回报<code>true</code>也。</span> <span>这表示令牌需要发送给对等体，但是上下文的本地结束现在已经完全建立了。</span> </p>
+<p> <span>一些机制提供者可能要求呼叫者被授予接受安全上下文的权限。</span> <span>失败的权限检查可能会导致从此方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span> </p>
+<p> <span>以下示例代码演示了如何使用此方法：</span> </p>
+<p></p>
+<pre>  <span>byte[] inToken;
+     byte[] outToken;
+     GSSContext context ...
+
+     // Loop while there is still a token to be processed
+
+     while (!context.isEstablished()) {
+         inToken = readToken();
+         outToken = context.acceptSecContext(inToken, 0,
+                                             inToken.length);
+         // send output token if generated
+         if (outToken != null)
+             sendToken(outToken);
+     }</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>inToken</code> - 对等体 
+            <code>inToken</code>令牌。 
+           </dd>
+<dd>
+<code>offset</code> - 令牌开始的inToken内的偏移量。 
+           </dd>
+<dd>
+<code>len</code> - 令牌的长度。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>包含要发送到对等体的令牌的字节[]。</span>
+<span><code>null</code>表示没有生成令牌。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#DEFECTIVE_TOKEN"><code>GSSException.DEFECTIVE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MIC"><code>GSSException.BAD_MIC</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CRED"><code>GSSException.NO_CRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CREDENTIALS_EXPIRED"><code>GSSException.CREDENTIALS_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_BINDINGS"><code>GSSException.BAD_BINDINGS</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#OLD_TOKEN"><code>GSSException.OLD_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#DUPLICATE_TOKEN"><code>GSSException.DUPLICATE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="acceptSecContext-java.io.InputStream-java.io.OutputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>acceptSecContext</h4> <pre>void acceptSecContext(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream,
+                      <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream)
+               throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>由上下文接收方调用，使用流处理来自对等体的令牌。</span>
+<span>它可以向<code>OutputStream</code>写一个输出令牌，应用程序将需要通过其<code>initSecContext</code>方法发送给对等体进行处理。</span>
+<span>通常，应用程序将通过调用确保此<a href="../../../java/io/OutputStream.html#flush--"><code>flush</code></a>上的方法<code>OutputStream</code>封装了两个对等体之间的连接。</span>
+<span>应用程序可以调用<a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--"><code>isEstablished</code></a>来确定上下文的这一方是否完成上下文建立阶段。</span>
+<span>的返回值<code>false</code>从<code>isEstablished</code>表示多个令牌被预期要被提供给<code>acceptSecContext</code> 。</span>
+<span>完成上下文建立后，可以通过get方法查询可用的上下文选项。</span>
+<p> <span>请注意，有可能是<code>acceptSecContext</code>返回一个标记为同行和<code>isEstablished</code>回报<code>true</code>也。</span> <span>这表示令牌需要发送给对等体，但是上下文的本地结束现在已经完全建立了。</span> </p>
+<p> <span>GSS-API认证令牌包含一个确定的开始和结束。</span> <span>该方法将尝试每次调用读取其中一个令牌，如果只有部分令牌可用，则可能会阻塞该流。</span> <span>在所有其他方面，此方法相当于基于<a href="../../../org/ietf/jgss/GSSContext.html#acceptSecContext-byte:A-int-int-"><code>acceptSecContext</code></a>的字节数组。</span> </p>
+<p> <span>一些机制提供者可能要求呼叫者被授予接受安全上下文的权限。</span> <span>失败的权限检查可能会导致从此方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span> </p>
+<p> <span>以下示例代码演示了如何使用此方法：</span> </p>
+<p></p>
+<pre>  <span>InputStream is ...
+     OutputStream os ...
+     GSSContext context ...
+
+     // Loop while there is still a token to be processed
+
+     while (!context.isEstablished()) {
+
+         context.acceptSecContext(is, os);
+
+         // send output token if generated
+         os.flush();
+     }</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>inStream</code> - 包含对等体生成的令牌的InputStream。 
+           </dd>
+<dd>
+<span><code>outStream</code> - 输出令牌将被写入的OutputStream。</span>
+<span>在上下文建立的最后阶段，可能不会写入字节。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#DEFECTIVE_TOKEN"><code>GSSException.DEFECTIVE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MIC"><code>GSSException.BAD_MIC</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CRED"><code>GSSException.NO_CRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CREDENTIALS_EXPIRED"><code>GSSException.CREDENTIALS_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_BINDINGS"><code>GSSException.BAD_BINDINGS</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#OLD_TOKEN"><code>GSSException.OLD_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#DUPLICATE_TOKEN"><code>GSSException.DUPLICATE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isEstablished--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isEstablished</h4> <pre>boolean isEstablished()</pre>
+<div class="block">
+            在上下文建立期间使用以确定上下文的状态。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果这是来自呼叫方的完全建立的上下文，并且不需要来自对等体的更多令牌。 
+           </dd>
+</dl> </li>
+</ul> <a name="dispose--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>dispose</h4> <pre>void dispose()
+      throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+            释放存储在上下文对象中的任何系统资源和加密信息，并使上下文无效。 
+          </div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getWrapSizeLimit-int-boolean-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getWrapSizeLimit</h4> <pre>int getWrapSizeLimit(int qop,
+                     boolean confReq,
+                     int maxTokenSize)
+              throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>用于确定可传递给<code>wrap</code>的消息大小的限制。</span>
+<span>返回最大消息大小，如果提供给具有相同<code>confReq</code>和<code>qop</code>参数的<code>wrap</code>方法，则会导致输出令牌不超过<code>maxTokenSize</code>字节。</span>
+<p> <span>此呼叫旨在供通过施加最大消息大小的协议进行通信的应用程序使用。</span> <span>它使应用程序在应用保护之前对消息进行分段。</span> </p>
+<p> <span>GSS-API实现的建议，但在不需要时检测无效QOP值<code>getWrapSizeLimit</code>被调用。</span> <span>此例程仅保留最大消息大小，而不保证消息保护的特定QOP值的可用性。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>qop</code> - 将要求提供防护等级。 
+           </dd>
+<dd>
+<code>confReq</code> - 
+            <code>true</code>如果将要求提供隐私， 
+            <code>false</code>否则。 
+           </dd>
+<dd>
+<code>maxTokenSize</code> - 由wrap发出的令牌所需的最大大小。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             给定输出令牌大小的输入令牌的最大大小 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_QOP"><code>GSSException.BAD_QOP</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="wrap-byte:A-int-int-org.ietf.jgss.MessageProp-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>wrap</h4> <pre>byte[] wrap(byte[] inBuf,
+            int offset,
+            int len,
+            <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)
+     throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>在已建立的安全上下文中应用每消息安全服务。</span>
+<span>该方法将使用应用程序提供的数据和密码MIC返回一个令牌。</span>
+<span>如果要求保密（隐私），则数据可能会被加密。</span>
+<p> <span>MessageProp对象由应用程序实例化，用于指定选择加密算法的QOP值，以及可选地加密消息的隐私服务。</span> <span>呼叫中使用的基础机制可能无法提供隐私服务。</span> <span>它设置它在此MessageProp对象中提供的实际隐私服务，呼叫者在返回时应该查询。</span> <span>如果机制无法提供所请求的QOP，则它会抛出一个具有BAD_QOP代码的GSSException。</span> </p>
+<p> <span>由于一些应用程序级协议可能希望使用由wrap发出的令牌以提供“安全成帧”，所以实现应该支持对零长度消息的包装。</span> </p>
+<p> <span>应用程序将负责将令牌发送给对等体。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>inBuf</code> - 要保护的应用程序数据。 
+           </dd>
+<dd>
+<code>offset</code> - 数据开始的inBuf中的偏移量。 
+           </dd>
+<dd>
+<code>len</code> - 数据的长度 
+           </dd>
+<dd>
+<span><code>msgProp</code> - 应用程序用于设置所需QOP和隐私状态的MessageProp实例。</span>
+<span>将所需的QOP设置为0以请求默认的QOP。</span>
+<span>从此方法返回后，此对象将包含底层机制应用于消息的实际隐私状态。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             包含要发送到对等体的令牌的字节[]。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_QOP"><code>GSSException.BAD_QOP</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="wrap-java.io.InputStream-java.io.OutputStream-org.ietf.jgss.MessageProp-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>wrap</h4> <pre>void wrap(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream,
+          <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream,
+          <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)
+   throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>使用流在已建立的安全上下文中应用每消息安全服务。</span>
+<span>该方法将使用应用程序提供的数据和密码MIC返回一个令牌。</span>
+<span>如果要求保密（隐私），则数据可能会被加密。</span>
+<span>这种方法相当于基于<a href="../../../org/ietf/jgss/GSSContext.html#wrap-byte:A-int-int-org.ietf.jgss.MessageProp-"><code>wrap</code></a>的字节数组。</span>
+<p> <span>应用程序将负责将令牌发送给对等体。</span> <span>通常，应用程序将通过调用确保此<a href="../../../java/io/OutputStream.html#flush--"><code>flush</code></a>上的方法<code>OutputStream</code>封装了两个对等体之间的连接。</span> </p>
+<p> <span>MessageProp对象由应用程序实例化，用于指定选择加密算法的QOP值，以及可选地加密消息的隐私服务。</span> <span>呼叫中使用的基础机制可能无法提供隐私服务。</span> <span>它设置它在此MessageProp对象中提供的实际隐私服务，呼叫者在返回时应该查询。</span> <span>如果机制无法提供所请求的QOP，则它会抛出一个具有BAD_QOP代码的GSSException。</span> </p>
+<p> <span>由于一些应用程序级协议可能希望使用由wrap发出的令牌以提供“安全成帧”，所以实现应该支持对零长度消息的包装。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>inStream</code> - 包含要保护的应用程序数据的InputStream。</span>
+<span>使用inStream中可用的所有数据。</span>
+</dd>
+<dd>
+<code>outStream</code> - 将受保护的消息写入的OutputStream。 
+           </dd>
+<dd>
+<span><code>msgProp</code> - 应用程序用于设置所需QOP和隐私状态的MessageProp实例。</span>
+<span>将所需的QOP设置为0以请求默认的QOP。</span>
+<span>从此方法返回后，此对象将包含底层机制应用于消息的实际隐私状态。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_QOP"><code>GSSException.BAD_QOP</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="unwrap-byte:A-int-int-org.ietf.jgss.MessageProp-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>unwrap</h4> <pre>byte[] unwrap(byte[] inBuf,
+              int offset,
+              int len,
+              <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)
+       throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>用于在上下文的另一边处理由<code>wrap</code>方法生成的令牌。</span>
+<span>该方法将将对等应用程序提供的消息返回到其包裹调用，同时验证该消息的嵌入式MIC。</span>
+<p> <span>MessageProp对象由应用程序实例化，并被底层机制用于将信息返回给呼叫者，例如QOP，是否将机密性应用于消息，以及其他补充消息状态信息。</span> </p>
+<p> <span>由于一些应用级协议可能希望使用由wrap发出的令牌来提供“安全的成帧”，所以实现应该支持零长度消息的包装和解包。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>inBuf</code> - 一个包含从对等体接收到的换行标记的字节数组。 
+           </dd>
+<dd>
+<code>offset</code> - 令牌开始的偏移量。 
+           </dd>
+<dd>
+<code>len</code> - 令牌的长度 
+           </dd>
+<dd>
+<code>msgProp</code> - 从方法返回后，该对象将包含应用的QOP，消息的隐私状态和补充信息，说明令牌是否是重复的，旧的，不顺序的或在间隙之后到达。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             包含从输入令牌解开的消息的字节[]。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#DEFECTIVE_TOKEN"><code>GSSException.DEFECTIVE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MIC"><code>GSSException.BAD_MIC</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="unwrap-java.io.InputStream-java.io.OutputStream-org.ietf.jgss.MessageProp-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>unwrap</h4> <pre>void unwrap(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream,
+            <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream,
+            <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)
+     throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>在上下文的另一边使用流来处理由<code>wrap</code>方法生成的令牌。</span>
+<span>该方法将将对等应用程序提供的消息返回到其包裹调用，同时验证该消息的嵌入式MIC。</span>
+<p> <span>MessageProp对象由应用程序实例化，并被底层机制用于将信息返回给呼叫者，例如QOP，是否将机密性应用于消息，以及其他补充消息状态信息。</span> </p>
+<p> <span>由于一些应用级协议可能希望使用由wrap发出的令牌来提供“安全的成帧”，所以实现应该支持零长度消息的包装和解包。</span> </p>
+<p> <span>该方法读取的输入令牌的格式在规范中定义为将要使用的底层机制。</span> <span>此方法将尝试每次调用读取其中一个令牌。</span> <span>如果机制令牌包含一个确定的开始和结束，那么只有部分令牌<code>InputStream</code> ，此方法可能会阻塞InputStream。</span> <span>如果令牌的开始和结束不是确定的，那么该方法将尝试将所有可用字节视为令牌的一部分。</span> </p>
+<p> <span>除了上述可能的阻塞行为之外，该方法相当于基于<a href="../../../org/ietf/jgss/GSSContext.html#unwrap-byte:A-int-int-org.ietf.jgss.MessageProp-"><code>unwrap</code></a>的字节数组方法。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>inStream</code> - 包含对等体生成的换行令牌的InputStream。 
+           </dd>
+<dd>
+<code>outStream</code> - 将应用程序消息写入的OutputStream。 
+           </dd>
+<dd>
+<code>msgProp</code> - 从方法返回时，该对象将包含所应用的QOP，消息的隐私状态和补充信息，说明令牌是否是重复的，旧的，不顺序的或在间隙之后到达的。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#DEFECTIVE_TOKEN"><code>GSSException.DEFECTIVE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MIC"><code>GSSException.BAD_MIC</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMIC-byte:A-int-int-org.ietf.jgss.MessageProp-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMIC</h4> <pre>byte[] getMIC(byte[] inMsg,
+              int offset,
+              int len,
+              <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)
+       throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>返回包含所提供消息的加密消息完整性代码（MIC）的令牌，以传输到对等应用程序。</span>
+<span>不同于wrap，它将用户消息封装在返回的令牌中，只有在输出令牌中返回消息MIC。</span>
+<p> <span>请注意，只能通过换行呼叫来应用隐私。</span> </p>
+<p> <span>由于一些应用级协议可能希望使用由getMIC发出的令牌提供“安全成帧”，所以实现应该支持从零长度消息中导出MIC。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>inMsg</code> - 生成MIC的消息。 
+           </dd>
+<dd>
+<code>offset</code> - 消息开始的inMsg内的偏移量。 
+           </dd>
+<dd>
+<code>len</code> - 消息的长度 
+           </dd>
+<dd>
+<span><code>msgProp</code> -的实例<code>MessageProp</code>所使用的应用程序来设置所需QOP。</span>
+<span>设置需要的QOP到<code>0</code>在<code>msgProp</code>来请求默认QOP。</span>
+<span>或者通过<code>null</code>为<code>msgProp</code>请求默认的QOP。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             包含要发送到对等体的令牌的字节[]。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_QOP"><code>GSSException.BAD_QOP</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMIC-java.io.InputStream-java.io.OutputStream-org.ietf.jgss.MessageProp-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMIC</h4> <pre>void getMIC(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> inStream,
+            <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> outStream,
+            <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)
+     throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>使用流生成包含所提供消息的密码MIC的令牌，以传输到对等应用程序。</span>
+<span>不同于wrap，它将用户消息封装在返回的令牌中，只有在输出令牌中生成消息MIC。</span>
+<span>这个方法相当于基于<a href="../../../org/ietf/jgss/GSSContext.html#getMIC-byte:A-int-int-org.ietf.jgss.MessageProp-"><code>getMIC</code></a>的字节数组。</span>
+<span>请注意，只能通过换行呼叫来应用隐私。</span>
+<p> <span>由于一些应用级协议可能希望使用由getMIC发出的令牌提供“安全成帧”，所以实现应该支持从零长度消息中导出MIC。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>inStream</code> - 一个包含生成MIC的消息的InputStream。</span>
+<span>使用inStream中可用的所有数据。</span>
+</dd>
+<dd>
+<code>outStream</code> - 将输出令牌写入的OutputStream。 
+           </dd>
+<dd>
+<span><code>msgProp</code> -的实例<code>MessageProp</code>所使用的应用程序来设置所需QOP。</span>
+<span>设置需要的QOP到<code>0</code>在<code>msgProp</code>来请求默认QOP。</span>
+<span>或者通过<code>null</code>寻找<code>msgProp</code>以请求默认的QOP。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_QOP"><code>GSSException.BAD_QOP</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="verifyMIC-byte:A-int-int-byte:A-int-int-org.ietf.jgss.MessageProp-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>verifyMIC</h4> <pre>void verifyMIC(byte[] inToken,
+               int tokOffset,
+               int tokLen,
+               byte[] inMsg,
+               int msgOffset,
+               int msgLen,
+               <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)
+        throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>通过提供的消息验证令牌参数中包含的密码MIC。</span>
+<p> <span>MessageProp对象由应用程序实例化，并被底层机制用于向呼叫者返回信息，例如指示应用于消息的保护强度的QOP和其他补充消息状态信息。</span> </p>
+<p> <span>由于一些应用级协议可能希望使用由getMIC发出的令牌提供“安全成帧”，所以实现应该支持对零长度消息的MIC的计算和验证。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>inToken</code> - 由对等体的getMIC方法 
+            <code>inToken</code>的令牌。 
+           </dd>
+<dd>
+<code>tokOffset</code> - 令牌开始的inToken内的偏移量。 
+           </dd>
+<dd>
+<code>tokLen</code> - 令牌的长度。 
+           </dd>
+<dd>
+<code>inMsg</code> - 验证密码MIC的应用程序消息。 
+           </dd>
+<dd>
+<code>msgOffset</code> - 消息开始的inMsg中的偏移量。 
+           </dd>
+<dd>
+<code>msgLen</code> - 消息的长度。 
+           </dd>
+<dd>
+<code>msgProp</code> - 从方法返回后，该对象将包含应用的QOP和补充信息，说明令牌是否是重复的，旧的，不顺序的或在间隙之后到达。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#DEFECTIVE_TOKEN"><code>GSSException.DEFECTIVE_TOKEN</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#BAD_MIC"><code>GSSException.BAD_MIC</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="verifyMIC-java.io.InputStream-java.io.InputStream-org.ietf.jgss.MessageProp-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>verifyMIC</h4> <pre>void verifyMIC(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> tokStream,
+               <a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> msgStream,
+               <a href="../../../org/ietf/jgss/MessageProp.html" title="class in org.ietf.jgss">MessageProp</a> msgProp)
+        throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>通过提供的消息使用流来验证包含在令牌参数中的加密MIC。</span>
+<span>这种方法相当于基于<a href="../../../org/ietf/jgss/GSSContext.html#verifyMIC-byte:A-int-int-byte:A-int-int-org.ietf.jgss.MessageProp-"><code>verifyMIC</code></a>的字节数组方法。</span>
+<span>MessageProp对象由应用程序实例化，并被底层机制用于向呼叫者返回信息，例如指示应用于消息的保护强度的QOP和其他补充消息状态信息。</span>
+<p> <span>由于一些应用级协议可能希望使用由getMIC发出的令牌提供“安全成帧”，所以实现应该支持对零长度消息的MIC的计算和验证。</span> </p>
+<p> <span>该方法读取的输入令牌的格式在规范中定义为将要使用的底层机制。</span> <span>此方法将尝试每次调用读取其中一个令牌。</span> <span>如果机制令牌包含一个确定的开始和结束，则此方法可能会阻塞<code>InputStream</code>如果只有部分令牌可用。</span> <span>如果令牌的开始和结束不是确定的，那么该方法将尝试将所有可用字节视为令牌的一部分。</span> </p>
+<p> <span>除了上述可能的阻塞行为之外，该方法相当于基于<a href="../../../org/ietf/jgss/GSSContext.html#verifyMIC-byte:A-int-int-byte:A-int-int-org.ietf.jgss.MessageProp-"><code>verifyMIC</code></a>的字节数组方法。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>tokStream</code> - 包含对等体的getMIC方法生成的令牌的InputStream。 
+           </dd>
+<dd>
+<span><code>msgStream</code> - 包含应用程序消息以验证密码MIC的InputStream。</span>
+<span>使用所有在msgStream中可用的数据。</span>
+</dd>
+<dd>
+<code>msgProp</code> - 从方法返回后，该对象将包含应用的QOP和补充信息，说明令牌是否是重复的，旧的，不顺序的或在间隙之后到达。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#DEFECTIVE_TOKEN"><code>GSSException.DEFECTIVE_TOKEN</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#BAD_MIC"><code>GSSException.BAD_MIC</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="export--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>export</h4> <pre>byte[] export()
+       throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>导出此上下文，以便另一个进程可以导入它。提供用于支持多进程之间的工作共享。</span>
+<span>该例程通常由上下文接受者在单个进程接收传入连接请求并接受安全上下文的应用程序中使用，然后将已建立的上下文传递给一个或多个其他进程进行消息交换。</span>
+<p> <span>该方法取消激活安全上下文并创建进程间令牌，当在另一进程中传递给<a href="../../../org/ietf/jgss/GSSManager.html#createContext-byte:A-"><code>GSSManager.createContext</code></a>时，将重新激活第二个进程中的上下文。</span> <span>任何一个时间只能对一个给定的上下文进行一次实例化;</span> <span>上下文导出器随后尝试访问导出的安全性上下文将失败。</span> </p>
+<p> <span>该实现可以限制可以导入进程间令牌的进程集合，或者作为本地安全策略的函数，或者作为实现决定的结果。</span> <span>例如，一些实现可能会限制仅在同一帐户下运行的进程之间传递的上下文，或者是相同进程组的一部分的上下文。</span> </p>
+<p> <span>进程间令牌可能包含安全敏感信息（例如加密密钥）。</span> <span>虽然鼓励机制避免将这些敏感信息放置在进程间令牌中，或者在将代码返回应用程序之前加密令牌，但在典型的GSS-API实现中，这可能是不可能的。</span> <span>因此，应用程序必须注意保护进程间令牌，并确保令牌传输到的任何进程是值得信赖的。</span> </p>
+<p> <span>实施不需要支持安全上下文的进程间传输。</span> <span>调用<a href="../../../org/ietf/jgss/GSSContext.html#isTransferable--"><code>isTransferable</code></a>方法将指示上下文对象是否可转移。</span> </p>
+<p> <span>在不可导出的上下文中调用此方法将导致异常抛出错误代码<a href="../../../org/ietf/jgss/GSSException.html#UNAVAILABLE"><code>GSSException.UNAVAILABLE</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个包含导出上下文的字节[] 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#UNAVAILABLE"><code>GSSException.UNAVAILABLE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CONTEXT_EXPIRED"><code>GSSException.CONTEXT_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CONTEXT"><code>GSSException.NO_CONTEXT</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSManager.html#createContext-byte:A-"><code>GSSManager.createContext(byte[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="requestMutualAuth-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>requestMutualAuth</h4> <pre>void requestMutualAuth(boolean state)
+                throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>要求在上下文建立期间进行相互验证。</span>
+<span>该请求只能在上下文发起者的一方进行，并且必须在首次调用<code>initSecContext</code>之前完成。</span>
+<p> <span>并不是所有的机制都支持相互认证，一些机制也可能需要相互认证，即使应用没有。</span> <span>因此，应用程序应检查该请求是否符合<a href="../../../org/ietf/jgss/GSSContext.html#getMutualAuthState--"><code>getMutualAuthState</code></a>方法。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>state</code> - 表示是否应使用相互认证的布尔值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#getMutualAuthState--"><code>getMutualAuthState()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="requestReplayDet-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>requestReplayDet</h4> <pre>void requestReplayDet(boolean state)
+               throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>在上下文建立之后，请求对每个消息安全服务启用重播检测。</span>
+<span>该请求只能在上下文发起方进行，并且必须在首次调用<code>initSecContext</code>之前完成。</span>
+<span>在上下文建立期间，重放检测不是一个选项，而是底层机制的功能。</span>
+<p> <span>并不是所有的机制都支持重放检测，一些机制可能需要重放检测，即使应用程序没有。</span> <span>因此，应用程序应检查该请求是否符合<a href="../../../org/ietf/jgss/GSSContext.html#getReplayDetState--"><code>getReplayDetState</code></a>方法。</span> <span>如果启用重放检测，那么<a href="../../../org/ietf/jgss/MessageProp.html#isDuplicateToken--"><code>MessageProp.isDuplicateToken</code></a>和<a href="../../../org/ietf/jgss/MessageProp.html#isOldToken--"><code>MessageProp.isOldToken</code></a>方法将返回传递给<code>unwrap</code>方法或<code>verifyMIC</code>方法的<code>MessageProp</code>对象的有效结果。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>state</code> - 一个布尔值，指示是否应在已建立的上下文中启用重放检测。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#getReplayDetState--"><code>getReplayDetState()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="requestSequenceDet-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>requestSequenceDet</h4> <pre>void requestSequenceDet(boolean state)
+                 throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>请求在上下文建立后为每个消息安全服务启用序列检查。</span>
+<span>该请求只能在上下文发起方的一方进行，并且必须在首次调用<code>initSecContext</code>之前完成。</span>
+<span>在上下文建立过程中，序列检查不是一个选项，而是底层机制的功能。</span>
+<p> <span>并不是所有的机制都支持序列检查，一些机制可能需要序列检查，即使应用程序没有。</span> <span>因此，应用程序应检查该请求是否符合<a href="../../../org/ietf/jgss/GSSContext.html#getSequenceDetState--"><code>getSequenceDetState</code></a>方法。</span> <span>如果序列检查已启用，则<a href="../../../org/ietf/jgss/MessageProp.html#isDuplicateToken--"><code>MessageProp.isDuplicateToken</code></a> ， <a href="../../../org/ietf/jgss/MessageProp.html#isOldToken--"><code>MessageProp.isOldToken</code></a> ， <a href="../../../org/ietf/jgss/MessageProp.html#isUnseqToken--"><code>MessageProp.isUnseqToken</code></a>和<a href="../../../org/ietf/jgss/MessageProp.html#isGapToken--"><code>MessageProp.isGapToken</code></a>方法将返回有效的结果<code>MessageProp</code>即到传递的对象<code>unwrap</code>方法或<code>verifyMIC</code>方法。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>state</code> - 一个布尔值，指示是否应在建立的上下文中启用序列检查。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#getSequenceDetState--"><code>getSequenceDetState()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="requestCredDeleg-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>requestCredDeleg</h4> <pre>void requestCredDeleg(boolean state)
+               throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>请求在上下文建立期间将启动器的凭据委托给接受者。</span>
+<span>该请求只能在上下文发起方进行，并且必须在首次调用<code>initSecContext</code>之前完成。</span>
+<span>并非所有机制都支持凭据授权。</span>
+<span>因此，希望代表团的申请应检查该请求是否符合<a href="../../../org/ietf/jgss/GSSContext.html#getCredDelegState--"><code>getCredDelegState</code></a>方法。</span>
+<span>如果申请表明不能使用授权，那么该机制将履行该请求，不会发生授权。</span>
+<span>这是一个一般规则的例外，即一种机制即使没有请求也可以启用服务。</span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>state</code> - 一个布尔值，指示是否应委托凭据。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#getCredDelegState--"><code>getCredDelegState()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="requestAnonymity-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>requestAnonymity</h4> <pre>void requestAnonymity(boolean state)
+               throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>要求发起人的身份不被披露给受理人。</span>
+<span>该请求只能在上下文发起方的一方进行，并且必须在首次调用<code>initSecContext</code>之前完成。</span>
+<span>并非所有机制都支持发起者匿名。</span>
+<span>因此，应用程序应检查该请求是否符合<a href="../../../org/ietf/jgss/GSSContext.html#getAnonymityState--"><code>getAnonymityState</code></a>方法。</span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>state</code> - 一个布尔值，指示启动器是否应作为匿名主体验证到接受者。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#getAnonymityState--"><code>getAnonymityState()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="requestConf-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>requestConf</h4> <pre>void requestConf(boolean state)
+          throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>要求对<code>wrap</code>方法启用数据机密性。</span>
+<span>该请求只能在上下文发起者的一方进行，并且必须在首次调用<code>initSecContext</code>之前完成。</span>
+<span>并不是所有的机制都支持机密性，而其他机制也可能使应用程序不要求它。</span>
+<span>应用程序可以检查该请求是否符合<a href="../../../org/ietf/jgss/GSSContext.html#getConfState--"><code>getConfState</code></a>方法。</span>
+<span>如果启用机密性，那么只有这样机制才能尊重<code>wrap</code>方法中传递的<a href="../../../org/ietf/jgss/MessageProp.html#MessageProp-int-boolean-"><code>MessageProp</code></a>对象中的隐私请求。</span>
+<p> <span>启用机密性也将自动启用完整性。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>state</code> - 一个布尔值，指示是否应启用机密性。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSContext.html#getConfState--"><code>getConfState()</code></a> ， <a href="../../../org/ietf/jgss/GSSContext.html#getIntegState--"><code>getIntegState()</code></a> ， <a href="../../../org/ietf/jgss/GSSContext.html#requestInteg-boolean-"><code>requestInteg(boolean)</code></a> ， <a href="../../../org/ietf/jgss/MessageProp.html" title="org.ietf.jgss中的类"><code>MessageProp</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="requestInteg-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>requestInteg</h4> <pre>void requestInteg(boolean state)
+           throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>要求对<code>wrap</code>和<code>getMIC</code>方法启用数据完整性。</span>
+<span>该请求只能在上下文发起方的一方进行，并且必须在首次调用<code>initSecContext</code>之前完成。</span>
+<span>并不是所有的机制都支持完整性，而其他机制也可能使它能够使用，即使应用程序没有请求它。</span>
+<span>应用程序可以检查该请求是否符合<a href="../../../org/ietf/jgss/GSSContext.html#getIntegState--"><code>getIntegState</code></a>方法。</span>
+<p> <span>禁用完整性也会自动禁用机密性。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>state</code> - 一个布尔值，表示是否应启用完整性。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#getIntegState--"><code>getIntegState()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="requestLifetime-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>requestLifetime</h4> <pre>void requestLifetime(int lifetime)
+              throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>为上下文请求一秒钟的生命周期。</span>
+<span>该方法只能在上下文发起方的一方进行调用，并且必须在首次调用<code>initSecContext</code>之前进行。</span>
+<p> <span>上下文的实际生命周期取决于底层机制的能力，应用程序应该调用<a href="../../../org/ietf/jgss/GSSContext.html#getLifetime--"><code>getLifetime</code></a>方法来确定这一点。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>lifetime</code> - 所需的上下文生命周期（以秒为单位）。</span>
+<span>使用<code>INDEFINITE_LIFETIME</code>请求无限期的生命周期和<code>DEFAULT_LIFETIME</code>请求默认生命周期。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#getLifetime--"><code>getLifetime()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setChannelBinding-org.ietf.jgss.ChannelBinding-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setChannelBinding</h4> <pre>void setChannelBinding(<a href="../../../org/ietf/jgss/ChannelBinding.html" title="class in org.ietf.jgss">ChannelBinding</a> cb)
+                throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>设置在上下文建立期间要使用的通道绑定。</span>
+<span>这种方法可以在上下文启动器和上下文接收方的一方调用，但必须在上下文建立开始之前调用。</span>
+<span>这意味着发起方必须在首次调用<code>initSecContext</code>之前调用它，并且接受方必须在首次调用<code>acceptSecContext</code>之前调用它。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>cb</code> - 要使用的通道绑定。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getCredDelegState--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCredDelegState</h4> <pre>boolean getCredDelegState()</pre>
+<div class="block">
+<span>确定在此上下文中是否启用凭据委派。</span>
+<span>它可以由上下文启动器和上下文接收器两者调用。</span>
+<span>对于确定的答案，只有在上下文建立完成后才能调用此方法。</span>
+<span>请注意，如果发起者请求委托不允许，那么<a href="../../../org/ietf/jgss/GSSContext.html#requestCredDeleg-boolean-"><code>requestCredDeleg</code></a>方法将履行该请求，并且此方法将从该点起返回<code>false</code>方的false。</span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果启用了委托，则为true，否则为false。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#requestCredDeleg-boolean-"><code>requestCredDeleg(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMutualAuthState--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMutualAuthState</h4> <pre>boolean getMutualAuthState()</pre>
+<div class="block">
+<span>确定在此上下文中是否启用了相互验证。</span>
+<span>它可以由上下文启动器和上下文接收器两者调用。</span>
+<span>对于确定的答案，只有在上下文建立完成后才能调用此方法。</span>
+<span>请求相互验证的发起者可以在上下文完成后调用此方法，如果其请求未被执行，则处理上下文。</span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果启用相互验证，则为true，否则为false。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#requestMutualAuth-boolean-"><code>requestMutualAuth(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getReplayDetState--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getReplayDetState</h4> <pre>boolean getReplayDetState()</pre>
+<div class="block">
+<span>确定是否从此上下文为每个消息安全服务启用重放检测。</span>
+<span>它可以由上下文启动器和上下文接收器两者调用。</span>
+<span>对于确定的答案，只有在上下文建立完成后才能调用此方法。</span>
+<span>请求重播检测的发起者可以在上下文完成后调用此方法，如果其请求未被执行，则处理上下文。</span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果启用重播检测，则为true，否则为false。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#requestReplayDet-boolean-"><code>requestReplayDet(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSequenceDetState--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSequenceDetState</h4> <pre>boolean getSequenceDetState()</pre>
+<div class="block">
+<span>确定是否从此上下文为每个消息安全服务启用了序列检查。</span>
+<span>它可以由上下文启动器和上下文接收器两者调用。</span>
+<span>对于确定的答案，只有在上下文建立完成后才能调用此方法。</span>
+<span>请求序列检查的发起者可以在上下文完成后调用此方法，如果其请求未被执行，则处理上下文。</span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果启用了序列检查，则为true，否则为false。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#requestSequenceDet-boolean-"><code>requestSequenceDet(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getAnonymityState--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAnonymityState</h4> <pre>boolean getAnonymityState()</pre>
+<div class="block">
+<span>确定上下文启动器是否被上下文接受者匿名认证。</span>
+<span>它可以由上下文启动器和上下文接收器以及随时调用。</span>
+<span><strong>在发起方，调用该方法确定发起者的身份是否已经在initSecContext中可能已经生成的任何上下文建立令牌中被<code>initSecContext</code> 。</strong></span>
+<span><strong>绝对必须匿名认证的发起方应在每次调用<code>initSecContext</code>后调用此方法，以确定生成的令牌是否应发送到对等体或上下文中止。</strong></span>
+<span>在接受方，调用此方法确定由<code>acceptSecContext</code>任何令牌到目前为止已经泄露了启动器的身份。</span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果上下文启动器仍然是匿名的，则为true，否则为false。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#requestAnonymity-boolean-"><code>requestAnonymity(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isTransferable--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isTransferable</h4> <pre>boolean isTransferable()
+                throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>通过使用<a href="../../../org/ietf/jgss/GSSContext.html#export--"><code>export</code></a>方法确定上下文是否可转移到其他进程。</span>
+<span>此呼叫仅在完全建立的上下文中有效。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果此上下文可以导出，则为true，否则为false。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isProtReady--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isProtReady</h4> <pre>boolean isProtReady()</pre>
+<div class="block">
+<span>确定上下文是否准备好用于每个消息操作。</span>
+<span>一些机制可以允许在上下文完全建立之前使用每消息操作。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果真像的方法 
+            <code>wrap</code> ， 
+            <code>unwrap</code> ， 
+            <code>getMIC</code>和 
+            <code>verifyMIC</code>可以用此背景下，在上下文创建的当前阶段使用，否则为false。 
+           </dd>
+</dl> </li>
+</ul> <a name="getConfState--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getConfState</h4> <pre>boolean getConfState()</pre>
+<div class="block">
+<span>确定数据机密性是否可用于上下文。</span>
+<span>该方法可以由上下文启动器和上下文接收方调用，但只能在<a href="../../../org/ietf/jgss/GSSContext.html#isProtReady--"><code>isProtReady</code></a>或<a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--"><code>isEstablished</code>之一</a>返回<code>true</code> 。</span>
+<span>如果这个方法返回<code>true</code> ，那么也就<a href="../../../org/ietf/jgss/GSSContext.html#getIntegState--"><code>getIntegState</code></a></span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果保密服务可用，则为真，否则为false。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#requestConf-boolean-"><code>requestConf(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getIntegState--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getIntegState</h4> <pre>boolean getIntegState()</pre>
+<div class="block">
+<span>确定数据完整性是否可用于上下文。</span>
+<span>该方法可以由上下文启动器和上下文接收方调用，但只能在<a href="../../../org/ietf/jgss/GSSContext.html#isProtReady--"><code>isProtReady</code></a>或<a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--"><code>isEstablished</code>之一</a>返回<code>true</code> 。</span>
+<span>如果<a href="../../../org/ietf/jgss/GSSContext.html#getConfState--"><code>getConfState</code></a>返回true，此方法将始终返回<code>true</code> 。</span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果完整性服务可用，则为真，否则为false。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#requestInteg-boolean-"><code>requestInteg(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getLifetime--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLifetime</h4> <pre>int getLifetime()</pre>
+<div class="block">
+<span>确定此上下文的剩余生命周期。</span>
+<span>它可以由上下文启动器和上下文接收器调用，但是对于一个确定的答案，只有在<a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--"><code>isEstablished</code></a>返回true之后才应该调用它。</span>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             剩余的生命周期在几秒钟内 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSContext.html#requestLifetime-int-"><code>requestLifetime(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSrcName--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSrcName</h4> <pre><a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> getSrcName()
+            throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>返回上下文启动器的名称。</span>
+<span>此电话仅在<a href="../../../org/ietf/jgss/GSSContext.html#isProtReady--"><code>isProtReady</code></a>或<a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--"><code>isEstablished</code>之一</a>返回<code>true</code>之后有效。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             GSSName是包含上下文启动器名称的MN。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSName.html" title="org.ietf.jgss中的接口"><code>GSSName</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getTargName--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTargName</h4> <pre><a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> getTargName()
+             throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>返回上下文接收器的名称。</span>
+<span>此通话只有在<a href="../../../org/ietf/jgss/GSSContext.html#isProtReady--"><code>isProtReady</code></a>或<a href="../../../org/ietf/jgss/GSSContext.html#isEstablished--"><code>isEstablished</code>之一</a>返回<code>true</code>之后才有效。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             GSSName是包含上下文接受者名称的MN。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMech--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMech</h4> <pre><a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> getMech()
+     throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>确定在这个上下文中使用什么机制。</span>
+<span>可以在上下文完全建立之前调用此方法，但是在协商机制情况下，返回的机制可能会在连续调用中发生更改。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             正在使用的机制的Oid 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getDelegCred--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDelegCred</h4> <pre><a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a> getDelegCred()
+                    throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>获取由上下文启动器委派给上下文接收器的凭据。</span>
+<span>应该仅在上下文接受方的一方进行调用，一旦完全建立了上下文。</span>
+<span>呼叫者可以使用方法<a href="../../../org/ietf/jgss/GSSContext.html#getCredDelegState--"><code>getCredDelegState</code></a>来确定是否有任何委托凭据。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             包含启动器的委派凭据的GSSCredential，或 
+            <code>null</code>没有委派凭据。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isInitiator--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>isInitiator</h4> <pre>boolean isInitiator()
+             throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>确定这是否是上下文启动器。</span>
+<span>这可以在上下文启动器和上下文接收方的一方调用。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果这是上下文启动器，则为true，如果为上下文接收器，则为false。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

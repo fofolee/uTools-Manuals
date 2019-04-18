@@ -1,0 +1,238 @@
+<div class="content guide with-sidebar components-edge-cases-guide">
+<h1>处理边界情况</h1>
+<blockquote>
+<p>该页面假设你已经阅读过了<a href="components.html">组件基础</a>。如果你还对组件不太了解，推荐你先阅读它。</p>
+</blockquote>
+<p class="tip">这里记录的都是和处理边界情况有关的功能，即一些需要对 Vue 的规则做一些小调整的特殊情况。不过注意这些功能都是有劣势或危险的场景的。我们会在每个案例中注明，所以当你使用每个功能的时候请稍加留意。</p>
+<h2 id="访问元素-amp-组件"><a class="headerlink" href="#访问元素-amp-组件" title="访问元素 &amp; 组件"></a>访问元素 &amp; 组件</h2><p>在绝大多数情况下，我们最好不要触达另一个组件实例内部或手动操作 DOM 元素。不过也确实在一些情况下做这些事情是合适的。</p>
+<h3 id="访问根实例"><a class="headerlink" href="#访问根实例" title="访问根实例"></a>访问根实例</h3><p>在每个 <code>new Vue</code> 实例的子组件中，其根实例可以通过 <code>$root</code> 属性进行访问。例如，在这个根实例中：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// Vue 根实例</span>
+<span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">foo</span>: <span class="hljs-number">1</span>
+  },
+  <span class="hljs-attr">computed</span>: {
+    <span class="hljs-attr">bar</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{ <span class="hljs-comment">/* ... */</span> }
+  },
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-attr">baz</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{ <span class="hljs-comment">/* ... */</span> }
+  }
+})</code></pre>
+<p>所有的子组件都可以将这个实例作为一个全局 store 来访问或使用。</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 获取根组件的数据</span>
+<span class="hljs-keyword">this</span>.$root.foo
+
+<span class="hljs-comment">// 写入根组件的数据</span>
+<span class="hljs-keyword">this</span>.$root.foo = <span class="hljs-number">2</span>
+
+<span class="hljs-comment">// 访问根组件的计算属性</span>
+<span class="hljs-keyword">this</span>.$root.bar
+
+<span class="hljs-comment">// 调用根组件的方法</span>
+<span class="hljs-keyword">this</span>.$root.baz()</code></pre>
+<p class="tip">对于 demo 或非常小型的有少量组件的应用来说这是很方便的。不过这个模式扩展到中大型应用来说就不然了。因此在绝大多数情况下，我们强烈推荐使用 <a href="https://github.com/vuejs/vuex" rel="noopener" target="_blank">Vuex</a> 来管理应用的状态。</p>
+<h3 id="访问父级组件实例"><a class="headerlink" href="#访问父级组件实例" title="访问父级组件实例"></a>访问父级组件实例</h3><p>和 <code>$root</code> 类似，<code>$parent</code> 属性可以用来从一个子组件访问父组件的实例。它提供了一种机会，可以在后期随时触达父级组件，以替代将数据以 prop 的方式传入子组件的方式。</p>
+<p class="tip">在绝大多数情况下，触达父级组件会使得你的应用更难调试和理解，尤其是当你变更了父级组件的数据的时候。当我们稍后回看那个组件的时候，很难找出那个变更是从哪里发起的。</p>
+<p>另外在一些<em>可能</em>适当的时候，你需要特别地共享一些组件库。举个例子，在和 JavaScript API 进行交互而不渲染 HTML 的抽象组件内，诸如这些假设性的 Google 地图组件一样：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">google-map</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">google-map-markers</span> <span class="hljs-attr">v-bind:places</span>=<span class="hljs-string">"iceCreamShops"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">google-map-markers</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">google-map</span>&gt;</span></code></pre>
+<p>这个 <code>&lt;google-map&gt;</code> 组件可以定义一个 <code>map</code> 属性，所有的子组件都需要访问它。在这种情况下 <code>&lt;google-map-markers&gt;</code> 可能想要通过类似 <code>this.$parent.getMap</code> 的方式访问那个地图，以便为其添加一组标记。你可以在<a href="https://jsfiddle.net/chrisvfritz/ttzutdxh/" rel="noopener" target="_blank">这里</a>查阅这种模式。</p>
+<p>请留意，尽管如此，通过这种模式构建出来的那个组件的内部仍然是容易出现问题的。比如，设想一下我们添加一个新的 <code>&lt;google-map-region&gt;</code> 组件，当 <code>&lt;google-map-markers&gt;</code> 在其内部出现的时候，只会渲染那个区域内的标记：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">google-map</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">google-map-region</span> <span class="hljs-attr">v-bind:shape</span>=<span class="hljs-string">"cityBoundaries"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">google-map-markers</span> <span class="hljs-attr">v-bind:places</span>=<span class="hljs-string">"iceCreamShops"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">google-map-markers</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">google-map-region</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">google-map</span>&gt;</span></code></pre>
+<p>那么在 <code>&lt;google-map-markers&gt;</code> 内部你可能发现自己需要一些类似这样的 hack：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> map = <span class="hljs-keyword">this</span>.$parent.map || <span class="hljs-keyword">this</span>.$parent.$parent.map</code></pre>
+<p>很快它就会失控。这也是我们针对需要向任意更深层级的组件提供上下文信息时推荐<a href="#依赖注入">依赖注入</a>的原因。</p>
+<h3 id="访问子组件实例或子元素"><a class="headerlink" href="#访问子组件实例或子元素" title="访问子组件实例或子元素"></a>访问子组件实例或子元素</h3><p>尽管存在 prop 和事件，有的时候你仍可能需要在 JavaScript 里直接访问一个子组件。为了达到这个目的，你可以通过 <code>ref</code> 特性为这个子组件赋予一个 ID 引用。例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-input</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">"usernameInput"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">base-input</span>&gt;</span></code></pre>
+<p>现在在你已经定义了这个 <code>ref</code> 的组件里，你可以使用：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">this</span>.$refs.usernameInput</code></pre>
+<p>来访问这个 <code>&lt;base-input&gt;</code> 实例，以便不时之需。比如程序化地从一个父级组件聚焦这个输入框。在刚才那个例子中，该 <code>&lt;base-input&gt;</code> 组件也可以使用一个类似的 <code>ref</code> 提供对内部这个指定元素的访问，例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">"input"</span>&gt;</span></code></pre>
+<p>甚至可以通过其父级组件定义方法：</p>
+<pre><code class="hljs js">methods: {
+  <span class="hljs-comment">// 用来从父级组件聚焦输入框</span>
+  focus: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">this</span>.$refs.input.focus()
+  }
+}</code></pre>
+<p>这样就允许父级组件通过下面的代码聚焦 <code>&lt;base-input&gt;</code> 里的输入框：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">this</span>.$refs.usernameInput.focus()</code></pre>
+<p>当 <code>ref</code> 和 <code>v-for</code> 一起使用的时候，你得到的引用将会是一个包含了对应数据源的这些子组件的数组。</p>
+<p class="tip"><code>$refs</code> 只会在组件渲染完成之后生效，并且它们不是响应式的。这仅作为一个用于直接操作子组件的“逃生舱”——你应该避免在模板或计算属性中访问 <code>$refs</code>。</p>
+<h3 id="依赖注入"><a class="headerlink" href="#依赖注入" title="依赖注入"></a>依赖注入</h3><p>在此之前，在我们描述<a href="#访问父级组件实例">访问父级组件实例</a>的时候，展示过一个类似这样的例子：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">google-map</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">google-map-region</span> <span class="hljs-attr">v-bind:shape</span>=<span class="hljs-string">"cityBoundaries"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">google-map-markers</span> <span class="hljs-attr">v-bind:places</span>=<span class="hljs-string">"iceCreamShops"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">google-map-markers</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">google-map-region</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">google-map</span>&gt;</span></code></pre>
+<p>在这个组件里，所有 <code>&lt;google-map&gt;</code> 的后代都需要访问一个 <code>getMap</code> 方法，以便知道要跟哪个地图进行交互。不幸的是，使用 <code>$parent</code> 属性无法很好的扩展到更深层级的嵌套组件上。这也是依赖注入的用武之地，它用到了两个新的实例选项：<code>provide</code> 和 <code>inject</code>。</p>
+<p><code>provide</code> 选项允许我们指定我们想要<strong>提供</strong>给后代组件的数据/方法。在这个例子中，就是 <code>&lt;google-map&gt;</code> 内部的 <code>getMap</code> 方法：</p>
+<pre><code class="hljs js">provide: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">getMap</span>: <span class="hljs-keyword">this</span>.getMap
+  }
+}</code></pre>
+<p>然后在任何后代组件里，我们都可以使用 <code>inject</code> 选项来接收指定的我们想要添加在这个实例上的属性：</p>
+<pre><code class="hljs js">inject: [<span class="hljs-string">'getMap'</span>]</code></pre>
+<p>你可以在<a href="https://jsfiddle.net/chrisvfritz/tdv8dt3s/" rel="noopener" target="_blank">这里</a>看到完整的示例。相比 <code>$parent</code> 来说，这个用法可以让我们在<em>任意</em>后代组件中访问 <code>getMap</code>，而不需要暴露整个 <code>&lt;google-map&gt;</code> 实例。这允许我们更好的持续研发该组件，而不需要担心我们可能会改变/移除一些子组件依赖的东西。同时这些组件之间的接口是始终明确定义的，就和 <code>props</code> 一样。</p>
+<p>实际上，你可以把依赖注入看作一部分“大范围有效的 prop”，除了：</p>
+<ul>
+<li>祖先组件不需要知道哪些后代组件使用它提供的属性</li>
+<li>后代组件不需要知道被注入的属性来自哪里</li>
+</ul>
+<p class="tip">然而，依赖注入还是有负面影响的。它将你应用程序中的组件与它们当前的组织方式耦合起来，使重构变得更加困难。同时所提供的属性是非响应式的。这是出于设计的考虑，因为使用它们来创建一个中心化规模化的数据跟<a href="#访问根实例">使用 <code>$root</code></a>做这件事都是不够好的。如果你想要共享的这个属性是你的应用特有的，而不是通用化的，或者如果你想在祖先组件中更新所提供的数据，那么这意味着你可能需要换用一个像 <a href="https://github.com/vuejs/vuex" rel="noopener" target="_blank">Vuex</a> 这样真正的状态管理方案了。</p>
+<p>你可以在 <a href="https://cn.vuejs.org/v2/api/#provide-inject">API 参考文档</a>学习更多关于依赖注入的知识。</p>
+<h2 id="程序化的事件侦听器"><a class="headerlink" href="#程序化的事件侦听器" title="程序化的事件侦听器"></a>程序化的事件侦听器</h2><p>现在，你已经知道了 <code>$emit</code> 的用法，它可以被 <code>v-on</code> 侦听，但是 Vue 实例同时在其事件接口中提供了其它的方法。我们可以：</p>
+<ul>
+<li>通过 <code>$on(eventName, eventHandler)</code> 侦听一个事件</li>
+<li>通过 <code>$once(eventName, eventHandler)</code> 一次性侦听一个事件</li>
+<li>通过 <code>$off(eventName, eventHandler)</code> 停止侦听一个事件</li>
+</ul>
+<p>你通常不会用到这些，但是当你需要在一个组件实例上手动侦听事件时，它们是派得上用场的。它们也可以用于代码组织工具。例如，你可能经常看到这种集成一个第三方库的模式：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 一次性将这个日期选择器附加到一个输入框上</span>
+<span class="hljs-comment">// 它会被挂载到 DOM 上。</span>
+mounted: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-comment">// Pikaday 是一个第三方日期选择器的库</span>
+  <span class="hljs-keyword">this</span>.picker = <span class="hljs-keyword">new</span> Pikaday({
+    <span class="hljs-attr">field</span>: <span class="hljs-keyword">this</span>.$refs.input,
+    <span class="hljs-attr">format</span>: <span class="hljs-string">'YYYY-MM-DD'</span>
+  })
+},
+<span class="hljs-comment">// 在组件被销毁之前，</span>
+<span class="hljs-comment">// 也销毁这个日期选择器。</span>
+beforeDestroy: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.picker.destroy()
+}</code></pre>
+<p>这里有两个潜在的问题：</p>
+<ul>
+<li>它需要在这个组件实例中保存这个 <code>picker</code>，如果可以的话最好只有生命周期钩子可以访问到它。这并不算严重的问题，但是它可以被视为杂物。</li>
+<li>我们的建立代码独立于我们的清理代码，这使得我们比较难于程序化地清理我们建立的所有东西。</li>
+</ul>
+<p>你应该通过一个程序化的侦听器解决这两个问题：</p>
+<pre><code class="hljs js">mounted: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">var</span> picker = <span class="hljs-keyword">new</span> Pikaday({
+    <span class="hljs-attr">field</span>: <span class="hljs-keyword">this</span>.$refs.input,
+    <span class="hljs-attr">format</span>: <span class="hljs-string">'YYYY-MM-DD'</span>
+  })
+
+  <span class="hljs-keyword">this</span>.$once(<span class="hljs-string">'hook:beforeDestroy'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    picker.destroy()
+  })
+}</code></pre>
+<p>使用了这个策略，我甚至可以让多个输入框元素同时使用不同的 Pikaday，每个新的实例都程序化地在后期清理它自己：</p>
+<pre><code class="hljs js">mounted: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.attachDatepicker(<span class="hljs-string">'startDateInput'</span>)
+  <span class="hljs-keyword">this</span>.attachDatepicker(<span class="hljs-string">'endDateInput'</span>)
+},
+<span class="hljs-attr">methods</span>: {
+  <span class="hljs-attr">attachDatepicker</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">refName</span>) </span>{
+    <span class="hljs-keyword">var</span> picker = <span class="hljs-keyword">new</span> Pikaday({
+      <span class="hljs-attr">field</span>: <span class="hljs-keyword">this</span>.$refs[refName],
+      <span class="hljs-attr">format</span>: <span class="hljs-string">'YYYY-MM-DD'</span>
+    })
+
+    <span class="hljs-keyword">this</span>.$once(<span class="hljs-string">'hook:beforeDestroy'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      picker.destroy()
+    })
+  }
+}</code></pre>
+<p>查阅<a href="https://jsfiddle.net/chrisvfritz/1Leb7up8/" rel="noopener" target="_blank">这个 fiddle</a> 可以了解到完整的代码。注意，即便如此，如果你发现自己不得不在单个组件里做很多建立和清理的工作，最好的方式通常还是创建更多的模块化组件。在这个例子中，我们推荐创建一个可复用的 <code>&lt;input-datepicker&gt;</code> 组件。</p>
+<p>想了解更多程序化侦听器的内容，请查阅<a href="https://cn.vuejs.org/v2/api/#实例方法-事件">实例方法 / 事件</a>相关的 API。</p>
+<p class="tip">注意 Vue 的事件系统不同于浏览器的 <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget" rel="noopener" target="_blank">EventTarget API</a>。尽管它们工作起来是相似的，但是 <code>$emit</code>、<code>$on</code>, 和 <code>$off</code> 并不是 <code>dispatchEvent</code>、<code>addEventListener</code> 和 <code>removeEventListener</code> 的别名。</p>
+<h2 id="循环引用"><a class="headerlink" href="#循环引用" title="循环引用"></a>循环引用</h2><h3 id="递归组件"><a class="headerlink" href="#递归组件" title="递归组件"></a>递归组件</h3><p>组件是可以在它们自己的模板中调用自身的。不过它们只能通过 <code>name</code> 选项来做这件事：</p>
+<pre><code class="hljs js">name: <span class="hljs-string">'unique-name-of-my-component'</span></code></pre>
+<p>当你使用 <code>Vue.component</code> 全局注册一个组件时，这个全局的 ID 会自动设置为该组件的 <code>name</code> 选项。</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'unique-name-of-my-component'</span>, {
+  <span class="hljs-comment">// ...</span>
+})</code></pre>
+<p>稍有不慎，递归组件就可能导致无限循环：</p>
+<pre><code class="hljs js">name: <span class="hljs-string">'stack-overflow'</span>,
+<span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;div&gt;&lt;stack-overflow&gt;&lt;/stack-overflow&gt;&lt;/div&gt;'</span></code></pre>
+<p>类似上述的组件将会导致“max stack size exceeded”错误，所以请确保递归调用是条件性的 (例如使用一个最终会得到 <code>false</code> 的 <code>v-if</code>)。</p>
+<h3 id="组件之间的循环引用"><a class="headerlink" href="#组件之间的循环引用" title="组件之间的循环引用"></a>组件之间的循环引用</h3><p>假设你需要构建一个文件目录树，像访达或资源管理器那样的。你可能有一个 <code>&lt;tree-folder&gt;</code> 组件，模板是这样的：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>{{ folder.name }}<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">tree-folder-contents</span> <span class="hljs-attr">:children</span>=<span class="hljs-string">"folder.children"</span>/&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></code></pre>
+<p>还有一个 <code>&lt;tree-folder-contents&gt;</code> 组件，模板是这样的：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span> <span class="hljs-attr">v-for</span>=<span class="hljs-string">"child in children"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">tree-folder</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"child.children"</span> <span class="hljs-attr">:folder</span>=<span class="hljs-string">"child"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">v-else</span>&gt;</span>{{ child.name }}<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></code></pre>
+<p>当你仔细观察的时候，你会发现这些组件在渲染树中互为对方的后代<em>和</em>祖先——一个悖论！当通过 <code>Vue.component</code> 全局注册组件的时候，这个悖论会被自动解开。如果你是这样做的，那么你可以跳过这里。</p>
+<p>然而，如果你使用一个<em>模块系统</em>依赖/导入组件，例如通过 webpack 或 Browserify，你会遇到一个错误：</p>
+<pre><code class="hljs undefined">Failed to mount component: template or render function not defined.</code></pre>
+<p>为了解释这里发生了什么，我们先把两个组件称为 A 和 B。模块系统发现它需要 A，但是首先 A 依赖 B，但是 B 又依赖 A，但是 A 又依赖 B，如此往复。这变成了一个循环，不知道如何不经过其中一个组件而完全解析出另一个组件。为了解决这个问题，我们需要给模块系统一个点，在那里“A <em>反正</em>是需要 B 的，但是我们不需要先解析 B。”</p>
+<p>在我们的例子中，把 <code>&lt;tree-folder&gt;</code> 组件设为了那个点。我们知道那个产生悖论的子组件是 <code>&lt;tree-folder-contents&gt;</code> 组件，所以我们会等到生命周期钩子 <code>beforeCreate</code> 时去注册它：</p>
+<pre><code class="hljs js">beforeCreate: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.$options.components.TreeFolderContents = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./tree-folder-contents.vue'</span>).default
+}</code></pre>
+<p>或者，在本地注册组件的时候，你可以使用 webpack 的异步 <code>import</code>：</p>
+<pre><code class="hljs js">components: {
+  <span class="hljs-attr">TreeFolderContents</span>: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> <span class="hljs-keyword">import</span>(<span class="hljs-string">'./tree-folder-contents.vue'</span>)
+}</code></pre>
+<p>这样问题就解决了！</p>
+<h2 id="模板定义的替代品"><a class="headerlink" href="#模板定义的替代品" title="模板定义的替代品"></a>模板定义的替代品</h2><h3 id="内联模板"><a class="headerlink" href="#内联模板" title="内联模板"></a>内联模板</h3><p>当 <code>inline-template</code> 这个特殊的特性出现在一个子组件上时，这个组件将会使用其里面的内容作为模板，而不是将其作为被分发的内容。这使得模板的撰写工作更加灵活。</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">my-component</span> <span class="hljs-attr">inline-template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>These are compiled as the component's own template.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Not parent's transclusion content.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">my-component</span>&gt;</span></code></pre>
+<p>内联模板需要定义在 Vue 所属的 DOM 元素内。</p>
+<p class="tip">不过，<code>inline-template</code> 会让模板的作用域变得更加难以理解。所以作为最佳实践，请在组件内优先选择 <code>template</code> 选项或 <code>.vue</code> 文件里的一个 <code>&lt;template&gt;</code> 元素来定义模板。</p>
+<h3 id="X-Template"><a class="headerlink" href="#X-Template" title="X-Template"></a>X-Template</h3><p>另一个定义模板的方式是在一个 <code>&lt;script&gt;</code> 元素中，并为其带上 <code>text/x-template</code> 的类型，然后通过一个 id 将模板引用过去。例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/x-template"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"hello-world-template"</span>&gt;</span><span class="xml">
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Hello hello hello<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'hello-world'</span>, {
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'#hello-world-template'</span>
+})</code></pre>
+<p>x-template 需要定义在 Vue 所属的 DOM 元素外。</p>
+<p class="tip">这些可以用于模板特别大的 demo 或极小型的应用，但是其它情况下请避免使用，因为这会将模板和该组件的其它定义分离开。</p>
+<h2 id="控制更新"><a class="headerlink" href="#控制更新" title="控制更新"></a>控制更新</h2><p>感谢 Vue 的响应式系统，它始终知道何时进行更新 (如果你用对了的话)。不过还是有一些边界情况，你想要强制更新，尽管表面上看响应式的数据没有发生改变。也有一些情况是你想阻止不必要的更新。</p>
+<h3 id="强制更新"><a class="headerlink" href="#强制更新" title="强制更新"></a>强制更新</h3><p class="tip">如果你发现你自己需要在 Vue 中做一次强制更新，99.9% 的情况，是你在某个地方做错了事。</p>
+<p>你可能还没有留意到<a href="https://cn.vuejs.orglist.html#注意事项">数组</a>或<a href="https://cn.vuejs.orglist.html#对象更改检测注意事项">对象</a>的变更检测注意事项，或者你可能依赖了一个未被 Vue 的响应式系统追踪的状态。</p>
+<p>然而，如果你已经做到了上述的事项仍然发现在极少数的情况下需要手动强制更新，那么你可以通过 <a href="../api/#vm-forceUpdate"><code>$forceUpdate</code></a> 来做这件事。</p>
+<h3 id="通过-v-once-创建低开销的静态组件"><a class="headerlink" href="#通过-v-once-创建低开销的静态组件" title="通过 v-once 创建低开销的静态组件"></a>通过 <code>v-once</code> 创建低开销的静态组件</h3><p>渲染普通的 HTML 元素在 Vue 中是非常快速的，但有的时候你可能有一个组件，这个组件包含了<strong>大量</strong>静态内容。在这种情况下，你可以在根元素上添加 <code>v-once</code> 特性以确保这些内容只计算一次然后缓存起来，就像这样：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'terms-of-service'</span>, {
+  <span class="hljs-attr">template</span>: <span class="hljs-string">`
+    &lt;div v-once&gt;
+      &lt;h1&gt;Terms of Service&lt;/h1&gt;
+      ... a lot of static content ...
+    &lt;/div&gt;
+  `</span>
+})</code></pre>
+<p class="tip">再说一次，试着不要过度使用这个模式。当你需要渲染大量静态内容时，极少数的情况下它会给你带来便利，除非你非常留意渲染变慢了，不然它完全是没有必要的——再加上它在后期会带来很多困惑。例如，设想另一个开发者并不熟悉 <code>v-once</code> 或漏看了它在模板中，他们可能会花很多个小时去找出模板为什么无法正确更新。</p>
+<div class="guide-links">
+<span>← <a href="components-dynamic-async.html">动态组件 &amp; 异步组件</a></span>
+<span style="float: right;"><a href="transitions.html">进入/离开 &amp; 列表过渡</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srccomponents-edge-cases.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

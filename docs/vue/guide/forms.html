@@ -1,0 +1,302 @@
+<div class="content guide with-sidebar forms-guide">
+<h1>表单输入绑定</h1>
+<h2 id="基础用法"><a class="headerlink" href="#基础用法" title="基础用法"></a>基础用法</h2><p>你可以用 <code>v-model</code> 指令在表单 <code>&lt;input&gt;</code>、<code>&lt;textarea&gt;</code> 及 <code>&lt;select&gt;</code> 元素上创建双向数据绑定。它会根据控件类型自动选取正确的方法来更新元素。尽管有些神奇，但 <code>v-model</code> 本质上不过是语法糖。它负责监听用户的输入事件以更新数据，并对一些极端场景进行一些特殊处理。</p>
+<p class="tip"><code>v-model</code> 会忽略所有表单元素的 <code>value</code>、<code>checked</code>、<code>selected</code> 特性的初始值而总是将 Vue 实例的数据作为数据来源。你应该通过 JavaScript 在组件的 <code>data</code> 选项中声明初始值。</p>
+<p><code>v-model</code> 在内部使用不同的属性为不同的输入元素并抛出不同的事件：</p>
+<ul>
+<li>text 和 textarea 元素使用 <code>value</code> 属性和 <code>input</code> 事件；</li>
+<li>checkbox 和 radio 使用 <code>checked</code> 属性和 <code>change</code> 事件；</li>
+<li>select 字段将 <code>value</code> 作为 prop 并将 <code>change</code> 作为事件。</li>
+</ul>
+<p class="tip" id="vmodel-ime-tip">对于需要使用<a href="https://zh.wikipedia.org/wiki/%E8%BE%93%E5%85%A5%E6%B3%95" rel="noopener" target="_blank">输入法</a> (如中文、日文、韩文等) 的语言，你会发现 <code>v-model</code> 不会在输入法组合文字过程中得到更新。如果你也想处理这个过程，请使用 <code>input</code> 事件。</p>
+<h3 id="文本"><a class="headerlink" href="#文本" title="文本"></a>文本</h3><pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"message"</span> <span class="hljs-attr">placeholder</span>=<span class="hljs-string">"edit me"</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Message is: {{ message }}<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></code></pre>
+<div id="example-1">
+<input placeholder="edit me" v-model="message"/>
+<p>Message is: {{ message }}</p>
+</div>
+<script>
+new Vue({
+  el: '#example-1',
+  data: {
+    message: ''
+  }
+})
+</script>
+<h3 id="多行文本"><a class="headerlink" href="#多行文本" title="多行文本"></a>多行文本</h3><pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>Multiline message is:<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">style</span>=<span class="hljs-string">"white-space: pre-line;"</span>&gt;</span>{{ message }}<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">br</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">textarea</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"message"</span> <span class="hljs-attr">placeholder</span>=<span class="hljs-string">"add multiple lines"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">textarea</span>&gt;</span></code></pre>
+<div id="example-textarea">
+<span>Multiline message is:</span>
+<p style="white-space: pre-line;">{{ message }}</p>
+<br/>
+<textarea placeholder="add multiple lines" v-model="message"></textarea>
+</div>
+<script>
+new Vue({
+  el: '#example-textarea',
+  data: {
+    message: ''
+  }
+})
+</script>
+<p class="tip">在文本区域插值 (<code>&lt;textarea&gt;{{text}}&lt;/textarea&gt;</code>) 并不会生效，应用 <code>v-model</code> 来代替。</p>
+<h3 id="复选框"><a class="headerlink" href="#复选框" title="复选框"></a>复选框</h3><p>单个复选框，绑定到布尔值：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"checkbox"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"checkbox"</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"checked"</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"checkbox"</span>&gt;</span>{{ checked }}<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span></code></pre>
+<div id="example-2">
+<input id="checkbox" type="checkbox" v-model="checked"/>
+<label for="checkbox">{{ checked }}</label>
+</div>
+<script>
+new Vue({
+  el: '#example-2',
+  data: {
+    checked: false
+  }
+})
+</script>
+<p>多个复选框，绑定到同一个数组：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">'example-3'</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"checkbox"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"jack"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"Jack"</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"checkedNames"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"jack"</span>&gt;</span>Jack<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"checkbox"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"john"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"John"</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"checkedNames"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"john"</span>&gt;</span>John<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"checkbox"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"mike"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"Mike"</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"checkedNames"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"mike"</span>&gt;</span>Mike<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">br</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>Checked names: {{ checkedNames }}<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#example-3'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">checkedNames</span>: []
+  }
+})</code></pre>
+<div id="example-3">
+<input id="jack" type="checkbox" v-model="checkedNames" value="Jack"/>
+<label for="jack">Jack</label>
+<input id="john" type="checkbox" v-model="checkedNames" value="John"/>
+<label for="john">John</label>
+<input id="mike" type="checkbox" v-model="checkedNames" value="Mike"/>
+<label for="mike">Mike</label>
+<br/>
+<span>Checked names: {{ checkedNames }}</span>
+</div>
+<script>
+new Vue({
+  el: '#example-3',
+  data: {
+    checkedNames: []
+  }
+})
+</script>
+<h3 id="单选按钮"><a class="headerlink" href="#单选按钮" title="单选按钮"></a>单选按钮</h3><pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"example-4"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"radio"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"one"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"One"</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"picked"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"one"</span>&gt;</span>One<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">br</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"radio"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"two"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"Two"</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"picked"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"two"</span>&gt;</span>Two<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">br</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>Picked: {{ picked }}<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#example-4'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">picked</span>: <span class="hljs-string">''</span>
+  }
+})</code></pre>
+<div id="example-4">
+<input id="one" type="radio" v-model="picked" value="One"/>
+<label for="one">One</label>
+<br/>
+<input id="two" type="radio" v-model="picked" value="Two"/>
+<label for="two">Two</label>
+<br/>
+<span>Picked: {{ picked }}</span>
+</div>
+<script>
+new Vue({
+  el: '#example-4',
+  data: {
+    picked: ''
+  }
+})
+</script>
+<h3 id="选择框"><a class="headerlink" href="#选择框" title="选择框"></a>选择框</h3><p>单选时：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"example-5"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">select</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"selected"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">option</span> <span class="hljs-attr">disabled</span> <span class="hljs-attr">value</span>=<span class="hljs-string">""</span>&gt;</span>请选择<span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">option</span>&gt;</span>A<span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">option</span>&gt;</span>B<span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">option</span>&gt;</span>C<span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">select</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>Selected: {{ selected }}<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'...'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">selected</span>: <span class="hljs-string">''</span>
+  }
+})</code></pre>
+<div id="example-5">
+<select v-model="selected">
+<option disabled="" value="">请选择</option>
+<option>A</option>
+<option>B</option>
+<option>C</option>
+</select>
+<span>Selected: {{ selected }}</span>
+</div>
+<script>
+new Vue({
+  el: '#example-5',
+  data: {
+    selected: ''
+  }
+})
+</script>
+<p class="tip">如果 <code>v-model</code> 表达式的初始值未能匹配任何选项，<code>&lt;select&gt;</code> 元素将被渲染为“未选中”状态。在 iOS 中，这会使用户无法选择第一个选项。因为这样的情况下，iOS 不会触发 change 事件。因此，更推荐像上面这样提供一个值为空的禁用选项。</p>
+<p>多选时 (绑定到一个数组)：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"example-6"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">select</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"selected"</span> <span class="hljs-attr">multiple</span> <span class="hljs-attr">style</span>=<span class="hljs-string">"width: 50px;"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">option</span>&gt;</span>A<span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">option</span>&gt;</span>B<span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">option</span>&gt;</span>C<span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">select</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">br</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>Selected: {{ selected }}<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#example-6'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">selected</span>: []
+  }
+})</code></pre>
+<div id="example-6">
+<select multiple="" style="width: 50px;" v-model="selected">
+<option>A</option>
+<option>B</option>
+<option>C</option>
+</select>
+<br/>
+<span>Selected: {{ selected }}</span>
+</div>
+<script>
+new Vue({
+  el: '#example-6',
+  data: {
+    selected: []
+  }
+})
+</script>
+<p>用 <code>v-for</code> 渲染的动态选项：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">select</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"selected"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">option</span> <span class="hljs-attr">v-for</span>=<span class="hljs-string">"option in options"</span> <span class="hljs-attr">v-bind:value</span>=<span class="hljs-string">"option.value"</span>&gt;</span>
+    {{ option.text }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">select</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>Selected: {{ selected }}<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'...'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">selected</span>: <span class="hljs-string">'A'</span>,
+    <span class="hljs-attr">options</span>: [
+      { <span class="hljs-attr">text</span>: <span class="hljs-string">'One'</span>, <span class="hljs-attr">value</span>: <span class="hljs-string">'A'</span> },
+      { <span class="hljs-attr">text</span>: <span class="hljs-string">'Two'</span>, <span class="hljs-attr">value</span>: <span class="hljs-string">'B'</span> },
+      { <span class="hljs-attr">text</span>: <span class="hljs-string">'Three'</span>, <span class="hljs-attr">value</span>: <span class="hljs-string">'C'</span> }
+    ]
+  }
+})</code></pre>
+<div id="example-7">
+<select v-model="selected">
+<option v-bind:value="option.value" v-for="option in options">
+      {{ option.text }}
+    </option>
+</select>
+<span>Selected: {{ selected }}</span>
+</div>
+<script>
+new Vue({
+  el: '#example-7',
+  data: {
+    selected: 'A',
+    options: [
+      { text: 'One', value: 'A' },
+      { text: 'Two', value: 'B' },
+      { text: 'Three', value: 'C' }
+    ]
+  }
+})
+</script>
+<h2 id="值绑定"><a class="headerlink" href="#值绑定" title="值绑定"></a>值绑定</h2><p>对于单选按钮，复选框及选择框的选项，<code>v-model</code> 绑定的值通常是静态字符串 (对于复选框也可以是布尔值)：</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 当选中时，`picked` 为字符串 "a" --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"radio"</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"picked"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"a"</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- `toggle` 为 true 或 false --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"checkbox"</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"toggle"</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 当选中第一个选项时，`selected` 为字符串 "abc" --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">select</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"selected"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">option</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"abc"</span>&gt;</span>ABC<span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">select</span>&gt;</span></code></pre>
+<p>但是有时我们可能想把值绑定到 Vue 实例的一个动态属性上，这时可以用 <code>v-bind</code> 实现，并且这个属性的值可以不是字符串。</p>
+<h3 id="复选框-1"><a class="headerlink" href="#复选框-1" title="复选框"></a>复选框</h3><pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span>
+  <span class="hljs-attr">type</span>=<span class="hljs-string">"checkbox"</span>
+  <span class="hljs-attr">v-model</span>=<span class="hljs-string">"toggle"</span>
+  <span class="hljs-attr">true-value</span>=<span class="hljs-string">"yes"</span>
+  <span class="hljs-attr">false-value</span>=<span class="hljs-string">"no"</span>
+&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-comment">// 当选中时</span>
+vm.toggle === <span class="hljs-string">'yes'</span>
+<span class="hljs-comment">// 当没有选中时</span>
+vm.toggle === <span class="hljs-string">'no'</span></code></pre>
+<p class="tip">这里的 <code>true-value</code> 和 <code>false-value</code> 特性并不会影响输入控件的 <code>value</code> 特性，因为浏览器在提交表单时并不会包含未被选中的复选框。如果要确保表单中这两个值中的一个能够被提交，(比如“yes”或“no”)，请换用单选按钮。</p>
+<h3 id="单选按钮-1"><a class="headerlink" href="#单选按钮-1" title="单选按钮"></a>单选按钮</h3><pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"radio"</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"pick"</span> <span class="hljs-attr">v-bind:value</span>=<span class="hljs-string">"a"</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-comment">// 当选中时</span>
+vm.pick === vm.a</code></pre>
+<h3 id="选择框的选项"><a class="headerlink" href="#选择框的选项" title="选择框的选项"></a>选择框的选项</h3><pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">select</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"selected"</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- 内联对象字面量 --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">option</span> <span class="hljs-attr">v-bind:value</span>=<span class="hljs-string">"{ number: 123 }"</span>&gt;</span>123<span class="hljs-tag">&lt;/<span class="hljs-name">option</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">select</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-comment">// 当选中时</span>
+<span class="hljs-keyword">typeof</span> vm.selected <span class="hljs-comment">// =&gt; 'object'</span>
+vm.selected.number <span class="hljs-comment">// =&gt; 123</span></code></pre>
+<h2 id="修饰符"><a class="headerlink" href="#修饰符" title="修饰符"></a>修饰符</h2><h3 id="lazy"><a class="headerlink" href="#lazy" title=".lazy"></a><code>.lazy</code></h3><p>在默认情况下，<code>v-model</code> 在每次 <code>input</code> 事件触发后将输入框的值与数据进行同步 (除了<a href="#vmodel-ime-tip">上述</a>输入法组合文字时)。你可以添加 <code>lazy</code> 修饰符，从而转变为使用 <code>change</code> 事件进行同步：</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 在“change”时而非“input”时更新 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-model.lazy</span>=<span class="hljs-string">"msg"</span> &gt;</span></code></pre>
+<h3 id="number"><a class="headerlink" href="#number" title=".number"></a><code>.number</code></h3><p>如果想自动将用户的输入值转为数值类型，可以给 <code>v-model</code> 添加 <code>number</code> 修饰符：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-model.number</span>=<span class="hljs-string">"age"</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"number"</span>&gt;</span></code></pre>
+<p>这通常很有用，因为即使在 <code>type="number"</code> 时，HTML 输入元素的值也总会返回字符串。如果这个值无法被 <code>parseFloat()</code> 解析，则会返回原始的值。</p>
+<h3 id="trim"><a class="headerlink" href="#trim" title=".trim"></a><code>.trim</code></h3><p>如果要自动过滤用户输入的首尾空白字符，可以给 <code>v-model</code> 添加 <code>trim</code> 修饰符：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-model.trim</span>=<span class="hljs-string">"msg"</span>&gt;</span></code></pre>
+<h2 id="在组件上使用-v-model"><a class="headerlink" href="#在组件上使用-v-model" title="在组件上使用 v-model"></a>在组件上使用 <code>v-model</code></h2><blockquote>
+<p>如果你还不熟悉 Vue 的组件，可以暂且跳过这里。</p>
+</blockquote>
+<p>HTML 原生的输入元素类型并不总能满足需求。幸好，Vue 的组件系统允许你创建具有完全自定义行为且可复用的输入组件。这些输入组件甚至可以和 <code>v-model</code> 一起使用！要了解更多，请参阅组件指南中的<a href="components-custom-events.html#自定义组件的-v-model">自定义输入组件</a>。</p>
+<div class="guide-links">
+<span>← <a href="events.html">事件处理</a></span>
+<span style="float: right;"><a href="components.html">组件基础</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srcforms.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

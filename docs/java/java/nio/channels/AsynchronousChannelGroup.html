@@ -1,0 +1,419 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.nio.channels 
+   </div>
+<h2 class="title" title="Class AsynchronousChannelGroup">Class AsynchronousChannelGroup</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.nio.channels.AsynchronousChannelGroup</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">AsynchronousChannelGroup</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span>用于资源共享的一组异步通道。</span>
+<p> <span>异步通道组封装了处理绑定到组的<code>asynchronous channels</code>发起的I / O操作完成所需的<a href="../../../java/nio/channels/AsynchronousChannel.html" title="java.nio.channels中的接口">机制</a> 。</span> <span>一个组具有相关联的线程池，任务被提交到该处理I / O事件<a href="../../../java/nio/channels/CompletionHandler.html" title="java.nio.channels中的接口">并发送到<code>completion-handlers</code></a> ，消耗在组中的通道上执行的异步操作的结果。</span> <span>除了处理I / O事件之外，汇集的线程还可以执行支持执行异步I / O操作所需的其他任务。</span> </p>
+<p> <span>通过调用这里定义的<a href="../../../java/nio/channels/AsynchronousChannelGroup.html#withFixedThreadPool-int-java.util.concurrent.ThreadFactory-"><code>withFixedThreadPool</code></a>或<a href="../../../java/nio/channels/AsynchronousChannelGroup.html#withCachedThreadPool-java.util.concurrent.ExecutorService-int-"><code>withCachedThreadPool</code></a>方法创建异步通道组。</span> <span>通道在构建通道时通过指定组来绑定到一个组。</span> <span>相关联的线程池由组<em>拥有</em> ;</span> <span>组的终止导致关联线程池的关闭。</span> </p>
+<p> <span>除了明确创建的组之外，Java虚拟机还会维护自动构建的系统范围的<em>默认组</em> 。</span> <span>在构建时不指定组的异步通道绑定到默认组。</span> <span>默认组具有相关联的线程池，根据需要创建新线程。</span> <span>默认组可以通过下表中定义的系统属性进行配置。</span> <span>凡<a href="../../../java/util/concurrent/ThreadFactory.html" title="java.util.concurrent中的接口"><code>ThreadFactory</code></a>默认组未再配置缺省组的池线程是<a href="../../../java/lang/Thread.html#isDaemon--"><code>daemon</code>个</a>线程。</span> </p>
+<span>  System property Description    <code>java.nio.channels.DefaultThreadPool.threadFactory</code>   The value of this property is taken to be the fully-qualified name of a concrete <a href="../../../java/util/concurrent/ThreadFactory.html" title="interface in java.util.concurrent"><code>ThreadFactory</code></a> class. The class is loaded using the system class loader and instantiated. The factory's <a href="../../../java/util/concurrent/ThreadFactory.html#newThread-java.lang.Runnable-"><code>newThread</code></a> method is invoked to create each thread for the default group's thread pool. If the process to load and instantiate the value of the property fails then an unspecified error is thrown during the construction of the default group.     <code>java.nio.channels.DefaultThreadPool.initialSize</code>   The value of the <code>initialSize</code> parameter for the default group (see <a href="../../../java/nio/channels/AsynchronousChannelGroup.html#withCachedThreadPool-java.util.concurrent.ExecutorService-int-"><code>withCachedThreadPool</code></a>). The value of the property is taken to be the <code>String</code> representation of an <code>Integer</code> that is the initial size parameter. If the value cannot be parsed as an <code>Integer</code> it causes an unspecified error to be thrown during the construction of the default group.   </span>
+<table border="" summary="System properties">
+</table>
+<span><a name="threading"></a></span>
+<h2> <span>线程</span> </h2>
+<p> <span>在绑定到组的通道上启动的I / O操作的完成处理程序将被保证由组中的一个合并线程调用。</span> <span>这确保完成处理程序由具有预期<em>标识</em>的线程运行。</span> </p>
+<p> <span>在I / O操作立即完成的情况下，启动线程是组中的一个汇集线程，那么完成处理程序可能会被启动线程直接调用。</span> <span>为了避免堆栈溢出，实现可能会对线程堆栈上的激活次数施加限制。</span> <span>一些I / O操作可能会禁止直接由启动线程调用完成处理程序（请参阅<a href="../../../java/nio/channels/AsynchronousServerSocketChannel.html#accept-A-java.nio.channels.CompletionHandler-"><code>accept</code></a> ）。</span> <span><a name="shutdown"></a></span> </p>
+<h2> <span>关机和终止</span> </h2>
+<p> <span><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#shutdown--"><code>shutdown</code></a>方法用于启动组的<em>有序关闭</em> 。</span> <span>有序关闭将该组标记为关机;</span> <span>进一步尝试构建与该组绑定的通道将会抛出<a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="java.nio.channels中的类"><code>ShutdownChannelGroupException</code></a> 。</span> <span>一个组是否关机可以使用<a href="../../../java/nio/channels/AsynchronousChannelGroup.html#isShutdown--"><code>isShutdown</code></a>方法进行测试。</span> <span>一旦关闭，组<em>结束</em>时被绑定到该组的所有异步通道关闭，所有正在执行的完成处理程序已运行到完成，并通过该组使用的资源被释放。</span> <span>没有尝试停止或中断执行完成处理程序的线程。</span> <span><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#isTerminated--"><code>isTerminated</code></a>方法用于测试组是否已经终止，并且可以使用<a href="../../../java/nio/channels/AsynchronousChannelGroup.html#awaitTermination-long-java.util.concurrent.TimeUnit-"><code>awaitTermination</code></a>方法来阻止该组终止。</span> </p>
+<p> <span><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#shutdownNow--"><code>shutdownNow</code></a>方法可用于启动组的<em>强制关闭</em> 。</span> <span>除了通过有序关闭执行的操作外， <code>shutdownNow</code>方法将关闭组中的所有打开通道，就像调用<a href="../../../java/nio/channels/AsynchronousChannel.html#close--"><code>close</code></a>方法一样。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.7 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#open-java.nio.channels.AsynchronousChannelGroup-"><code>AsynchronousSocketChannel.open(AsynchronousChannelGroup)</code></a> ， 
+        <a href="../../../java/nio/channels/AsynchronousServerSocketChannel.html#open-java.nio.channels.AsynchronousChannelGroup-"><code>AsynchronousServerSocketChannel.open(AsynchronousChannelGroup)</code></a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#AsynchronousChannelGroup-java.nio.channels.spi.AsynchronousChannelProvider-">AsynchronousChannelGroup</a></span>(<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="class in java.nio.channels.spi">AsynchronousChannelProvider</a> provider)</code>
+<div class="block">
+              初始化此类的新实例。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>abstract boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#awaitTermination-long-java.util.concurrent.TimeUnit-">awaitTermination</a></span>(long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              等待该组终止。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>abstract boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#isShutdown--">isShutdown</a></span>()</code>
+<div class="block">
+              告知这个异步通道组是否关闭。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>abstract boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#isTerminated--">isTerminated</a></span>()</code>
+<div class="block">
+              告诉本组是否已经终止。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="class in java.nio.channels.spi">AsynchronousChannelProvider</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#provider--">provider</a></span>()</code>
+<div class="block">
+              返回创建此通道组的提供程序。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#shutdown--">shutdown</a></span>()</code>
+<div class="block">
+              启动组的有序关闭。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#shutdownNow--">shutdownNow</a></span>()</code>
+<div class="block">
+              关闭组并关闭组中的所有打开的通道。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>static <a href="../../../java/nio/channels/AsynchronousChannelGroup.html" title="class in java.nio.channels">AsynchronousChannelGroup</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#withCachedThreadPool-java.util.concurrent.ExecutorService-int-">withCachedThreadPool</a></span>(<a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a> executor, int initialSize)</code>
+<div class="block">
+              创建具有给定线程池的异步通道组，根据需要创建新线程。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>static <a href="../../../java/nio/channels/AsynchronousChannelGroup.html" title="class in java.nio.channels">AsynchronousChannelGroup</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#withFixedThreadPool-int-java.util.concurrent.ThreadFactory-">withFixedThreadPool</a></span>(int nThreads, <a href="../../../java/util/concurrent/ThreadFactory.html" title="interface in java.util.concurrent">ThreadFactory</a> threadFactory)</code>
+<div class="block">
+              创建具有固定线程池的异步通道组。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>static <a href="../../../java/nio/channels/AsynchronousChannelGroup.html" title="class in java.nio.channels">AsynchronousChannelGroup</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousChannelGroup.html#withThreadPool-java.util.concurrent.ExecutorService-">withThreadPool</a></span>(<a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a> executor)</code>
+<div class="block">
+              使用给定的线程池创建异步通道组。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="AsynchronousChannelGroup-java.nio.channels.spi.AsynchronousChannelProvider-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>AsynchronousChannelGroup</h4> <pre>protected AsynchronousChannelGroup(<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="class in java.nio.channels.spi">AsynchronousChannelProvider</a> provider)</pre>
+<div class="block">
+            初始化此类的新实例。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>provider</code> - 此组的异步通道提供程序 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="provider--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>provider</h4> <pre>public final <a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="class in java.nio.channels.spi">AsynchronousChannelProvider</a> provider()</pre>
+<div class="block">
+            返回创建此通道组的提供程序。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             创建此通道组的提供程序 
+           </dd>
+</dl> </li>
+</ul> <a name="withFixedThreadPool-int-java.util.concurrent.ThreadFactory-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withFixedThreadPool</h4> <pre>public static <a href="../../../java/nio/channels/AsynchronousChannelGroup.html" title="class in java.nio.channels">AsynchronousChannelGroup</a> withFixedThreadPool(int nThreads,
+                                                           <a href="../../../java/util/concurrent/ThreadFactory.html" title="interface in java.util.concurrent">ThreadFactory</a> threadFactory)
+                                                    throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>创建具有固定线程池的异步通道组。</span>
+<p> <span>所产生的异步通道组重新使用固定数量的线程。</span> <span>在任何时候，最多<code>nThreads</code>个线程将是被提交处理I / O事件的主动处理任务，并且为组中异步通道发起的操作发送完成结果。</span> </p>
+<p> <span>该组是通过调用系统范围默认的<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="java.nio.channels.spi中的类"><code>AsynchronousChannelProvider</code></a>对象的<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html#openAsynchronousChannelGroup-int-java.util.concurrent.ThreadFactory-"><code>openAsynchronousChannelGroup(int,ThreadFactory)</code></a>方法创建的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nThreads</code> - 池中的线程数 
+           </dd>
+<dd>
+<code>threadFactory</code> - 创建新线程时使用的工厂 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个新的异步通道组 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>nThreads &lt;= 0</code>
+</dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="withCachedThreadPool-java.util.concurrent.ExecutorService-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withCachedThreadPool</h4> <pre>public static <a href="../../../java/nio/channels/AsynchronousChannelGroup.html" title="class in java.nio.channels">AsynchronousChannelGroup</a> withCachedThreadPool(<a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a> executor,
+                                                            int initialSize)
+                                                     throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>创建具有给定线程池的异步通道组，根据需要创建新线程。</span>
+<p> <span><code>executor</code>参数是<code>ExecutorService</code> ，根据需要创建新线程，以执行提交以处理I / O事件的任务，并为组中的异步通道启动的操作分派完成结果。</span> <span>当它们可用时，它可以重用以前构造的线程。</span> </p>
+<p> <span>该<code>initialSize</code>参数可以通过实施作为<em>提示</em>被用作它可以提交任务的初始数量。</span> <span>例如，它可以用于指示等待I / O事件的初始线程数。</span> </p>
+<p> <span>执行器意图由所产生的异步通道组专门使用。</span> <span>该组的<a href="../../../java/util/concurrent/ExecutorService.html#shutdown--">终止</a>导致执行者服务有序<a href="../../../java/util/concurrent/ExecutorService.html#shutdown--"><code>shutdown</code></a> 。</span> <span>以其他方式关闭执行者服务会导致未指定的行为。</span> </p>
+<p> <span>该组是通过调用系统范围默认的<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="java.nio.channels.spi中的类"><code>AsynchronousChannelProvider</code></a>对象的<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html#openAsynchronousChannelGroup-java.util.concurrent.ExecutorService-int-"><code>openAsynchronousChannelGroup(ExecutorService,int)</code></a>方法创建的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>executor</code> - 生成组的线程池 
+           </dd>
+<dd>
+<code>initialSize</code> - 值为 
+            <code>&gt;=0</code>或实现特定默认值的负值 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个新的异步通道组 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/concurrent/Executors.html#newCachedThreadPool--"><code>Executors.newCachedThreadPool()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="withThreadPool-java.util.concurrent.ExecutorService-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withThreadPool</h4> <pre>public static <a href="../../../java/nio/channels/AsynchronousChannelGroup.html" title="class in java.nio.channels">AsynchronousChannelGroup</a> withThreadPool(<a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a> executor)
+                                               throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>使用给定的线程池创建异步通道组。</span>
+<p> <span><code>executor</code>参数是一个<code>ExecutorService</code> ，执行提交的任务，以便为组中的异步通道启动的操作发送完成结果。</span> </p>
+<p> <span>配置执行程序服务时应小心。</span> <span>它应该支持<em>直接切换</em>或<em>提交</em>的任务的<em>无限排队</em> ，并且调用<a href="../../../java/util/concurrent/Executor.html#execute-java.lang.Runnable-"><code>execute</code></a>方法的线程不应该直接调用该任务。</span> <span>一个实施可能需要额外的限制。</span> </p>
+<p> <span>执行器意图由所产生的异步通道组专门使用。</span> <span>该组的<a href="../../../java/util/concurrent/ExecutorService.html#shutdown--">终止</a>导致执行者服务的有序<a href="../../../java/util/concurrent/ExecutorService.html#shutdown--"><code>shutdown</code></a> 。</span> <span>以其他方式关闭执行者服务会导致未指定的行为。</span> </p>
+<p> <span>该组是通过调用系统范围的默认<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="java.nio.channels.spi中的类"><code>AsynchronousChannelProvider</code></a>对象的<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html#openAsynchronousChannelGroup-java.util.concurrent.ExecutorService-int-">88416798242410</a>方法创建的， <code>initialSize</code>为<code>0</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>executor</code> - 生成组的线程池 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个新的异步通道组 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="isShutdown--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isShutdown</h4> <pre>public abstract boolean isShutdown()</pre>
+<div class="block">
+            告知这个异步通道组是否关闭。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果此异步通道组已关闭或已标记为关闭。 
+           </dd>
+</dl> </li>
+</ul> <a name="isTerminated--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isTerminated</h4> <pre>public abstract boolean isTerminated()</pre>
+<div class="block">
+<span>告诉本组是否已经终止。</span>
+<p> <span>在这种方法返回<code>true</code> ，相关联的线程池也有<a href="../../../java/util/concurrent/ExecutorService.html#isTerminated--"><code>terminated</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果该组已经终止 
+           </dd>
+</dl> </li>
+</ul> <a name="shutdown--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shutdown</h4> <pre>public abstract void shutdown()</pre>
+<div class="block">
+<span>启动组的有序关闭。</span>
+<p> <span>此方法将该组标记为关闭。</span> <span>进一步尝试构建与此组绑定的通道将抛出<a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="java.nio.channels中的类"><code>ShutdownChannelGroupException</code></a> 。</span> <span>当组中的所有异步通道关闭时，组终止，所有主动执行的完成处理程序都已完成运行，并且所有资源都已被释放。</span> <span>如果组已经关闭，则此方法无效。</span> </p>
+</div> </li>
+</ul> <a name="shutdownNow--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shutdownNow</h4> <pre>public abstract void shutdownNow()
+                          throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>关闭组并关闭组中的所有打开的通道。</span>
+<p> <span>除了<a href="../../../java/nio/channels/AsynchronousChannelGroup.html#shutdown--"><code>shutdown</code></a>方法执行的操作之外，该方法<a href="../../../java/nio/channels/AsynchronousChannel.html#close--">还会</a>在组中的所有打开的通道上调用<a href="../../../java/nio/channels/AsynchronousChannel.html#close--"><code>close</code></a>方法。</span> <span>该方法不会阻止或中断执行完成处理程序的线程。</span> <span>当所有主动执行的完成处理程序都运行到完成并且所有资源已经被释放时，该组终止。</span> <span>可以随时调用此方法。</span> <span>如果一些其他线程已经调用它，那么另一个调用将阻塞，直到第一次调用完成，之后它将不起作用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="awaitTermination-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>awaitTermination</h4> <pre>public abstract boolean awaitTermination(long timeout,
+                                         <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)
+                                  throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>等待该组终止。</span>
+<p> <span>该方法阻塞，直到组终止，或超时发生，或当前线程中断，以先发生者为准。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>timeout</code> - 等待的最长时间，或零或更少等待不等待 
+           </dd>
+<dd>
+<code>unit</code> - 超时参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果该组已经终止;</span>
+<span><code>false</code>如果在终止之前超时</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 等待时中断 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

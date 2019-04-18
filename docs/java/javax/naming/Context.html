@@ -1,0 +1,1842 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     javax.naming 
+   </div>
+<h2 class="title" title="Interface Context">Interface Context</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Known Subinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../javax/naming/directory/DirContext.html" title="javax.naming.directory中的接口">DirContext</a> ， <a href="../../javax/naming/event/EventContext.html" title="javax.naming.event中的接口">EventContext</a> ， <a href="../../javax/naming/event/EventDirContext.html" title="javax.naming.event中的接口">EventDirContext</a> ， <a href="../../javax/naming/ldap/LdapContext.html" title="javax.naming.ldap中的接口">LdapContext</a></span>
+</dd>
+</dl>
+<dl>
+<dt>
+        所有已知实现类：
+       </dt>
+<dd>
+<span><a href="../../javax/naming/InitialContext.html" title="javax.naming中的类">InitialContext</a> ， <a href="../../javax/naming/directory/InitialDirContext.html" title="javax.naming.directory中的类">InitialDirContext</a> ， <a href="../../javax/naming/ldap/InitialLdapContext.html" title="javax.naming.ldap中的类">InitialLdapContext</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">Context</span></pre>
+<div class="block">
+<span>该接口表示一个命名上下文，它由一组名称对对象绑定组成。</span>
+<span>它包含检查和更新这些绑定的方法。</span>
+<h1> <span>名字</span> </h1>
+<span>传递给<tt>Context</tt>方法的参数的每个名称都是相对于该上下文。</span>
+<span>空的名称用于命名上下文本身。</span>
+<span>名称参数可能永远不为空。</span>
+<p> <span>大多数方法都有超载版本，一个使用一个<code>Name</code>参数，一个采用<code>String</code> 。</span> <span>这些重载版本是等效的，因为如果<code>Name</code>和<code>String</code>参数只是相同名称的不同表示，那么相同方法的重载版本行为相同。</span> <span>在下面的方法描述中，只有一个版本被完整记录。</span> <span>第二个版本代替了第一个链接：相同的文档适用于两者。</span> </p>
+<p> <span>对于支持联合的系统<tt>，String个</tt>名称参数<tt>Context个</tt>方法是复合名称。</span> <span>名称是<tt>CompositeName</tt>实例被看作是复合名称，而<tt>Name个</tt>参数不属于的<tt>CompositeName</tt>实例为化合物名称治疗（其可能是<tt>CompoundName</tt>实例或化合物名称的其它实施方式）的参数。</span> <span>这样可以将<tt>NameParser.parse()</tt>的结果用作<tt>Context</tt>方法的参数。</span> <span>在JNDI 1.2之前，所有的名称参数被视为复合名称。</span> </p>
+<p> <span>此外，对于支持联合的系统， <tt>NamingEnumeration</tt>从<tt>list()</tt>和<tt>listBindings()</tt>返回的所有名称都是以字符串<tt>表示</tt>的复合名称。</span> <span>有关名称的字符串语法，请参阅<tt>CompositeName</tt> 。</span> </p>
+<p> <span>对于不支持联合的系统，名称参数（在<tt>Name</tt>或<tt>String</tt>表单中）和<tt>NamingEnumeration</tt>中返回的名称可能是其自己的命名空间中的名称，而不是复合命名空间中的名称，由服务提供商决定。</span> </p>
+<h1> <span>例外</span> </h1>
+<span>此接口中的所有方法都可以抛出一个<tt>NamingException</tt>或其任何子类。</span>
+<span>有关每个异常的详细信息，请参阅<tt>NamingException</tt>及其子类。</span>
+<h1> <span>并发访问</span> </h1>
+<span>上下文实例不能保证与多个线程的并发访问同步。</span>
+<span>需要同时访问单个上下文实例的线程应在其间同步并提供必要的锁定。</span>
+<span>每个操作不同Context实例的多个线程不需要同步。</span>
+<span>请注意， <a href="../../javax/naming/Context.html#lookup-javax.naming.Name-"><code><tt>lookup</tt></code></a>方法在传递一个空名时将返回一个表示相同命名上下文的新Context实例。</span>
+<p> <span>为了并发控制的目的，返回<tt>NamingEnumeration</tt>的上下文操作在枚举仍在使用中或者仍然遵循该操作生成的任何引用时，不被认为已经完成。</span> </p>
+<h1> <span>参数</span> </h1>
+<span>传递给<tt>Context</tt>界面或它的子接口中的一个的任何方法A <tt>Name</tt>参数将不会由服务提供者进行修改。</span>
+<span>服务提供商可以在操作期间保留对其的引用，包括方法结果的任何枚举以及生成的任何引用的处理。</span>
+<span>呼叫者在此期间不应修改对象。</span>
+<span>由任何此类方法返回的A <tt>Name</tt>由调用者拥有。</span>
+<span>呼叫者可以随后修改它;</span>
+<span>服务提供商可能不会。</span>
+<h1> <span>环境属性</span> </h1>
+<p> <span>JNDI应用程序需要一种方式来传达定义访问命名和目录服务的环境的各种首选项和属性。</span> <span>例如，上下文可能需要指定安全凭据才能访问该服务。</span> <span>另一个上下文可能需要提供服务器配置信息。</span> <span>这些被称为上下文的<em>环境</em> 。</span> <span><tt>Context</tt>接口提供检索和更新此环境的方法。</span> </p>
+<p> <span>随着上下文方法从一个上下文进入下一个环境，环境是从父上下文继承的。</span> <span>对一个环境的环境的改变不会直接影响其他环境的环境。</span> </p>
+<p> <span>当环境属性被使用和/或验证有效性时，它是实现依赖的。</span> <span>例如，服务提供商使用某些与安全性相关的属性来“登录”目录。</span> <span>此登录过程可能会在上下文创建时发生，或者在上下文首次调用方法时发生。</span> <span>何时，以及是否发生这种情况是依赖于实现的。</span> <span>当环境属性从上下文中添加或删除时，验证更改的有效性再次取决于实现。</span> <span>例如，某些属性的验证可能在更改时发生，或在下一个操作在上下文中执行时，或根本不发生。</span> </p>
+<p> <span>任何具有对上下文的引用的对象都可以检查该上下文的环境。</span> <span>敏感信息（如明文密码）不应存储在那里，除非已知实现保护它。</span> </p>
+<p> <span><a name="RESOURCEFILES"></a></span> </p>
+<h1> <span>资源文件</span> </h1>
+<p> <span>为了简化设置JNDI应用程序所需环境的任务，应用程序组件和服务提供程序可能与<em>资源文件</em>一起分发<em>。</em></span> <span>JNDI资源文件是属性文件格式的文件（请参阅<a href="../../java/util/Properties.html#load-java.io.Reader-"><code><tt>java.util.Properties</tt></code></a> ），其中包含键/值对列表。</span> <span>关键是属性的名称（例如“java.naming.factory.object”），该值是为该属性定义的格式的字符串。</span> <span>以下是JNDI资源文件的示例：</span> </p>
+<blockquote>
+<span><code>java.naming.factory.object=com.sun.jndi.ldap.AttrsToCorba:com.wiz.from.Person java.naming.factory.state=com.sun.jndi.ldap.CorbaToAttrs:com.wiz.from.Person java.naming.factory.control=com.sun.jndi.ldap.ResponseControlFactory </code></span>
+</blockquote>
+<span>JNDI类库读取资源文件，并使属性值免费使用。</span>
+<span>因此，JNDI资源文件应该被认为是“世界可读”的，敏感信息（如明文密码）不应存储在那里。</span>
+<p> <span>有两种JNDI资源文件： <em>提供者</em>和应用<em>程序</em> 。</span> </p>
+<h2> <span>提供者资源文件</span> </h2>
+<span>每个服务提供商都有一个可选资源，列出特定于该提供商的属性。</span>
+<span>该资源的名称是：</span>
+<blockquote>
+<span>[ <em>prefix</em>/] <tt>jndiprovider.properties</tt></span>
+</blockquote>
+<span>其中， <em>prefix</em>是提供者的上下文实现的包名，每个句点（“。”）转换为斜杠（“/”）。</span>
+<span>例如，假设一个服务提供者定义一个类名为<tt>com.sun.jndi.ldap.LdapCtx</tt>的上下文<tt>实现</tt> 。</span>
+<span>此提供程序的提供程序资源名为<tt>com/sun/jndi/ldap/jndiprovider.properties</tt> 。</span>
+<span>如果该类不在包中，则该资源的名称仅为<tt>jndiprovider.properties</tt> 。</span>
+<p> <span><a name="LISTPROPS"></a> JNDI类库中的某些方法使用指定JNDI工厂列表的标准JNDI属性：</span> </p>
+<ul>
+<li> <span>java.naming.factory.object</span> </li>
+<li> <span>java.naming.factory.state</span> </li>
+<li> <span>java.naming.factory.control</span> </li>
+<li> <span>java.naming.factory.url.pkgs</span> </li>
+</ul>
+<span>当确定这些属性的值时，JNDI库将查询提供者资源文件。</span>
+<span>可以由服务提供商自行决定在提供商资源文件中设置这些以外的属性。</span>
+<span>服务提供者的文件应明确说明允许哪些属性;</span>
+<span>该文件中的其他属性将被忽略。</span>
+<h2> <span>应用资源文件</span> </h2>
+<span>当部署应用程序时，它的类路径通常会有多个代码库目录和JAR。</span>
+<span>类似地，当部署小程序时，它将具有一个代码库和存档，指定在哪里找到小程序的类。</span>
+<span>JNDI在类<a href="../../java/lang/ClassLoader.html#getResources-java.lang.String-">路径中</a>定位（使用<a href="../../java/lang/ClassLoader.html#getResources-java.lang.String-"><code><tt>ClassLoader.getResources()</tt></code></a> ）名为<tt>jndi.properties的</tt>所有应用<em>程序资源文件</em> 。</span>
+<span>此外，如果文件<i>java.home</i> <tt>/lib/jndi.properties</tt>存在且可读，则JNDI将其视为其他应用程序资源文件。</span>
+<span>（ <i>java.home</i>表示由<tt>java.home</tt>系统属性命名的<tt>目录</tt> 。）这些文件中包含的所有属性都放置在初始上下文的环境中。</span>
+<span>然后，这种环境由其他上下文继承。</span>
+<p> <span>对于在多个应用程序资源文件中找到的每个属性，JNDI使用发现的第一个值，或者在少数情况下，将其连接起来（详细信息如下）。</span> <span>例如，如果在三个<tt>jndi.properties</tt>资源文件中找到“java.naming.factory.object”属性，则对象工厂列表是来自所有三个文件的属性值的连接。</span> <span>使用此方案，每个可部署组件负责列出其出口的工厂。</span> <span>搜索工厂类时，JNDI会自动收集并使用所有这些导出列表。</span> </p>
+<h2> <span>搜索算法的属性</span> </h2>
+<span>当JNDI构建一个初始上下文时，上下文的环境是通过传递给构造函数，系统属性，小程序参数和应用程序资源文件的环境参数中定义的属性进行初始化的。</span>
+<span>详见<a href="InitialContext.html#ENVIRONMENT"><tt>InitialContext</tt></a> 。</span>
+<span>然后，这个初始环境由其他上下文实例继承。</span>
+<p> <span>当JNDI类库需要确定一个属性的值时，它按照以下顺序合并来自以下两个来源的值：</span> </p>
+<ol>
+<li> <span>上下文的环境正在运行。</span> </li>
+<li> <span>为上下文操作的提供者资源文件（ <tt>jndiprovider.properties</tt> ）。</span> </li>
+</ol>
+<span>对于在这两个来源中找到的每个属性，JNDI确定属性的值如下。</span>
+<span>如果属性是指定JNDI工厂列表的标准JNDI属性之一（列出了<a href="#LISTPROPS">above</a> ），则这些值将连接到单个冒号分隔列表中。</span>
+<span>对于其他属性，仅使用第一个找到的值。</span>
+<p> <span>当服务提供商需要确定属性的值时，通常会直接从环境中获取该值。</span> <span>服务提供商可以将供应商特定的属性定义为放置在其自己的提供商资源文件中。</span> <span>在这种情况下，它应该合并上一段所述的值。</span> </p>
+<p> <span>以这种方式，每个服务提供商开发人员可以指定要与该服务提供商一起使用的工厂列表。</span> <span>这些可以由应用程序或小应用程序的部署程序指定的应用程序资源修改，而应用程序或小应用程序可以由用户修改。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.3 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#APPLET">APPLET</a></span></code>
+<div class="block">
+              包含指定用于搜索其他属性时要使用的初始上下文构造函数的小程序的环境属性的常量的常量。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#AUTHORITATIVE">AUTHORITATIVE</a></span></code>
+<div class="block">
+              用于指定所请求的服务的权威性的环境属性的名称的常量。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#BATCHSIZE">BATCHSIZE</a></span></code>
+<div class="block">
+              包含用于指定通过服务协议返回数据时使用的批量大小的环境属性名称的常量。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#DNS_URL">DNS_URL</a></span></code>
+<div class="block">
+              持有用于指定用于JNDI URL上下文的DNS主机和域名的环境属性的名称的常量（例如“dns：//somehost/wiz.com”）。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#INITIAL_CONTEXT_FACTORY">INITIAL_CONTEXT_FACTORY</a></span></code>
+<div class="block">
+              用于指定要使用的初始上下文工厂的环境属性的名称的常量。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#LANGUAGE">LANGUAGE</a></span></code>
+<div class="block">
+              包含用于指定与服务一起使用的首选语言的环境属性名称的常量。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#OBJECT_FACTORIES">OBJECT_FACTORIES</a></span></code>
+<div class="block">
+              用于指定要使用的对象工厂列表的环境属性的名称的常量。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#PROVIDER_URL">PROVIDER_URL</a></span></code>
+<div class="block">
+              包含用于指定服务提供商要使用的配置信息的环境属性的名称的常量。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#REFERRAL">REFERRAL</a></span></code>
+<div class="block">
+              持有用于指定如何处理服务提供商遇到的引用的环境属性的名称的常量。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#SECURITY_AUTHENTICATION">SECURITY_AUTHENTICATION</a></span></code>
+<div class="block">
+              持有用于指定要使用的安全级别的环境属性的名称的常量。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#SECURITY_CREDENTIALS">SECURITY_CREDENTIALS</a></span></code>
+<div class="block">
+              包含用于指定用于验证呼叫者到服务的主体的凭据的环境属性的名称的常量。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#SECURITY_PRINCIPAL">SECURITY_PRINCIPAL</a></span></code>
+<div class="block">
+              持有用于指定主体的身份的环境属性的常量，用于验证对该服务的呼叫者。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#SECURITY_PROTOCOL">SECURITY_PROTOCOL</a></span></code>
+<div class="block">
+              用于指定要使用的安全协议的环境属性的名称的常量。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#STATE_FACTORIES">STATE_FACTORIES</a></span></code>
+<div class="block">
+              用于指定要使用的状态工厂列表的环境属性的名称的常量。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#URL_PKG_PREFIXES">URL_PKG_PREFIXES</a></span></code>
+<div class="block">
+              持有环境属性名称的常量，用于指定在URL上下文工厂中加载时使用的包前缀列表。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-">addToEnvironment</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> propName, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> propVal)</code>
+<div class="block">
+              在此上下文的环境中添加一个新的环境属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#bind-javax.naming.Name-java.lang.Object-">bind</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              将名称绑定到对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#bind-java.lang.String-java.lang.Object-">bind</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              将名称绑定到对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#close--">close</a></span>()</code>
+<div class="block">
+              关闭这个上下文。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#composeName-javax.naming.Name-javax.naming.Name-">composeName</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> prefix)</code>
+<div class="block">
+              使用相对于该上下文的名称组合此上下文的名称。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#composeName-java.lang.String-java.lang.String-">composeName</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../java/lang/String.html" title="class in java.lang">String</a> prefix)</code>
+<div class="block">
+              使用相对于该上下文的名称组合此上下文的名称。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../javax/naming/Context.html" title="interface in javax.naming">Context</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#createSubcontext-javax.naming.Name-">createSubcontext</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              创建并绑定新的上下文。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../javax/naming/Context.html" title="interface in javax.naming">Context</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#createSubcontext-java.lang.String-">createSubcontext</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              创建并绑定新的上下文。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#destroySubcontext-javax.naming.Name-">destroySubcontext</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              销毁命名上下文并将其从命名空间中删除。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#destroySubcontext-java.lang.String-">destroySubcontext</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              销毁命名上下文并将其从命名空间中删除。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../java/util/Hashtable.html" title="class in java.util">Hashtable</a>&lt;?,?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#getEnvironment--">getEnvironment</a></span>()</code>
+<div class="block">
+              检索此环境有效的环境。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#getNameInNamespace--">getNameInNamespace</a></span>()</code>
+<div class="block">
+              在其自己的命名空间中检索此上下文的全名。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../javax/naming/NameParser.html" title="interface in javax.naming">NameParser</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#getNameParser-javax.naming.Name-">getNameParser</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              检索与命名上下文关联的解析器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code><a href="../../javax/naming/NameParser.html" title="interface in javax.naming">NameParser</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#getNameParser-java.lang.String-">getNameParser</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              检索与命名上下文关联的解析器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code><a href="../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../javax/naming/NameClassPair.html" title="class in javax.naming">NameClassPair</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#list-javax.naming.Name-">list</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              枚举在命名上下文中绑定的名称以及绑定到它们的对象的类名。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code><a href="../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../javax/naming/NameClassPair.html" title="class in javax.naming">NameClassPair</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#list-java.lang.String-">list</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              枚举在命名上下文中绑定的名称以及绑定到它们的对象的类名。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../javax/naming/Binding.html" title="class in javax.naming">Binding</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#listBindings-javax.naming.Name-">listBindings</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              枚举在命名上下文中绑定的名称以及绑定到它们的对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code><a href="../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../javax/naming/Binding.html" title="class in javax.naming">Binding</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#listBindings-java.lang.String-">listBindings</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              枚举在命名上下文中绑定的名称以及绑定到它们的对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#lookup-javax.naming.Name-">lookup</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              检索命名对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#lookup-java.lang.String-">lookup</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              检索命名对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#lookupLink-javax.naming.Name-">lookupLink</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              检索命名对象，除了名称的终端原子组件以外的链接。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#lookupLink-java.lang.String-">lookupLink</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              检索命名对象，除了名称的终端原子组件以外的链接。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#rebind-javax.naming.Name-java.lang.Object-">rebind</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              将名称绑定到对象，覆盖任何现有绑定。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#rebind-java.lang.String-java.lang.Object-">rebind</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              将名称绑定到对象，覆盖任何现有绑定。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-">removeFromEnvironment</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> propName)</code>
+<div class="block">
+              从环境环境中删除环境属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#rename-javax.naming.Name-javax.naming.Name-">rename</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> oldName, <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> newName)</code>
+<div class="block">
+              将绑定到旧名称的对象绑定一个新名称，并取消绑定旧名称。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#rename-java.lang.String-java.lang.String-">rename</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> oldName, <a href="../../java/lang/String.html" title="class in java.lang">String</a> newName)</code>
+<div class="block">
+              将绑定到旧名称的对象绑定一个新名称，并取消绑定旧名称。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#unbind-javax.naming.Name-">unbind</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              取消绑定命名对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/Context.html#unbind-java.lang.String-">unbind</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              取消绑定命名对象。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="INITIAL_CONTEXT_FACTORY">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>INITIAL_CONTEXT_FACTORY</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> INITIAL_CONTEXT_FACTORY</pre>
+<div class="block">
+<span>用于指定要使用的初始上下文工厂的环境属性的名称的常量。</span>
+<span>属性的值应该是将创建初始上下文的工厂类的完全限定类名。</span>
+<span>可以在传递给初始上下文构造函数，applet参数，系统属性或应用程序资源文件的环境参数中指定此属性。</span>
+<span>如果没有在任何这些源中<tt>指定</tt> ，则在需要初始上下文以完成<tt>操作</tt>时抛出NoInitialContextException。</span>
+<p> <span>该常量的值为“java.naming.factory.initial”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/naming/InitialContext.html" title="javax.naming中的类"><code>InitialContext</code></a> ， <a href="../../javax/naming/directory/InitialDirContext.html" title="javax.naming.directory中的类"><code>InitialDirContext</code></a> ， <a href="../../javax/naming/spi/NamingManager.html#getInitialContext-java.util.Hashtable-"><code>NamingManager.getInitialContext(java.util.Hashtable&lt;?, ?&gt;)</code></a> ， <a href="../../javax/naming/spi/InitialContextFactory.html" title="javax.naming.spi中的接口"><code>InitialContextFactory</code></a> ， <a href="../../javax/naming/NoInitialContextException.html" title="javax.naming中的类"><code>NoInitialContextException</code></a> ， <a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， <a href="../../javax/naming/Context.html#APPLET"><code>APPLET</code></a> ， <a href="../../constant-values.html#javax.naming.Context.INITIAL_CONTEXT_FACTORY">Constant Field Values</a></span>
+</dd>
+</dl> </li>
+</ul> <a name="OBJECT_FACTORIES">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>OBJECT_FACTORIES</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> OBJECT_FACTORIES</pre>
+<div class="block">
+<span>用于指定要使用的对象工厂列表的环境属性的名称的常量。</span>
+<span>属性的值应该是冒号分隔的工厂类完全限定类名的列表，它将创建一个给定关于该对象的信息的对象。</span>
+<span>该属性可以在环境，小应用程序参数，系统属性或一个或多个资源文件中指定。</span>
+<p> <span>该常量的值为“java.naming.factory.object”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/naming/spi/NamingManager.html#getObjectInstance-java.lang.Object-javax.naming.Name-javax.naming.Context-java.util.Hashtable-"><code>NamingManager.getObjectInstance(java.lang.Object, javax.naming.Name, javax.naming.Context, java.util.Hashtable&lt;?, ?&gt;)</code></a> ， <a href="../../javax/naming/spi/ObjectFactory.html" title="javax.naming.spi中的接口"><code>ObjectFactory</code></a> ， <a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， <a href="../../javax/naming/Context.html#APPLET"><code>APPLET</code></a> ， <a href="../../constant-values.html#javax.naming.Context.OBJECT_FACTORIES">Constant Field Values</a></span>
+</dd>
+</dl> </li>
+</ul> <a name="STATE_FACTORIES">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>STATE_FACTORIES</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> STATE_FACTORIES</pre>
+<div class="block">
+<span>用于指定要使用的状态工厂列表的环境属性的名称的常量。</span>
+<span>属性的值应该是冒号分隔的状态工厂类的完全限定类名的列表，用于在给定对象本身的情况下获取对象的状态。</span>
+<span>该属性可以在环境，小应用程序参数，系统属性或一个或多个资源文件中指定。</span>
+<p> <span>该常量的值为“java.naming.factory.state”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/naming/spi/NamingManager.html#getStateToBind-java.lang.Object-javax.naming.Name-javax.naming.Context-java.util.Hashtable-"><code>NamingManager.getStateToBind(java.lang.Object, javax.naming.Name, javax.naming.Context, java.util.Hashtable&lt;?, ?&gt;)</code></a> ， <a href="../../javax/naming/spi/StateFactory.html" title="javax.naming.spi中的接口"><code>StateFactory</code></a> ， <a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， <a href="../../javax/naming/Context.html#APPLET"><code>APPLET</code></a> ， <a href="../../constant-values.html#javax.naming.Context.STATE_FACTORIES">Constant Field Values</a></span>
+</dd>
+</dl> </li>
+</ul> <a name="URL_PKG_PREFIXES">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>URL_PKG_PREFIXES</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> URL_PKG_PREFIXES</pre>
+<div class="block">
+<span>持有环境属性名称的常量，用于指定在URL上下文工厂中加载时使用的包前缀列表。</span>
+<span>该属性的值应该是一个冒号分隔的包前缀列表，用于创建URL上下文工厂的工厂类的类名称。</span>
+<span>该属性可以在环境，小应用程序参数，系统属性或一个或多个资源文件中指定。</span>
+<span>前缀<tt>com.sun.jndi.url</tt>始终附加到可能空的包前缀列表。</span>
+<p> <span>该常量的值为“java.naming.factory.url.pkgs”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/naming/spi/NamingManager.html#getObjectInstance-java.lang.Object-javax.naming.Name-javax.naming.Context-java.util.Hashtable-"><code>NamingManager.getObjectInstance(java.lang.Object, javax.naming.Name, javax.naming.Context, java.util.Hashtable&lt;?, ?&gt;)</code></a> ， <a href="../../javax/naming/spi/NamingManager.html#getURLContext-java.lang.String-java.util.Hashtable-"><code>NamingManager.getURLContext(java.lang.String, java.util.Hashtable&lt;?, ?&gt;)</code></a> ， <a href="../../javax/naming/spi/ObjectFactory.html" title="javax.naming.spi中的接口"><code>ObjectFactory</code></a> ， <a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， <a href="../../javax/naming/Context.html#APPLET"><code>APPLET</code></a> ， <a href="../../constant-values.html#javax.naming.Context.URL_PKG_PREFIXES">Constant Field Values</a></span>
+</dd>
+</dl> </li>
+</ul> <a name="PROVIDER_URL">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>PROVIDER_URL</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> PROVIDER_URL</pre>
+<div class="block">
+<span>包含用于指定服务提供商要使用的配置信息的环境属性的名称的常量。</span>
+<span>该属性的值应该包含一个URL字符串（例如“ldap：// somehost：389”）。</span>
+<span>该属性可以在环境，小程序参数，系统属性或资源文件中指定。</span>
+<span>如果没有在任何这些来源中指定，默认配置由服务提供商决定。</span>
+<p> <span>该常量的值为“java.naming.provider.url”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../javax/naming/Context.html#APPLET"><code>APPLET</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.PROVIDER_URL">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="DNS_URL">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>DNS_URL</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> DNS_URL</pre>
+<div class="block">
+<span>持有用于指定用于JNDI URL上下文的DNS主机和域名的环境属性的名称的常量（例如“dns：//somehost/wiz.com”）。</span>
+<span>该属性可以在环境，小程序参数，系统属性或资源文件中指定。</span>
+<span>如果在任何这些源中未指定，并且程序尝试使用包含DNS名称的JNDI URL，则将抛出<tt>ConfigurationException</tt> 。</span>
+<p> <span>该常量的值为“java.naming.dns.url”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.DNS_URL">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="AUTHORITATIVE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>AUTHORITATIVE</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> AUTHORITATIVE</pre>
+<div class="block">
+<span>用于指定所请求的服务的权威性的环境属性的名称的常量。</span>
+<span>如果属性的值为字符串“true”，则意味着访问权限是最权威的来源（即绕过任何缓存或副本）。</span>
+<span>如果这个值是其他的，那么源代码不一定是（但可能是）权威的。</span>
+<span>如果未指定，则该值默认为“false”。</span>
+<p> <span>该常量的值为“java.naming.authoritative”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.AUTHORITATIVE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="BATCHSIZE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>BATCHSIZE</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> BATCHSIZE</pre>
+<div class="block">
+<span>包含用于指定通过服务协议返回数据时使用的批量大小的环境属性名称的常量。</span>
+<span>这是提供者以指定大小的批次返回操作结果的提示，因此提供程序可以优化其性能和资源的使用。</span>
+<span>属性的值是整数的字符串表示形式。</span>
+<span>如果未指定，则批量大小由服务提供商确定。</span>
+<p> <span>该常量的值为“java.naming.batchsize”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.BATCHSIZE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="REFERRAL">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REFERRAL</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> REFERRAL</pre>
+<div class="block">
+<span>持有用于指定如何处理服务提供商遇到的引用的环境属性的名称的常量。</span>
+<span>该属性的值是以下字符串之一：</span>
+<dl>
+<dt>
+<span>“跟随”</span>
+</dt>
+<dd>
+<span>自动跟随推荐</span>
+</dd>
+<dt>
+<span>“忽视”</span>
+</dt>
+<dd>
+<span>忽略引荐</span>
+</dd>
+<dt>
+<span>“扔”</span>
+</dt>
+<dd>
+<span>抛出<tt>ReferralException</tt>当遇到引荐时。</span>
+</dd>
+</dl>
+<span>如果未指定此属性，则默认值由提供者确定。</span>
+<p> <span>该常量的值为“java.naming.referral”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.REFERRAL">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="SECURITY_PROTOCOL">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>SECURITY_PROTOCOL</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> SECURITY_PROTOCOL</pre>
+<div class="block">
+<span>用于指定要使用的安全协议的环境属性的名称的常量。</span>
+<span>它的值是由服务提供商确定的字符串（例如“ssl”）。</span>
+<span>如果此属性未指定，则行为由服务提供商确定。</span>
+<p> <span>该常量的值为“java.naming.security.protocol”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.SECURITY_PROTOCOL">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="SECURITY_AUTHENTICATION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>SECURITY_AUTHENTICATION</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> SECURITY_AUTHENTICATION</pre>
+<div class="block">
+<span>持有用于指定要使用的安全级别的环境属性的名称的常量。</span>
+<span>它的值是以下字符串之一：“无”，“简单”，“强”。</span>
+<span>如果此属性未指定，则行为由服务提供商确定。</span>
+<p> <span>该常量的值为“java.naming.security.authentication”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.SECURITY_AUTHENTICATION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="SECURITY_PRINCIPAL">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>SECURITY_PRINCIPAL</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> SECURITY_PRINCIPAL</pre>
+<div class="block">
+<span>持有用于指定主体的身份的环境属性的常量，用于验证对该服务的呼叫者。</span>
+<span>主体的格式取决于认证方案。</span>
+<span>如果此属性未指定，则行为由服务提供商确定。</span>
+<p> <span>该常量的值为“java.naming.security.principal”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.SECURITY_PRINCIPAL">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="SECURITY_CREDENTIALS">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>SECURITY_CREDENTIALS</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> SECURITY_CREDENTIALS</pre>
+<div class="block">
+<span>包含用于指定用于验证呼叫者到服务的主体的凭据的环境属性的名称的常量。</span>
+<span>属性的值取决于认证方案。</span>
+<span>例如，它可以是散列密码，明文密码，密钥，证书等。</span>
+<span>如果此属性未指定，则行为由服务提供商确定。</span>
+<p> <span>该常量的值为“java.naming.security.credentials”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.SECURITY_CREDENTIALS">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="LANGUAGE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>LANGUAGE</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> LANGUAGE</pre>
+<div class="block">
+<span>包含用于指定与服务一起使用的首选语言的环境属性名称的常量。</span>
+<span>该属性的值是按照RFC 1766中定义的冒号分隔的语言标签列表。如果此属性未指定，则语言首选项由服务提供者确定。</span>
+<p> <span>该常量的值为“java.naming.language”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， 
+            <a href="../../constant-values.html#javax.naming.Context.LANGUAGE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="APPLET">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>APPLET</h4> <pre>static final <a href="../../java/lang/String.html" title="class in java.lang">String</a> APPLET</pre>
+<div class="block">
+<span>包含指定用于搜索其他属性时要使用的初始上下文构造函数的小程序的环境属性的常量的常量。</span>
+<span>该属性的值是正在执行的<tt>java.applet.Applet</tt>实例。</span>
+<span>可以在传递给初始上下文构造函数的环境参数中指定此属性。</span>
+<span>设置此属性时，首先在applet的参数列表中查找初始上下文构造函数在系统属性中查找的每个属性。</span>
+<span>如果此属性未指定，则初始上下文构造函数将仅在传递给它的环境参数，系统属性和应用程序资源文件中搜索属性。</span>
+<p> <span>该常量的值为“java.naming.applet”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a> ， <a href="../../javax/naming/InitialContext.html" title="javax.naming中的类"><code>InitialContext</code></a> ， <a href="../../constant-values.html#javax.naming.Context.APPLET">Constant Field Values</a></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="lookup-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>lookup</h4> <pre><a href="../../java/lang/Object.html" title="class in java.lang">Object</a> lookup(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+       throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索命名对象。</span>
+<span>如果<tt>name</tt>为空，则返回此上下文的新实例（其表示与该上下文相同的命名上下文，但其环境可以独立修改，并且可能被并发访问）。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要查找的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             对象绑定到 
+            <tt>name</tt>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#lookup-java.lang.String-"><code>lookup(String)</code></a> ， 
+            <a href="../../javax/naming/Context.html#lookupLink-javax.naming.Name-"><code>lookupLink(Name)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="lookup-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>lookup</h4> <pre><a href="../../java/lang/Object.html" title="class in java.lang">Object</a> lookup(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)
+       throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索命名对象。</span>
+<span>详见<a href="../../javax/naming/Context.html#lookup-javax.naming.Name-"><code>lookup(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要查找的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             对象绑定到 
+            <tt>name</tt>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="bind-javax.naming.Name-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>bind</h4> <pre>void bind(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+          <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)
+   throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将名称绑定到对象。</span>
+<span>所有中间上下文和目标上下文（由名称的所有终端原子组件命名）必须已经存在。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>obj</code> - 要绑定的对象;</span>
+<span>可能为null</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果名称已经绑定 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果对象没有提供所有必需属性 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#bind-java.lang.String-java.lang.Object-"><code>bind(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#rebind-javax.naming.Name-java.lang.Object-"><code>rebind(Name, Object)</code></a> ， 
+            <a href="../../javax/naming/directory/DirContext.html#bind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-"><code>DirContext.bind(Name, Object, javax.naming.directory.Attributes)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="bind-java.lang.String-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>bind</h4> <pre>void bind(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name,
+          <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)
+   throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将名称绑定到对象。</span>
+<span>详见<a href="../../javax/naming/Context.html#bind-javax.naming.Name-java.lang.Object-"><code>bind(Name, Object)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>obj</code> - 要绑定的对象;</span>
+<span>可能为null</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果名称已经绑定 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果对象没有提供所有必需属性 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="rebind-javax.naming.Name-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rebind</h4> <pre>void rebind(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+            <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)
+     throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将名称绑定到对象，覆盖任何现有绑定。</span>
+<span>所有中间上下文和目标上下文（由名称的所有终端原子组件命名）必须已经存在。</span>
+<p> <span>如果对象是<tt>DirContext</tt> ，与该名称<tt>关联的</tt>任何现有属性将替换为对象的属性。</span> <span>否则，与名称关联的任何现有属性都保持不变。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>obj</code> - 要绑定的对象;</span>
+<span>可能为null</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果对象没有提供所有必需属性 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/naming/Context.html#rebind-java.lang.String-java.lang.Object-"><code>rebind(String, Object)</code></a> ， <a href="../../javax/naming/Context.html#bind-javax.naming.Name-java.lang.Object-"><code>bind(Name, Object)</code></a> ， <a href="../../javax/naming/directory/DirContext.html#rebind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-"><code>DirContext.rebind(Name, Object, javax.naming.directory.Attributes)</code></a> ， <a href="../../javax/naming/directory/DirContext.html" title="javax.naming.directory中的接口"><code>DirContext</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="rebind-java.lang.String-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rebind</h4> <pre>void rebind(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name,
+            <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)
+     throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将名称绑定到对象，覆盖任何现有绑定。</span>
+<span>详见<a href="../../javax/naming/Context.html#rebind-javax.naming.Name-java.lang.Object-"><code>rebind(Name, Object)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>obj</code> - 要绑定的对象;</span>
+<span>可能为null</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果对象没有提供所有必需属性 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="unbind-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>unbind</h4> <pre>void unbind(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+     throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>取消绑定命名对象。</span>
+<span>从目标上下文中删除<code>name</code>中的终端原子名称 - 由<code>name</code>的末端原子部分<code>name</code> 。</span>
+<p> <span>这种方法是幂等的。</span> <span>即使终端原子名称未绑定在目标上下文中，也可以成功，但如果任何中间上下文不存在，则抛出<tt>NameNotFoundException</tt> 。</span> </p>
+<p> <span>与名称相关联的任何属性都将被删除。</span> <span>中间上下文不变。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 取消绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameNotFoundException.html" title="class in javax.naming">NameNotFoundException</a></code> - 如果中间上下文不存在 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#unbind-java.lang.String-"><code>unbind(String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="unbind-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>unbind</h4> <pre>void unbind(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)
+     throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>取消绑定命名对象。</span>
+<span>详见<a href="../../javax/naming/Context.html#unbind-javax.naming.Name-"><code>unbind(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 取消绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameNotFoundException.html" title="class in javax.naming">NameNotFoundException</a></code> - 如果中间上下文不存在 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="rename-javax.naming.Name-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rename</h4> <pre>void rename(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> oldName,
+            <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> newName)
+     throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将绑定到旧名称的对象绑定一个新名称，并取消绑定旧名称。</span>
+<span>这两个名称都是相对于这个上下文。</span>
+<span>与旧名称相关联的任何属性都将与新名称相关联。</span>
+<span>旧名称的中间上下文不会更改。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>oldName</code> - 现有绑定的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>newName</code> - 新绑定的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果 
+            <tt>newName</tt>已经绑定 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#rename-java.lang.String-java.lang.String-"><code>rename(String, String)</code></a> ， 
+            <a href="../../javax/naming/Context.html#bind-javax.naming.Name-java.lang.Object-"><code>bind(Name, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#rebind-javax.naming.Name-java.lang.Object-"><code>rebind(Name, Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="rename-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rename</h4> <pre>void rename(<a href="../../java/lang/String.html" title="class in java.lang">String</a> oldName,
+            <a href="../../java/lang/String.html" title="class in java.lang">String</a> newName)
+     throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将绑定到旧名称的对象绑定一个新名称，并取消绑定旧名称。</span>
+<span>详见<a href="../../javax/naming/Context.html#rename-javax.naming.Name-javax.naming.Name-"><code>rename(Name, Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>oldName</code> - 现有绑定的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>newName</code> - 新绑定的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果 
+            <tt>newName</tt>已经绑定 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="list-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>list</h4> <pre><a href="../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../javax/naming/NameClassPair.html" title="class in javax.naming">NameClassPair</a>&gt; list(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+                               throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>枚举在命名上下文中绑定的名称以及绑定到它们的对象的类名。</span>
+<span>不包括任何subcontexts的内容。</span>
+<p> <span>如果将绑定添加到此上下文或从此上下文中删除，则其对先前返回的枚举的影响是未定义的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要列出的上下文的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>在此上下文中枚举绑定的名称和类名称。</span>
+<span>枚举的每个元素都是类型<tt>NameClassPair</tt> 。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/naming/Context.html#list-java.lang.String-"><code>list(String)</code></a> ， <a href="../../javax/naming/Context.html#listBindings-javax.naming.Name-"><code>listBindings(Name)</code></a> ， <a href="../../javax/naming/NameClassPair.html" title="javax.naming中的类"><code>NameClassPair</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="list-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>list</h4> <pre><a href="../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../javax/naming/NameClassPair.html" title="class in javax.naming">NameClassPair</a>&gt; list(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)
+                               throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>枚举在命名上下文中绑定的名称以及绑定到它们的对象的类名。</span>
+<span>详见<a href="../../javax/naming/Context.html#list-javax.naming.Name-"><code>list(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要列出的上下文的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>在此上下文中枚举绑定的名称和类名称。</span>
+<span>枚举的每个元素都是类型<tt>NameClassPair</tt> 。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="listBindings-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>listBindings</h4> <pre><a href="../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../javax/naming/Binding.html" title="class in javax.naming">Binding</a>&gt; listBindings(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+                                 throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>枚举在命名上下文中绑定的名称以及绑定到它们的对象。</span>
+<span>不包括任何subcontexts的内容。</span>
+<p> <span>如果将绑定添加到此上下文或从此上下文中删除，则其对先前返回的枚举的影响是未定义的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要列出的上下文的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>在这个上下文中绑定的枚举。</span>
+<span>枚举的每个元素都是类型<tt>Binding</tt> 。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/naming/Context.html#listBindings-java.lang.String-"><code>listBindings(String)</code></a> ， <a href="../../javax/naming/Context.html#list-javax.naming.Name-"><code>list(Name)</code></a> ， <a href="../../javax/naming/Binding.html" title="javax.naming中的类"><code>Binding</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="listBindings-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>listBindings</h4> <pre><a href="../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../javax/naming/Binding.html" title="class in javax.naming">Binding</a>&gt; listBindings(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)
+                                 throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>枚举在命名上下文中绑定的名称以及绑定到它们的对象。</span>
+<span>详见<a href="../../javax/naming/Context.html#listBindings-javax.naming.Name-"><code>listBindings(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要列出的上下文的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>在这个上下文中绑定的枚举。</span>
+<span>枚举的每个元素都是类型<tt>Binding</tt> 。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="destroySubcontext-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>destroySubcontext</h4> <pre>void destroySubcontext(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+                throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>销毁命名上下文并将其从命名空间中删除。</span>
+<span>与名称相关联的任何属性也将被删除。</span>
+<span>中间语境不会被破坏。</span>
+<p> <span>这种方法是幂等的。</span> <span>即使终端原子名称未绑定在目标上下文中，也可以成功，但如果任何中间上下文不存在，则抛出<tt>NameNotFoundException</tt> 。</span> </p>
+<p> <span>在联合命名系统中，来自一个命名系统的上下文可能绑定到另一个命名系统中的名称。</span> <span>随后可以使用复合名称查找并执行对外部上下文的操作。</span> <span>然而，企图破坏使用此复合名称将失败，并<tt>NotContextException</tt>的情况下，因为外部上下文不是在它所在的上下文的“子上下文”。</span> <span>相反，请使用<tt>unbind()</tt>删除外部上下文的绑定。</span> <span>销毁外部上下文要求<tt>destroySubcontext()</tt>被从外部上下文的“本机”命名系统的上下文进行。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要销毁的上下文的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameNotFoundException.html" title="class in javax.naming">NameNotFoundException</a></code> - 如果中间上下文不存在 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NotContextException.html" title="class in javax.naming">NotContextException</a></code> - 如果名称是绑定的，但不指定上下文，或者不指定适当类型的上下文 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/ContextNotEmptyException.html" title="class in javax.naming">ContextNotEmptyException</a></code> - 如果命名上下文不为空 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#destroySubcontext-java.lang.String-"><code>destroySubcontext(String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="destroySubcontext-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>destroySubcontext</h4> <pre>void destroySubcontext(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)
+                throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>销毁命名上下文并将其从命名空间中删除。</span>
+<span>详见<a href="../../javax/naming/Context.html#destroySubcontext-javax.naming.Name-"><code>destroySubcontext(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要销毁的上下文的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameNotFoundException.html" title="class in javax.naming">NameNotFoundException</a></code> - 如果中间上下文不存在 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NotContextException.html" title="class in javax.naming">NotContextException</a></code> - 如果名称是绑定的，但没有命名上下文，或者不指定适当类型的上下文 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/ContextNotEmptyException.html" title="class in javax.naming">ContextNotEmptyException</a></code> - 如果命名上下文不为空 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="createSubcontext-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createSubcontext</h4> <pre><a href="../../javax/naming/Context.html" title="interface in javax.naming">Context</a> createSubcontext(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+                  throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>创建并绑定新的上下文。</span>
+<span>使用给定的名称创建一个新的上下文，并将其绑定到目标上下文中（由名称的所有端子原子组件命名）。</span>
+<span>所有中间上下文和目标上下文必须已经存在。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要创建的上下文的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             新创建的上下文 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果名称已经绑定 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果创建子上网需要规定强制属性 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#createSubcontext-java.lang.String-"><code>createSubcontext(String)</code></a> ， 
+            <a href="../../javax/naming/directory/DirContext.html#createSubcontext-javax.naming.Name-javax.naming.directory.Attributes-"><code>DirContext.createSubcontext(javax.naming.Name, javax.naming.directory.Attributes)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="createSubcontext-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createSubcontext</h4> <pre><a href="../../javax/naming/Context.html" title="interface in javax.naming">Context</a> createSubcontext(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)
+                  throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>创建并绑定新的上下文。</span>
+<span>详见<a href="../../javax/naming/Context.html#createSubcontext-javax.naming.Name-"><code>createSubcontext(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要创建的上下文的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             新创建的上下文 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果名称已经绑定 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果 
+            <code><a href="../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code>创建需要规定强制属性 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="lookupLink-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>lookupLink</h4> <pre><a href="../../java/lang/Object.html" title="class in java.lang">Object</a> lookupLink(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+           throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索命名对象，除了名称的终端原子组件以外的链接。</span>
+<span>如果绑定到<tt>name</tt>的对象不是链接，则返回对象本身。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要查找的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             对象绑定到 
+            <tt>name</tt> ，不跟随终端链接（如果有的话）。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#lookupLink-java.lang.String-"><code>lookupLink(String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="lookupLink-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>lookupLink</h4> <pre><a href="../../java/lang/Object.html" title="class in java.lang">Object</a> lookupLink(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)
+           throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索命名对象，除了名称的终端原子组件以外的链接。</span>
+<span>详见<a href="../../javax/naming/Context.html#lookupLink-javax.naming.Name-"><code>lookupLink(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要查找的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             对象绑定到 
+            <tt>name</tt> ，不跟随终端链接（如果有的话） 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getNameParser-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNameParser</h4> <pre><a href="../../javax/naming/NameParser.html" title="interface in javax.naming">NameParser</a> getNameParser(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+                  throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索与命名上下文关联的解析器。</span>
+<span>在命名空间联盟中，不同的命名系统会以不同的方式解析名称。</span>
+<span>该方法允许应用程序使用特定命名系统的命名约定来获取解析器将其解析为其原子组件的名称。</span>
+<span>在任何单个命名系统中，此方法返回的<tt>NameParser</tt>对象必须相等（使用<tt>equals()</tt>测试）。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 从中获取解析器的上下文的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个名称解析器，可以将复合名称解析为其原子组件 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/naming/Context.html#getNameParser-java.lang.String-"><code>getNameParser(String)</code></a> ， <a href="../../javax/naming/CompoundName.html" title="javax.naming中的类"><code>CompoundName</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getNameParser-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNameParser</h4> <pre><a href="../../javax/naming/NameParser.html" title="interface in javax.naming">NameParser</a> getNameParser(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)
+                  throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索与命名上下文关联的解析器。</span>
+<span>详见<a href="../../javax/naming/Context.html#getNameParser-javax.naming.Name-"><code>getNameParser(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 从中获取解析器的上下文的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个名称解析器，可以将复合名称解析为其原子组件 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="composeName-javax.naming.Name-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>composeName</h4> <pre><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> composeName(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+                 <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> prefix)
+          throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>使用相对于该上下文的名称组合此上下文的名称。</span>
+<span>命名（ <code>name</code> ）相对于此上下文，和名称（ <code>prefix</code>这相对于它的一个祖先上下文），则此方法返回使用适合于所涉及的命名系统（S）的语法的两个名字的组成。</span>
+<span>也就是说，如果<code>name</code>命名相对于该上下文的对象，则结果是相同对象的名称，但相对于祖先上下文。</span>
+<span>没有一个名字可能为空。</span>
+<p> <span>例如，如果这个上下文相对于初始上下文命名为“wiz.com”，那么</span> </p>
+<pre>  <span>composeName("east", "wiz.com")</span> </pre>
+<span>可能会返回<code>"east.wiz.com"</code> 。</span>
+<span>如果这个上下文被命名为“org / research”，那么</span>
+<pre>  <span>composeName("user/jane", "org/research")</span> </pre>
+<span>可能会返回<code>"org/research/user/jane"</code></span>
+<pre>  <span>composeName("user/jane", "research")</span> </pre>
+<span>返回<code>"research/user/jane"</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 相对于此上下文的名称 
+           </dd>
+<dd>
+<code>prefix</code> - 此上下文相对于其祖先之一的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             组成 
+            <code>prefix</code>和 
+            <code>name</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#composeName-java.lang.String-java.lang.String-"><code>composeName(String, String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="composeName-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>composeName</h4> <pre><a href="../../java/lang/String.html" title="class in java.lang">String</a> composeName(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name,
+                   <a href="../../java/lang/String.html" title="class in java.lang">String</a> prefix)
+            throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>使用相对于该上下文的名称组合此上下文的名称。</span>
+<span>详见<a href="../../javax/naming/Context.html#composeName-javax.naming.Name-javax.naming.Name-"><code>composeName(Name, Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 相对于此上下文的名称 
+           </dd>
+<dd>
+<code>prefix</code> - 此上下文相对于其祖先之一的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>prefix</code>和 
+            <code>name</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="addToEnvironment-java.lang.String-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addToEnvironment</h4> <pre><a href="../../java/lang/Object.html" title="class in java.lang">Object</a> addToEnvironment(<a href="../../java/lang/String.html" title="class in java.lang">String</a> propName,
+                        <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> propVal)
+                 throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在此上下文的环境中添加一个新的环境属性。</span>
+<span>如果属性已经存在，其值将被覆盖。</span>
+<span>有关环境属性的更多详细信息，请参阅类描述。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>propName</code> - 要添加的环境属性的名称;</span>
+<span>可能不为空</span>
+</dd>
+<dd>
+<span><code>propVal</code> - 要添加的属性的值;</span>
+<span>可能不为空</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该属性的前一个值，如果该属性不在之前的环境中，则返回null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#getEnvironment--"><code>getEnvironment()</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="removeFromEnvironment-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removeFromEnvironment</h4> <pre><a href="../../java/lang/Object.html" title="class in java.lang">Object</a> removeFromEnvironment(<a href="../../java/lang/String.html" title="class in java.lang">String</a> propName)
+                      throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>从环境环境中删除环境属性。</span>
+<span>有关环境属性的更多详细信息，请参阅类描述。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>propName</code> - 要删除的环境属性的名称;</span>
+<span>可能不为空</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             属性的先前值，如果属性不在环境中，则为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#getEnvironment--"><code>getEnvironment()</code></a> ， 
+            <a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getEnvironment--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getEnvironment</h4> <pre><a href="../../java/util/Hashtable.html" title="class in java.util">Hashtable</a>&lt;?,?&gt; getEnvironment()
+                       throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索此环境有效的环境。</span>
+<span>有关环境属性的更多详细信息，请参阅类描述。</span>
+<p> <span>调用者不应该对返回的对象进行任何更改：它们对上下文的影响是未定义的。</span> <span>可以使用<tt>addToEnvironment()</tt>和<tt>removeFromEnvironment()</tt>更改此上下文的环境。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>这个环境的环境;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-"><code>addToEnvironment(String, Object)</code></a> ， 
+            <a href="../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-"><code>removeFromEnvironment(String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="close--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>close</h4> <pre>void close()
+    throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>关闭这个上下文。</span>
+<span>此方法可以立即释放上下文的资源，而不是等待垃圾回收器自动释放该资源。</span>
+<p> <span>该方法是幂等的：在已经关闭的上下文中调用它没有任何效果。</span> <span>不允许在封闭上下文中调用任何其他方法，并导致未定义的行为。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getNameInNamespace--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getNameInNamespace</h4> <pre><a href="../../java/lang/String.html" title="class in java.lang">String</a> getNameInNamespace()
+                   throws <a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在其自己的命名空间中检索此上下文的全名。</span>
+<p> <span>许多命名服务对于各自的命名空间中的对象都有一个“全名”概念。</span> <span>例如，LDAP条目具有可分辨名称，DNS记录具有完全限定名称。</span> <span>此方法允许客户端应用程序检索此名称。</span> <span>此方法返回的字符串不是JNDI组合名称，不应直接传递给上下文方法。</span> <span>在命名系统中，全名概念没有意义， <tt>OperationNotSupportedException</tt>被抛出。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>这个上下文的名称在自己的命名空间中;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/OperationNotSupportedException.html" title="class in javax.naming">OperationNotSupportedException</a></code> - 如果命名系统没有全名的概念 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

@@ -1,0 +1,125 @@
+<div class="content guide with-sidebar unit-testing-guide">
+<h1>单元测试</h1>
+<blockquote>
+<p><a href="https://cli.vuejs.org/zh/" rel="noopener" target="_blank">Vue CLI</a> 拥有开箱即用的通过 <a href="https://github.com/facebook/jest" rel="noopener" target="_blank">Jest</a> 或 <a href="https://mochajs.org/" rel="noopener" target="_blank">Mocha</a> 进行单元测试的内置选项。我们还有官方的 <a href="https://vue-test-utils.vuejs.org/zh/" rel="noopener" target="_blank">Vue Test Utils</a> 提供更多详细的指引和自定义设置。</p>
+</blockquote>
+<h2 id="简单的断言"><a class="headerlink" href="#简单的断言" title="简单的断言"></a>简单的断言</h2><p>你不必为了可测性在组件中做任何特殊的操作，导出原始设置就可以了：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>{{ message }}<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="javascript">
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+    data () {
+      <span class="hljs-keyword">return</span> {
+        <span class="hljs-attr">message</span>: <span class="hljs-string">'hello!'</span>
+      }
+    },
+    created () {
+      <span class="hljs-keyword">this</span>.message = <span class="hljs-string">'bye!'</span>
+    }
+  }
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+<p>然后随着 Vue 导入组件的选项，你可以使用许多常见的断言 (这里我们使用的是 Jasmine/Jest 风格的 <code>expect</code> 断言作为示例)：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 导入 Vue.js 和组件，进行测试</span>
+<span class="hljs-keyword">import</span> Vue <span class="hljs-keyword">from</span> <span class="hljs-string">'vue'</span>
+<span class="hljs-keyword">import</span> MyComponent <span class="hljs-keyword">from</span> <span class="hljs-string">'path/to/MyComponent.vue'</span>
+
+<span class="hljs-comment">// 这里是一些 Jasmine 2.0 的测试，你也可以使用你喜欢的任何断言库或测试工具。</span>
+
+describe(<span class="hljs-string">'MyComponent'</span>, () =&gt; {
+  <span class="hljs-comment">// 检查原始组件选项</span>
+  it(<span class="hljs-string">'has a created hook'</span>, () =&gt; {
+    expect(<span class="hljs-keyword">typeof</span> MyComponent.created).toBe(<span class="hljs-string">'function'</span>)
+  })
+
+  <span class="hljs-comment">// 评估原始组件选项中的函数的结果</span>
+  it(<span class="hljs-string">'sets the correct default data'</span>, () =&gt; {
+    expect(<span class="hljs-keyword">typeof</span> MyComponent.data).toBe(<span class="hljs-string">'function'</span>)
+    <span class="hljs-keyword">const</span> defaultData = MyComponent.data()
+    expect(defaultData.message).toBe(<span class="hljs-string">'hello!'</span>)
+  })
+
+  <span class="hljs-comment">// 检查 mount 中的组件实例</span>
+  it(<span class="hljs-string">'correctly sets the message when created'</span>, () =&gt; {
+    <span class="hljs-keyword">const</span> vm = <span class="hljs-keyword">new</span> Vue(MyComponent).$mount()
+    expect(vm.message).toBe(<span class="hljs-string">'bye!'</span>)
+  })
+
+  <span class="hljs-comment">// 创建一个实例并检查渲染输出</span>
+  it(<span class="hljs-string">'renders the correct message'</span>, () =&gt; {
+    <span class="hljs-keyword">const</span> Constructor = Vue.extend(MyComponent)
+    <span class="hljs-keyword">const</span> vm = <span class="hljs-keyword">new</span> Constructor().$mount()
+    expect(vm.$el.textContent).toBe(<span class="hljs-string">'bye!'</span>)
+  })
+})</code></pre>
+<h2 id="编写可被测试的组件"><a class="headerlink" href="#编写可被测试的组件" title="编写可被测试的组件"></a>编写可被测试的组件</h2><p>很多组件的渲染输出由它的 props 决定。事实上，如果一个组件的渲染输出完全取决于它的 props，那么它会让测试变得简单，就好像断言不同参数的纯函数的返回值。看下面这个例子：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>{{ msg }}<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="javascript">
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+    <span class="hljs-attr">props</span>: [<span class="hljs-string">'msg'</span>]
+  }
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+<p>你可以在不同的 props 中，通过 <code>propsData</code> 选项断言它的渲染输出：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">import</span> Vue <span class="hljs-keyword">from</span> <span class="hljs-string">'vue'</span>
+<span class="hljs-keyword">import</span> MyComponent <span class="hljs-keyword">from</span> <span class="hljs-string">'./MyComponent.vue'</span>
+
+<span class="hljs-comment">// 挂载元素并返回已渲染的文本的工具函数</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getRenderedText</span> (<span class="hljs-params">Component, propsData</span>) </span>{
+  <span class="hljs-keyword">const</span> Constructor = Vue.extend(Component)
+  <span class="hljs-keyword">const</span> vm = <span class="hljs-keyword">new</span> Constructor({ <span class="hljs-attr">propsData</span>: propsData }).$mount()
+  <span class="hljs-keyword">return</span> vm.$el.textContent
+}
+
+describe(<span class="hljs-string">'MyComponent'</span>, () =&gt; {
+  it(<span class="hljs-string">'renders correctly with different props'</span>, () =&gt; {
+    expect(getRenderedText(MyComponent, {
+      <span class="hljs-attr">msg</span>: <span class="hljs-string">'Hello'</span>
+    })).toBe(<span class="hljs-string">'Hello'</span>)
+
+    expect(getRenderedText(MyComponent, {
+      <span class="hljs-attr">msg</span>: <span class="hljs-string">'Bye'</span>
+    })).toBe(<span class="hljs-string">'Bye'</span>)
+  })
+})</code></pre>
+<h2 id="断言异步更新"><a class="headerlink" href="#断言异步更新" title="断言异步更新"></a>断言异步更新</h2><p>由于 Vue 进行 <a href="reactivity.html#异步更新队列">异步更新 DOM</a> 的情况，一些依赖 DOM 更新结果的断言必须在 <code>Vue.nextTick</code> 回调中进行：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 在状态更新后检查生成的 HTML</span>
+it(<span class="hljs-string">'updates the rendered message when vm.message updates'</span>, done =&gt; {
+  <span class="hljs-keyword">const</span> vm = <span class="hljs-keyword">new</span> Vue(MyComponent).$mount()
+  vm.message = <span class="hljs-string">'foo'</span>
+
+  <span class="hljs-comment">// 在状态改变后和断言 DOM 更新前等待一刻</span>
+  Vue.nextTick(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    expect(vm.$el.textContent).toBe(<span class="hljs-string">'foo'</span>)
+    done()
+  })
+})</code></pre>
+<p>关于更深入的 Vue 单元测试的内容，请移步 <a href="https://vue-test-utils.vuejs.org/zh/" rel="noopener" target="_blank">Vue Test Utils</a> 以及我们关于 <a href="../cookbook/unit-testing-vue-components.html">Vue 组件的单元测试</a>的 cookbook 文章。</p>
+<div class="guide-links">
+<span>← <a href="single-file-components.html">单文件组件</a></span>
+<span style="float: right;"><a href="typescript.html">TypeScript 支持</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srcunit-testing.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

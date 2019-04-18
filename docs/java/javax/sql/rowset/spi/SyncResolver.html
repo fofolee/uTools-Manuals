@@ -1,0 +1,504 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     javax.sql.rowset.spi 
+   </div>
+<h2 class="title" title="Interface SyncResolver">Interface SyncResolver</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Superinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../../../java/lang/AutoCloseable.html" title="java.lang中的接口">AutoCloseable</a> ， <a href="../../../../java/sql/ResultSet.html" title="java.sql中的接口">ResultSet</a> ， <a href="../../../../javax/sql/RowSet.html" title="javax.sql中的接口">RowSet</a> ， <a href="../../../../java/sql/Wrapper.html" title="java.sql中的接口">Wrapper</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">SyncResolver</span>
+extends <a href="../../../../javax/sql/RowSet.html" title="interface in javax.sql">RowSet</a></pre>
+<div class="block">
+<span>定义一个框架，允许应用程序使用手动决策树来决定在发生同步冲突时应该做什么。</span>
+<span>虽然应用程序不是手动解决同步冲突是强制性的，但是该框架提供了在冲突发生时委托给应用程序的方法。</span>
+<p> <span>请注意，冲突是一种情况，其中<code>RowSet</code>对象的原始值与数据源中的值不匹配，这表示自上次同步以来数据源行已被修改。</span> <span>还要注意， <code>RowSet</code>对象的原始值是它刚刚进行最后一次同步之前的值，它们不一定是其初始值。</span> </p>
+<h2> <span><code>SyncResolver</code>对象的描述</span> </h2>
+<span>一个<code>SyncResolver</code>对象是一个专门的<code>RowSet</code>对象，实现了<code>SyncResolver</code>接口。</span>
+<span>它<b>可以</b>作为连接的<code>RowSet</code>对象（JdbcRowSet <code>JdbcRowSet</code>实现）或连接的<code>RowSet</code>对象（CachedRowSet接口的实现<code>CachedRowSet</code>子接口之一）来操作。</span>
+<span>有关子接口的信息，请参阅<a href="../package-summary.html"><code>javax.sql.rowset</code></a>程序包说明。</span>
+<span>SyncResolver的参考实现<code>SyncResolver</code>了<code>CachedRowSet</code>接口，但其他实现可以选择实现<code>JdbcRowSet</code>接口以满足特定需求。</span>
+<p> <span>应用程序尝试同步<code>RowSet</code>对象与数据源（通过调用<code>CachedRowSet</code>方法<code>acceptChanges</code> ）并发现一个或多个冲突后，行集的<code>SyncProvider</code>对象创建一个<code>SyncResolver</code>的实例。</span> <span>这种新<code>SyncResolver</code>对象具有相同的行数和列作为的<code>RowSet</code>对象，试图同步。</span> <span><code>SyncResolver</code>对象包含导致冲突的数据源的值，所有其他值都<code>null</code> 。</span> <span>此外，它还包含有关每个冲突的信息。</span> </p>
+<h2> <span>获取和使用<code>SyncResolver</code>对象</span> </h2>
+<span>当方法<code>acceptChanges</code>遇到冲突时， <code>SyncProvider</code>对象将创建一个<code>SyncProviderException</code>对象，并使用新的<code>SyncResolver</code>对象进行设置。</span>
+<span>方法<code>acceptChanges</code>将抛出该异常，应用程序然后可以捕获并使用该<code>SyncResolver</code>来检索其包含的<code>SyncResolver</code>对象。</span>
+<span>以下代码片段使用<code>SyncProviderException</code>方法<code>getSyncResolver</code>获取<code>SyncResolver</code>对象<i>解析器</i> 。</span>
+<pre>  <span><code> </code> catch (SyncProviderException spe) {
+         SyncResolver resolver = spe.getSyncResolver();
+     ...
+     }
+
+ }</span> </pre>
+<p> <span>使用<i>解析器</i> ，应用程序可以使用它来获取有关冲突或冲突的信息。</span> <span>诸如<i>解析器</i>之类的<code>SyncResolver</code>对象跟踪存在冲突的每一行的冲突。</span> <span>它还会对受行组命令影响的表或表放置锁定，以便在当前冲突解决时不再发生冲突。</span> </p>
+<p> <span>以下类型的信息可以从一个<code>SyncResolver</code>对象获得：</span> </p>
+<h3> <span>当发生冲突时，正在尝试什么操作</span> </h3>
+<span><code>SyncProvider</code>接口定义了描述可能发生的状态的四个常数。</span>
+<span>三个常量描述当发现冲突时<code>RowSet</code>对象尝试执行的操作类型（更新，删除或插入），第四个表示没有冲突。</span>
+<span>当一个<code>SyncResolver</code>对象调用方法<code>getStatus</code>时，这些常量是可能的返回值。</span>
+<pre>  <span><code> int operation = resolver.getStatus(); </code></span> </pre>
+<h3> <span>引起冲突的数据源中的值</span> </h3>
+<span>当一个<code>RowSet</code>对象已经更改并尝试写入数据源的值也自上次同步以来在数据源中也发生了变化。</span>
+<span>应用程序可以调用<code>SyncResolver</code>方法<code>getConflictValue</code>来检索数据源中的冲突的原因，因为<code>SyncResolver</code>对象中的值是数据源的冲突值。</span>
+<pre>  <span>java.lang.Object conflictValue = resolver.getConflictValue(2);</span> </pre>
+<span>请注意， <i>解析器</i>中的列可以由列号指定，如上一行代码中所述，也可以由列名称指定。</span>
+<p> <span>利用从方法<code>getStatus</code>和<code>getConflictValue</code> ，应用可以确定在数据源中应该保留哪个值。</span> <span>然后应用程序调用<code>SyncResolver</code>方法<code>setResolvedValue</code> ，该方法<code>setResolvedValue</code>值设置为<code>RowSet</code>对象以及数据源中的<code>RowSet</code> 。</span> </p>
+<pre>  <span>resolver.setResolvedValue("DEPT", 8390426);</span> </pre>
+<span>在上述代码行中，列名称指定要使用给定值设置的<code>RowSet</code>对象中的列。</span>
+<span>列号也可用于指定列。</span>
+<p> <span>在解决了当前冲突行中的所有冲突后，应用程序将调用方法<code>setResolvedValue</code> ，并对<code>SyncResolver</code>对象中的每个冲突行重复此过程。</span> </p>
+<h2> <span>浏览<code>SyncResolver</code>对象</span> </h2>
+<span>因为一个<code>SyncResolver</code>对象是一个<code>RowSet</code>对象，一个应用程序可以使用所有<code>RowSet</code>方法来移动光标来导航一个<code>SyncResolver</code>对象。</span>
+<span>例如，应用程序可以使用<code>RowSet</code>方法<code>next</code>来获取每行，然后调用<code>SyncResolver</code>方法<code>getStatus</code>查看该行是否包含冲突。</span>
+<span>在具有一个或多个冲突的行中，应用程序可以遍历列来查找任何非空值，这将是数据源中冲突的值。</span>
+<p> <span>为了更方便地导航<code>SyncResolver</code>对象，特别是当没有冲突的行数很多时， <code>SyncResolver</code>接口定义了仅包含至少一个冲突值的行的方法<code>nextConflict</code>和<code>previousConflict</code> 。</span> <span>那么应用程序可以调用<code>SyncResolver</code>方法<code>getConflictValue</code> ，为它提供列号，以获得冲突值本身。</span> <span>下一节的代码片段给出了一个例子。</span> </p>
+<h2> <span>代码示例</span> </h2>
+<span>以下代码片段演示了断开连接的<code>RowSet</code>对象<i>crs</i>可能会尝试与底层数据源同步自身，然后解决冲突。</span>
+<span>在<code>try</code>块中， <i>crs</i>调用方法<code>acceptChanges</code> ，传递它<code>Connection</code>对象<i>con</i> 。</span>
+<span>如果没有冲突，则<i>crs</i>中的更改只会写入数据源。</span>
+<span>但是，如果有冲突，方法<code>acceptChanges</code>抛出一个<code>SyncProviderException</code>对象，并且<code>catch</code>块生效。</span>
+<span>在这个例子中，它说明了可以使用<code>SyncResolver</code>对象的多种方式之一， <code>SyncResolver</code>方法<code>nextConflict</code>用在<code>while</code>循环中。</span>
+<span>当<code>nextConflict</code>返回<code>false</code>时，循环将结束，当<code>SyncResolver</code>对象<i>解析器</i>中没有更多的冲突行时，该<code>SyncResolver</code>将会发生。</span>
+<span>在这个特定的代码片段中， <i>解析器</i>查找具有更新冲突的行（行状态为<code>SyncResolver.UPDATE_ROW_CONFLICT</code> ），并且此代码片段的其余部分仅针对发生冲突的行执行，因为<i>crs</i>正在尝试更新。</span>
+<p> <span>光标进行<i>分解器</i>已移动到下一个冲突行具有更新冲突之后，该方法<code>getRow</code>表示当前行的数目，并且光标为<code>CachedRowSet</code>对象<i>crs</i>被移动到可比较的行中的<i>CRS。</i></span> <span>通过在<i>解析器</i>和<i>crs</i>中遍历该行的列，可以检索和比较冲突的值以确定应该保留哪个值。</span> <span>在这个代码片段中， <i>crs</i>中的值是一个设置为解析值，这意味着它将被用于覆盖数据源中的冲突值。</span> </p>
+<pre>  <span><code> try { crs.acceptChanges(con); } catch (SyncProviderException spe) { SyncResolver resolver = spe.getSyncResolver(); Object crsValue; // value in the RowSet object Object resolverValue: // value in the SyncResolver object Object resolvedValue: // value to be persisted while(resolver.nextConflict()) { if(resolver.getStatus() == SyncResolver.UPDATE_ROW_CONFLICT) { int row = resolver.getRow(); crs.absolute(row); int colCount = crs.getMetaData().getColumnCount(); for(int j = 1; j &lt;= colCount; j++) { if (resolver.getConflictValue(j) != null) { crsValue = crs.getObject(j); resolverValue = resolver.getConflictValue(j); . . . // compare crsValue and resolverValue to determine // which should be the resolved value (the value to persist) resolvedValue = crsValue; resolver.setResolvedValue(j, resolvedValue); } } } } } </code></span> </pre>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#DELETE_ROW_CONFLICT">DELETE_ROW_CONFLICT</a></span></code>
+<div class="block">
+              表示在 
+             <code>RowSet</code>对象尝试删除数据源中的行时发生冲突。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#INSERT_ROW_CONFLICT">INSERT_ROW_CONFLICT</a></span></code>
+<div class="block">
+              表示 
+             <code>RowSet</code>对象试图将一行插入数据源时发生冲突。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#NO_ROW_CONFLICT">NO_ROW_CONFLICT</a></span></code>
+<div class="block">
+              表示 
+             <code>RowSet</code>对象尝试更新，删除或插入数据源中的一行时 
+             <b>不会</b>发生冲突。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#UPDATE_ROW_CONFLICT">UPDATE_ROW_CONFLICT</a></span></code>
+<div class="block">
+              表示在 
+             <code>RowSet</code>对象尝试更新数据源中的行时发生冲突。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.java.sql.ResultSet">
+<!-- --> </a> <h3>Fields inherited from interface java.sql.<a href="../../../../java/sql/ResultSet.html" title="interface in java.sql">ResultSet</a></h3> <code><a href="../../../../java/sql/ResultSet.html#CLOSE_CURSORS_AT_COMMIT">CLOSE_CURSORS_AT_COMMIT</a>, <a href="../../../../java/sql/ResultSet.html#CONCUR_READ_ONLY">CONCUR_READ_ONLY</a>, <a href="../../../../java/sql/ResultSet.html#CONCUR_UPDATABLE">CONCUR_UPDATABLE</a>, <a href="../../../../java/sql/ResultSet.html#FETCH_FORWARD">FETCH_FORWARD</a>, <a href="../../../../java/sql/ResultSet.html#FETCH_REVERSE">FETCH_REVERSE</a>, <a href="../../../../java/sql/ResultSet.html#FETCH_UNKNOWN">FETCH_UNKNOWN</a>, <a href="../../../../java/sql/ResultSet.html#HOLD_CURSORS_OVER_COMMIT">HOLD_CURSORS_OVER_COMMIT</a>, <a href="../../../../java/sql/ResultSet.html#TYPE_FORWARD_ONLY">TYPE_FORWARD_ONLY</a>, <a href="../../../../java/sql/ResultSet.html#TYPE_SCROLL_INSENSITIVE">TYPE_SCROLL_INSENSITIVE</a>, <a href="../../../../java/sql/ResultSet.html#TYPE_SCROLL_SENSITIVE">TYPE_SCROLL_SENSITIVE</a></code></li>
+</ul> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#getConflictValue-int-">getConflictValue</a></span>(int index)</code>
+<div class="block">
+              检索此 
+             <code>SyncResolver</code>对象的当前行中指定列中的值，该值是导致冲突的数据源中的值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#getConflictValue-java.lang.String-">getConflictValue</a></span>(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> columnName)</code>
+<div class="block">
+              检索此 
+             <code>SyncResolver</code>对象当前行中指定列中的值，该对象是导致冲突的数据源中的值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#getStatus--">getStatus</a></span>()</code>
+<div class="block">
+              检索此 
+             <code>SyncResolver</code>的当前行的冲突状态，表示发生冲突时 
+             <code>RowSet</code>对象正在尝试的操作。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#nextConflict--">nextConflict</a></span>()</code>
+<div class="block">
+              将光标从当前位置向下移动到包含冲突值的下一行。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#previousConflict--">previousConflict</a></span>()</code>
+<div class="block">
+              将光标从当前位置向上移动到此 
+             <code>SyncResolver</code>对象中的上一个冲突行。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#setResolvedValue-int-java.lang.Object-">setResolvedValue</a></span>(int index, <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              将 
+             <i>obj</i>设置为正在同步的 
+             <code>RowSet</code>对象的当前行中的列 
+             <i>索引</i>中的值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/sql/rowset/spi/SyncResolver.html#setResolvedValue-java.lang.String-java.lang.Object-">setResolvedValue</a></span>(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> columnName, <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              将 
+             <i>obj</i>设置为正在同步的 
+             <code>RowSet</code>对象的当前行中列 
+             <i>columnName</i>中的值。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.sql.RowSet">
+<!-- --> </a> <h3>Methods inherited from interface javax.sql.<a href="../../../../javax/sql/RowSet.html" title="interface in javax.sql">RowSet</a></h3> <code><a href="../../../../javax/sql/RowSet.html#addRowSetListener-javax.sql.RowSetListener-">addRowSetListener</a>, <a href="../../../../javax/sql/RowSet.html#clearParameters--">clearParameters</a>, <a href="../../../../javax/sql/RowSet.html#execute--">execute</a>, <a href="../../../../javax/sql/RowSet.html#getCommand--">getCommand</a>, <a href="../../../../javax/sql/RowSet.html#getDataSourceName--">getDataSourceName</a>, <a href="../../../../javax/sql/RowSet.html#getEscapeProcessing--">getEscapeProcessing</a>, <a href="../../../../javax/sql/RowSet.html#getMaxFieldSize--">getMaxFieldSize</a>, <a href="../../../../javax/sql/RowSet.html#getMaxRows--">getMaxRows</a>, <a href="../../../../javax/sql/RowSet.html#getPassword--">getPassword</a>, <a href="../../../../javax/sql/RowSet.html#getQueryTimeout--">getQueryTimeout</a>, <a href="../../../../javax/sql/RowSet.html#getTransactionIsolation--">getTransactionIsolation</a>, <a href="../../../../javax/sql/RowSet.html#getTypeMap--">getTypeMap</a>, <a href="../../../../javax/sql/RowSet.html#getUrl--">getUrl</a>, <a href="../../../../javax/sql/RowSet.html#getUsername--">getUsername</a>, <a href="../../../../javax/sql/RowSet.html#isReadOnly--">isReadOnly</a>, <a href="../../../../javax/sql/RowSet.html#removeRowSetListener-javax.sql.RowSetListener-">removeRowSetListener</a>, <a href="../../../../javax/sql/RowSet.html#setArray-int-java.sql.Array-">setArray</a>, <a href="../../../../javax/sql/RowSet.html#setAsciiStream-int-java.io.InputStream-">setAsciiStream</a>, <a href="../../../../javax/sql/RowSet.html#setAsciiStream-int-java.io.InputStream-int-">setAsciiStream</a>, <a href="../../../../javax/sql/RowSet.html#setAsciiStream-java.lang.String-java.io.InputStream-">setAsciiStream</a>, <a href="../../../../javax/sql/RowSet.html#setAsciiStream-java.lang.String-java.io.InputStream-int-">setAsciiStream</a>, <a href="../../../../javax/sql/RowSet.html#setBigDecimal-int-java.math.BigDecimal-">setBigDecimal</a>, <a href="../../../../javax/sql/RowSet.html#setBigDecimal-java.lang.String-java.math.BigDecimal-">setBigDecimal</a>, <a href="../../../../javax/sql/RowSet.html#setBinaryStream-int-java.io.InputStream-">setBinaryStream</a>, <a href="../../../../javax/sql/RowSet.html#setBinaryStream-int-java.io.InputStream-int-">setBinaryStream</a>, <a href="../../../../javax/sql/RowSet.html#setBinaryStream-java.lang.String-java.io.InputStream-">setBinaryStream</a>, <a href="../../../../javax/sql/RowSet.html#setBinaryStream-java.lang.String-java.io.InputStream-int-">setBinaryStream</a>, <a href="../../../../javax/sql/RowSet.html#setBlob-int-java.sql.Blob-">setBlob</a>, <a href="../../../../javax/sql/RowSet.html#setBlob-int-java.io.InputStream-">setBlob</a>, <a href="../../../../javax/sql/RowSet.html#setBlob-int-java.io.InputStream-long-">setBlob</a>, <a href="../../../../javax/sql/RowSet.html#setBlob-java.lang.String-java.sql.Blob-">setBlob</a>, <a href="../../../../javax/sql/RowSet.html#setBlob-java.lang.String-java.io.InputStream-">setBlob</a>, <a href="../../../../javax/sql/RowSet.html#setBlob-java.lang.String-java.io.InputStream-long-">setBlob</a>, <a href="../../../../javax/sql/RowSet.html#setBoolean-int-boolean-">setBoolean</a>, <a href="../../../../javax/sql/RowSet.html#setBoolean-java.lang.String-boolean-">setBoolean</a>, <a href="../../../../javax/sql/RowSet.html#setByte-int-byte-">setByte</a>, <a href="../../../../javax/sql/RowSet.html#setByte-java.lang.String-byte-">setByte</a>, <a href="../../../../javax/sql/RowSet.html#setBytes-int-byte:A-">setBytes</a>, <a href="../../../../javax/sql/RowSet.html#setBytes-java.lang.String-byte:A-">setBytes</a>, <a href="../../../../javax/sql/RowSet.html#setCharacterStream-int-java.io.Reader-">setCharacterStream</a>, <a href="../../../../javax/sql/RowSet.html#setCharacterStream-int-java.io.Reader-int-">setCharacterStream</a>, <a href="../../../../javax/sql/RowSet.html#setCharacterStream-java.lang.String-java.io.Reader-">setCharacterStream</a>, <a href="../../../../javax/sql/RowSet.html#setCharacterStream-java.lang.String-java.io.Reader-int-">setCharacterStream</a>, <a href="../../../../javax/sql/RowSet.html#setClob-int-java.sql.Clob-">setClob</a>, <a href="../../../../javax/sql/RowSet.html#setClob-int-java.io.Reader-">setClob</a>, <a href="../../../../javax/sql/RowSet.html#setClob-int-java.io.Reader-long-">setClob</a>, <a href="../../../../javax/sql/RowSet.html#setClob-java.lang.String-java.sql.Clob-">setClob</a>, <a href="../../../../javax/sql/RowSet.html#setClob-java.lang.String-java.io.Reader-">setClob</a>, <a href="../../../../javax/sql/RowSet.html#setClob-java.lang.String-java.io.Reader-long-">setClob</a>, <a href="../../../../javax/sql/RowSet.html#setCommand-java.lang.String-">setCommand</a>, <a href="../../../../javax/sql/RowSet.html#setConcurrency-int-">setConcurrency</a>, <a href="../../../../javax/sql/RowSet.html#setDataSourceName-java.lang.String-">setDataSourceName</a>, <a href="../../../../javax/sql/RowSet.html#setDate-int-java.sql.Date-">setDate</a>, <a href="../../../../javax/sql/RowSet.html#setDate-int-java.sql.Date-java.util.Calendar-">setDate</a>, <a href="../../../../javax/sql/RowSet.html#setDate-java.lang.String-java.sql.Date-">setDate</a>, <a href="../../../../javax/sql/RowSet.html#setDate-java.lang.String-java.sql.Date-java.util.Calendar-">setDate</a>, <a href="../../../../javax/sql/RowSet.html#setDouble-int-double-">setDouble</a>, <a href="../../../../javax/sql/RowSet.html#setDouble-java.lang.String-double-">setDouble</a>, <a href="../../../../javax/sql/RowSet.html#setEscapeProcessing-boolean-">setEscapeProcessing</a>, <a href="../../../../javax/sql/RowSet.html#setFloat-int-float-">setFloat</a>, <a href="../../../../javax/sql/RowSet.html#setFloat-java.lang.String-float-">setFloat</a>, <a href="../../../../javax/sql/RowSet.html#setInt-int-int-">setInt</a>, <a href="../../../../javax/sql/RowSet.html#setInt-java.lang.String-int-">setInt</a>, <a href="../../../../javax/sql/RowSet.html#setLong-int-long-">setLong</a>, <a href="../../../../javax/sql/RowSet.html#setLong-java.lang.String-long-">setLong</a>, <a href="../../../../javax/sql/RowSet.html#setMaxFieldSize-int-">setMaxFieldSize</a>, <a href="../../../../javax/sql/RowSet.html#setMaxRows-int-">setMaxRows</a>, <a href="../../../../javax/sql/RowSet.html#setNCharacterStream-int-java.io.Reader-">setNCharacterStream</a>, <a href="../../../../javax/sql/RowSet.html#setNCharacterStream-int-java.io.Reader-long-">setNCharacterStream</a>, <a href="../../../../javax/sql/RowSet.html#setNCharacterStream-java.lang.String-java.io.Reader-">setNCharacterStream</a>, <a href="../../../../javax/sql/RowSet.html#setNCharacterStream-java.lang.String-java.io.Reader-long-">setNCharacterStream</a>, <a href="../../../../javax/sql/RowSet.html#setNClob-int-java.sql.NClob-">setNClob</a>, <a href="../../../../javax/sql/RowSet.html#setNClob-int-java.io.Reader-">setNClob</a>, <a href="../../../../javax/sql/RowSet.html#setNClob-int-java.io.Reader-long-">setNClob</a>, <a href="../../../../javax/sql/RowSet.html#setNClob-java.lang.String-java.sql.NClob-">setNClob</a>, <a href="../../../../javax/sql/RowSet.html#setNClob-java.lang.String-java.io.Reader-">setNClob</a>, <a href="../../../../javax/sql/RowSet.html#setNClob-java.lang.String-java.io.Reader-long-">setNClob</a>, <a href="../../../../javax/sql/RowSet.html#setNString-int-java.lang.String-">setNString</a>, <a href="../../../../javax/sql/RowSet.html#setNString-java.lang.String-java.lang.String-">setNString</a>, <a href="../../../../javax/sql/RowSet.html#setNull-int-int-">setNull</a>, <a href="../../../../javax/sql/RowSet.html#setNull-int-int-java.lang.String-">setNull</a>, <a href="../../../../javax/sql/RowSet.html#setNull-java.lang.String-int-">setNull</a>, <a href="../../../../javax/sql/RowSet.html#setNull-java.lang.String-int-java.lang.String-">setNull</a>, <a href="../../../../javax/sql/RowSet.html#setObject-int-java.lang.Object-">setObject</a>, <a href="../../../../javax/sql/RowSet.html#setObject-int-java.lang.Object-int-">setObject</a>, <a href="../../../../javax/sql/RowSet.html#setObject-int-java.lang.Object-int-int-">setObject</a>, <a href="../../../../javax/sql/RowSet.html#setObject-java.lang.String-java.lang.Object-">setObject</a>, <a href="../../../../javax/sql/RowSet.html#setObject-java.lang.String-java.lang.Object-int-">setObject</a>, <a href="../../../../javax/sql/RowSet.html#setObject-java.lang.String-java.lang.Object-int-int-">setObject</a>, <a href="../../../../javax/sql/RowSet.html#setPassword-java.lang.String-">setPassword</a>, <a href="../../../../javax/sql/RowSet.html#setQueryTimeout-int-">setQueryTimeout</a>, <a href="../../../../javax/sql/RowSet.html#setReadOnly-boolean-">setReadOnly</a>, <a href="../../../../javax/sql/RowSet.html#setRef-int-java.sql.Ref-">setRef</a>, <a href="../../../../javax/sql/RowSet.html#setRowId-int-java.sql.RowId-">setRowId</a>, <a href="../../../../javax/sql/RowSet.html#setRowId-java.lang.String-java.sql.RowId-">setRowId</a>, <a href="../../../../javax/sql/RowSet.html#setShort-int-short-">setShort</a>, <a href="../../../../javax/sql/RowSet.html#setShort-java.lang.String-short-">setShort</a>, <a href="../../../../javax/sql/RowSet.html#setSQLXML-int-java.sql.SQLXML-">setSQLXML</a>, <a href="../../../../javax/sql/RowSet.html#setSQLXML-java.lang.String-java.sql.SQLXML-">setSQLXML</a>, <a href="../../../../javax/sql/RowSet.html#setString-int-java.lang.String-">setString</a>, <a href="../../../../javax/sql/RowSet.html#setString-java.lang.String-java.lang.String-">setString</a>, <a href="../../../../javax/sql/RowSet.html#setTime-int-java.sql.Time-">setTime</a>, <a href="../../../../javax/sql/RowSet.html#setTime-int-java.sql.Time-java.util.Calendar-">setTime</a>, <a href="../../../../javax/sql/RowSet.html#setTime-java.lang.String-java.sql.Time-">setTime</a>, <a href="../../../../javax/sql/RowSet.html#setTime-java.lang.String-java.sql.Time-java.util.Calendar-">setTime</a>, <a href="../../../../javax/sql/RowSet.html#setTimestamp-int-java.sql.Timestamp-">setTimestamp</a>, <a href="../../../../javax/sql/RowSet.html#setTimestamp-int-java.sql.Timestamp-java.util.Calendar-">setTimestamp</a>, <a href="../../../../javax/sql/RowSet.html#setTimestamp-java.lang.String-java.sql.Timestamp-">setTimestamp</a>, <a href="../../../../javax/sql/RowSet.html#setTimestamp-java.lang.String-java.sql.Timestamp-java.util.Calendar-">setTimestamp</a>, <a href="../../../../javax/sql/RowSet.html#setTransactionIsolation-int-">setTransactionIsolation</a>, <a href="../../../../javax/sql/RowSet.html#setType-int-">setType</a>, <a href="../../../../javax/sql/RowSet.html#setTypeMap-java.util.Map-">setTypeMap</a>, <a href="../../../../javax/sql/RowSet.html#setURL-int-java.net.URL-">setURL</a>, <a href="../../../../javax/sql/RowSet.html#setUrl-java.lang.String-">setUrl</a>, <a href="../../../../javax/sql/RowSet.html#setUsername-java.lang.String-">setUsername</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.sql.ResultSet">
+<!-- --> </a> <h3>Methods inherited from interface java.sql.<a href="../../../../java/sql/ResultSet.html" title="interface in java.sql">ResultSet</a></h3> <code><a href="../../../../java/sql/ResultSet.html#absolute-int-">absolute</a>, <a href="../../../../java/sql/ResultSet.html#afterLast--">afterLast</a>, <a href="../../../../java/sql/ResultSet.html#beforeFirst--">beforeFirst</a>, <a href="../../../../java/sql/ResultSet.html#cancelRowUpdates--">cancelRowUpdates</a>, <a href="../../../../java/sql/ResultSet.html#clearWarnings--">clearWarnings</a>, <a href="../../../../java/sql/ResultSet.html#close--">close</a>, <a href="../../../../java/sql/ResultSet.html#deleteRow--">deleteRow</a>, <a href="../../../../java/sql/ResultSet.html#findColumn-java.lang.String-">findColumn</a>, <a href="../../../../java/sql/ResultSet.html#first--">first</a>, <a href="../../../../java/sql/ResultSet.html#getArray-int-">getArray</a>, <a href="../../../../java/sql/ResultSet.html#getArray-java.lang.String-">getArray</a>, <a href="../../../../java/sql/ResultSet.html#getAsciiStream-int-">getAsciiStream</a>, <a href="../../../../java/sql/ResultSet.html#getAsciiStream-java.lang.String-">getAsciiStream</a>, <a href="../../../../java/sql/ResultSet.html#getBigDecimal-int-">getBigDecimal</a>, <a href="../../../../java/sql/ResultSet.html#getBigDecimal-int-int-">getBigDecimal</a>, <a href="../../../../java/sql/ResultSet.html#getBigDecimal-java.lang.String-">getBigDecimal</a>, <a href="../../../../java/sql/ResultSet.html#getBigDecimal-java.lang.String-int-">getBigDecimal</a>, <a href="../../../../java/sql/ResultSet.html#getBinaryStream-int-">getBinaryStream</a>, <a href="../../../../java/sql/ResultSet.html#getBinaryStream-java.lang.String-">getBinaryStream</a>, <a href="../../../../java/sql/ResultSet.html#getBlob-int-">getBlob</a>, <a href="../../../../java/sql/ResultSet.html#getBlob-java.lang.String-">getBlob</a>, <a href="../../../../java/sql/ResultSet.html#getBoolean-int-">getBoolean</a>, <a href="../../../../java/sql/ResultSet.html#getBoolean-java.lang.String-">getBoolean</a>, <a href="../../../../java/sql/ResultSet.html#getByte-int-">getByte</a>, <a href="../../../../java/sql/ResultSet.html#getByte-java.lang.String-">getByte</a>, <a href="../../../../java/sql/ResultSet.html#getBytes-int-">getBytes</a>, <a href="../../../../java/sql/ResultSet.html#getBytes-java.lang.String-">getBytes</a>, <a href="../../../../java/sql/ResultSet.html#getCharacterStream-int-">getCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#getCharacterStream-java.lang.String-">getCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#getClob-int-">getClob</a>, <a href="../../../../java/sql/ResultSet.html#getClob-java.lang.String-">getClob</a>, <a href="../../../../java/sql/ResultSet.html#getConcurrency--">getConcurrency</a>, <a href="../../../../java/sql/ResultSet.html#getCursorName--">getCursorName</a>, <a href="../../../../java/sql/ResultSet.html#getDate-int-">getDate</a>, <a href="../../../../java/sql/ResultSet.html#getDate-int-java.util.Calendar-">getDate</a>, <a href="../../../../java/sql/ResultSet.html#getDate-java.lang.String-">getDate</a>, <a href="../../../../java/sql/ResultSet.html#getDate-java.lang.String-java.util.Calendar-">getDate</a>, <a href="../../../../java/sql/ResultSet.html#getDouble-int-">getDouble</a>, <a href="../../../../java/sql/ResultSet.html#getDouble-java.lang.String-">getDouble</a>, <a href="../../../../java/sql/ResultSet.html#getFetchDirection--">getFetchDirection</a>, <a href="../../../../java/sql/ResultSet.html#getFetchSize--">getFetchSize</a>, <a href="../../../../java/sql/ResultSet.html#getFloat-int-">getFloat</a>, <a href="../../../../java/sql/ResultSet.html#getFloat-java.lang.String-">getFloat</a>, <a href="../../../../java/sql/ResultSet.html#getHoldability--">getHoldability</a>, <a href="../../../../java/sql/ResultSet.html#getInt-int-">getInt</a>, <a href="../../../../java/sql/ResultSet.html#getInt-java.lang.String-">getInt</a>, <a href="../../../../java/sql/ResultSet.html#getLong-int-">getLong</a>, <a href="../../../../java/sql/ResultSet.html#getLong-java.lang.String-">getLong</a>, <a href="../../../../java/sql/ResultSet.html#getMetaData--">getMetaData</a>, <a href="../../../../java/sql/ResultSet.html#getNCharacterStream-int-">getNCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#getNCharacterStream-java.lang.String-">getNCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#getNClob-int-">getNClob</a>, <a href="../../../../java/sql/ResultSet.html#getNClob-java.lang.String-">getNClob</a>, <a href="../../../../java/sql/ResultSet.html#getNString-int-">getNString</a>, <a href="../../../../java/sql/ResultSet.html#getNString-java.lang.String-">getNString</a>, <a href="../../../../java/sql/ResultSet.html#getObject-int-">getObject</a>, <a href="../../../../java/sql/ResultSet.html#getObject-int-java.lang.Class-">getObject</a>, <a href="../../../../java/sql/ResultSet.html#getObject-int-java.util.Map-">getObject</a>, <a href="../../../../java/sql/ResultSet.html#getObject-java.lang.String-">getObject</a>, <a href="../../../../java/sql/ResultSet.html#getObject-java.lang.String-java.lang.Class-">getObject</a>, <a href="../../../../java/sql/ResultSet.html#getObject-java.lang.String-java.util.Map-">getObject</a>, <a href="../../../../java/sql/ResultSet.html#getRef-int-">getRef</a>, <a href="../../../../java/sql/ResultSet.html#getRef-java.lang.String-">getRef</a>, <a href="../../../../java/sql/ResultSet.html#getRow--">getRow</a>, <a href="../../../../java/sql/ResultSet.html#getRowId-int-">getRowId</a>, <a href="../../../../java/sql/ResultSet.html#getRowId-java.lang.String-">getRowId</a>, <a href="../../../../java/sql/ResultSet.html#getShort-int-">getShort</a>, <a href="../../../../java/sql/ResultSet.html#getShort-java.lang.String-">getShort</a>, <a href="../../../../java/sql/ResultSet.html#getSQLXML-int-">getSQLXML</a>, <a href="../../../../java/sql/ResultSet.html#getSQLXML-java.lang.String-">getSQLXML</a>, <a href="../../../../java/sql/ResultSet.html#getStatement--">getStatement</a>, <a href="../../../../java/sql/ResultSet.html#getString-int-">getString</a>, <a href="../../../../java/sql/ResultSet.html#getString-java.lang.String-">getString</a>, <a href="../../../../java/sql/ResultSet.html#getTime-int-">getTime</a>, <a href="../../../../java/sql/ResultSet.html#getTime-int-java.util.Calendar-">getTime</a>, <a href="../../../../java/sql/ResultSet.html#getTime-java.lang.String-">getTime</a>, <a href="../../../../java/sql/ResultSet.html#getTime-java.lang.String-java.util.Calendar-">getTime</a>, <a href="../../../../java/sql/ResultSet.html#getTimestamp-int-">getTimestamp</a>, <a href="../../../../java/sql/ResultSet.html#getTimestamp-int-java.util.Calendar-">getTimestamp</a>, <a href="../../../../java/sql/ResultSet.html#getTimestamp-java.lang.String-">getTimestamp</a>, <a href="../../../../java/sql/ResultSet.html#getTimestamp-java.lang.String-java.util.Calendar-">getTimestamp</a>, <a href="../../../../java/sql/ResultSet.html#getType--">getType</a>, <a href="../../../../java/sql/ResultSet.html#getUnicodeStream-int-">getUnicodeStream</a>, <a href="../../../../java/sql/ResultSet.html#getUnicodeStream-java.lang.String-">getUnicodeStream</a>, <a href="../../../../java/sql/ResultSet.html#getURL-int-">getURL</a>, <a href="../../../../java/sql/ResultSet.html#getURL-java.lang.String-">getURL</a>, <a href="../../../../java/sql/ResultSet.html#getWarnings--">getWarnings</a>, <a href="../../../../java/sql/ResultSet.html#insertRow--">insertRow</a>, <a href="../../../../java/sql/ResultSet.html#isAfterLast--">isAfterLast</a>, <a href="../../../../java/sql/ResultSet.html#isBeforeFirst--">isBeforeFirst</a>, <a href="../../../../java/sql/ResultSet.html#isClosed--">isClosed</a>, <a href="../../../../java/sql/ResultSet.html#isFirst--">isFirst</a>, <a href="../../../../java/sql/ResultSet.html#isLast--">isLast</a>, <a href="../../../../java/sql/ResultSet.html#last--">last</a>, <a href="../../../../java/sql/ResultSet.html#moveToCurrentRow--">moveToCurrentRow</a>, <a href="../../../../java/sql/ResultSet.html#moveToInsertRow--">moveToInsertRow</a>, <a href="../../../../java/sql/ResultSet.html#next--">next</a>, <a href="../../../../java/sql/ResultSet.html#previous--">previous</a>, <a href="../../../../java/sql/ResultSet.html#refreshRow--">refreshRow</a>, <a href="../../../../java/sql/ResultSet.html#relative-int-">relative</a>, <a href="../../../../java/sql/ResultSet.html#rowDeleted--">rowDeleted</a>, <a href="../../../../java/sql/ResultSet.html#rowInserted--">rowInserted</a>, <a href="../../../../java/sql/ResultSet.html#rowUpdated--">rowUpdated</a>, <a href="../../../../java/sql/ResultSet.html#setFetchDirection-int-">setFetchDirection</a>, <a href="../../../../java/sql/ResultSet.html#setFetchSize-int-">setFetchSize</a>, <a href="../../../../java/sql/ResultSet.html#updateArray-int-java.sql.Array-">updateArray</a>, <a href="../../../../java/sql/ResultSet.html#updateArray-java.lang.String-java.sql.Array-">updateArray</a>, <a href="../../../../java/sql/ResultSet.html#updateAsciiStream-int-java.io.InputStream-">updateAsciiStream</a>, <a href="../../../../java/sql/ResultSet.html#updateAsciiStream-int-java.io.InputStream-int-">updateAsciiStream</a>, <a href="../../../../java/sql/ResultSet.html#updateAsciiStream-int-java.io.InputStream-long-">updateAsciiStream</a>, <a href="../../../../java/sql/ResultSet.html#updateAsciiStream-java.lang.String-java.io.InputStream-">updateAsciiStream</a>, <a href="../../../../java/sql/ResultSet.html#updateAsciiStream-java.lang.String-java.io.InputStream-int-">updateAsciiStream</a>, <a href="../../../../java/sql/ResultSet.html#updateAsciiStream-java.lang.String-java.io.InputStream-long-">updateAsciiStream</a>, <a href="../../../../java/sql/ResultSet.html#updateBigDecimal-int-java.math.BigDecimal-">updateBigDecimal</a>, <a href="../../../../java/sql/ResultSet.html#updateBigDecimal-java.lang.String-java.math.BigDecimal-">updateBigDecimal</a>, <a href="../../../../java/sql/ResultSet.html#updateBinaryStream-int-java.io.InputStream-">updateBinaryStream</a>, <a href="../../../../java/sql/ResultSet.html#updateBinaryStream-int-java.io.InputStream-int-">updateBinaryStream</a>, <a href="../../../../java/sql/ResultSet.html#updateBinaryStream-int-java.io.InputStream-long-">updateBinaryStream</a>, <a href="../../../../java/sql/ResultSet.html#updateBinaryStream-java.lang.String-java.io.InputStream-">updateBinaryStream</a>, <a href="../../../../java/sql/ResultSet.html#updateBinaryStream-java.lang.String-java.io.InputStream-int-">updateBinaryStream</a>, <a href="../../../../java/sql/ResultSet.html#updateBinaryStream-java.lang.String-java.io.InputStream-long-">updateBinaryStream</a>, <a href="../../../../java/sql/ResultSet.html#updateBlob-int-java.sql.Blob-">updateBlob</a>, <a href="../../../../java/sql/ResultSet.html#updateBlob-int-java.io.InputStream-">updateBlob</a>, <a href="../../../../java/sql/ResultSet.html#updateBlob-int-java.io.InputStream-long-">updateBlob</a>, <a href="../../../../java/sql/ResultSet.html#updateBlob-java.lang.String-java.sql.Blob-">updateBlob</a>, <a href="../../../../java/sql/ResultSet.html#updateBlob-java.lang.String-java.io.InputStream-">updateBlob</a>, <a href="../../../../java/sql/ResultSet.html#updateBlob-java.lang.String-java.io.InputStream-long-">updateBlob</a>, <a href="../../../../java/sql/ResultSet.html#updateBoolean-int-boolean-">updateBoolean</a>, <a href="../../../../java/sql/ResultSet.html#updateBoolean-java.lang.String-boolean-">updateBoolean</a>, <a href="../../../../java/sql/ResultSet.html#updateByte-int-byte-">updateByte</a>, <a href="../../../../java/sql/ResultSet.html#updateByte-java.lang.String-byte-">updateByte</a>, <a href="../../../../java/sql/ResultSet.html#updateBytes-int-byte:A-">updateBytes</a>, <a href="../../../../java/sql/ResultSet.html#updateBytes-java.lang.String-byte:A-">updateBytes</a>, <a href="../../../../java/sql/ResultSet.html#updateCharacterStream-int-java.io.Reader-">updateCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateCharacterStream-int-java.io.Reader-int-">updateCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateCharacterStream-int-java.io.Reader-long-">updateCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateCharacterStream-java.lang.String-java.io.Reader-">updateCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateCharacterStream-java.lang.String-java.io.Reader-int-">updateCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateCharacterStream-java.lang.String-java.io.Reader-long-">updateCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateClob-int-java.sql.Clob-">updateClob</a>, <a href="../../../../java/sql/ResultSet.html#updateClob-int-java.io.Reader-">updateClob</a>, <a href="../../../../java/sql/ResultSet.html#updateClob-int-java.io.Reader-long-">updateClob</a>, <a href="../../../../java/sql/ResultSet.html#updateClob-java.lang.String-java.sql.Clob-">updateClob</a>, <a href="../../../../java/sql/ResultSet.html#updateClob-java.lang.String-java.io.Reader-">updateClob</a>, <a href="../../../../java/sql/ResultSet.html#updateClob-java.lang.String-java.io.Reader-long-">updateClob</a>, <a href="../../../../java/sql/ResultSet.html#updateDate-int-java.sql.Date-">updateDate</a>, <a href="../../../../java/sql/ResultSet.html#updateDate-java.lang.String-java.sql.Date-">updateDate</a>, <a href="../../../../java/sql/ResultSet.html#updateDouble-int-double-">updateDouble</a>, <a href="../../../../java/sql/ResultSet.html#updateDouble-java.lang.String-double-">updateDouble</a>, <a href="../../../../java/sql/ResultSet.html#updateFloat-int-float-">updateFloat</a>, <a href="../../../../java/sql/ResultSet.html#updateFloat-java.lang.String-float-">updateFloat</a>, <a href="../../../../java/sql/ResultSet.html#updateInt-int-int-">updateInt</a>, <a href="../../../../java/sql/ResultSet.html#updateInt-java.lang.String-int-">updateInt</a>, <a href="../../../../java/sql/ResultSet.html#updateLong-int-long-">updateLong</a>, <a href="../../../../java/sql/ResultSet.html#updateLong-java.lang.String-long-">updateLong</a>, <a href="../../../../java/sql/ResultSet.html#updateNCharacterStream-int-java.io.Reader-">updateNCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateNCharacterStream-int-java.io.Reader-long-">updateNCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateNCharacterStream-java.lang.String-java.io.Reader-">updateNCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateNCharacterStream-java.lang.String-java.io.Reader-long-">updateNCharacterStream</a>, <a href="../../../../java/sql/ResultSet.html#updateNClob-int-java.sql.NClob-">updateNClob</a>, <a href="../../../../java/sql/ResultSet.html#updateNClob-int-java.io.Reader-">updateNClob</a>, <a href="../../../../java/sql/ResultSet.html#updateNClob-int-java.io.Reader-long-">updateNClob</a>, <a href="../../../../java/sql/ResultSet.html#updateNClob-java.lang.String-java.sql.NClob-">updateNClob</a>, <a href="../../../../java/sql/ResultSet.html#updateNClob-java.lang.String-java.io.Reader-">updateNClob</a>, <a href="../../../../java/sql/ResultSet.html#updateNClob-java.lang.String-java.io.Reader-long-">updateNClob</a>, <a href="../../../../java/sql/ResultSet.html#updateNString-int-java.lang.String-">updateNString</a>, <a href="../../../../java/sql/ResultSet.html#updateNString-java.lang.String-java.lang.String-">updateNString</a>, <a href="../../../../java/sql/ResultSet.html#updateNull-int-">updateNull</a>, <a href="../../../../java/sql/ResultSet.html#updateNull-java.lang.String-">updateNull</a>, <a href="../../../../java/sql/ResultSet.html#updateObject-int-java.lang.Object-">updateObject</a>, <a href="../../../../java/sql/ResultSet.html#updateObject-int-java.lang.Object-int-">updateObject</a>, <a href="../../../../java/sql/ResultSet.html#updateObject-int-java.lang.Object-java.sql.SQLType-">updateObject</a>, <a href="../../../../java/sql/ResultSet.html#updateObject-int-java.lang.Object-java.sql.SQLType-int-">updateObject</a>, <a href="../../../../java/sql/ResultSet.html#updateObject-java.lang.String-java.lang.Object-">updateObject</a>, <a href="../../../../java/sql/ResultSet.html#updateObject-java.lang.String-java.lang.Object-int-">updateObject</a>, <a href="../../../../java/sql/ResultSet.html#updateObject-java.lang.String-java.lang.Object-java.sql.SQLType-">updateObject</a>, <a href="../../../../java/sql/ResultSet.html#updateObject-java.lang.String-java.lang.Object-java.sql.SQLType-int-">updateObject</a>, <a href="../../../../java/sql/ResultSet.html#updateRef-int-java.sql.Ref-">updateRef</a>, <a href="../../../../java/sql/ResultSet.html#updateRef-java.lang.String-java.sql.Ref-">updateRef</a>, <a href="../../../../java/sql/ResultSet.html#updateRow--">updateRow</a>, <a href="../../../../java/sql/ResultSet.html#updateRowId-int-java.sql.RowId-">updateRowId</a>, <a href="../../../../java/sql/ResultSet.html#updateRowId-java.lang.String-java.sql.RowId-">updateRowId</a>, <a href="../../../../java/sql/ResultSet.html#updateShort-int-short-">updateShort</a>, <a href="../../../../java/sql/ResultSet.html#updateShort-java.lang.String-short-">updateShort</a>, <a href="../../../../java/sql/ResultSet.html#updateSQLXML-int-java.sql.SQLXML-">updateSQLXML</a>, <a href="../../../../java/sql/ResultSet.html#updateSQLXML-java.lang.String-java.sql.SQLXML-">updateSQLXML</a>, <a href="../../../../java/sql/ResultSet.html#updateString-int-java.lang.String-">updateString</a>, <a href="../../../../java/sql/ResultSet.html#updateString-java.lang.String-java.lang.String-">updateString</a>, <a href="../../../../java/sql/ResultSet.html#updateTime-int-java.sql.Time-">updateTime</a>, <a href="../../../../java/sql/ResultSet.html#updateTime-java.lang.String-java.sql.Time-">updateTime</a>, <a href="../../../../java/sql/ResultSet.html#updateTimestamp-int-java.sql.Timestamp-">updateTimestamp</a>, <a href="../../../../java/sql/ResultSet.html#updateTimestamp-java.lang.String-java.sql.Timestamp-">updateTimestamp</a>, <a href="../../../../java/sql/ResultSet.html#wasNull--">wasNull</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.sql.Wrapper">
+<!-- --> </a> <h3>Methods inherited from interface java.sql.<a href="../../../../java/sql/Wrapper.html" title="interface in java.sql">Wrapper</a></h3> <code><a href="../../../../java/sql/Wrapper.html#isWrapperFor-java.lang.Class-">isWrapperFor</a>, <a href="../../../../java/sql/Wrapper.html#unwrap-java.lang.Class-">unwrap</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="UPDATE_ROW_CONFLICT">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>UPDATE_ROW_CONFLICT</h4> <pre>static final int UPDATE_ROW_CONFLICT</pre>
+<div class="block">
+<span>表示在<code>RowSet</code>对象尝试更新数据源中的行时发生冲突。</span>
+<span>要更新的数据源行中的值与该行的<code>RowSet</code>对象的原始值不同，这意味着自上次同步以来，数据源中的行已被更新或删除。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.sql.rowset.spi.SyncResolver.UPDATE_ROW_CONFLICT">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="DELETE_ROW_CONFLICT">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>DELETE_ROW_CONFLICT</h4> <pre>static final int DELETE_ROW_CONFLICT</pre>
+<div class="block">
+<span>表示在<code>RowSet</code>对象尝试删除数据源中的行时发生冲突。</span>
+<span>要更新的数据源行中的值与该行的<code>RowSet</code>对象的原始值不同，这意味着自上次同步以来，数据源中的行已被更新或删除。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.sql.rowset.spi.SyncResolver.DELETE_ROW_CONFLICT">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="INSERT_ROW_CONFLICT">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>INSERT_ROW_CONFLICT</h4> <pre>static final int INSERT_ROW_CONFLICT</pre>
+<div class="block">
+<span>表示在<code>RowSet</code>对象尝试将一行插入数据源时发生冲突。</span>
+<span>这意味着自上次同步以来，与要插入的行具有相同主键的行已经被插入到数据源中。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.sql.rowset.spi.SyncResolver.INSERT_ROW_CONFLICT">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="NO_ROW_CONFLICT">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>NO_ROW_CONFLICT</h4> <pre>static final int NO_ROW_CONFLICT</pre>
+<div class="block">
+<span>表示<code>RowSet</code>对象尝试在数据源中更新，删除或插入行时<b>不会</b>发生冲突。</span>
+<span>在值<code>SyncResolver</code>将包含<code>null</code>值仅作为指示，在有关冲突解决此行中的信息。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.sql.rowset.spi.SyncResolver.NO_ROW_CONFLICT">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getStatus--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getStatus</h4> <pre>int getStatus()</pre>
+<div class="block">
+            检索此 
+           <code>SyncResolver</code>的当前行的冲突状态，该状态指示当发生冲突时 
+           <code>RowSet</code>对象正在尝试的操作。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             以下常数之一： 
+            <code>SyncResolver.UPDATE_ROW_CONFLICT</code> ， 
+            <code>SyncResolver.DELETE_ROW_CONFLICT</code> ， 
+            <code>SyncResolver.INSERT_ROW_CONFLICT</code> ，或 
+            <code>SyncResolver.NO_ROW_CONFLICT</code>
+</dd>
+</dl> </li>
+</ul> <a name="getConflictValue-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getConflictValue</h4> <pre><a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> getConflictValue(int index)
+                 throws <a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></pre>
+<div class="block">
+            检索此 
+           <code>SyncResolver</code>对象的当前行中指定列中的值，该值是导致冲突的数据源中的值。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>index</code> - 一个 
+            <code>int</code>指定此 
+            <code>SyncResolver</code>对象的此行中的列，以从中检索导致冲突的值 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此 
+            <code>SyncResolver</code>对象当前行中指定列的值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></code> - 如果发生数据库访问错误 
+           </dd>
+</dl> </li>
+</ul> <a name="getConflictValue-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getConflictValue</h4> <pre><a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> getConflictValue(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> columnName)
+                 throws <a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></pre>
+<div class="block">
+            检索此 
+           <code>SyncResolver</code>对象的当前行中指定列中的值，该值是导致冲突的数据源中的值。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>columnName</code> - 一个 
+            <code>String</code>对象，指定此 
+            <code>SyncResolver</code>对象的此行中的列，以从中检索导致冲突的值 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此 
+            <code>SyncResolver</code>对象当前行中指定列的值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></code> - 如果发生数据库访问错误 
+           </dd>
+</dl> </li>
+</ul> <a name="setResolvedValue-int-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setResolvedValue</h4> <pre>void setResolvedValue(int index,
+                      <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)
+               throws <a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></pre>
+<div class="block">
+<span>将<i>obj</i>设置为正在同步的<code>RowSet</code>对象的当前行中的列<i>索引</i>中的值。</span>
+<span><i>obj</i>被设置为数据源内部的值。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>index</code> - 一个 
+            <code>int</code>给出了要设置要持久化的值的列数 
+           </dd>
+<dd>
+<code>obj</code> - 一个 
+            <code>Object</code> ，它是在 
+            <code>RowSet</code>对象中设置的值，并持续存储在数据源中 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></code> - 如果发生数据库访问错误 
+           </dd>
+</dl> </li>
+</ul> <a name="setResolvedValue-java.lang.String-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setResolvedValue</h4> <pre>void setResolvedValue(<a href="../../../../java/lang/String.html" title="class in java.lang">String</a> columnName,
+                      <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)
+               throws <a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></pre>
+<div class="block">
+<span>将<i>obj</i>设置为正在同步的<code>RowSet</code>对象的当前行中的列<i>columnName</i>中的值。</span>
+<span><i>obj</i>被设置为数据源内部的值。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>columnName</code> - 一个 
+            <code>String</code>对象，给出设置要持久化的值的列的名称 
+           </dd>
+<dd>
+<code>obj</code> - 一个 
+            <code>Object</code> ，它是在 
+            <code>RowSet</code>对象中设置的值，并持续存在于数据源 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></code> - 如果发生数据库访问错误 
+           </dd>
+</dl> </li>
+</ul> <a name="nextConflict--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>nextConflict</h4> <pre>boolean nextConflict()
+              throws <a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></pre>
+<div class="block">
+<span>将光标从当前位置向下移动到包含冲突值的下一行。</span>
+<span>一个<code>SyncResolver</code>对象的光标最初位于第一个冲突行之前;</span>
+<span>方法<code>nextConflict</code>的第一次调用使得第一冲突行成为当前行;</span>
+<span>第二个调用使第二个冲突行成为当前行，依此类推。</span>
+<p> <span>对方法<code>nextConflict</code>调用将隐式关闭输入流，如果一个打开，并清除<code>SyncResolver</code>对象的警告链。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果新的当前行有效;</span>
+<span><code>false</code>如果没有更多的行</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></code> - 如果发生数据库访问错误或结果集类型为 
+            <code>TYPE_FORWARD_ONLY</code>
+</dd>
+</dl> </li>
+</ul> <a name="previousConflict--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>previousConflict</h4> <pre>boolean previousConflict()
+                  throws <a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></pre>
+<div class="block">
+<span>将光标从当前位置向上移动到此<code>SyncResolver</code>对象中之前的冲突行。</span>
+<p> <span>对方法<code>previousConflict</code>调用将隐式关闭输入流，如果一个打开，并清除<code>SyncResolver</code>对象的警告链。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果光标在有效的行上;</span>
+<span><code>false</code>如果它是关闭结果集</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/sql/SQLException.html" title="class in java.sql">SQLException</a></code> - 如果发生数据库访问错误或结果集类型为 
+            <code>TYPE_FORWARD_ONLY</code>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

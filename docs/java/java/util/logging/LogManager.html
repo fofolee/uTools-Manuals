@@ -1,0 +1,573 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.logging 
+   </div>
+<h2 class="title" title="Class LogManager">Class LogManager</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.util.logging.LogManager</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public class <span class="typeNameLabel">LogManager</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span>有一个全局LogManager对象用于维护关于日志记录器和日志服务的一组共享状态。</span>
+<p> <span>这个LogManager对象：</span> </p>
+<ul>
+<li> <span>管理Logger对象的分层命名空间。</span> <span>所有命名的记录器都存储在此命名空间中。</span> </li>
+<li> <span>管理一组日志控制属性。</span> <span>这些是简单的键值对，可以由处理程序和其他日志记录对象来配置自己。</span> </li>
+</ul>
+<p> <span>可以使用LogManager.getLogManager（）检索全局LogManager对象。</span> <span>LogManager对象在类初始化期间创建，不能随后更改。</span> </p>
+<p> <span>在启动时，使用java.util.logging.manager系统属性定位LogManager类。</span> </p>
+<p> <span>LogManager定义了两个可选的系统属性，可以控制初始配置：</span> </p>
+<ul>
+<li> <span>“java.util.logging.config.class”</span> </li>
+<li> <span>“java.util.logging.config.file”</span> </li>
+</ul>
+<span>这两个属性可以在命令行中指定到“java”命令，或者作为传递给JNI_CreateJavaVM的系统属性定义。</span>
+<p> <span>如果设置了“java.util.logging.config.class”属性，那么属性值将被视为一个类名。</span> <span>给定的类将被加载，一个对象将被实例化，该对象的构造函数负责在初始配置中进行读取。</span> <span>（该对象可以使用其他系统属性来控制其配置。）备用配置类可以使用<tt>readConfiguration(InputStream)</tt>来定义LogManager中的属性。</span> </p>
+<p> <span>如果<b>未</b>设置“java.util.logging.config.class”属性，则可以使用“java.util.logging.config.file”系统属性来指定属性文件（以java.util.Properties格式）。</span> <span>从该文件读取初始记录配置。</span> </p>
+<p> <span>如果这两个属性都未定义，则LogManager将使用其默认配置。</span> <span>默认配置通常从Java安装目录中的属性文件“ <code>lib/logging.properties</code> ”加载。</span> </p>
+<p> <span>记录器和处理程序的属性将以处理程序或记录器的点分隔名称开头。</span> </p>
+<p> <span>全局日志记录属性可能包括：</span> </p>
+<ul>
+<li> <span>一个财产“处理者”。</span> <span>这定义了一个空格或逗号分隔的类名列表，用于处理程序类，以加载和注册为根记录器（名为“”的记录器）上的处理程序。</span> <span>每个类名必须是具有默认构造函数的Handler类。</span> <span>请注意，这些处理程序可能会在第一次使用时被懒惰地创建。</span> </li>
+<li> <span>属性“&lt;logger&gt; .handlers”。</span> <span>这定义了处理程序类的空格或逗号分隔的类名列表，以加载和注册为指定的记录器的处理程序。</span> <span>每个类名必须是具有默认构造函数的Handler类。</span> <span>请注意，这些处理程序可能会在第一次使用时被懒惰地创建。</span> </li>
+<li> <span>属性“&lt;logger&gt; .useParentHandlers”。</span> <span>这定义了一个布尔值。</span> <span>默认情况下，每个记录器除了处理日志消息本身之外都调用其父进程，这通常导致消息由根记录器处理。</span> <span>将此属性设置为false时，需要为此记录器配置处理程序，否则不会传送日志记录消息。</span> </li>
+<li> <span>属性“config”。</span> <span>此属性旨在允许运行任意配置代码。</span> <span>该属性定义了一个空格或逗号分隔的类名列表。</span> <span>将为每个已命名的类创建一个新的实例。</span> <span>每个类的默认构造函数可以执行任意代码来更新日志记录配置，例如设置记录器级别，添加处理程序，添加过滤器等。</span> </li>
+</ul>
+<p> <span>请注意，在任何用户类路径之前，首先在系统类路径上搜索LogManager配置期间加载的所有类。</span> <span>这包括LogManager类，任何配置类和任何处理程序类。</span> </p>
+<p> <span>记录器根据它们的点分隔名称组织成命名层次结构。</span> <span>因此，“abc”是“ab”的孩子，但是“a.b1”和a.b2“是对等体。</span> </p>
+<p> <span>名称以“.level”结尾的所有属性都假定为Loggers定义日志级别。</span> <span>因此，“foo.level”定义了名为“foo”的记录器的日志级别，并且（递归地）为命名层次结构中的任何子节点定义了日志级别。</span> <span>日志级别按照它们在属性文件中定义的顺序应用。</span> <span>因此，树中的子节点的级别设置应该来自其父母的设置。</span> <span>属性名称“.level”可用于设置树根的级别。</span> </p>
+<p> <span>LogManager对象上的所有方法都是多线程安全的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#LOGGING_MXBEAN_NAME">LOGGING_MXBEAN_NAME</a></span></code>
+<div class="block">
+<span>该字符串表示<a href="../../../javax/management/ObjectName.html" title="javax.management中的类"><code>ObjectName</code></a>为日志工具的管理界面。</span>
+</div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#LogManager--">LogManager</a></span>()</code>
+<div class="block">
+              受保护的构造函数。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t6"><span><a href="javascript:show(32);">弃用的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#addLogger-java.util.logging.Logger-">addLogger</a></span>(<a href="../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a> logger)</code>
+<div class="block">
+              添加一个命名记录器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#addPropertyChangeListener-java.beans.PropertyChangeListener-">addPropertyChangeListener</a></span>(<a href="../../../java/beans/PropertyChangeListener.html" title="interface in java.beans">PropertyChangeListener</a> l)</code>
+<div class="block">
+<span><span class="deprecatedLabel">已弃用</span></span>
+<div class="block">
+<span><span class="deprecationComment">对<code>PropertyChangeListener</code>的依赖性对Java平台的未来<code>PropertyChangeListener</code>造成了重大障碍。</span></span>
+<span><span class="deprecationComment">此方法将在以后的版本中删除。</span></span>
+<span><span class="deprecationComment">全局<code>LogManager</code>可以通过覆盖<a href="../../../java/util/logging/LogManager.html#readConfiguration--"><code>readConfiguration</code></a>方法来检测日志记录配置的更改。</span></span>
+</div>
+</div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#checkAccess--">checkAccess</a></span>()</code>
+<div class="block">
+              检查当前上下文是否受信任以修改日志记录配置。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#getLogger-java.lang.String-">getLogger</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              找到一个命名记录器的方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../java/util/Enumeration.html" title="interface in java.util">Enumeration</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#getLoggerNames--">getLoggerNames</a></span>()</code>
+<div class="block">
+              获取已知记录器名称的枚举。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static <a href="../../../java/util/logging/LoggingMXBean.html" title="interface in java.util.logging">LoggingMXBean</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#getLoggingMXBean--">getLoggingMXBean</a></span>()</code>
+<div class="block">
+              退货 
+             <tt>LoggingMXBean</tt>用于管理记录器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>static <a href="../../../java/util/logging/LogManager.html" title="class in java.util.logging">LogManager</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#getLogManager--">getLogManager</a></span>()</code>
+<div class="block">
+              返回全局LogManager对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#getProperty-java.lang.String-">getProperty</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              获取日志记录属性的值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#readConfiguration--">readConfiguration</a></span>()</code>
+<div class="block">
+              重新初始化日志记录属性并重新读取日志配置。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#readConfiguration-java.io.InputStream-">readConfiguration</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> ins)</code>
+<div class="block">
+              重新初始化日志记录属性，并从给定流重新读取日志记录配置，这些流应该是java.util.Properties格式。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#removePropertyChangeListener-java.beans.PropertyChangeListener-">removePropertyChangeListener</a></span>(<a href="../../../java/beans/PropertyChangeListener.html" title="interface in java.beans">PropertyChangeListener</a> l)</code>
+<div class="block">
+<span><span class="deprecatedLabel">已弃用</span></span>
+<div class="block">
+<span><span class="deprecationComment">对<code>PropertyChangeListener</code>的依赖性对未来Java平台的<code>PropertyChangeListener</code>造成了重大障碍。</span></span>
+<span><span class="deprecationComment">此方法将在以后的版本中删除。</span></span>
+<span><span class="deprecationComment">全局<code>LogManager</code>可以通过覆盖<a href="../../../java/util/logging/LogManager.html#readConfiguration--"><code>readConfiguration</code></a>方法检测日志记录配置的更改。</span></span>
+</div>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/logging/LogManager.html#reset--">reset</a></span>()</code>
+<div class="block">
+              重置日志配置。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="LOGGING_MXBEAN_NAME">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>LOGGING_MXBEAN_NAME</h4> <pre>public static final <a href="../../../java/lang/String.html" title="class in java.lang">String</a> LOGGING_MXBEAN_NAME</pre>
+<div class="block">
+<span>该字符串表示<a href="../../../javax/management/ObjectName.html" title="javax.management中的类"><code>ObjectName</code></a>为日志工具的管理界面。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/management/PlatformLoggingMXBean.html" title="java.lang.management中的接口"><code>PlatformLoggingMXBean</code></a> ， <a href="../../../java/util/logging/LoggingMXBean.html" title="java.util.logging中的接口"><code>LoggingMXBean</code></a> ， <a href="../../../constant-values.html#java.util.logging.LogManager.LOGGING_MXBEAN_NAME">Constant Field Values</a></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="LogManager--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>LogManager</h4> <pre>protected LogManager()</pre>
+<div class="block">
+<span>受保护的构造函数。</span>
+<span>这是受保护的，因此容器应用程序（如J2EE容器）可以对象进行子类化。</span>
+<span>它是非公开的，因为只有一个LogManager对象，其值通过调用LogManager.getLogManager来检索。</span>
+</div> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getLogManager--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLogManager</h4> <pre>public static <a href="../../../java/util/logging/LogManager.html" title="class in java.util.logging">LogManager</a> getLogManager()</pre>
+<div class="block">
+            返回全局LogManager对象。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             全局LogManager对象 
+           </dd>
+</dl> </li>
+</ul> <a name="addPropertyChangeListener-java.beans.PropertyChangeListener-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addPropertyChangeListener</h4> <pre><a href="../../../java/lang/Deprecated.html" title="annotation in java.lang">@Deprecated</a>
+public void addPropertyChangeListener(<a href="../../../java/beans/PropertyChangeListener.html" title="interface in java.beans">PropertyChangeListener</a> l)
+                                           throws <a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></pre>
+<div class="block">
+<span><span class="deprecatedLabel">已弃用</span></span>
+<span><span class="deprecationComment">对<code>PropertyChangeListener</code>的依赖性对未来Java平台的<code>PropertyChangeListener</code>造成了重大障碍。</span></span>
+<span><span class="deprecationComment">此方法将在以后的版本中删除。</span></span>
+<span><span class="deprecationComment">全局<code>LogManager</code>可以通过覆盖<a href="../../../java/util/logging/LogManager.html#readConfiguration--"><code>readConfiguration</code></a>方法来检测日志记录配置的更改。</span></span>
+</div>
+<div class="block">
+<span>添加在重新读取日志记录属性时调用的事件侦听器。</span>
+<span>添加同一事件侦听器的多个实例会导致属性事件侦听器表中的多个条目。</span>
+<p> <span><b>警告：</b>在Java SE的所有不包括<code>java.beans</code>程序包的子集配置文件中，此类将省略此方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>l</code> - 事件侦听器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且调用者没有LoggingPermission（“控制”）。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果PropertyChangeListener为空。 
+           </dd>
+</dl> </li>
+</ul> <a name="removePropertyChangeListener-java.beans.PropertyChangeListener-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removePropertyChangeListener</h4> <pre><a href="../../../java/lang/Deprecated.html" title="annotation in java.lang">@Deprecated</a>
+public void removePropertyChangeListener(<a href="../../../java/beans/PropertyChangeListener.html" title="interface in java.beans">PropertyChangeListener</a> l)
+                                              throws <a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></pre>
+<div class="block">
+<span><span class="deprecatedLabel">已弃用</span></span>
+<span><span class="deprecationComment">对<code>PropertyChangeListener</code>的依赖性对未来Java平台的<code>PropertyChangeListener</code>造成了重大障碍。</span></span>
+<span><span class="deprecationComment">此方法将在以后的版本中删除。</span></span>
+<span><span class="deprecationComment">全局<code>LogManager</code>可以通过覆盖<a href="../../../java/util/logging/LogManager.html#readConfiguration--"><code>readConfiguration</code></a>方法来检测日志记录配置的更改。</span></span>
+</div>
+<div class="block">
+<span>删除属性更改事件的事件侦听器。</span>
+<span>如果相同的侦听器实例已经通过的多个调用添加到听者表<code>addPropertyChangeListener</code> ，则同等数量<code>removePropertyChangeListener</code>需要调用以从听者表中删除该侦听器的所有实例。</span>
+<p> <span>如果找不到给定的监听器，则会静默地返回。</span> </p>
+<p> <span><b>警告：</b>在Java SE的所有不包括<code>java.beans</code>包的子集配置文件中，此类将省略此方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>l</code> - 事件侦听器（可以为null） 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且调用者没有LoggingPermission（“control”）。 
+           </dd>
+</dl> </li>
+</ul> <a name="addLogger-java.util.logging.Logger-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addLogger</h4> <pre>public boolean addLogger(<a href="../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a> logger)</pre>
+<div class="block">
+<span>添加一个命名记录器。</span>
+<span>如果已经注册了具有相同名称的记录器，则此操作不会返回false。</span>
+<p> <span>记录器工厂方法调用此方法来注册每个新创建的记录器。</span> </p>
+<p> <span>应用程序应该保留自己对Logger对象的引用，以避免它被垃圾回收。</span> <span>LogManager可能只保留弱引用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>logger</code> - 新的记录器。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果参数记录器已成功注册，则为true，如果该名称的记录器已存在则为false。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果记录器名称为空。 
+           </dd>
+</dl> </li>
+</ul> <a name="getLogger-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLogger</h4> <pre>public <a href="../../../java/util/logging/Logger.html" title="class in java.util.logging">Logger</a> getLogger(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</pre>
+<div class="block">
+<span>找到一个命名记录器的方法。</span>
+<p> <span>请注意，由于不可信代码可能会创建具有任意名称的日志记录器，因此不应依赖此方法来查找日志记录器以进行安全敏感日志记录。</span> <span>同样重要的是注意，如果没有强大的引用记录器，与字符串<code>name</code>的记录器可能随时被垃圾回收。</span> <span>该方法的调用者必须检查null的返回值才能正确处理Logger已被垃圾回收的情况。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 记录器的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             匹配记录器，如果没有找到，则返回null 
+           </dd>
+</dl> </li>
+</ul> <a name="getLoggerNames--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLoggerNames</h4> <pre>public <a href="../../../java/util/Enumeration.html" title="interface in java.util">Enumeration</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt; getLoggerNames()</pre>
+<div class="block">
+<span>获取已知记录器名称的枚举。</span>
+<p> <span>注意：加载新类时，可以动态添加记录器。</span> <span>此方法仅报告当前注册的记录器。</span> <span>同样重要的是要注意，此方法只返回Logger的名称，而不是对Logger本身的强引用。</span> <span>返回的String不会阻止Logger被垃圾回收。</span> <span>特别地，如果返回的名称传递给<code>LogManager.getLogger()</code> ，则调用者必须从<code>LogManager.getLogger()</code>检查返回值为null，以正确处理由于此方法返回其名称后，Logger已被垃圾回收的情况。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             记录器名称字符串的枚举 
+           </dd>
+</dl> </li>
+</ul> <a name="readConfiguration--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readConfiguration</h4> <pre>public void readConfiguration()
+                       throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                              <a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></pre>
+<div class="block">
+<span>重新初始化日志记录属性并重新读取日志配置。</span>
+<p> <span>使用相同的规则来定位启动时使用的配置属性。</span> <span>所以通常记录属性将从启动时使用的同一文件重新读取。</span> </p>
+<p> <span>如果目标记录器存在，则新配置文件中的任何日志级别定义将使用Logger.setLevel（）应用。</span> </p>
+<p> <span>属性读取后，PropertyChangeEvent将被触发。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且呼叫者没有LoggingPermission（“控制”）。 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果读取配置有IO问题。 
+           </dd>
+</dl> </li>
+</ul> <a name="reset--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>reset</h4> <pre>public void reset()
+           throws <a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></pre>
+<div class="block">
+<span>重置日志配置。</span>
+<p> <span>对于所有命名的记录器，重置操作将删除并关闭所有处理程序，除了根记录器之外，将级别设置为空。</span> <span>根记录器的级别设置为Level.INFO。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且调用者没有LoggingPermission（“control”）。 
+           </dd>
+</dl> </li>
+</ul> <a name="readConfiguration-java.io.InputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readConfiguration</h4> <pre>public void readConfiguration(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> ins)
+                       throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                              <a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></pre>
+<div class="block">
+<span>重新初始化日志记录属性，并从给定流重新读取日志记录配置，这些流应该是java.util.Properties格式。</span>
+<span>属性读取后，PropertyChangeEvent将被触发。</span>
+<p> <span>如果目标记录器存在，则新配置文件中的任何日志级别定义将使用Logger.setLevel（）应用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ins</code> - 从中读取属性的流 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且调用者没有LoggingPermission（“控制”）。 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果从流读取有问题。 
+           </dd>
+</dl> </li>
+</ul> <a name="getProperty-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getProperty</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> getProperty(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</pre>
+<div class="block">
+<span>获取日志记录属性的值。</span>
+<span>如果找不到该属性，该方法返回null。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 属性名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             属性值 
+           </dd>
+</dl> </li>
+</ul> <a name="checkAccess--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>checkAccess</h4> <pre>public void checkAccess()
+                 throws <a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></pre>
+<div class="block">
+<span>检查当前上下文是否受信任以修改日志记录配置。</span>
+<span>这需要LoggingPermission（“control”）。</span>
+<p> <span>如果检查失败，我们抛出一个SecurityException，否则返回正常。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且呼叫者没有LoggingPermission（“控制”）。 
+           </dd>
+</dl> </li>
+</ul> <a name="getLoggingMXBean--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getLoggingMXBean</h4> <pre>public static <a href="../../../java/util/logging/LoggingMXBean.html" title="interface in java.util.logging">LoggingMXBean</a> getLoggingMXBean()</pre>
+<div class="block">
+<span>退货<tt>LoggingMXBean</tt>用于管理记录器。</span>
+<span>管理记录器的另一种方法是通过<a href="../../../java/lang/management/PlatformLoggingMXBean.html" title="java.lang.management中的接口"><code>PlatformLoggingMXBean</code></a>接口，可以通过调用：</span>
+<pre>  <span>PlatformLoggingMXBean logging = <a href="../../../java/lang/management/ManagementFactory.html#getPlatformMXBean-java.lang.Class-"><code>ManagementFactory.getPlatformMXBean</code></a>(PlatformLoggingMXBean.class);</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<a href="../../../java/util/logging/LoggingMXBean.html" title="java.util.logging中的接口"><code>LoggingMXBean</code></a>对象。</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/management/PlatformLoggingMXBean.html" title="java.lang.management中的接口"><code>PlatformLoggingMXBean</code></a></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

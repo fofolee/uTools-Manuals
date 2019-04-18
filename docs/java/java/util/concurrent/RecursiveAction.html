@@ -1,0 +1,235 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.concurrent 
+   </div>
+<h2 class="title" title="Class RecursiveAction">Class RecursiveAction</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">java.util.concurrent.ForkJoinTask</a>&lt;<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a>&gt;</li>
+<li>
+<ul class="inheritance">
+<li>java.util.concurrent.RecursiveAction</li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../../java/util/concurrent/Future.html" title="java.util.concurrent中的接口">Future</a> &lt; <a href="../../../java/lang/Void.html" title="java.lang中的类">Void</a> &gt;</span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">RecursiveAction</span>
+extends <a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a>&lt;<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a>&gt;</pre>
+<div class="block">
+<span>递归结果<a href="../../../java/util/concurrent/ForkJoinTask.html" title="java.util.concurrent中的类"><code>ForkJoinTask</code></a> 。</span>
+<span>该类确定了将无结果动作<code>Void</code> <code>ForkJoinTask</code> ，如<code>Void</code> <code>ForkJoinTask</code> 。</span>
+<span>因为<code>null</code>类型是唯一有效的值<code>Void</code> ，如方法<code>join</code>总是返回<code>null</code>完成时。</span>
+<p> <span><b>示例用法</b></span> <span>这是一个简单但完整的ForkJoin排序，排序给定的<code>long[]</code>数组：</span> </p>
+<pre>  <span><code> static class SortTask extends RecursiveAction { final long[] array; final int lo, hi; SortTask(long[] array, int lo, int hi) { this.array = array; this.lo = lo; this.hi = hi; } SortTask(long[] array) { this(array, 0, array.length); } protected void compute() { if (hi - lo &lt; THRESHOLD) sortSequentially(lo, hi); else { int mid = (lo + hi) &gt;&gt;&gt; 1; invokeAll(new SortTask(array, lo, mid), new SortTask(array, mid, hi)); merge(lo, mid, hi); } } // implementation details follow: static final int THRESHOLD = 1000; void sortSequentially(int lo, int hi) { Arrays.sort(array, lo, hi); } void merge(int lo, int mid, int hi) { long[] buf = Arrays.copyOfRange(array, lo, mid); for (int i = 0, j = lo, k = mid; i &lt; buf.length; j++) array[j] = (k == hi || buf[i] &lt; array[k]) ? buf[i++] : array[k++]; } }</code></span> </pre>
+<span>然后，您可以进行排序<code>anArray</code>创建<code>new SortTask(anArray)</code> ，并在ForkJoinPool调用它。</span>
+<span>作为一个更具体的简单示例，以下任务会增加数组的每个元素：</span>
+<pre>  <span><code> class IncrementTask extends RecursiveAction { final long[] array; final int lo, hi; IncrementTask(long[] array, int lo, int hi) { this.array = array; this.lo = lo; this.hi = hi; } protected void compute() { if (hi - lo &lt; THRESHOLD) { for (int i = lo; i &lt; hi; ++i) array[i]++; } else { int mid = (lo + hi) &gt;&gt;&gt; 1; invokeAll(new IncrementTask(array, lo, mid), new IncrementTask(array, mid, hi)); } } }</code></span> </pre>
+<p> <span>以下示例说明了可能导致更好性能的一些改进和习语：递归方法不需要完全递归，只要它们保持基本的划分和征服方法。</span> <span>这是一个通过将只有重复划分的右手区域除以2的方式来对双阵列的每个元素的平方进行求和的类，并用<code>next</code>引用链来跟踪它们。</span> <span>它使用基于方法<code>getSurplusQueuedTaskCount</code>的动态阈<code>getSurplusQueuedTaskCount</code> ，但是通过直接执行叶片动作来解决潜在的过度分割，而不是进一步细分。</span> </p>
+<pre>  <span><code> double sumOfSquares(ForkJoinPool pool, double[] array) { int n = array.length; Applyer a = new Applyer(array, 0, n, null); pool.invoke(a); return a.result; } class Applyer extends RecursiveAction { final double[] array; final int lo, hi; double result; Applyer next; // keeps track of right-hand-side tasks Applyer(double[] array, int lo, int hi, Applyer next) { this.array = array; this.lo = lo; this.hi = hi; this.next = next; } double atLeaf(int l, int h) { double sum = 0; for (int i = l; i &lt; h; ++i) // perform leftmost base step sum += array[i] * array[i]; return sum; } protected void compute() { int l = lo; int h = hi; Applyer right = null; while (h - l &gt; 1 &amp;&amp; getSurplusQueuedTaskCount() &lt;= 3) { int mid = (l + h) &gt;&gt;&gt; 1; right = new Applyer(array, mid, h, right); right.fork(); h = mid; } double sum = atLeaf(l, h); while (right != null) { if (right.tryUnfork()) // directly calculate if not stolen sum += right.atLeaf(right.lo, right.hi); else { right.join(); sum += right.result; } right = right.next; } result = sum; } }</code></span> </pre>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.7 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../serialized-form.html#java.util.concurrent.RecursiveAction">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/RecursiveAction.html#RecursiveAction--">RecursiveAction</a></span>()</code> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>protected abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/RecursiveAction.html#compute--">compute</a></span>()</code>
+<div class="block">
+              这个任务执行的主要计算。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/RecursiveAction.html#exec--">exec</a></span>()</code>
+<div class="block">
+              执行递归法的执行约定。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../../java/lang/Void.html" title="class in java.lang">Void</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/RecursiveAction.html#getRawResult--">getRawResult</a></span>()</code>
+<div class="block">
+              总是返回 
+             <code>null</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/RecursiveAction.html#setRawResult-java.lang.Void-">setRawResult</a></span>(<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a> mustBeNull)</code>
+<div class="block">
+              需要空完成值。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.util.concurrent.ForkJoinTask">
+<!-- --> </a> <h3>Methods inherited from class java.util.concurrent.<a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a></h3> <code><a href="../../../java/util/concurrent/ForkJoinTask.html#adapt-java.util.concurrent.Callable-">adapt</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#adapt-java.lang.Runnable-">adapt</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#adapt-java.lang.Runnable-T-">adapt</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#cancel-boolean-">cancel</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#compareAndSetForkJoinTaskTag-short-short-">compareAndSetForkJoinTaskTag</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#complete-V-">complete</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#completeExceptionally-java.lang.Throwable-">completeExceptionally</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#fork--">fork</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#get--">get</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#get-long-java.util.concurrent.TimeUnit-">get</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getException--">getException</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getForkJoinTaskTag--">getForkJoinTaskTag</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getPool--">getPool</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getQueuedTaskCount--">getQueuedTaskCount</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getSurplusQueuedTaskCount--">getSurplusQueuedTaskCount</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#helpQuiesce--">helpQuiesce</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#inForkJoinPool--">inForkJoinPool</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#invoke--">invoke</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#invokeAll-java.util.Collection-">invokeAll</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#invokeAll-java.util.concurrent.ForkJoinTask...-">invokeAll</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#invokeAll-java.util.concurrent.ForkJoinTask-java.util.concurrent.ForkJoinTask-">invokeAll</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#isCancelled--">isCancelled</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#isCompletedAbnormally--">isCompletedAbnormally</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#isCompletedNormally--">isCompletedNormally</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#isDone--">isDone</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#join--">join</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#peekNextLocalTask--">peekNextLocalTask</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#pollNextLocalTask--">pollNextLocalTask</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#pollTask--">pollTask</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#quietlyComplete--">quietlyComplete</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#quietlyInvoke--">quietlyInvoke</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#quietlyJoin--">quietlyJoin</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#reinitialize--">reinitialize</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#setForkJoinTaskTag-short-">setForkJoinTaskTag</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#tryUnfork--">tryUnfork</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="RecursiveAction--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>RecursiveAction</h4> <pre>public RecursiveAction()</pre> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="compute--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compute</h4> <pre>protected abstract void compute()</pre>
+<div class="block">
+            这个任务执行的主要计算。 
+          </div> </li>
+</ul> <a name="getRawResult--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRawResult</h4> <pre>public final <a href="../../../java/lang/Void.html" title="class in java.lang">Void</a> getRawResult()</pre>
+<div class="block">
+            始终返回 
+           <code>null</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ForkJoinTask.html#getRawResult--">getRawResult</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a>&lt;<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>null</code>总是 
+           </dd>
+</dl> </li>
+</ul> <a name="setRawResult-java.lang.Void-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setRawResult</h4> <pre>protected final void setRawResult(<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a> mustBeNull)</pre>
+<div class="block">
+            需要空完成值。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ForkJoinTask.html#setRawResult-V-">setRawResult</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a>&lt;<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>mustBeNull</code> - 值 
+           </dd>
+</dl> </li>
+</ul> <a name="exec--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>exec</h4> <pre>protected final boolean exec()</pre>
+<div class="block">
+            执行递归法的执行约定。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ForkJoinTask.html#exec--">exec</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a>&lt;<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果此任务已知已正常完成 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

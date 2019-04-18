@@ -1,0 +1,174 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong><code>Object.getOwnPropertyNames()</code></strong>方法返回一个由指定对象的所有自身属性的属性名（包括不可枚举属性但不包括Symbol值作为名称的属性）组成的数组。</p>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre class="syntaxbox">Object.getOwnPropertyNames(<em>obj</em>)</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>obj</code></dt>
+<dd>一个对象，其自身的可枚举和不可枚举属性的名称被返回。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>在给定对象上找到的自身属性对应的字符串数组。</p>
+<h2 id="Description" name="Description" style="margin-bottom: 20px; line-height: 30px;">描述</h2>
+<p><code>Object.getOwnPropertyNames()</code> 返回一个数组，该数组对元素是 <code>obj</code>自身拥有的枚举或不可枚举属性名称字符串。 数组中枚举属性的顺序与通过 <a href="Reference/Statements/for...in" title="for...in语句以任意顺序遍历一个对象的可枚举属性。对于每个不同的属性，语句都会被执行。"><code>for...in</code></a> 循环（或 <a href="Reference/Global_Objects/Object/keys" title="Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致 。"><code>Object.keys</code></a>）迭代该对象属性时一致。数组中不可枚举属性的顺序未定义。</p>
+<h2 id="示例">示例</h2>
+<h3 id="使用_Object.getOwnPropertyNames()">使用 <code>Object.getOwnPropertyNames()</code></h3>
+<pre class="brush: js">var arr = ["a", "b", "c"];
+console.log(Object.getOwnPropertyNames(arr).sort()); // ["0", "1", "2", "length"]
+
+// 类数组对象
+var obj = { 0: "a", 1: "b", 2: "c"};
+console.log(Object.getOwnPropertyNames(obj).sort()); // ["0", "1", "2"]
+
+// 使用Array.forEach输出属性名和属性值
+Object.getOwnPropertyNames(obj).forEach(function(val, idx, array) {
+  console.log(val + " -&gt; " + obj[val]);
+});
+// 输出
+// 0 -&gt; a
+// 1 -&gt; b
+// 2 -&gt; c
+
+//不可枚举属性
+var my_obj = Object.create({}, {
+  getFoo: {
+    value: function() { return this.foo; },
+    enumerable: false
+  }
+});
+my_obj.foo = 1;
+
+console.log(Object.getOwnPropertyNames(my_obj).sort()); // ["foo", "getFoo"]
+</pre>
+<p>如果你只要获取到可枚举属性，查看<a href="Reference/Global_Objects/Object/keys" title="Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致 。"><code>Object.keys</code></a>或用<a href="Reference/Statements/for...in" title="for...in语句以任意顺序遍历一个对象的可枚举属性。对于每个不同的属性，语句都会被执行。"><code>for...in</code></a>循环（还会获取到原型链上的可枚举属性，不过可以使用<a href="Reference/Global_Objects/Object/hasOwnProperty" title="hasOwnProperty() 方法会返回一个布尔值，指示对象自身属性中是否具有指定的属性"><code>hasOwnProperty()</code></a>方法过滤掉）。</p>
+<p>下面的例子演示了该方法不会获取到原型链上的属性：</p>
+<pre class="brush: js">function ParentClass() {}
+ParentClass.prototype.inheritedMethod = function() {};
+
+function ChildClass() {
+  this.prop = 5;
+  this.method = function() {};
+}
+
+ChildClass.prototype = new ParentClass;
+ChildClass.prototype.prototypeMethod = function() {};
+
+console.log(
+  Object.getOwnPropertyNames(
+    new ChildClass()  // ["prop", "method"]
+  )
+);
+</pre>
+<h3 id="只获取不可枚举的属性">只获取不可枚举的属性</h3>
+<p>下面的例子使用了 <a href="Reference/Global_Objects/Array/filter" title="filter() 方法创建一个新数组, 其包含通过所提供函数实现的测试的所有元素。"><code>Array.prototype.filter()</code></a> 方法，从所有的属性名数组（使用<code>Object.getOwnPropertyNames()</code>方法获得）中去除可枚举的属性（使用<a href="Reference/Global_Objects/Object/keys" title="Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致 。"><code>Object.keys()</code></a>方法获得），剩余的属性便是不可枚举的属性了：</p>
+<pre class="brush: js">var target = myObject;
+var enum_and_nonenum = Object.getOwnPropertyNames(target);
+var enum_only = Object.keys(target);
+var nonenum_only = enum_and_nonenum.filter(function(key) {
+    var indexInEnum = enum_only.indexOf(key);
+    if (indexInEnum == -1) {
+        // 没有发现在enum_only健集中意味着这个健是不可枚举的,
+        // 因此返回true 以便让它保持在过滤结果中
+        return true;
+    } else {
+        return false;
+    }
+});
+
+console.log(nonenum_only);</pre>
+<pre>注：<a href="https://developer.mozilla.orgReference/Global_Objects/Array/filter">Array.filter(filt_func)方法</a>创建一个新数组, 其包含通过所提供函数实现的测试的所有元素。</pre>
+<h2 id="Notes" name="Notes">提示</h2>
+<p>在 ES5 中，如果参数不是一个原始对象类型，将抛出一个 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>  异常。在 ES2015 中，非对象参数被强制转换为对象 <strong>。</strong></p>
+<pre class="brush: js">Object.getOwnPropertyNames('foo');
+// TypeError: "foo" is not an object (ES5 code)
+
+Object.getOwnPropertyNames('foo');
+// ['length', '0', '1', '2']  (ES2015 code)
+</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-15.2.3.4" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">Object.getOwnPropertyNames</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition. Implemented in JavaScript 1.8.5.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-object.getownpropertynames" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Object.getOwnPropertyNames</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-object.getownpropertynames" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Object.getOwnPropertyNames</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容">浏览器兼容</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>getOwnPropertyNames</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+<h2 id="Firefox-specific_notes">Firefox-specific notes</h2>
+<p>Firefox 28 (Firefox 28 / Thunderbird 28 / SeaMonkey 2.25 / Firefox OS 1.3)之前，<code>Object.getOwnPropertyNames</code> 不会获取到 <a href="Reference/Global_Objects/Error" title="通过Error的构造器可以创建一个错误对象。当运行时错误产生时，Error的实例对象会被抛出。Error对象也可用于用户自定义的异常的基础对象。下面列出了各种内建的标准错误类型。"><code>Error</code></a> 对象的属性。该 bug 在后面的版本修复了 (<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=724768" rel="noopener" title="FIXED: Object.getOwnPropertyNames does not see unresolved properties of Error objects">bug 724768</a>)。</p>
+<h2 id="See_also" name="See_also" style="margin-bottom: 20px; line-height: 30px;">相关链接</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Enumerability_and_ownership_of_properties" title="Enumerability_and_ownership_of_properties">Enumerability and ownership of properties</a></li>
+<li><a href="Reference/Global_Objects/Object/hasOwnProperty" title="hasOwnProperty() 方法会返回一个布尔值，指示对象自身属性中是否具有指定的属性"><code>Object.prototype.hasOwnProperty</code></a></li>
+<li><a href="Reference/Global_Objects/Object/propertyIsEnumerable" title="propertyIsEnumerable() 方法返回一个布尔值，表示指定的属性是否可枚举。"><code>Object.prototype.propertyIsEnumerable</code></a></li>
+<li><a href="Reference/Global_Objects/Object/create" title="Object.create()方法创建一个新对象，使用现有的对象来提供新创建的对象的__proto__。 （请打开浏览器控制台以查看运行结果。）"><code>Object.create</code></a></li>
+<li><a href="Reference/Global_Objects/Object/keys" title="Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致 。"><code>Object.keys</code></a></li>
+<li><a href="Reference/Global_Objects/Array/forEach" title="forEach() 方法对数组的每个元素执行一次提供的函数。"><code>Array.forEach()</code></a></li>
+</ul>
+</article>

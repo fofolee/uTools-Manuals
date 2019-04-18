@@ -1,0 +1,1177 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.concurrent 
+   </div>
+<h2 class="title" title="Class ScheduledThreadPoolExecutor">Class ScheduledThreadPoolExecutor</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../java/util/concurrent/AbstractExecutorService.html" title="class in java.util.concurrent">java.util.concurrent.AbstractExecutorService</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="class in java.util.concurrent">java.util.concurrent.ThreadPoolExecutor</a></li>
+<li>
+<ul class="inheritance">
+<li>java.util.concurrent.ScheduledThreadPoolExecutor</li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/util/concurrent/Executor.html" title="java.util.concurrent中的接口">Executor</a> ， <a href="../../../java/util/concurrent/ExecutorService.html" title="java.util.concurrent中的接口">ExecutorService</a> ， <a href="../../../java/util/concurrent/ScheduledExecutorService.html" title="java.util.concurrent中的接口">ScheduledExecutorService</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">ScheduledThreadPoolExecutor</span>
+extends <a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="class in java.util.concurrent">ThreadPoolExecutor</a>
+implements <a href="../../../java/util/concurrent/ScheduledExecutorService.html" title="interface in java.util.concurrent">ScheduledExecutorService</a></pre>
+<div class="block">
+<span>A <a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="java.util.concurrent中的类"><code>ThreadPoolExecutor</code></a>可另外调度在给定延迟之后运行的命令，或定期执行。</span>
+<span>该类优选的是<a href="../../../java/util/Timer.html" title="java.util中的类"><code>Timer</code></a>需要多个工作线程时，或当附加灵活性或能力<a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="java.util.concurrent中的类"><code>ThreadPoolExecutor</code></a>需要（这此类扩展）。</span>
+<p> <span>延迟任务执行时间早于启用，但没有任何实时保证，在启用后，他们将开始。</span> <span>计划执行完全相同执行时间的任务将以先进先出（FIFO）的提交顺序启用。</span> </p>
+<p> <span>提交的任务在运行之前被取消，执行被抑制。</span> <span>默认情况下，这样一个取消的任务在工作队列中不会自动删除，直到其延迟过去。</span> <span>虽然这样可以进一步检查和监控，但也可能导致取消任务的无限制保留。</span> <span>为避免这种情况，请将<a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#setRemoveOnCancelPolicy-boolean-"><code>setRemoveOnCancelPolicy(boolean)</code></a>设置为<code>true</code> ，这将导致任务在取消时立即从工作队列中删除。</span> </p>
+<p> <span>通过<code>scheduleAtFixedRate</code>或<code>scheduleWithFixedDelay</code>的任务的<code>scheduleWithFixedDelay</code>执行不重叠。</span> <span>虽然不同的执行可以通过不同的线程来执行，先前执行的效果<a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>那些随后的那些的。</span> </p>
+<p> <span>虽然这个类继承自<a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="java.util.concurrent中的类"><code>ThreadPoolExecutor</code></a> ，但是一些继承的调优方法对它没有用。</span> <span>特别是因为它作为使用<code>corePoolSize</code>线程和无限队列的固定大小的池，对<code>maximumPoolSize</code>没有任何有用的效果。</span> <span>此外，将<code>corePoolSize</code>设置为零或使用<code>allowCoreThreadTimeOut</code>几乎不是一个好主意，因为这可能会使池没有线程来处理任务，只要它们有资格运行。</span> </p>
+<p> <span><b>扩展笔记：</b>此类覆盖<a href="../../../java/util/concurrent/ThreadPoolExecutor.html#execute-java.lang.Runnable-"><code>execute</code></a>和<a href="../../../java/util/concurrent/AbstractExecutorService.html#submit-java.lang.Runnable-"><code>submit</code></a>方法以生成内部<a href="../../../java/util/concurrent/ScheduledFuture.html" title="java.util.concurrent中的接口"><code>ScheduledFuture</code></a>对象来控制每个任务的延迟和调度。</span> <span>为了保护功能，子类中这些方法的任何进一步覆盖都必须调用超类版本，这有效地禁用其他任务自定义。</span> <span>然而，此类提供替代保护扩展方法<code>decorateTask</code> （每一个用于一个版本<code>Runnable</code>和<code>Callable</code> ），其可以被用于定制用于执行经由输入的命令的具体任务类型<code>execute</code> ， <code>submit</code> ， <code>schedule</code> ， <code>scheduleAtFixedRate</code>和<code>scheduleWithFixedDelay</code> 。</span> <span>默认情况下， <code>ScheduledThreadPoolExecutor</code>使用扩展为<a href="../../../java/util/concurrent/FutureTask.html" title="java.util.concurrent中的类"><code>FutureTask</code></a>的任务类型。</span> <span>但是，可以使用以下形式的子类修改或替换：</span> </p>
+<pre>  <span><code> public class CustomScheduledExecutor extends ScheduledThreadPoolExecutor { static class CustomTask&lt;V&gt; implements RunnableScheduledFuture&lt;V&gt; { ... } protected &lt;V&gt; RunnableScheduledFuture&lt;V&gt; decorateTask( Runnable r, RunnableScheduledFuture&lt;V&gt; task) { return new CustomTask&lt;V&gt;(r, task); } protected &lt;V&gt; RunnableScheduledFuture&lt;V&gt; decorateTask( Callable&lt;V&gt; c, RunnableScheduledFuture&lt;V&gt; task) { return new CustomTask&lt;V&gt;(c, task); } // ... add constructors, etc. }</code></span> </pre>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.5 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.java.util.concurrent.ThreadPoolExecutor">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class java.util.concurrent.<a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="class in java.util.concurrent">ThreadPoolExecutor</a></h3> <code><a href="../../../java/util/concurrent/ThreadPoolExecutor.AbortPolicy.html" title="class in java.util.concurrent">ThreadPoolExecutor.AbortPolicy</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.CallerRunsPolicy.html" title="class in java.util.concurrent">ThreadPoolExecutor.CallerRunsPolicy</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.DiscardOldestPolicy.html" title="class in java.util.concurrent">ThreadPoolExecutor.DiscardOldestPolicy</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.DiscardPolicy.html" title="class in java.util.concurrent">ThreadPoolExecutor.DiscardPolicy</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#ScheduledThreadPoolExecutor-int-">ScheduledThreadPoolExecutor</a></span>(int corePoolSize)</code>
+<div class="block">
+              创建一个新的 
+             <code>ScheduledThreadPoolExecutor</code>与给定的核心池大小。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#ScheduledThreadPoolExecutor-int-java.util.concurrent.RejectedExecutionHandler-">ScheduledThreadPoolExecutor</a></span>(int corePoolSize, <a href="../../../java/util/concurrent/RejectedExecutionHandler.html" title="interface in java.util.concurrent">RejectedExecutionHandler</a> handler)</code>
+<div class="block">
+              使用给定的初始参数创建一个新的ScheduledThreadPoolExecutor。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#ScheduledThreadPoolExecutor-int-java.util.concurrent.ThreadFactory-">ScheduledThreadPoolExecutor</a></span>(int corePoolSize, <a href="../../../java/util/concurrent/ThreadFactory.html" title="interface in java.util.concurrent">ThreadFactory</a> threadFactory)</code>
+<div class="block">
+              创建一个新的 
+             <code>ScheduledThreadPoolExecutor</code>与给定的初始参数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#ScheduledThreadPoolExecutor-int-java.util.concurrent.ThreadFactory-java.util.concurrent.RejectedExecutionHandler-">ScheduledThreadPoolExecutor</a></span>(int corePoolSize, <a href="../../../java/util/concurrent/ThreadFactory.html" title="interface in java.util.concurrent">ThreadFactory</a> threadFactory, <a href="../../../java/util/concurrent/RejectedExecutionHandler.html" title="interface in java.util.concurrent">RejectedExecutionHandler</a> handler)</code>
+<div class="block">
+              使用给定的初始参数创建一个新的ScheduledThreadPoolExecutor。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>protected &lt;V&gt; <a href="../../../java/util/concurrent/RunnableScheduledFuture.html" title="interface in java.util.concurrent">RunnableScheduledFuture</a>&lt;V&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#decorateTask-java.util.concurrent.Callable-java.util.concurrent.RunnableScheduledFuture-">decorateTask</a></span>(<a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;V&gt; callable, <a href="../../../java/util/concurrent/RunnableScheduledFuture.html" title="interface in java.util.concurrent">RunnableScheduledFuture</a>&lt;V&gt; task)</code>
+<div class="block">
+              修改或替换用于执行可调用的任务。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>protected &lt;V&gt; <a href="../../../java/util/concurrent/RunnableScheduledFuture.html" title="interface in java.util.concurrent">RunnableScheduledFuture</a>&lt;V&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#decorateTask-java.lang.Runnable-java.util.concurrent.RunnableScheduledFuture-">decorateTask</a></span>(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> runnable, <a href="../../../java/util/concurrent/RunnableScheduledFuture.html" title="interface in java.util.concurrent">RunnableScheduledFuture</a>&lt;V&gt; task)</code>
+<div class="block">
+              修改或替换用于执行runnable的任务。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#execute-java.lang.Runnable-">execute</a></span>(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> command)</code>
+<div class="block">
+              执行 
+             <code>command</code>零要求延迟。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#getContinueExistingPeriodicTasksAfterShutdownPolicy--">getContinueExistingPeriodicTasksAfterShutdownPolicy</a></span>()</code>
+<div class="block">
+              获得关于是否继续执行现有定期任务的策略，即使该执行者已经是 
+             <code>shutdown</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#getExecuteExistingDelayedTasksAfterShutdownPolicy--">getExecuteExistingDelayedTasksAfterShutdownPolicy</a></span>()</code>
+<div class="block">
+              获得有关是否执行现有延迟任务的政策，即使这个执行者已经是 
+             <code>shutdown</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/BlockingQueue.html" title="interface in java.util.concurrent">BlockingQueue</a>&lt;<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#getQueue--">getQueue</a></span>()</code>
+<div class="block">
+              返回此执行程序使用的任务队列。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#getRemoveOnCancelPolicy--">getRemoveOnCancelPolicy</a></span>()</code>
+<div class="block">
+              获取关于在取消时是否应立即将已取消任务从工作队列中删除的策略。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>&lt;V&gt; <a href="../../../java/util/concurrent/ScheduledFuture.html" title="interface in java.util.concurrent">ScheduledFuture</a>&lt;V&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#schedule-java.util.concurrent.Callable-long-java.util.concurrent.TimeUnit-">schedule</a></span>(<a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;V&gt; callable, long delay, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              创建并执行在给定延迟后启用的ScheduledFuture。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/ScheduledFuture.html" title="interface in java.util.concurrent">ScheduledFuture</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#schedule-java.lang.Runnable-long-java.util.concurrent.TimeUnit-">schedule</a></span>(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> command, long delay, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              创建并执行在给定延迟后启用的单次操作。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/ScheduledFuture.html" title="interface in java.util.concurrent">ScheduledFuture</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#scheduleAtFixedRate-java.lang.Runnable-long-long-java.util.concurrent.TimeUnit-">scheduleAtFixedRate</a></span>(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> command, long initialDelay, long period, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+<span>创建并执行在给定的初始延迟之后，随后以给定的时间段首先启用的周期性动作;</span>
+<span>那就是执行将在<code>initialDelay</code>之后开始，然后<code>initialDelay+period</code> ，然后是<code>initialDelay + 2 * period</code>等等。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/ScheduledFuture.html" title="interface in java.util.concurrent">ScheduledFuture</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#scheduleWithFixedDelay-java.lang.Runnable-long-long-java.util.concurrent.TimeUnit-">scheduleWithFixedDelay</a></span>(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> command, long initialDelay, long delay, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              创建并执行在给定的初始延迟之后首先启用的定期动作，随后在一个执行的终止和下一个执行的开始之间给定的延迟。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#setContinueExistingPeriodicTasksAfterShutdownPolicy-boolean-">setContinueExistingPeriodicTasksAfterShutdownPolicy</a></span>(boolean value)</code>
+<div class="block">
+              设置关于是否继续执行现有周期性任务的策略，即使该执行者已经是 
+             <code>shutdown</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#setExecuteExistingDelayedTasksAfterShutdownPolicy-boolean-">setExecuteExistingDelayedTasksAfterShutdownPolicy</a></span>(boolean value)</code>
+<div class="block">
+              设置关于是否执行现有延迟任务的策略，即使该执行者已经是 
+             <code>shutdown</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#setRemoveOnCancelPolicy-boolean-">setRemoveOnCancelPolicy</a></span>(boolean value)</code>
+<div class="block">
+              设置取消时取消任务是否应立即从工作队列中删除的策略。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#shutdown--">shutdown</a></span>()</code>
+<div class="block">
+              启动有序关闭，其中先前提交的任务将被执行，但不会接受任何新任务。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code><a href="../../../java/util/List.html" title="interface in java.util">List</a>&lt;<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#shutdownNow--">shutdownNow</a></span>()</code>
+<div class="block">
+              尝试停止所有主动执行的任务，停止等待任务的处理，并返回正在等待执行的任务列表。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>&lt;T&gt; <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#submit-java.util.concurrent.Callable-">submit</a></span>(<a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt; task)</code>
+<div class="block">
+              提交值返回任务以执行，并返回代表任务待处理结果的Future。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#submit-java.lang.Runnable-">submit</a></span>(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> task)</code>
+<div class="block">
+              提交一个可运行的任务执行，并返回一个表示该任务的未来。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>&lt;T&gt; <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#submit-java.lang.Runnable-T-">submit</a></span>(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> task, T result)</code>
+<div class="block">
+              提交一个可运行的任务执行，并返回一个表示该任务的未来。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.util.concurrent.ThreadPoolExecutor">
+<!-- --> </a> <h3>Methods inherited from class java.util.concurrent.<a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="class in java.util.concurrent">ThreadPoolExecutor</a></h3> <code><a href="../../../java/util/concurrent/ThreadPoolExecutor.html#afterExecute-java.lang.Runnable-java.lang.Throwable-">afterExecute</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#allowCoreThreadTimeOut-boolean-">allowCoreThreadTimeOut</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#allowsCoreThreadTimeOut--">allowsCoreThreadTimeOut</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#awaitTermination-long-java.util.concurrent.TimeUnit-">awaitTermination</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#beforeExecute-java.lang.Thread-java.lang.Runnable-">beforeExecute</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#finalize--">finalize</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getActiveCount--">getActiveCount</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getCompletedTaskCount--">getCompletedTaskCount</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getCorePoolSize--">getCorePoolSize</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getKeepAliveTime-java.util.concurrent.TimeUnit-">getKeepAliveTime</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getLargestPoolSize--">getLargestPoolSize</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getMaximumPoolSize--">getMaximumPoolSize</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getPoolSize--">getPoolSize</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getRejectedExecutionHandler--">getRejectedExecutionHandler</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getTaskCount--">getTaskCount</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getThreadFactory--">getThreadFactory</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#isShutdown--">isShutdown</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#isTerminated--">isTerminated</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#isTerminating--">isTerminating</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#prestartAllCoreThreads--">prestartAllCoreThreads</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#prestartCoreThread--">prestartCoreThread</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#purge--">purge</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#remove-java.lang.Runnable-">remove</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#setCorePoolSize-int-">setCorePoolSize</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#setKeepAliveTime-long-java.util.concurrent.TimeUnit-">setKeepAliveTime</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#setMaximumPoolSize-int-">setMaximumPoolSize</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#setRejectedExecutionHandler-java.util.concurrent.RejectedExecutionHandler-">setRejectedExecutionHandler</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#setThreadFactory-java.util.concurrent.ThreadFactory-">setThreadFactory</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#terminated--">terminated</a>, <a href="../../../java/util/concurrent/ThreadPoolExecutor.html#toString--">toString</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.util.concurrent.AbstractExecutorService">
+<!-- --> </a> <h3>Methods inherited from class java.util.concurrent.<a href="../../../java/util/concurrent/AbstractExecutorService.html" title="class in java.util.concurrent">AbstractExecutorService</a></h3> <code><a href="../../../java/util/concurrent/AbstractExecutorService.html#invokeAll-java.util.Collection-">invokeAll</a>, <a href="../../../java/util/concurrent/AbstractExecutorService.html#invokeAll-java.util.Collection-long-java.util.concurrent.TimeUnit-">invokeAll</a>, <a href="../../../java/util/concurrent/AbstractExecutorService.html#invokeAny-java.util.Collection-">invokeAny</a>, <a href="../../../java/util/concurrent/AbstractExecutorService.html#invokeAny-java.util.Collection-long-java.util.concurrent.TimeUnit-">invokeAny</a>, <a href="../../../java/util/concurrent/AbstractExecutorService.html#newTaskFor-java.util.concurrent.Callable-">newTaskFor</a>, <a href="../../../java/util/concurrent/AbstractExecutorService.html#newTaskFor-java.lang.Runnable-T-">newTaskFor</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.util.concurrent.ExecutorService">
+<!-- --> </a> <h3>Methods inherited from interface java.util.concurrent.<a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a></h3> <code><a href="../../../java/util/concurrent/ExecutorService.html#awaitTermination-long-java.util.concurrent.TimeUnit-">awaitTermination</a>, <a href="../../../java/util/concurrent/ExecutorService.html#invokeAll-java.util.Collection-">invokeAll</a>, <a href="../../../java/util/concurrent/ExecutorService.html#invokeAll-java.util.Collection-long-java.util.concurrent.TimeUnit-">invokeAll</a>, <a href="../../../java/util/concurrent/ExecutorService.html#invokeAny-java.util.Collection-">invokeAny</a>, <a href="../../../java/util/concurrent/ExecutorService.html#invokeAny-java.util.Collection-long-java.util.concurrent.TimeUnit-">invokeAny</a>, <a href="../../../java/util/concurrent/ExecutorService.html#isShutdown--">isShutdown</a>, <a href="../../../java/util/concurrent/ExecutorService.html#isTerminated--">isTerminated</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="ScheduledThreadPoolExecutor-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ScheduledThreadPoolExecutor</h4> <pre>public ScheduledThreadPoolExecutor(int corePoolSize)</pre>
+<div class="block">
+            创建一个新的 
+           <code>ScheduledThreadPoolExecutor</code>与给定的核心池大小。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>corePoolSize</code> - 要保留在池中的线程数，即使它们处于空闲状态，除非设置了 
+            <code>allowCoreThreadTimeOut</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>corePoolSize &lt; 0</code>
+</dd>
+</dl> </li>
+</ul> <a name="ScheduledThreadPoolExecutor-int-java.util.concurrent.ThreadFactory-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ScheduledThreadPoolExecutor</h4> <pre>public ScheduledThreadPoolExecutor(int corePoolSize,
+                                   <a href="../../../java/util/concurrent/ThreadFactory.html" title="interface in java.util.concurrent">ThreadFactory</a> threadFactory)</pre>
+<div class="block">
+            创建一个新 
+           <code>ScheduledThreadPoolExecutor</code>给定的初始参数。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>corePoolSize</code> - 要保留在池中的线程数，即使它们处于空闲状态，除非设置了 
+            <code>allowCoreThreadTimeOut</code>
+</dd>
+<dd>
+<code>threadFactory</code> - 当执行者创建新线程时使用的工厂 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>corePoolSize &lt; 0</code>
+</dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>threadFactory</code>为空 
+           </dd>
+</dl> </li>
+</ul> <a name="ScheduledThreadPoolExecutor-int-java.util.concurrent.RejectedExecutionHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ScheduledThreadPoolExecutor</h4> <pre>public ScheduledThreadPoolExecutor(int corePoolSize,
+                                   <a href="../../../java/util/concurrent/RejectedExecutionHandler.html" title="interface in java.util.concurrent">RejectedExecutionHandler</a> handler)</pre>
+<div class="block">
+            使用给定的初始参数创建一个新的ScheduledThreadPoolExecutor。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>corePoolSize</code> - 要保留在池中的线程数，即使它们处于空闲状态，除非设置了 
+            <code>allowCoreThreadTimeOut</code>
+</dd>
+<dd>
+<code>handler</code> - 执行被阻止时使用的处理程序，因为达到线程限制和队列容量 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>corePoolSize &lt; 0</code>
+</dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>handler</code>为空 
+           </dd>
+</dl> </li>
+</ul> <a name="ScheduledThreadPoolExecutor-int-java.util.concurrent.ThreadFactory-java.util.concurrent.RejectedExecutionHandler-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>ScheduledThreadPoolExecutor</h4> <pre>public ScheduledThreadPoolExecutor(int corePoolSize,
+                                   <a href="../../../java/util/concurrent/ThreadFactory.html" title="interface in java.util.concurrent">ThreadFactory</a> threadFactory,
+                                   <a href="../../../java/util/concurrent/RejectedExecutionHandler.html" title="interface in java.util.concurrent">RejectedExecutionHandler</a> handler)</pre>
+<div class="block">
+            使用给定的初始参数创建一个新的ScheduledThreadPoolExecutor。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>corePoolSize</code> - 保留在池中的线程数，即使它们处于空闲状态，除非设置了 
+            <code>allowCoreThreadTimeOut</code>
+</dd>
+<dd>
+<code>threadFactory</code> - 执行程序创建新线程时使用的工厂 
+           </dd>
+<dd>
+<code>handler</code> - 执行被阻止时使用的处理程序，因为达到线程限制和队列容量 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>corePoolSize &lt; 0</code>
+</dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>threadFactory</code>或 
+            <code>handler</code>为空 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="decorateTask-java.lang.Runnable-java.util.concurrent.RunnableScheduledFuture-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>decorateTask</h4> <pre>protected &lt;V&gt; <a href="../../../java/util/concurrent/RunnableScheduledFuture.html" title="interface in java.util.concurrent">RunnableScheduledFuture</a>&lt;V&gt; decorateTask(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> runnable,
+                                                      <a href="../../../java/util/concurrent/RunnableScheduledFuture.html" title="interface in java.util.concurrent">RunnableScheduledFuture</a>&lt;V&gt; task)</pre>
+<div class="block">
+<span>修改或替换用于执行runnable的任务。</span>
+<span>此方法可用于覆盖用于管理内部任务的具体类。</span>
+<span>默认实现只是返回给定的任务。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>V</code> - 任务的结果类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>runnable</code> - 提交的Runnable 
+           </dd>
+<dd>
+<code>task</code> - 创建以执行runnable的任务 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个可以执行runnable的任务 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="decorateTask-java.util.concurrent.Callable-java.util.concurrent.RunnableScheduledFuture-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>decorateTask</h4> <pre>protected &lt;V&gt; <a href="../../../java/util/concurrent/RunnableScheduledFuture.html" title="interface in java.util.concurrent">RunnableScheduledFuture</a>&lt;V&gt; decorateTask(<a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;V&gt; callable,
+                                                      <a href="../../../java/util/concurrent/RunnableScheduledFuture.html" title="interface in java.util.concurrent">RunnableScheduledFuture</a>&lt;V&gt; task)</pre>
+<div class="block">
+<span>修改或替换用于执行可调用的任务。</span>
+<span>此方法可用于覆盖用于管理内部任务的具体类。</span>
+<span>默认实现只是返回给定的任务。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>V</code> - 任务结果的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>callable</code> - 提交的Callable 
+           </dd>
+<dd>
+<code>task</code> - 创建用于执行可调用的任务 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个可以执行可调用的任务 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="schedule-java.lang.Runnable-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>schedule</h4> <pre>public <a href="../../../java/util/concurrent/ScheduledFuture.html" title="interface in java.util.concurrent">ScheduledFuture</a>&lt;?&gt; schedule(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> command,
+                                   long delay,
+                                   <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面： <code><a href="../../../java/util/concurrent/ScheduledExecutorService.html#schedule-java.lang.Runnable-long-java.util.concurrent.TimeUnit-">ScheduledExecutorService</a></code>复制</span>
+</div>
+<div class="block">
+            创建并执行在给定延迟后启用的单次操作。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ScheduledExecutorService.html#schedule-java.lang.Runnable-long-java.util.concurrent.TimeUnit-">schedule</a></code>在界面 
+            <code><a href="../../../java/util/concurrent/ScheduledExecutorService.html" title="interface in java.util.concurrent">ScheduledExecutorService</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>command</code> - 要执行的任务 
+           </dd>
+<dd>
+<code>delay</code> - 从现在开始延迟执行的时间 
+           </dd>
+<dd>
+<code>unit</code> - 延迟参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示任务等待完成，并且其的ScheduledFuture 
+            <code>get()</code>方法将返回 
+            <code>null</code>完成后 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果命令为空 
+           </dd>
+</dl> </li>
+</ul> <a name="schedule-java.util.concurrent.Callable-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>schedule</h4> <pre>public &lt;V&gt; <a href="../../../java/util/concurrent/ScheduledFuture.html" title="interface in java.util.concurrent">ScheduledFuture</a>&lt;V&gt; schedule(<a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;V&gt; callable,
+                                       long delay,
+                                       <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面： <code><a href="../../../java/util/concurrent/ScheduledExecutorService.html#schedule-java.util.concurrent.Callable-long-java.util.concurrent.TimeUnit-">ScheduledExecutorService</a></code>复制</span>
+</div>
+<div class="block">
+            创建并执行在给定延迟后启用的ScheduledFuture。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ScheduledExecutorService.html#schedule-java.util.concurrent.Callable-long-java.util.concurrent.TimeUnit-">schedule</a></code>在界面 
+            <code><a href="../../../java/util/concurrent/ScheduledExecutorService.html" title="interface in java.util.concurrent">ScheduledExecutorService</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>V</code> - 可调用结果的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>callable</code> - 执行的功能 
+           </dd>
+<dd>
+<code>delay</code> - 从现在开始延迟执行的时间 
+           </dd>
+<dd>
+<code>unit</code> - 延迟参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个可用于提取结果或取消的ScheduledFuture 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果callable为null 
+           </dd>
+</dl> </li>
+</ul> <a name="scheduleAtFixedRate-java.lang.Runnable-long-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>scheduleAtFixedRate</h4> <pre>public <a href="../../../java/util/concurrent/ScheduledFuture.html" title="interface in java.util.concurrent">ScheduledFuture</a>&lt;?&gt; scheduleAtFixedRate(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> command,
+                                              long initialDelay,
+                                              long period,
+                                              <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面： <code><a href="../../../java/util/concurrent/ScheduledExecutorService.html#scheduleAtFixedRate-java.lang.Runnable-long-long-java.util.concurrent.TimeUnit-">ScheduledExecutorService</a></code>复制</span>
+</div>
+<div class="block">
+<span>创建并执行在给定的初始延迟之后，随后以给定的时间段首先启用的周期性动作;</span>
+<span>那就是执行将在<code>initialDelay</code>之后开始，然后<code>initialDelay+period</code> ，然后是<code>initialDelay + 2 * period</code> ，等等。</span>
+<span>如果任务的执行遇到异常，则后续的执行被抑制。</span>
+<span>否则，任务将仅通过取消或终止执行人终止。</span>
+<span>如果任务执行时间比其周期长，则后续执行可能会迟到，但不会同时执行。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ScheduledExecutorService.html#scheduleAtFixedRate-java.lang.Runnable-long-long-java.util.concurrent.TimeUnit-">scheduleAtFixedRate</a></code>在界面 
+            <code><a href="../../../java/util/concurrent/ScheduledExecutorService.html" title="interface in java.util.concurrent">ScheduledExecutorService</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>command</code> - 要执行的任务 
+           </dd>
+<dd>
+<code>initialDelay</code> - 延迟第一次执行的时间 
+           </dd>
+<dd>
+<code>period</code> - 连续执行之间的时期 
+           </dd>
+<dd>
+<code>unit</code> - initialDelay和period参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个ScheduledFuture代表待完成的任务，其 
+            <code>get()</code>方法将在取消时抛出异常 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果命令为空 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果期间小于或等于零 
+           </dd>
+</dl> </li>
+</ul> <a name="scheduleWithFixedDelay-java.lang.Runnable-long-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>scheduleWithFixedDelay</h4> <pre>public <a href="../../../java/util/concurrent/ScheduledFuture.html" title="interface in java.util.concurrent">ScheduledFuture</a>&lt;?&gt; scheduleWithFixedDelay(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> command,
+                                                 long initialDelay,
+                                                 long delay,
+                                                 <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面： <code><a href="../../../java/util/concurrent/ScheduledExecutorService.html#scheduleWithFixedDelay-java.lang.Runnable-long-long-java.util.concurrent.TimeUnit-">ScheduledExecutorService</a></code>复制</span>
+</div>
+<div class="block">
+<span>创建并执行在给定的初始延迟之后首先启用的定期动作，随后在一个执行的终止和下一个执行的开始之间给定的延迟。</span>
+<span>如果任务的执行遇到异常，则后续的执行被抑制。</span>
+<span>否则，任务将仅通过取消或终止执行人终止。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ScheduledExecutorService.html#scheduleWithFixedDelay-java.lang.Runnable-long-long-java.util.concurrent.TimeUnit-">scheduleWithFixedDelay</a></code>在界面 
+            <code><a href="../../../java/util/concurrent/ScheduledExecutorService.html" title="interface in java.util.concurrent">ScheduledExecutorService</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>command</code> - 要执行的任务 
+           </dd>
+<dd>
+<code>initialDelay</code> - 延迟第一次执行的时间 
+           </dd>
+<dd>
+<code>delay</code> - 一个执行终止和下一个执行的开始之间的延迟 
+           </dd>
+<dd>
+<code>unit</code> - initialDelay和delay参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个ScheduledFuture代表待完成的任务，其 
+            <code>get()</code>方法将在取消时抛出异常 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果该任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果命令为空 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果延迟小于或等于零 
+           </dd>
+</dl> </li>
+</ul> <a name="execute-java.lang.Runnable-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>execute</h4> <pre>public void execute(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> command)</pre>
+<div class="block">
+<span>执行<code>command</code>零要求延迟。</span>
+<span>这具有相当于<code>schedule(command, 0, anyUnit)</code>的<a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#schedule-java.lang.Runnable-long-java.util.concurrent.TimeUnit-">效果</a> 。</span>
+<span>请注意，对shutdownNow返回的队列和列表的<code>shutdownNow</code>将访问零延迟的<a href="../../../java/util/concurrent/ScheduledFuture.html" title="java.util.concurrent中的接口"><code>ScheduledFuture</code></a> ，而不是<code>command</code>本身。</span>
+<p> <span>使用的后果<code>ScheduledFuture</code>对象是<a href="../../../java/util/concurrent/ThreadPoolExecutor.html#afterExecute-java.lang.Runnable-java.lang.Throwable-"><code>afterExecute</code></a>总是调用空第二<code>Throwable</code>说法，即使<code>command</code>突然终止。</span> <span>相反，这样一个任务抛出的<code>Throwable</code>可以通过<a href="../../../java/util/concurrent/Future.html#get--"><code>Future.get()</code></a>获得。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/Executor.html#execute-java.lang.Runnable-">execute</a></code>在接口 
+            <code><a href="../../../java/util/concurrent/Executor.html" title="interface in java.util.concurrent">Executor</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ThreadPoolExecutor.html#execute-java.lang.Runnable-">execute</a></code>在 
+            <code><a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="class in java.util.concurrent">ThreadPoolExecutor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>command</code> - 要执行的任务 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 由RejectedExecutionHandler 
+            <code>RejectedExecutionHandler</code> ，如果由于执行程序已被关闭，任务不能被接受执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>command</code>为空 
+           </dd>
+</dl> </li>
+</ul> <a name="submit-java.lang.Runnable-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>submit</h4> <pre>public <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;?&gt; submit(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> task)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面： <code><a href="../../../java/util/concurrent/ExecutorService.html#submit-java.lang.Runnable-">ExecutorService</a></code>复制</span>
+</div>
+<div class="block">
+<span>提交一个可运行的任务执行，并返回一个表示该任务的未来。</span>
+<span>未来的<code>get</code>方法将返回<code>null</code> <em>成功</em>完成时。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ExecutorService.html#submit-java.lang.Runnable-">submit</a></code>在界面 
+            <code><a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/AbstractExecutorService.html#submit-java.lang.Runnable-">submit</a></code>在 
+            <code><a href="../../../java/util/concurrent/AbstractExecutorService.html" title="class in java.util.concurrent">AbstractExecutorService</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>task</code> - 提交的任务 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个未来的代表，待完成任务 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务为空 
+           </dd>
+</dl> </li>
+</ul> <a name="submit-java.lang.Runnable-java.lang.Object-">
+<!-- --> </a><a name="submit-java.lang.Runnable-T-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>submit</h4> <pre>public &lt;T&gt; <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt; submit(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> task,
+                            T result)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面： <code><a href="../../../java/util/concurrent/ExecutorService.html#submit-java.lang.Runnable-T-">ExecutorService</a></code>复制</span>
+</div>
+<div class="block">
+<span>提交一个可运行的任务执行，并返回一个表示该任务的未来。</span>
+<span>未来的<code>get</code>方法将在成功完成后返回给定的结果。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ExecutorService.html#submit-java.lang.Runnable-T-">submit</a></code>在界面 
+            <code><a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/AbstractExecutorService.html#submit-java.lang.Runnable-T-">submit</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/AbstractExecutorService.html" title="class in java.util.concurrent">AbstractExecutorService</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 结果的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>task</code> - 提交的任务 
+           </dd>
+<dd>
+<code>result</code> - 结果返回 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个未来的代表，待完成任务 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务为空 
+           </dd>
+</dl> </li>
+</ul> <a name="submit-java.util.concurrent.Callable-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>submit</h4> <pre>public &lt;T&gt; <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt; submit(<a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt; task)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面： <code><a href="../../../java/util/concurrent/ExecutorService.html#submit-java.util.concurrent.Callable-">ExecutorService</a></code>复制</span>
+</div>
+<div class="block">
+<span>提交值返回任务以执行，并返回代表任务待处理结果的Future。</span>
+<span>未来的<code>get</code>方法将在成功完成后返回任务的结果。</span>
+<p> <span>如果您想立即阻止等待任务，您可以使用result = exec.submit(aCallable).get();格式的<code>result = exec.submit(aCallable).get();</code></span> </p>
+<p> <span>注意： <a href="../../../java/util/concurrent/Executors.html" title="java.util.concurrent中的类"><code>Executors</code></a>类包含一组方法，可以将一些其他常见的类似闭包的对象（例如<a href="../../../java/security/PrivilegedAction.html" title="java.security中的接口"><code>PrivilegedAction</code>）转换</a>为<a href="../../../java/util/concurrent/Callable.html" title="java.util.concurrent中的接口"><code>Callable</code></a>形式，以便它们可以提交。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ExecutorService.html#submit-java.util.concurrent.Callable-">submit</a></code>在界面 
+            <code><a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/AbstractExecutorService.html#submit-java.util.concurrent.Callable-">submit</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/AbstractExecutorService.html" title="class in java.util.concurrent">AbstractExecutorService</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 任务结果的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>task</code> - 提交的任务 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个未来的代表，待完成任务 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务为空 
+           </dd>
+</dl> </li>
+</ul> <a name="setContinueExistingPeriodicTasksAfterShutdownPolicy-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setContinueExistingPeriodicTasksAfterShutdownPolicy</h4> <pre>public void setContinueExistingPeriodicTasksAfterShutdownPolicy(boolean value)</pre>
+<div class="block">
+<span>设置关于是否继续执行现有周期性任务的策略，即使该执行者已经是<code>shutdown</code> 。</span>
+<span>在这种情况下，这些任务只能在<code>shutdownNow</code>或者在已经关闭后将策略设置为<code>false</code>后终止。</span>
+<span>此值默认为<code>false</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>value</code> - 如果 
+            <code>true</code> ，关机后继续，否则不要 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#getContinueExistingPeriodicTasksAfterShutdownPolicy--"><code>getContinueExistingPeriodicTasksAfterShutdownPolicy()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getContinueExistingPeriodicTasksAfterShutdownPolicy--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getContinueExistingPeriodicTasksAfterShutdownPolicy</h4> <pre>public boolean getContinueExistingPeriodicTasksAfterShutdownPolicy()</pre>
+<div class="block">
+<span>获得关于是否继续执行现有周期性任务的策略，即使该执行者已经是<code>shutdown</code> 。</span>
+<span>在这种情况下，这些任务只能在<code>shutdownNow</code>或者在已经关闭后将策略设置为<code>false</code>才会终止。</span>
+<span>此值默认为<code>false</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果将在关机后继续 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#setContinueExistingPeriodicTasksAfterShutdownPolicy-boolean-"><code>setContinueExistingPeriodicTasksAfterShutdownPolicy(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setExecuteExistingDelayedTasksAfterShutdownPolicy-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setExecuteExistingDelayedTasksAfterShutdownPolicy</h4> <pre>public void setExecuteExistingDelayedTasksAfterShutdownPolicy(boolean value)</pre>
+<div class="block">
+<span>设置即使执行者已经执行现有延迟任务的策略是<code>shutdown</code> 。</span>
+<span>在这种情况下，这些任务只能在<code>shutdownNow</code> ，或者在已经关闭后将策略设置为<code>false</code>后。</span>
+<span>此值默认为<code>true</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>value</code> - 如果 
+            <code>true</code> ，在关机后执行，否则不要 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#getExecuteExistingDelayedTasksAfterShutdownPolicy--"><code>getExecuteExistingDelayedTasksAfterShutdownPolicy()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getExecuteExistingDelayedTasksAfterShutdownPolicy--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getExecuteExistingDelayedTasksAfterShutdownPolicy</h4> <pre>public boolean getExecuteExistingDelayedTasksAfterShutdownPolicy()</pre>
+<div class="block">
+<span>获取关于是否执行现有延迟任务的策略，即使该执行者已经是<code>shutdown</code> 。</span>
+<span>在这种情况下，这些任务只能在<code>shutdownNow</code> ，或者在已经关闭后将策略设置为<code>false</code>后才能<code>false</code> 。</span>
+<span>此值默认为<code>true</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果在关机后执行 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#setExecuteExistingDelayedTasksAfterShutdownPolicy-boolean-"><code>setExecuteExistingDelayedTasksAfterShutdownPolicy(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setRemoveOnCancelPolicy-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setRemoveOnCancelPolicy</h4> <pre>public void setRemoveOnCancelPolicy(boolean value)</pre>
+<div class="block">
+<span>设置取消时取消任务是否应立即从工作队列中删除的策略。</span>
+<span>此值默认为<code>false</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>value</code> - 如果 
+            <code>true</code> ，取消取消，否则不要 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#getRemoveOnCancelPolicy--"><code>getRemoveOnCancelPolicy()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getRemoveOnCancelPolicy--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRemoveOnCancelPolicy</h4> <pre>public boolean getRemoveOnCancelPolicy()</pre>
+<div class="block">
+<span>获取关于在取消时是否应立即将已取消任务从工作队列中删除的策略。</span>
+<span>此值默认为<code>false</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果取消任务立即从队列中删除 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html#setRemoveOnCancelPolicy-boolean-"><code>setRemoveOnCancelPolicy(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="shutdown--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shutdown</h4> <pre>public void shutdown()</pre>
+<div class="block">
+<span>启动有序关闭，其中先前提交的任务将被执行，但不会接受任何新任务。</span>
+<span>如果已经关闭，调用没有额外的作用。</span>
+<p> <span>此方法不等待以前提交的任务完成执行。</span> <span>使用<a href="../../../java/util/concurrent/ThreadPoolExecutor.html#awaitTermination-long-java.util.concurrent.TimeUnit-"><code>awaitTermination</code></a>来做到这一点。</span> </p>
+<p> <span>如果<code>ExecuteExistingDelayedTasksAfterShutdownPolicy</code>已设置为<code>false</code> ，则其延迟尚未过去的现有延迟任务将被取消。</span> <span>除了<code>ContinueExistingPeriodicTasksAfterShutdownPolicy</code>已经设置<code>true</code> ，未来执行的定期任务将被取消。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ExecutorService.html#shutdown--">shutdown</a></code>在界面 
+            <code><a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ThreadPoolExecutor.html#shutdown--">shutdown</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="class in java.util.concurrent">ThreadPoolExecutor</a></code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<span><code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在并关闭此ExecutorService可能会操纵调用者不允许修改的线程，因为它不会保留<a href="../../../java/lang/RuntimePermission.html" title="java.lang中的类">88453974019588</a> <code>("modifyThread")</code>或安全管理器的<code>checkAccess</code>方法拒绝访问。</span>
+</dd>
+</dl> </li>
+</ul> <a name="shutdownNow--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shutdownNow</h4> <pre>public <a href="../../../java/util/List.html" title="interface in java.util">List</a>&lt;<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a>&gt; shutdownNow()</pre>
+<div class="block">
+<span>尝试停止所有主动执行的任务，停止等待任务的处理，并返回正在等待执行的任务列表。</span>
+<p> <span>此方法不等待主动执行的任务终止。</span> <span>使用<a href="../../../java/util/concurrent/ThreadPoolExecutor.html#awaitTermination-long-java.util.concurrent.TimeUnit-"><code>awaitTermination</code></a>做到这一点。</span> </p>
+<p> <span>除了努力尝试停止处理积极执行任务之外，没有任何保证。</span> <span>此实现通过取消任务<a href="../../../java/lang/Thread.html#interrupt--"><code>Thread.interrupt()</code></a> ，让未能响应中断任何任务可能永远不会终止。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ExecutorService.html#shutdownNow--">shutdownNow</a></code>在界面 
+            <code><a href="../../../java/util/concurrent/ExecutorService.html" title="interface in java.util.concurrent">ExecutorService</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ThreadPoolExecutor.html#shutdownNow--">shutdownNow</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="class in java.util.concurrent">ThreadPoolExecutor</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>从未开始执行的任务列表。</span>
+<span>此列表中的每个元素是一个<a href="../../../java/util/concurrent/ScheduledFuture.html" title="java.util.concurrent中的接口"><code>ScheduledFuture</code></a> ，包括使用提交这些任务<code>execute</code> ，这对于用作零延迟的基础上调度目的<code>ScheduledFuture</code> 。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<span><code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在并且关闭此ExecutorService可能会操纵调用者不允许修改的线程，因为它不保留<a href="../../../java/lang/RuntimePermission.html" title="java.lang中的类"><code>RuntimePermission</code></a> <code>("modifyThread")</code>或安全管理器的<code>checkAccess</code>方法拒绝访问。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getQueue--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getQueue</h4> <pre>public <a href="../../../java/util/concurrent/BlockingQueue.html" title="interface in java.util.concurrent">BlockingQueue</a>&lt;<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a>&gt; getQueue()</pre>
+<div class="block">
+<span>返回此执行程序使用的任务队列。</span>
+<span>该队列的每个元素都是<a href="../../../java/util/concurrent/ScheduledFuture.html" title="java.util.concurrent中的接口"><code>ScheduledFuture</code></a> ，其中包括使用<code>execute</code>提交的任务，这些任务用于作为零延迟的基础的调度目的<code>ScheduledFuture</code> 。</span>
+<span>这个队列的迭代<em>不能</em>按照它们执行的顺序遍历任务。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ThreadPoolExecutor.html#getQueue--">getQueue</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="class in java.util.concurrent">ThreadPoolExecutor</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             the task queue 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

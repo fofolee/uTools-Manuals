@@ -1,0 +1,988 @@
+<div class="header">
+<div class="subTitle">
+     javax.sound.midi 
+   </div>
+<h2 class="title" title="Class MidiSystem">Class MidiSystem</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.sound.midi.MidiSystem</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public class <span class="typeNameLabel">MidiSystem</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span><code>MidiSystem</code>课程可以访问已安装的MIDI系统资源，包括合成器，音序器和MIDI输入和输出端口等设备。</span>
+<span>典型的简单MIDI应用程序可能会首先调用一个或多个<code>MidiSystem</code>方法来了解哪些设备已安装并获得该应用程序中需要的设备。</span>
+<p> <span>该类还具有读取包含标准MIDI文件数据或声音库的文件，流和URL的方法。</span> <span>您可以查询<code>MidiSystem</code>指定的MIDI文件的格式。</span> </p>
+<p> <span>你不能实例化一个<code>MidiSystem</code> ;</span> <span>所有的方法都是静态的。</span> </p>
+<p> <span>属性可用于指定默认的MIDI设备。</span> <span>考虑系统属性和属性文件。</span> <span>该<code>sound.properties</code>性文件从具体实现的位置读取（通常它是<code>lib</code>在Java安装目录的目录）。</span> <span>如果属性既作为系统属性又在属性文件中存在，则系统属性优先。</span> <span>如果没有指定，则在可用设备中选择合适的默认值。</span> <span>属性文件的语法在<code>Properties.load</code>中<a href="../../../java/util/Properties.html#load-java.io.InputStream-">指定</a> 。</span> <span>下表列出了可用的属性键和哪些方法考虑：</span> </p>
+<span> MIDI System Property Keys    Property Key Interface Affected Method   <code>javax.sound.midi.Receiver</code> <a href="../../../javax/sound/midi/Receiver.html" title="interface in javax.sound.midi"><code>Receiver</code></a> <a href="../../../javax/sound/midi/MidiSystem.html#getReceiver--"><code>getReceiver()</code></a> <code>javax.sound.midi.Sequencer</code> <a href="../../../javax/sound/midi/Sequencer.html" title="interface in javax.sound.midi"><code>Sequencer</code></a> <a href="../../../javax/sound/midi/MidiSystem.html#getSequencer--"><code>getSequencer()</code></a> <code>javax.sound.midi.Synthesizer</code> <a href="../../../javax/sound/midi/Synthesizer.html" title="interface in javax.sound.midi"><code>Synthesizer</code></a> <a href="../../../javax/sound/midi/MidiSystem.html#getSynthesizer--"><code>getSynthesizer()</code></a> <code>javax.sound.midi.Transmitter</code> <a href="../../../javax/sound/midi/Transmitter.html" title="interface in javax.sound.midi"><code>Transmitter</code></a> <a href="../../../javax/sound/midi/MidiSystem.html#getTransmitter--"><code>getTransmitter()</code></a> </span>
+<table border="0">
+</table>
+<span>属性值由提供程序类名称和设备名称组成，以散列标记（“＃”）分隔。</span>
+<span>提供者类名称是具体的<a href="../../../javax/sound/midi/spi/MidiDeviceProvider.html" title="javax.sound.midi.spi中的类"><code>MIDI device provider</code></a>类的完全限定名称。</span>
+<span>设备名称与<code>String</code>的<code>getName</code>方法返回的<code>getName</code>进行<code>MidiDevice.Info</code> 。</span>
+<span>类名或设备名可以省略。</span>
+<span>如果仅指定了类名称，则尾部哈希标记是可选的。</span>
+<p> <span>如果指定了提供程序类，并且可以从已安装的提供程序成功检索到，那么从提供程序中<code>MidiDevice.Info</code>对象的列表。</span> <span>否则，或者当这些设备不提供后续匹配时，该列表将从<a href="../../../javax/sound/midi/MidiSystem.html#getMidiDeviceInfo--"><code>getMidiDeviceInfo()</code>检索</a>到包含所有可用的<code>MidiDevice.Info</code>对象。</span> </p>
+<p> <span>如果指定了设备名称，则会搜索<code>MidiDevice.Info</code>对象的结果列表：将返回具有匹配名称的第一个对象，其<code>MidiDevice</code>实现相应接口。</span> <span>如果没有匹配的<code>MidiDevice.Info</code>被发现对象，或者未指定设备名称，从结果列表中的第一个合适的设备将被返回。</span> <span>对于Sequencer和Synthesizer，如果实现相应的接口，则该设备是合适的;</span> <span>而对于接收机和发射机，如果一个设备既不实现定序器也不实现合成器，并且分别提供至少一个接收机或发射机，则它是适用的。</span> <span>例如，财产<code>javax.sound.midi.Receiver</code>一个值<code>"com.sun.media.sound.MidiProvider#SunMIDI1"</code>将在下列后果<code>getReceiver</code>被称为：如果类<code>com.sun.media.sound.MidiProvider</code>在已安装的MIDI设备提供者列表存在，则第<code>Receiver</code>与名器<code>"SunMIDI1"</code>将被退回。</span> <span>如果找不到，则该提供商的第一个<code>Receiver</code>将被返回，无论名称如何。</span> <span>如果没有，将返回所有设备列表（ <code>getMidiDeviceInfo</code>返回）中名称为<code>"SunMIDI1"</code>的第一个<code>Receiver</code> ， <code>"SunMIDI1"</code>返回所有设备列表中可以找到的第一个<code>Receiver</code> 。</span> <span>如果失败，也抛出一个<code>MidiUnavailableException</code> 。</span> </p>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/MidiDevice.html" title="interface in javax.sound.midi">MidiDevice</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getMidiDevice-javax.sound.midi.MidiDevice.Info-">getMidiDevice</a></span>(<a href="../../../javax/sound/midi/MidiDevice.Info.html" title="class in javax.sound.midi">MidiDevice.Info</a> info)</code>
+<div class="block">
+              获取所请求的MIDI设备。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/MidiDevice.Info.html" title="class in javax.sound.midi">MidiDevice.Info</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getMidiDeviceInfo--">getMidiDeviceInfo</a></span>()</code>
+<div class="block">
+              获取表示系统上可用的所有MIDI设备的集合的信息对象数组。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/MidiFileFormat.html" title="class in javax.sound.midi">MidiFileFormat</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileFormat-java.io.File-">getMidiFileFormat</a></span>(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)</code>
+<div class="block">
+              获得指定的MIDI文件格式 
+             <code>File</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/MidiFileFormat.html" title="class in javax.sound.midi">MidiFileFormat</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileFormat-java.io.InputStream-">getMidiFileFormat</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)</code>
+<div class="block">
+              获取指定输入流中数据的MIDI文件格式。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/MidiFileFormat.html" title="class in javax.sound.midi">MidiFileFormat</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileFormat-java.net.URL-">getMidiFileFormat</a></span>(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)</code>
+<div class="block">
+              获取指定URL中数据的MIDI文件格式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static int[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileTypes--">getMidiFileTypes</a></span>()</code>
+<div class="block">
+              获取系统提供文件写入支持的一组MIDI文件类型。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>static int[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileTypes-javax.sound.midi.Sequence-">getMidiFileTypes</a></span>(<a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> sequence)</code>
+<div class="block">
+              获取系统可以从指定的顺序写入的一组MIDI文件类型。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Receiver.html" title="interface in javax.sound.midi">Receiver</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getReceiver--">getReceiver</a></span>()</code>
+<div class="block">
+              从外部MIDI端口或其他默认设备获取MIDI接收器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getSequence-java.io.File-">getSequence</a></span>(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)</code>
+<div class="block">
+              从指定的MIDI序列 
+             <code>File</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getSequence-java.io.InputStream-">getSequence</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)</code>
+<div class="block">
+              从指定的输入流中获取MIDI序列。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getSequence-java.net.URL-">getSequence</a></span>(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)</code>
+<div class="block">
+              从指定的URL获取MIDI序列。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Sequencer.html" title="interface in javax.sound.midi">Sequencer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getSequencer--">getSequencer</a></span>()</code>
+<div class="block">
+              获取默认的 
+             <code>Sequencer</code> ，连接到默认设备。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Sequencer.html" title="interface in javax.sound.midi">Sequencer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getSequencer-boolean-">getSequencer</a></span>(boolean connected)</code>
+<div class="block">
+              获取默认值 
+             <code>Sequencer</code> ，可选地连接到默认设备。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Soundbank.html" title="interface in javax.sound.midi">Soundbank</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getSoundbank-java.io.File-">getSoundbank</a></span>(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)</code>
+<div class="block">
+              构造一个 
+             <code>Soundbank</code>通过从指定的阅读它 
+             <code>File</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Soundbank.html" title="interface in javax.sound.midi">Soundbank</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getSoundbank-java.io.InputStream-">getSoundbank</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)</code>
+<div class="block">
+              通过从指定的流中读取来构建MIDI声音库。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Soundbank.html" title="interface in javax.sound.midi">Soundbank</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getSoundbank-java.net.URL-">getSoundbank</a></span>(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)</code>
+<div class="block">
+              通过从指定的URL读取它构建一个 
+             <code>Soundbank</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Synthesizer.html" title="interface in javax.sound.midi">Synthesizer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getSynthesizer--">getSynthesizer</a></span>()</code>
+<div class="block">
+              获取默认合成器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>static <a href="../../../javax/sound/midi/Transmitter.html" title="interface in javax.sound.midi">Transmitter</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#getTransmitter--">getTransmitter</a></span>()</code>
+<div class="block">
+              从外部MIDI端口或其他默认来源获取MIDI发送器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#isFileTypeSupported-int-">isFileTypeSupported</a></span>(int fileType)</code>
+<div class="block">
+              指示文件是否支持指定的MIDI文件类型由系统提供。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#isFileTypeSupported-int-javax.sound.midi.Sequence-">isFileTypeSupported</a></span>(int fileType, <a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> sequence)</code>
+<div class="block">
+              指示是否可以从指定的顺序写入指定的文件类型的MIDI文件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#write-javax.sound.midi.Sequence-int-java.io.File-">write</a></span>(<a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> in, int type, <a href="../../../java/io/File.html" title="class in java.io">File</a> out)</code>
+<div class="block">
+              写入表示所提供外部文件的MIDI文件类型的文件的字节流。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/midi/MidiSystem.html#write-javax.sound.midi.Sequence-int-java.io.OutputStream-">write</a></span>(<a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> in, int fileType, <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> out)</code>
+<div class="block">
+              写入表示所提供的输出流的MIDI文件类型的文件的字节流。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getMidiDeviceInfo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMidiDeviceInfo</h4> <pre>public static <a href="../../../javax/sound/midi/MidiDevice.Info.html" title="class in javax.sound.midi">MidiDevice.Info</a>[] getMidiDeviceInfo()</pre>
+<div class="block">
+<span>获取表示系统上可用的所有MIDI设备的集合的信息对象数组。</span>
+<span>然后可以使用返回的信息对象来获取相应的设备对象，方法是调用<a href="../../../javax/sound/midi/MidiSystem.html#getMidiDevice-javax.sound.midi.MidiDevice.Info-"><code>getMidiDevice</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一组<code>MidiDevice.Info</code>对象，每个安装的MIDI设备一个。</span>
+<span>如果没有安装这样的设备，则返回长度为0的数组。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getMidiDevice-javax.sound.midi.MidiDevice.Info-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMidiDevice</h4> <pre>public static <a href="../../../javax/sound/midi/MidiDevice.html" title="interface in javax.sound.midi">MidiDevice</a> getMidiDevice(<a href="../../../javax/sound/midi/MidiDevice.Info.html" title="class in javax.sound.midi">MidiDevice.Info</a> info)
+                                throws <a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></pre>
+<div class="block">
+            获取所请求的MIDI设备。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>info</code> - 表示所需设备的设备信息对象。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             请求的设备 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></code> - 如果请求的设备由于资源限制而不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果信息对象不表示系统上安装的MIDI设备 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/midi/MidiSystem.html#getMidiDeviceInfo--"><code>getMidiDeviceInfo()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getReceiver--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getReceiver</h4> <pre>public static <a href="../../../javax/sound/midi/Receiver.html" title="interface in javax.sound.midi">Receiver</a> getReceiver()
+                            throws <a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></pre>
+<div class="block">
+<span>从外部MIDI端口或其他默认设备获取MIDI接收器。</span>
+<span>返回的接收器总是实现<code>MidiDeviceReceiver</code>接口。</span>
+<p> <span>如果系统属性<code>javax.sound.midi.Receiver</code>已被定义或在文件“sound.properties”中定义，则用于标识提供默认接收器的设备。</span> <span>详情请参阅<a href="../../../javax/sound/midi/MidiSystem.html" title="javax.sound.midi中的类"><code>class description</code></a> 。</span> <span>如果一个合适的MIDI端口不可用，则从安装的合成器中检索接收器。</span> </p>
+<p> <span>如果由默认设备提供的本机接收器未实现<code>MidiDeviceReceiver</code>接口，则它将被包装在实现<code>MidiDeviceReceiver</code>接口的包装器类中。</span> <span>相应的<code>Receiver</code>方法调用将被转发到本地接收器。</span> </p>
+<p> <span>如果此方法成功返回，则<a href="../../../javax/sound/midi/MidiDevice.html" title="javax.sound.midi中的接口">属性</a>的<code>Receiver</code>将被隐式打开，如果尚未打开。</span> <span>可以通过在返回的<code>Receiver</code>上调用<a href="../../../javax/sound/midi/Receiver.html#close--"><code>close</code></a>来关闭隐式打开的设备。</span> <span>所有打开的<code>Receiver</code>实例必须关闭以释放由MidiDevice保留的系统<code>MidiDevice</code> 。</span> <span>有关开/关行为的详细说明，请参阅<code>MidiDevice</code>的类<a href="../../../javax/sound/midi/MidiDevice.html" title="javax.sound.midi中的接口">描述</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             默认的MIDI接收器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></code> - 如果默认接收器由于资源限制而不可用，或者系统中没有安装设备接收器 
+           </dd>
+</dl> </li>
+</ul> <a name="getTransmitter--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTransmitter</h4> <pre>public static <a href="../../../javax/sound/midi/Transmitter.html" title="interface in javax.sound.midi">Transmitter</a> getTransmitter()
+                                  throws <a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></pre>
+<div class="block">
+<span>从外部MIDI端口或其他默认来源获取MIDI发送器。</span>
+<span>返回的发射机始终实现<code>MidiDeviceTransmitter</code>接口。</span>
+<p> <span>如果系统属性<code>javax.sound.midi.Transmitter</code>被定义或者在文件“sound.properties”中被定义，则用于识别提供默认发射机的设备。</span> <span>详情请参阅<a href="../../../javax/sound/midi/MidiSystem.html" title="javax.sound.midi中的类"><code>class description</code></a> 。</span> </p>
+<p> <span>如果由默认设备提供的本地发送器未实现<code>MidiDeviceTransmitter</code>接口，则它将被包装在实现<code>MidiDeviceTransmitter</code>接口的包装器类中。</span> <span>对应的<code>Transmitter</code>方法调用将被转发到本地发送器。</span> </p>
+<p> <span>如果此方法成功返回，那么<a href="../../../javax/sound/midi/MidiDevice.html" title="javax.sound.midi中的接口">属性</a>的<code>Transmitter</code>将被隐式打开，如果尚未打开。</span> <span>可以通过在返回的<code>Transmitter</code>上调用<a href="../../../javax/sound/midi/Transmitter.html#close--"><code>close</code></a>来关闭隐式打开的设备。</span> <span>所有打开的<code>Transmitter</code>实例必须关闭以释放由MidiDevice保留的系统<code>MidiDevice</code> 。</span> <span>有关开/关行为的详细说明，请参阅<code>MidiDevice</code>的类<a href="../../../javax/sound/midi/MidiDevice.html" title="javax.sound.midi中的接口">描述</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             默认MIDI发送器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></code> - 如果默认发射机由于资源限制而不可用，或者系统中没有安装设备发射机 
+           </dd>
+</dl> </li>
+</ul> <a name="getSynthesizer--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSynthesizer</h4> <pre>public static <a href="../../../javax/sound/midi/Synthesizer.html" title="interface in javax.sound.midi">Synthesizer</a> getSynthesizer()
+                                  throws <a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></pre>
+<div class="block">
+<span>获取默认合成器。</span>
+<p> <span>如果定义了系统属性<code>javax.sound.midi.Synthesizer</code>或者在文件“sound.properties”中定义了该属性，则用于标识默认合成器。</span> <span>详情请参阅<a href="../../../javax/sound/midi/MidiSystem.html" title="javax.sound.midi中的类"><code>class description</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             默认合成器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></code> - 如果合成器由于资源限制而不可用，或者系统中没有安装合成器 
+           </dd>
+</dl> </li>
+</ul> <a name="getSequencer--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSequencer</h4> <pre>public static <a href="../../../javax/sound/midi/Sequencer.html" title="interface in javax.sound.midi">Sequencer</a> getSequencer()
+                              throws <a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></pre>
+<div class="block">
+<span>获取默认设备<code>Sequencer</code> ，连接到默认设备。</span>
+<span>返回的<code>Sequencer</code>实例连接到默认的<code>Synthesizer</code> ，如<a href="../../../javax/sound/midi/MidiSystem.html#getSynthesizer--"><code>getSynthesizer()</code>所示</a> 。</span>
+<span>如果没有<code>Synthesizer</code>可用，或默认<code>Synthesizer</code>无法打开，则<code>sequencer</code>连接到默认值<code>Receiver</code> ，由<a href="../../../javax/sound/midi/MidiSystem.html#getReceiver--"><code>getReceiver()</code></a>返回。</span>
+<span>连接是通过检索取得<code>Transmitter</code>从实例<code>Sequencer</code>并设置其<code>Receiver</code> 。</span>
+<span>关闭并重新打开音序器将恢复与默认设备的连接。</span>
+<p> <span>此方法相当于调用<code>getSequencer(true)</code> 。</span> </p>
+<p> <span>如果系统属性<code>javax.sound.midi.Sequencer</code>已被定义或在文件“sound.properties”中定义，则用于标识默认的音序器。</span> <span>详情请参考<a href="../../../javax/sound/midi/MidiSystem.html" title="javax.sound.midi中的类"><code>class description</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             默认音序器，连接到默认接收器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></code> -如果序不可由于资源限制，或者没有 
+            <code>Receiver</code>可通过任何安装 
+            <code>MidiDevice</code> ，或无定序器安装在系统中。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/midi/MidiSystem.html#getSequencer-boolean-"><code>getSequencer(boolean)</code></a> ， 
+            <a href="../../../javax/sound/midi/MidiSystem.html#getSynthesizer--"><code>getSynthesizer()</code></a> ， 
+            <a href="../../../javax/sound/midi/MidiSystem.html#getReceiver--"><code>getReceiver()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSequencer-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSequencer</h4> <pre>public static <a href="../../../javax/sound/midi/Sequencer.html" title="interface in javax.sound.midi">Sequencer</a> getSequencer(boolean connected)
+                              throws <a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></pre>
+<div class="block">
+<span>获取默认值<code>Sequencer</code> ，可选地连接到默认设备。</span>
+<p> <span>如果<code>connected</code>为真，返回的<code>Sequencer</code>实例连接到<code>Synthesizer</code>返回的默认值<a href="../../../javax/sound/midi/MidiSystem.html#getSynthesizer--">Synthesizer</a> 。</span> <span>如果没有<code>Synthesizer</code>可用，或默认<code>Synthesizer</code>无法打开，则<code>sequencer</code>连接到默认值<code>Receiver</code> ，如<a href="../../../javax/sound/midi/MidiSystem.html#getReceiver--"><code>getReceiver()</code>所示</a> 。</span> <span>连接是通过检索取得<code>Transmitter</code>从实例<code>Sequencer</code>并设置其<code>Receiver</code> 。</span> <span>关闭并重新打开音序器将恢复与默认设备的连接。</span> </p>
+<p> <span>如果<code>connected</code>为false，返回的<code>Sequencer</code>实例未连接，则没有打开<code>Transmitters</code> 。</span> <span>为了在MIDI设备上播放音序器或<code>Synthesizer</code> ，有必要获得<code>Transmitter</code>并设置其<code>Receiver</code> 。</span> </p>
+<p> <span>如果系统属性<code>javax.sound.midi.Sequencer</code>被定义或者在文件“sound.properties”中定义，则用于标识默认的音序器。</span> <span>详情请参考<a href="../../../javax/sound/midi/MidiSystem.html" title="javax.sound.midi中的类"><code>class description</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>connected</code> - 返回的 
+            <code>Sequencer</code>是否连接到默认值 
+            <code>Synthesizer</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             默认音序器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/MidiUnavailableException.html" title="class in javax.sound.midi">MidiUnavailableException</a></code> - 如果定序器由于资源限制而不可用，或者系统中未安装定序器，或者如果 
+            <code>connected</code>为真，并且没有 
+            <code>Receiver</code>可用，任何已 
+            <code>MidiDevice</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/midi/MidiSystem.html#getSynthesizer--"><code>getSynthesizer()</code></a> ， 
+            <a href="../../../javax/sound/midi/MidiSystem.html#getReceiver--"><code>getReceiver()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSoundbank-java.io.InputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSoundbank</h4> <pre>public static <a href="../../../javax/sound/midi/Soundbank.html" title="interface in javax.sound.midi">Soundbank</a> getSoundbank(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)
+                              throws <a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a>,
+                                     <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>通过从指定的流中读取来构建MIDI声音库。</span>
+<span>流必须指向有效的MIDI声音文件。</span>
+<span>一般来说，MIDI声音库提供商可能需要在确定是否支持它之前从流中读取一些数据。</span>
+<span>这些解析器必须能够标记流，读取足够的数据以确定它们是否支持流，如果不是，则将流的读指针重置为其原始位置。</span>
+<span>如果输入流不支持此操作，则此方法可能会失败，并出现IOException异常。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>stream</code> - 声音库数据的来源。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             声音银行 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a></code> - 如果流不指向系统识别的有效的MIDI声音库数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在加载soundbank时发生I / O错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/io/InputStream.html#markSupported--"><code>InputStream.markSupported()</code></a> ， 
+            <a href="../../../java/io/InputStream.html#mark-int-"><code>InputStream.mark(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSoundbank-java.net.URL-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSoundbank</h4> <pre>public static <a href="../../../javax/sound/midi/Soundbank.html" title="interface in javax.sound.midi">Soundbank</a> getSoundbank(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)
+                              throws <a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a>,
+                                     <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>通过从指定的URL读取它构建一个<code>Soundbank</code> 。</span>
+<span>该URL必须指向一个有效的MIDI声音库文件。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>url</code> - 声音库数据的来源 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             声音银行 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a></code> - 如果URL不指向系统识别的有效的MIDI声音库数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在加载soundbank时发生I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="getSoundbank-java.io.File-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSoundbank</h4> <pre>public static <a href="../../../javax/sound/midi/Soundbank.html" title="interface in javax.sound.midi">Soundbank</a> getSoundbank(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)
+                              throws <a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a>,
+                                     <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>构造一个<code>Soundbank</code>通过从指定的阅读它<code>File</code> 。</span>
+<span><code>File</code>必须指向一个有效的MIDI声音库文件。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>file</code> - 声音库数据的来源 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             声音银行 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a></code> - 如果 
+            <code>File</code>没有指向系统识别的有效的MIDI声音库数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在加载soundbank时发生I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="getMidiFileFormat-java.io.InputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMidiFileFormat</h4> <pre>public static <a href="../../../javax/sound/midi/MidiFileFormat.html" title="class in javax.sound.midi">MidiFileFormat</a> getMidiFileFormat(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)
+                                        throws <a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a>,
+                                               <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>获取指定输入流中数据的MIDI文件格式。</span>
+<span>流必须指向系统识别的文件类型的有效MIDI文件数据。</span>
+<p> <span>该方法和/或其调用的代码可能需要从流中读取一些数据，以确定其数据格式是否受支持。</span> <span>因此，实现可能需要标记流，读取足够的数据以确定其是否处于受支持的格式，并将流的读取指针重置为其原始位置。</span> <span>如果输入流不允许此组操作，则此方法可能会失败，并带有<code>IOException</code> 。</span> </p>
+<p> <span>此操作只能对于可以由安装的文件读取器解析的类型的文件而成功。</span> <span>如果没有安装兼容的文件阅读器，即使对于有效文件，也可能会出现InvalidMidiDataException异常。</span> <span>如果安装了兼容的文件读取器，则在InvalidMidiDataException中也会失败，但在确定文件格式时遇到错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>stream</code> - 应提取文件格式信息的输入流 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>MidiFileFormat</code> MIDI文件格式的 
+            <code>MidiFileFormat</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a></code> - 如果流不指向系统识别的有效MIDI文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在访问流时发生I / O异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileFormat-java.net.URL-"><code>getMidiFileFormat(URL)</code></a> ， 
+            <a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileFormat-java.io.File-"><code>getMidiFileFormat(File)</code></a> ， 
+            <a href="../../../java/io/InputStream.html#markSupported--"><code>InputStream.markSupported()</code></a> ， 
+            <a href="../../../java/io/InputStream.html#mark-int-"><code>InputStream.mark(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMidiFileFormat-java.net.URL-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMidiFileFormat</h4> <pre>public static <a href="../../../javax/sound/midi/MidiFileFormat.html" title="class in javax.sound.midi">MidiFileFormat</a> getMidiFileFormat(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)
+                                        throws <a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a>,
+                                               <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>获取指定URL中数据的MIDI文件格式。</span>
+<span>URL必须指向系统识别的文件类型的有效MIDI文件数据。</span>
+<p> <span>此操作只能对于可以由安装的文件读取器解析的类型的文件而成功。</span> <span>如果没有安装兼容的文件阅读器，即使对于有效文件，也可能会出现InvalidMidiDataException异常。</span> <span>如果安装了兼容的文件读取器，则在InvalidMidiDataException中也会失败，但在确定文件格式时遇到错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>url</code> - 应提取文件格式信息的URL 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>MidiFileFormat</code> MIDI文件格式的 
+            <code>MidiFileFormat</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a></code> - 如果URL不指向系统识别的有效的MIDI文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在访问URL时发生I / O异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileFormat-java.io.InputStream-"><code>getMidiFileFormat(InputStream)</code></a> ， 
+            <a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileFormat-java.io.File-"><code>getMidiFileFormat(File)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMidiFileFormat-java.io.File-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMidiFileFormat</h4> <pre>public static <a href="../../../javax/sound/midi/MidiFileFormat.html" title="class in javax.sound.midi">MidiFileFormat</a> getMidiFileFormat(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)
+                                        throws <a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a>,
+                                               <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>获得指定的MIDI文件格式<code>File</code> 。</span>
+<span><code>File</code>必须指向系统识别的文件类型的有效MIDI文件数据。</span>
+<p> <span>此操作只能对于可以由安装的文件读取器解析的类型的文件而成功。</span> <span>如果没有安装兼容的文件阅读器，即使对于有效文件，也可能会出现InvalidMidiDataException异常。</span> <span>如果安装了兼容的文件读取器，则在InvalidMidiDataException中也会失败，但在确定文件格式时遇到错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>file</code> - 应 
+            <code>File</code>文件格式信息的File 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>MidiFileFormat</code> MIDI文件格式的一个 
+            <code>MidiFileFormat</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a></code> - 如果 
+            <code>File</code>没有指向系统识别的有效MIDI文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在访问文件时发生I / O异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileFormat-java.io.InputStream-"><code>getMidiFileFormat(InputStream)</code></a> ， 
+            <a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileFormat-java.net.URL-"><code>getMidiFileFormat(URL)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSequence-java.io.InputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSequence</h4> <pre>public static <a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> getSequence(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)
+                            throws <a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a>,
+                                   <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从指定的输入流中获取MIDI序列。</span>
+<span>流必须指向系统识别的文件类型的有效MIDI文件数据。</span>
+<p> <span>该方法和/或其调用的代码可能需要从流中读取一些数据，以确定其数据格式是否受支持。</span> <span>因此，实现可能需要标记流，读取足够的数据以确定其是否处于受支持的格式，并将流的读取指针重置为其原始位置。</span> <span>如果输入流不允许此组操作，则此方法可能会失败，并带有<code>IOException</code> 。</span> </p>
+<p> <span>此操作只能对于可以由安装的文件读取器解析的类型的文件而成功。</span> <span>如果没有安装兼容的文件阅读器，即使对于有效文件，也可能会出现InvalidMidiDataException异常。</span> <span>如果安装了兼容的文件阅读器，则它也将失败，并且InvalidMidiDataException在文件数据<code>Sequence</code>对象时遇到错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>stream</code> -从该输入流 
+            <code>Sequence</code>应当被构造 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个基于输入流中包含的MIDI文件数据的 
+            <code>Sequence</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a></code> - 如果流不指向系统识别的有效MIDI文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在访问流时发生I / O异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/io/InputStream.html#markSupported--"><code>InputStream.markSupported()</code></a> ， 
+            <a href="../../../java/io/InputStream.html#mark-int-"><code>InputStream.mark(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSequence-java.net.URL-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSequence</h4> <pre>public static <a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> getSequence(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)
+                            throws <a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a>,
+                                   <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从指定的URL获取MIDI序列。</span>
+<span>URL必须指向系统识别的文件类型的有效MIDI文件数据。</span>
+<p> <span>此操作只能对于可以由安装的文件读取器解析的类型的文件而成功。</span> <span>如果没有安装兼容的文件阅读器，即使对于有效文件，也可能会出现InvalidMidiDataException异常。</span> <span>如果安装了兼容的文件阅读器，则它也将失败，并显示InvalidMidiDataException，但在从文件数据<code>Sequence</code>对象时遇到错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>url</code> -从该网址 
+            <code>Sequence</code>应当建立 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Sequence</code>对象基于由URL指向的MIDI文件数据 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a></code> - 如果URL不指向系统识别的有效的MIDI文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在访问URL时发生I / O异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getSequence-java.io.File-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSequence</h4> <pre>public static <a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> getSequence(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)
+                            throws <a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a>,
+                                   <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从指定的MIDI序列<code>File</code> 。</span>
+<span><code>File</code>必须指向系统识别的文件类型的有效MIDI文件数据。</span>
+<p> <span>此操作只能对于可以由安装的文件读取器解析的类型的文件而成功。</span> <span>如果没有安装兼容的文件阅读器，即使对于有效文件，也可能会出现InvalidMidiDataException异常。</span> <span>如果安装了兼容的文件读取器，则它也将失败，并显示InvalidMidiDataException，但在从文件数据<code>Sequence</code>对象时遇到错误。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>file</code> - 
+            <code>File</code>应从其中 
+            <code>Sequence</code> Sequence 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个基于文件指向的MIDI文件数据的 
+            <code>Sequence</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/midi/InvalidMidiDataException.html" title="class in javax.sound.midi">InvalidMidiDataException</a></code> - 如果文件没有指向系统识别的有效的MIDI文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getMidiFileTypes--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMidiFileTypes</h4> <pre>public static int[] getMidiFileTypes()</pre>
+<div class="block">
+            获取系统提供文件写入支持的一组MIDI文件类型。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>数组的唯一文件类型。</span>
+<span>如果不支持文件类型，则返回长度为0的数组。</span>
+</dd>
+</dl> </li>
+</ul> <a name="isFileTypeSupported-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isFileTypeSupported</h4> <pre>public static boolean isFileTypeSupported(int fileType)</pre>
+<div class="block">
+            指示文件是否支持指定的MIDI文件类型由系统提供。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>fileType</code> - 查询写入功能的文件类型 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果文件类型是支持，否则 
+            <code>false</code>
+</dd>
+</dl> </li>
+</ul> <a name="getMidiFileTypes-javax.sound.midi.Sequence-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMidiFileTypes</h4> <pre>public static int[] getMidiFileTypes(<a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> sequence)</pre>
+<div class="block">
+            获取系统可以从指定的顺序写入的一组MIDI文件类型。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>sequence</code> - 查询MIDI文件类型支持的顺序 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一组唯一支持的文件类型。</span>
+<span>如果不支持文件类型，则返回长度为0的数组。</span>
+</dd>
+</dl> </li>
+</ul> <a name="isFileTypeSupported-int-javax.sound.midi.Sequence-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isFileTypeSupported</h4> <pre>public static boolean isFileTypeSupported(int fileType,
+                                          <a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> sequence)</pre>
+<div class="block">
+            指示是否可以从指定的顺序写入指定的文件类型的MIDI文件。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>fileType</code> - 查询写入功能的文件类型 
+           </dd>
+<dd>
+<code>sequence</code> - 查询文件写入支持的顺序 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果该序列支持文件类型，否则为 
+            <code>false</code>
+</dd>
+</dl> </li>
+</ul> <a name="write-javax.sound.midi.Sequence-int-java.io.OutputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public static int write(<a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> in,
+                        int fileType,
+                        <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> out)
+                 throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            写入表示所提供的输出流的MIDI文件类型的文件的字节流。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>in</code> - 包含要写入文件的MIDI数据的序列 
+           </dd>
+<dd>
+<code>fileType</code> - 要写入输出流的文件的文件类型 
+           </dd>
+<dd>
+<code>out</code> - 应写入文件数据的流 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             写入输出流的字节数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O异常 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果系统不支持文件格式 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/midi/MidiSystem.html#isFileTypeSupported-int-javax.sound.midi.Sequence-"><code>isFileTypeSupported(int, Sequence)</code></a> ， 
+            <a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileTypes-javax.sound.midi.Sequence-"><code>getMidiFileTypes(Sequence)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="write-javax.sound.midi.Sequence-int-java.io.File-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>write</h4> <pre>public static int write(<a href="../../../javax/sound/midi/Sequence.html" title="class in javax.sound.midi">Sequence</a> in,
+                        int type,
+                        <a href="../../../java/io/File.html" title="class in java.io">File</a> out)
+                 throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            写入表示所提供外部文件的MIDI文件类型的文件的字节流。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>in</code> - 包含要写入文件的MIDI数据的序列 
+           </dd>
+<dd>
+<code>type</code> - 要写入输出流的文件的文件类型 
+           </dd>
+<dd>
+<code>out</code> - 应写入文件数据的外部文件 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             写入文件的字节数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O异常 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果系统不支持文件类型 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/midi/MidiSystem.html#isFileTypeSupported-int-javax.sound.midi.Sequence-"><code>isFileTypeSupported(int, Sequence)</code></a> ， 
+            <a href="../../../javax/sound/midi/MidiSystem.html#getMidiFileTypes-javax.sound.midi.Sequence-"><code>getMidiFileTypes(Sequence)</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

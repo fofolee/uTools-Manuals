@@ -1,0 +1,412 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     javax.annotation.processing 
+   </div>
+<h2 class="title" title="Interface Processor">Interface Processor</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+        所有已知实现类：
+       </dt>
+<dd>
+<span><a href="../../../javax/annotation/processing/AbstractProcessor.html" title="javax.annotation.processing中的类">AbstractProcessor</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">Processor</span></pre>
+<div class="block">
+<span>注释处理器的界面。</span>
+<p> <span>注释处理发生在序列<a href="../../../javax/annotation/processing/RoundEnvironment.html" title="javax.annotation.processing中的接口">rounds</a> 。</span> <span>在每一轮中，处理器可能被要求在上一轮产生的源文件和类文件上发现的<a href="../../../javax/annotation/processing/Processor.html#process-java.util.Set-javax.annotation.processing.RoundEnvironment-">注释的</a>一个子集（process）。</span> <span>第一轮处理的输入是工具运行的初始输入;</span> <span>这些初始输入可以被认为是虚拟第五轮处理的输出。</span> <span>如果一个处理器被要求在给定的一轮进行处理，那么将被要求处理后续的回合，包括最后一轮，即使没有注释来处理它。</span> <span>工具基础设施还可能要求处理器处理由工具操作隐含生成的文件。</span> </p>
+<p> <span>A的每个实施<code>Processor</code>必须提供一个公共的无参数的构造函数通过工具来实例化处理器。</span> <span>工具基础设施将与实现此接口的类进行交互，如下所示：</span> </p>
+<ol>
+<li> <span>如果没有使用现有的<code>Processor</code>对象，要创建一个处理器的实例，该工具将调用处理器类的无参数构造函数。</span> </li>
+<li> <span>接下来，工具调用<a href="../../../javax/annotation/processing/Processor.html#init-javax.annotation.processing.ProcessingEnvironment-"><code>init</code></a>方法用适当<code>ProcessingEnvironment</code> 。</span> </li>
+<li> <span>此后，工具调用<a href="../../../javax/annotation/processing/Processor.html#getSupportedAnnotationTypes--"><code>getSupportedAnnotationTypes</code></a> ， <a href="../../../javax/annotation/processing/Processor.html#getSupportedOptions--"><code>getSupportedOptions</code></a>和<a href="../../../javax/annotation/processing/Processor.html#getSupportedSourceVersion--"><code>getSupportedSourceVersion</code></a> 。</span> <span>这些方法只能在每次运行时调用一次，而不是每轮调用。</span> </li>
+<li> <span>适当时，该工具在<code>Processor</code>对象上调用<a href="../../../javax/annotation/processing/Processor.html#process-java.util.Set-javax.annotation.processing.RoundEnvironment-"><code>process</code></a>方法;</span> <span><em>不会</em>为每一轮创建一个新的<code>Processor</code>对象。</span> </li>
+</ol>
+<span>如果在没有遵循上述协议的情况下创建和使用处理器对象，则该接口规范未定义处理器的行为。</span>
+<p> <span>该工具使用<i>发现过程</i>来查找注释处理器并决定是否应该运行它们。</span> <span>通过配置工具，可以控制一组潜在的处理器。</span> <span>例如，对于一个<a href="../../../javax/tools/JavaCompiler.html" title="javax.tools中的接口"><code>JavaCompiler</code></a>运行候选处理器的列表可以是<a href="../../../javax/tools/JavaCompiler.CompilationTask.html#setProcessors-java.lang.Iterable-">set directly</a>或通过受控<a href="../../../javax/tools/StandardLocation.html#ANNOTATION_PROCESSOR_PATH">search path</a>用于<a href="../../../java/util/ServiceLoader.html" title="java.util中的类">service-style</a>查找。</span> <span>其他工具实现可能具有不同的配置机制，如命令行选项;</span> <span>有关详细信息，请参阅特定工具的文档。</span> <span>哪些处理器的工具要求到<a href="../../../javax/annotation/processing/Processor.html#process-java.util.Set-javax.annotation.processing.RoundEnvironment-">run</a>是类型注释的功能<em><a href="../../../javax/lang/model/AnnotatedConstruct.html" title="javax.lang.model中的接口">present</a></em>上<a href="../../../javax/annotation/processing/RoundEnvironment.html#getRootElements--">root elements</a> ，什么<a href="../../../javax/annotation/processing/Processor.html#getSupportedAnnotationTypes--">annotation types a processor supports</a> ，以及是否处理器<a href="../../../javax/annotation/processing/Processor.html#process-java.util.Set-javax.annotation.processing.RoundEnvironment-">claims the annotation types it processes</a> 。</span> <span>处理器将被要求处理其支持的注释类型的子集，可能是一个空集。</span> <span>对于给定的一轮，该工具计算出在根元素中包含的元素上的注释类型集合。</span> <span>如果存在至少一个注释类型，那么当处理器声明注释类型时，它们将从一组不匹配的注释类型中移除。</span> <span>当该组为空或没有更多的处理器可用时，该轮已经运行完成。</span> <span>如果没有注释类型目前，注释处理仍然发生，但是其支持处理所有注释类型中，只有<i>通用处理器</i> <code>"*"</code>可以声称注释类型的（空）集，。</span> </p>
+<p> <span>如果存在于包含在一个回合的根元素内的元素上存在该类型的至少一个注释，则认为注释类型存在。</span> <span>为此，一个类型参数被认为是由它的<a href="../../../javax/lang/model/element/TypeParameterElement.html#getGenericElement--">generic element包围</a> 。</span> <span>在计算是否存在注释类型时，忽略type uses上的<a href="../../../java/lang/annotation/ElementType.html#TYPE_USE">注释</a> ，而不是元素上的注释。</span> </p>
+<p> <span>如果符合<code>AnnotatedConstruct</code>中给出的定义， <a href="../../../javax/lang/model/AnnotatedConstruct.html" title="javax.lang.model中的接口">则</a>存在<a href="../../../javax/lang/model/AnnotatedConstruct.html" title="javax.lang.model中的接口">注释</a> 。</span> <span>简而言之，如果通过继承直接存在或存在，则认为出于发现的目的存在注释。</span> <span>注释<em>不</em>被认为是本凭借由容器注释被包裹。</span> <span>在操作上，这相当于一个元素上存在的注释，当且仅当它被包含在该元素上调用的<a href="../../../javax/lang/model/util/Elements.html#getAllAnnotationMirrors-javax.lang.model.element.Element-"><code>Elements.getAllAnnotationMirrors(Element)</code></a>的结果中<a href="../../../javax/lang/model/util/Elements.html#getAllAnnotationMirrors-javax.lang.model.element.Element-">时</a> 。</span> <span>由于容器注释中的注释不被认为是存在的，为了正确处理<a href="../../../java/lang/annotation/Repeatable.html" title="java.lang.annotation中的注释">repeatable annotation types</a> ，建议处理器将可重复的注释类型及其包含的注释类型同时包含在<a href="../../../javax/annotation/processing/Processor.html#getSupportedAnnotationTypes--">处理器</a>的一组supported annotation types中。</span> </p>
+<p> <span>请注意，如果处理器支持<code>"*"</code>并返回<code>true</code> ，则声明所有注释。</span> <span>因此，用于例如实现附加有效性检查的通用处理器应该返回<code>false</code> ，以便不阻止其他这样的检查器能够运行。</span> </p>
+<p> <span>如果处理器引发未捕获的异常，则该工具可能会停止其他活动注释处理器。</span> <span>如果处理器出现错误，则本轮将运行完成，随后的一轮将显示<a href="../../../javax/annotation/processing/RoundEnvironment.html#errorRaised--">error was raised</a> 。</span> <span>由于注释处理器在协作环境中运行，所以处理器只能在没有错误恢复或报告可行的情况下抛出未捕获的异常。</span> </p>
+<p> <span>工具环境不需要支持以多线程方式访问环境资源的注释处理器（ <a href="../../../javax/annotation/processing/RoundEnvironment.html" title="javax.annotation.processing中的接口">per round</a>或<a href="../../../javax/annotation/processing/ProcessingEnvironment.html" title="javax.annotation.processing中的接口">cross-round</a> ）。</span> </p>
+<p> <span>如果返回有关注解处理器的配置信息的方法返回<code>null</code> ，则返回其他无效输入或抛出异常，则工具基础设施必须将其视为错误条件。</span> </p>
+<p> <span>为了在不同的工具实现中运行时保持稳定，注释处理器应具有以下属性：</span> </p>
+<ol>
+<li> <span>处理给定输入的结果不是存在或不存在其他输入（正交性）的函数。</span> </li>
+<li> <span>处理相同的输入产生相同的输出（一致性）。</span> </li>
+<li> <span>处理输入<i>A</i>后跟处理输入<i>B</i>相当于处理<i>B</i>然后<i>A</i> （交换）</span> </li>
+<li> <span>处理输入并不依赖于其他注释处理器的输出（独立性）</span> </li>
+</ol>
+<p> <span><a href="../../../javax/annotation/processing/Filer.html" title="javax.annotation.processing中的接口"><code>Filer</code></a>接口讨论了处理器如何对文件进行操作的限制。</span> </p>
+<p> <span>请注意，此接口的实现者可能会发现方便扩展<a href="../../../javax/annotation/processing/AbstractProcessor.html" title="javax.annotation.processing中的类"><code>AbstractProcessor</code></a>而不是直接实现此接口。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.6 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/lang/Iterable.html" title="interface in java.lang">Iterable</a>&lt;? extends <a href="../../../javax/annotation/processing/Completion.html" title="interface in javax.annotation.processing">Completion</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/annotation/processing/Processor.html#getCompletions-javax.lang.model.element.Element-javax.lang.model.element.AnnotationMirror-javax.lang.model.element.ExecutableElement-java.lang.String-">getCompletions</a></span>(<a href="../../../javax/lang/model/element/Element.html" title="interface in javax.lang.model.element">Element</a> element, <a href="../../../javax/lang/model/element/AnnotationMirror.html" title="interface in javax.lang.model.element">AnnotationMirror</a> annotation, <a href="../../../javax/lang/model/element/ExecutableElement.html" title="interface in javax.lang.model.element">ExecutableElement</a> member, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> userText)</code>
+<div class="block">
+              返回到工具基础结构，可以对注释的建议完成进行迭代。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/annotation/processing/Processor.html#getSupportedAnnotationTypes--">getSupportedAnnotationTypes</a></span>()</code>
+<div class="block">
+              返回此处理器支持的注释类型的名称。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/annotation/processing/Processor.html#getSupportedOptions--">getSupportedOptions</a></span>()</code>
+<div class="block">
+              返回此处理器识别的选项。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../javax/lang/model/SourceVersion.html" title="enum in javax.lang.model">SourceVersion</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/annotation/processing/Processor.html#getSupportedSourceVersion--">getSupportedSourceVersion</a></span>()</code>
+<div class="block">
+              返回此注释处理器支持的最新的源版本。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/annotation/processing/Processor.html#init-javax.annotation.processing.ProcessingEnvironment-">init</a></span>(<a href="../../../javax/annotation/processing/ProcessingEnvironment.html" title="interface in javax.annotation.processing">ProcessingEnvironment</a> processingEnv)</code>
+<div class="block">
+              使用处理环境初始化处理器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/annotation/processing/Processor.html#process-java.util.Set-javax.annotation.processing.RoundEnvironment-">process</a></span>(<a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;? extends <a href="../../../javax/lang/model/element/TypeElement.html" title="interface in javax.lang.model.element">TypeElement</a>&gt; annotations, <a href="../../../javax/annotation/processing/RoundEnvironment.html" title="interface in javax.annotation.processing">RoundEnvironment</a> roundEnv)</code>
+<div class="block">
+              对来自前一轮的类型元素处理一组注释类型，并返回此处理器是否声明这些注释类型。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getSupportedOptions--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSupportedOptions</h4> <pre><a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt; getSupportedOptions()</pre>
+<div class="block">
+<span>返回此处理器识别的选项。</span>
+<span>处理工具的实现必须提供一种从处理器特定的选项中传递给工具本身的选项的方式，参见<a href="../../../javax/annotation/processing/ProcessingEnvironment.html#getOptions--"><code>getOptions</code></a> 。</span>
+<p> <span>在该组中返回的每个字符串必须的周期分隔的序列<a href="../../../javax/lang/model/SourceVersion.html#isIdentifier-java.lang.CharSequence-">identifiers</a> ：</span> </p>
+<blockquote>
+<span>
+<dl>
+<dt>
+<i>SupportedOptionString:</i>
+</dt>
+<dd>
+<i>Identifiers</i>
+</dd>
+<dt>
+<i>Identifiers:</i>
+</dt>
+<dd>
+<i>Identifier</i>
+</dd>
+<dd>
+<i>Identifier</i>
+<code>.</code>
+<i>Identifiers</i>
+</dd>
+<dt>
+<i>Identifier:</i>
+</dt>
+<dd>
+                Syntactic identifier, including keywords and literals 
+              </dd>
+</dl></span>
+</blockquote>
+<p> <span>工具可能会使用这些信息来确定用户提供的任何选项是否被任何处理器无法识别，在这种情况下，它可能希望报告警告。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此处理器识别的选项或空集合（如果没有） 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/annotation/processing/SupportedOptions.html" title="javax.annotation.processing中的注释"><code>SupportedOptions</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getSupportedAnnotationTypes--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSupportedAnnotationTypes</h4> <pre><a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt; getSupportedAnnotationTypes()</pre>
+<div class="block">
+<span>返回此处理器支持的注释类型的名称。</span>
+<span>结果的元素可能是支持的注释类型的规范（完全限定）名称。</span>
+<span>或者，它可以是以“ <tt><i>name.</i></tt> ”开头的具有规范名称的所有注释类型的集合的形式“ <tt><i>name</i>.*</tt> ”。</span>
+<span>最后， <code>"*"</code>本身表示所有注释类型的集合，包括空集。</span>
+<span>请注意，处理器不应声称<code>"*"</code> ，除非它实际上处理所有文件;</span>
+<span>声称不必要的注释可能会导致某些环境中的性能下降。</span>
+<p> <span>在集合中返回的每个字符串必须被以下语法接受：</span> </p>
+<blockquote>
+<span>
+<dl>
+<dt>
+<i>SupportedAnnotationTypeString:</i>
+</dt>
+<dd>
+<i>TypeName</i>
+<i>DotStar</i>
+<sub><i>opt</i></sub>
+</dd>
+<dd>
+<tt>*</tt>
+</dd>
+<dt>
+<i>DotStar:</i>
+</dt>
+<dd>
+<tt>.</tt>
+<tt>*</tt>
+</dd>
+</dl></span>
+</blockquote>
+<span>其中<i>TypeName</i>如<cite>The Java™ Language Specification</cite>中所定义。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该处理器支持的注释类型的名称 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/annotation/processing/SupportedAnnotationTypes.html" title="javax.annotation.processing中的注释"><code>SupportedAnnotationTypes</code></a></span>
+</dd>
+<dt>
+<span class="simpleTagLabel">See <cite> The Java™ Language Specification</cite>:</span>
+</dt>
+<dd>
+             3.8标识符，6.5.5类型名称的含义 
+           </dd>
+</dl> </li>
+</ul> <a name="getSupportedSourceVersion--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSupportedSourceVersion</h4> <pre><a href="../../../javax/lang/model/SourceVersion.html" title="enum in javax.lang.model">SourceVersion</a> getSupportedSourceVersion()</pre>
+<div class="block">
+            返回此注释处理器支持的最新的源版本。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该注释处理器支持的最新的源版本。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/annotation/processing/SupportedSourceVersion.html" title="javax.annotation.processing中的注释"><code>SupportedSourceVersion</code></a> ， <a href="../../../javax/annotation/processing/ProcessingEnvironment.html#getSourceVersion--"><code>ProcessingEnvironment.getSourceVersion()</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="init-javax.annotation.processing.ProcessingEnvironment-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>init</h4> <pre>void init(<a href="../../../javax/annotation/processing/ProcessingEnvironment.html" title="interface in javax.annotation.processing">ProcessingEnvironment</a> processingEnv)</pre>
+<div class="block">
+            使用处理环境初始化处理器。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>processingEnv</code> - 工具框架为处理器提供的设施的环境 
+           </dd>
+</dl> </li>
+</ul> <a name="process-java.util.Set-javax.annotation.processing.RoundEnvironment-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>process</h4> <pre>boolean process(<a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;? extends <a href="../../../javax/lang/model/element/TypeElement.html" title="interface in javax.lang.model.element">TypeElement</a>&gt; annotations,
+                <a href="../../../javax/annotation/processing/RoundEnvironment.html" title="interface in javax.annotation.processing">RoundEnvironment</a> roundEnv)</pre>
+<div class="block">
+<span>对来自前一轮的类型元素处理一组注释类型，并返回此处理器是否声明这些注释类型。</span>
+<span>如果返回<code>true</code> ，则会声明注释类型，并且不会要求后续处理器处理它们;</span>
+<span>如果返回<code>false</code> ，则注释类型是无人认领的，随后的处理器可能被要求处理它们。</span>
+<span>处理器可以总是返回相同的布尔值，或者可以根据所选择的标准来改变结果。</span>
+<p> <span>如果处理器支持<code>"*"</code>且根元素没有注释，则输入集将为空。</span> <span>A <code>Processor</code>必须优雅地处理一组空的注释。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>annotations</code> - 请求处理的注释类型 
+           </dd>
+<dd>
+<code>roundEnv</code> - 有关当前和前一轮的信息的环境 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该处理器是否声明该组注释类型 
+           </dd>
+</dl> </li>
+</ul> <a name="getCompletions-javax.lang.model.element.Element-javax.lang.model.element.AnnotationMirror-javax.lang.model.element.ExecutableElement-java.lang.String-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getCompletions</h4> <pre><a href="../../../java/lang/Iterable.html" title="interface in java.lang">Iterable</a>&lt;? extends <a href="../../../javax/annotation/processing/Completion.html" title="interface in javax.annotation.processing">Completion</a>&gt; getCompletions(<a href="../../../javax/lang/model/element/Element.html" title="interface in javax.lang.model.element">Element</a> element,
+                                              <a href="../../../javax/lang/model/element/AnnotationMirror.html" title="interface in javax.lang.model.element">AnnotationMirror</a> annotation,
+                                              <a href="../../../javax/lang/model/element/ExecutableElement.html" title="interface in javax.lang.model.element">ExecutableElement</a> member,
+                                              <a href="../../../java/lang/String.html" title="class in java.lang">String</a> userText)</pre>
+<div class="block">
+<span>返回到工具基础结构，可以对注释的建议完成进行迭代。</span>
+<span>由于要求完成，关于注释提供的信息可能不完整，就像源代码片段一样。</span>
+<span>处理器可能返回一个空的迭代。</span>
+<span>注释处理器应该集中精力为注释成员提供额外的有效约束的处理器已知的完整性，例如值为1到10的<code>int</code>成员或应该被已知语法识别的字符串成员，例如正则表达式或URL。</span>
+<p> <span>由于不完整的程序被建模，一些参数可能只有部分信息，或者可能是<code>null</code> 。</span> <span><code>element</code>和<code>userText</code>至少一个必须是非<code>null</code> 。</span> <span>如果<code>element</code>是非<code>null</code> ，则<code>annotation</code>和<code>member</code>可以是<code>null</code> 。</span> <span>处理器可能不会抛出<code>NullPointerException</code>如果某些参数是<code>null</code> ;</span> <span>如果处理器根据提供的信息没有提供完成，则可以返回空的迭代。</span> <span>处理器还可以使用空值字符串返回单个完成，并且描述为什么没有完成的消息。</span> </p>
+<p> <span>完成信息丰富，并可能反映注释处理器执行的其他有效性检查。</span> <span>例如，考虑简单的注释：</span> </p>
+<blockquote>
+<span><pre>
+ @MersennePrime {
+    int value();
+ }
+ </pre></span>
+</blockquote>
+<span>（A Mersenne素数是素数的形式的2 <sup><i>N</i></sup> - 1）给定一个<code>AnnotationMirror</code>此注释类型，在所有这样的素数的列表<code>int</code>范围而不检查任何其他参数可以返回<code>getCompletions</code> ：</span>
+<blockquote>
+<span><pre>
+ import static javax.annotation.processing.Completions.*;
+ ...
+ return Arrays.asList(<a href="../../../javax/annotation/processing/Completions.html#of-java.lang.String-"><code>of</code></a>("3"),
+                      of("7"),
+                      of("31"),
+                      of("127"),
+                      of("8191"),
+                      of("131071"),
+                      of("524287"),
+                      of("2147483647"));
+ </pre></span>
+</blockquote>
+<span>一整套完整的数据将包括每个素材的数量：</span>
+<blockquote>
+<span><pre>
+ return Arrays.asList(<a href="../../../javax/annotation/processing/Completions.html#of-java.lang.String-java.lang.String-"><code>of</code></a>("3",          "M2"),
+                      of("7",          "M3"),
+                      of("31",         "M5"),
+                      of("127",        "M7"),
+                      of("8191",       "M13"),
+                      of("131071",     "M17"),
+                      of("524287",     "M19"),
+                      of("2147483647", "M31"));
+ </pre></span>
+</blockquote>
+<span>但是，如果<code>userText</code>可用，则可以检查是否只有Mersenne素数的一个子集是有效的。</span>
+<span>例如，如果用户键入</span>
+<blockquote>
+<span><code> @MersennePrime(1 </code></span>
+</blockquote>
+<span><code>userText</code>的值将为<code>"1"</code> ;</span>
+<span>只有两个素数是可能的完成：</span>
+<blockquote>
+<span><pre>
+ return Arrays.asList(of("127",        "M7"),
+                      of("131071",     "M17"));
+ </pre></span>
+</blockquote>
+<span>有时没有有效的完成是可能的。</span>
+<span>例如，从9开始，没有范围内的梅森素食</span>
+<blockquote>
+<span><code> @MersennePrime(9 </code></span>
+</blockquote>
+<span>在这种情况下，适当的回应是返回一个空的完成列表，</span>
+<blockquote>
+<span><pre>
+ return Collections.emptyList();
+ </pre></span>
+</blockquote>
+<span>或一个空的完成与一个有用的消息</span>
+<blockquote>
+<span><pre>
+ return Arrays.asList(of("", "No in-range Mersenne primes start with 9"));
+ </pre></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>element</code> - 要注释的元素 
+           </dd>
+<dd>
+<code>annotation</code> - （可能是部分的）注释被应用于元素 
+           </dd>
+<dd>
+<code>member</code> - 注释成员返回可能的完成 
+           </dd>
+<dd>
+<code>userText</code> - 要完成的源代码文本 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             建议完成注释 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

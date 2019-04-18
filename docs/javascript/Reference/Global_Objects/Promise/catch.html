@@ -1,0 +1,127 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong>catch()</strong> 方法返回一个<a class="new" href="/zh-CN/docs/Web/API/Promise" rel="nofollow">Promise</a>，并且处理拒绝的情况。它的行为与调用<a href="Reference/Global_Objects/Promise/then" title="then() 方法返回一个  Promise 。它最多需要有两个参数：Promise 的成功和失败情况的回调函数。"><code>Promise.prototype.then(undefined, onRejected)</code></a> 相同。 (事实上, calling <code>obj.catch(onRejected)</code> 内部calls <code>obj.then(undefined, onRejected)</code>).</p>
+<h2 id="Syntax" name="Syntax" style="line-height: 30px;">语法</h2>
+<pre class="syntaxbox" style="font-size: 14px;"><var>p.catch(onRejected)</var>;
+
+p.catch(function(reason) {
+   // 拒绝
+});
+</pre>
+<h3 id="参数" style="line-height: 24px;">参数</h3>
+<dl>
+<dt><strong>onRejected</strong></dt>
+<dd>当Promise 被rejected时,被调用的一个<a href="Reference/Function" title="此页面仍未被本地化, 期待您的翻译!"><code>Function</code></a>。 该函数拥有一个参数：</dd>
+<dd><code>reason</code>    rejection 的原因。</dd>
+<dd>
+<p> 如果 <code>onRejected</code> 抛出一个错误或返回一个本身失败的 Promise ，  通过 <code>catch()</code> 返回的Promise 被rejected；否则，它将显示为成功（resolved）。 </p>
+<h3 id="返回值">返回值</h3>
+<p>一个<a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a>.</p>
+</dd>
+</dl>
+<h2 id="Description" name="Description" style="line-height: 30px;">描述</h2>
+<p><code>catch </code>方法可以用于您的promise组合中的错误处理。</p>
+<p>Internally calls <code>Promise.prototype.then</code> on the object upon which is called, passing the parameters <code>undefined</code> and the <code>onRejected</code> handler received; then returns the value of that call (which is a <a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a>).</p>
+<h2 id="示例" style="line-height: 30px;">示例</h2>
+<h3 id="使用链式语句的_catch方法" style="line-height: 24px;">使用链式语句的 <code>catch</code>方法</h3>
+<pre class="brush: js"><code>var p1 = new Promise(function(resolve, reject) {
+  resolve('Success');
+});</code>
+
+p1.then(function(value) {
+  console.log(value); // "Success!"
+  throw 'oh, no!';
+}).catch(function(e) {
+  console.log(e); // "oh, no!"
+}).then(function(){
+  console.log('after a catch the chain is restored');
+}, function () {
+  console.log('Not fired due to the catch');
+});
+
+// 以下行为与上述相同
+p1.then(function(value) {
+  console.log(value); // "Success!"
+  return Promise.reject('oh, no!');
+}).catch(function(e) {
+  console.log(e); // "oh, no!"
+}).then(function(){
+  console.log('after a catch the chain is restored');
+}, function () {
+  console.log('Not fired due to the catch');
+});</pre>
+<h3 id="捕获抛出的错误" style="line-height: 30px;">捕获抛出的错误</h3>
+<pre class="brush: js"><code>// 抛出一个错误，大多数时候将调用catch方法
+var p1 = new Promise(function(resolve, reject) {
+  throw 'Uh-oh!';
+});
+
+p1.catch(function(e) {
+  console.log(e); // "Uh-oh!"
+});
+
+// 在异步函数中抛出的错误不会被catch捕获到
+var p2 = new Promise(function(resolve, reject) {
+  setTimeout(function() {
+    throw 'Uncaught Exception!';
+  }, 1000);
+});
+
+p2.catch(function(e) {
+  console.log(e); // 不会执行
+});
+
+// 在resolve()后面抛出的错误会被忽略
+var p3 = new Promise(function(resolve, reject) {
+  resolve();
+  throw 'Silenced Exception!';
+});
+
+p3.catch(function(e) {
+   console.log(e); // 不会执行
+});</code></pre>
+<h3 id="如果已决议" style="line-height: 30px;">如果已决议</h3>
+<pre><code>//创建一个新的 Promise ，且已决议
+var p1 = Promise.resolve("calling next");
+
+var p2 = p1.catch(function (reason) {
+    //这个方法永远不会调用
+    console.log("catch p1!");
+    console.log(reason);
+});
+
+p2.then(function (value) {
+    console.log("next promise's onFulfilled"); /* next promise's onFulfilled */
+    console.log(value); /* calling next */
+}, function (reason) {
+    console.log("next promise's onRejected");
+    console.log(reason);
+});</code></pre>
+<h2 id="规范" style="line-height: 30px;">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规范</th>
+<th scope="col">状态</th>
+<th scope="col">备注</th>
+</tr>
+<tr>
+<td><a class="external" href="https://github.com/domenic/promises-unwrapping" rel="noopener">domenic/promises-unwrapping</a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition in an ECMA standard.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-promise.prototype.catch" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Promise.prototype.catch</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性" style="line-height: 30px;">浏览器兼容性</h2>
+<p>No compatibility data found. Please contribute data for "javascript/promise" (depth: Promise.prototype.catch) to the <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">MDN compatibility data repository</a>.</p>
+<h2 id="相关链接" style="line-height: 30px;">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a></li>
+<li><a href="Reference/Global_Objects/Promise/then" title="then() 方法返回一个  Promise 。它最多需要有两个参数：Promise 的成功和失败情况的回调函数。"><code>Promise.prototype.then()</code></a></li>
+</ul>
+</article>

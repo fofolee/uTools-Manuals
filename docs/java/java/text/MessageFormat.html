@@ -1,0 +1,1116 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.text 
+   </div>
+<h2 class="title" title="Class MessageFormat">Class MessageFormat</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../java/text/Format.html" title="class in java.text">java.text.Format</a></li>
+<li>
+<ul class="inheritance">
+<li>java.text.MessageFormat</li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../java/lang/Cloneable.html" title="java.lang中的接口">Cloneable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">MessageFormat</span>
+extends <a href="../../java/text/Format.html" title="class in java.text">Format</a></pre>
+<div class="block">
+<span><code>MessageFormat</code>提供了一种以语言中立的方式产生连接消息的方法。</span>
+<span>使用它来构建为最终用户显示的消息。</span>
+<p> <span><code>MessageFormat</code>采取一组对象，对它们进行格式化，然后将格式化的字符串插入到适当位置的模式中。</span> </p>
+<p> <span><strong>注意：</strong> <code>MessageFormat</code>与其他<code>Format</code>类别不同之处在于，您创建一个<code>MessageFormat</code>对象，其中一个构造函数（不是以<code>getInstance</code>样式工厂方法）。</span> <span>工厂方法不是必需的，因为<code>MessageFormat</code>本身不实现区域设置特定的行为。</span> <span>任何特定于语言环境的行为都由您提供的模式以及用于插入参数的子格式定义。</span> </p>
+<h3> <span><a name="patterns">Patterns and Their Interpretation</a></span> </h3>
+<span><code>MessageFormat</code>使用以下形式的模式：</span>
+<blockquote>
+<span><pre>
+ <i>MessageFormatPattern:</i>
+         <i>String</i>
+         <i>MessageFormatPattern</i> <i>FormatElement</i> <i>String</i>
+
+ <i>FormatElement:</i>
+         { <i>ArgumentIndex</i> }
+         { <i>ArgumentIndex</i> , <i>FormatType</i> }
+         { <i>ArgumentIndex</i> , <i>FormatType</i> , <i>FormatStyle</i> }
+
+ <i>FormatType: one of </i>
+         number date time choice
+
+ <i>FormatStyle:</i>
+         short
+         medium
+         long
+         full
+         integer
+         currency
+         percent
+         <i>SubformatPattern</i>
+ </pre></span>
+</blockquote>
+<p> <span>在<i>字符串中</i> ，可以使用一对单引号来引用除单引号以外的任何字符。</span> <span>例如，模式字符串<code>"'{0}'"</code>表示字符串<code>"{0}"</code> ，而不是<i>FormatElement</i> 。</span> <span>单引号本身必须由两个单引号表示<code>''</code>整个<i>字符串</i> 。</span> <span>例如，模式字符串<code>"'{''}'"</code>被解释为<code>'{</code> （起始引号和左大括号）， <code>''</code> （单引号）和<code>}'</code> （右括号括号和引号结尾）的<code>'{'</code> ， <em>不是</em> <code>'{'</code>和<code>'}'</code> （引用左右大括号）：代表字符串<code>"{'}"</code> ， <em>而不是</em> <code>"{}"</code> 。</span> </p>
+<p> <span><i>SubformatPattern</i>由其对应的子格式解释，并且子格式依赖模式规则适用。</span> <span>例如，模式字符串<code>"{1,number,<u>$'#',##</u>}"</code> （ <i>SubformatPattern</i> with underline）将产生带有引号的数字格式，结果如： <code>"$#31,45"</code> 。</span> <span>有关详细信息，请参阅每个<code>Format</code>子类文档。</span> </p>
+<p> <span>任何不匹配的报价在给定模式结束时被视为关闭。</span> <span>例如，模式字符串<code>"'{0}"</code>被视为模式<code>"'{0}'"</code> 。</span> </p>
+<p> <span>任何不引用花样的花括号必须平衡。</span> <span>例如， <code>"ab {0} de"</code>和<code>"ab '}' de"</code>是有效的模式，但<code>"ab {0'}' de"</code> ， <code>"ab } de"</code>和<code>"''{''"</code>都没有。</span> </p>
+<dl>
+<dt>
+<span><b>警告：</b></span>
+</dt>
+<dd>
+<span>不幸的是，消息格式模式中使用引号的规则显得有些混乱。</span>
+<span>特别是，地方主义者并不总是明确单引号是否需要加倍。</span>
+<span>确保通知本地化有关规则，并告诉他们（例如，通过使用资源包源文件中的注释），该字符串将被处理<code>MessageFormat</code> 。</span>
+<span>请注意，本地化程序可能需要在原始版本没有转换的字符串中使用单引号。</span>
+</dd>
+</dl>
+<p> <span>所述<i>ArgumentIndex</i>值是使用数字写入一个非负整数<code>'0'</code>通过<code>'9'</code> ，并代表一个指数到<code>arguments</code>数组传递到<code>format</code>方法或由所述返回的结果阵列<code>parse</code>方法。</span> </p>
+<p> <span><i>FormatType</i>和<i>FormatStyle</i>值用于为format元素创建一个<code>Format</code>实例。</span> <span>下表显示了值映射到<code>Format</code>实例。</span> <span>表中未显示的组合是非法的。</span> <span><i>SubformatPattern</i>必须是所使用的<code>Format</code>子类的有效模式字符串。</span> </p>
+<span>  FormatType  FormatStyle  Subformat Created    <i>(none)</i> <i>(none)</i> <code>null</code> <code>number</code> <i>(none)</i> <a href="../../java/text/NumberFormat.html#getInstance-java.util.Locale-"><code>NumberFormat.getInstance</code></a><code>(getLocale())</code> <code>integer</code> <a href="../../java/text/NumberFormat.html#getIntegerInstance-java.util.Locale-"><code>NumberFormat.getIntegerInstance</code></a><code>(getLocale())</code> <code>currency</code> <a href="../../java/text/NumberFormat.html#getCurrencyInstance-java.util.Locale-"><code>NumberFormat.getCurrencyInstance</code></a><code>(getLocale())</code> <code>percent</code> <a href="../../java/text/NumberFormat.html#getPercentInstance-java.util.Locale-"><code>NumberFormat.getPercentInstance</code></a><code>(getLocale())</code> <i>SubformatPattern</i> <code>new</code> <a href="../../java/text/DecimalFormat.html#DecimalFormat-java.lang.String-java.text.DecimalFormatSymbols-"><code>DecimalFormat</code></a><code>(subformatPattern,</code> <a href="../../java/text/DecimalFormatSymbols.html#getInstance-java.util.Locale-"><code>DecimalFormatSymbols.getInstance</code></a><code>(getLocale()))</code> <code>date</code> <i>(none)</i> <a href="../../java/text/DateFormat.html#getDateInstance-int-java.util.Locale-"><code>DateFormat.getDateInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#DEFAULT"><code>DateFormat.DEFAULT</code></a><code>, getLocale())</code> <code>short</code> <a href="../../java/text/DateFormat.html#getDateInstance-int-java.util.Locale-"><code>DateFormat.getDateInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#SHORT"><code>DateFormat.SHORT</code></a><code>, getLocale())</code> <code>medium</code> <a href="../../java/text/DateFormat.html#getDateInstance-int-java.util.Locale-"><code>DateFormat.getDateInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#DEFAULT"><code>DateFormat.DEFAULT</code></a><code>, getLocale())</code> <code>long</code> <a href="../../java/text/DateFormat.html#getDateInstance-int-java.util.Locale-"><code>DateFormat.getDateInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#LONG"><code>DateFormat.LONG</code></a><code>, getLocale())</code> <code>full</code> <a href="../../java/text/DateFormat.html#getDateInstance-int-java.util.Locale-"><code>DateFormat.getDateInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#FULL"><code>DateFormat.FULL</code></a><code>, getLocale())</code> <i>SubformatPattern</i> <code>new</code> <a href="../../java/text/SimpleDateFormat.html#SimpleDateFormat-java.lang.String-java.util.Locale-"><code>SimpleDateFormat</code></a><code>(subformatPattern, getLocale())</code> <code>time</code> <i>(none)</i> <a href="../../java/text/DateFormat.html#getTimeInstance-int-java.util.Locale-"><code>DateFormat.getTimeInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#DEFAULT"><code>DateFormat.DEFAULT</code></a><code>, getLocale())</code> <code>short</code> <a href="../../java/text/DateFormat.html#getTimeInstance-int-java.util.Locale-"><code>DateFormat.getTimeInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#SHORT"><code>DateFormat.SHORT</code></a><code>, getLocale())</code> <code>medium</code> <a href="../../java/text/DateFormat.html#getTimeInstance-int-java.util.Locale-"><code>DateFormat.getTimeInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#DEFAULT"><code>DateFormat.DEFAULT</code></a><code>, getLocale())</code> <code>long</code> <a href="../../java/text/DateFormat.html#getTimeInstance-int-java.util.Locale-"><code>DateFormat.getTimeInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#LONG"><code>DateFormat.LONG</code></a><code>, getLocale())</code> <code>full</code> <a href="../../java/text/DateFormat.html#getTimeInstance-int-java.util.Locale-"><code>DateFormat.getTimeInstance</code></a><code>(</code><a href="../../java/text/DateFormat.html#FULL"><code>DateFormat.FULL</code></a><code>, getLocale())</code> <i>SubformatPattern</i> <code>new</code> <a href="../../java/text/SimpleDateFormat.html#SimpleDateFormat-java.lang.String-java.util.Locale-"><code>SimpleDateFormat</code></a><code>(subformatPattern, getLocale())</code> <code>choice</code> <i>SubformatPattern</i> <code>new</code> <a href="../../java/text/ChoiceFormat.html#ChoiceFormat-java.lang.String-"><code>ChoiceFormat</code></a><code>(subformatPattern)</code> </span>
+<table border="1" summary="Shows how FormatType and FormatStyle values map to Format instances">
+</table>
+<h4> <span>使用信息</span> </h4>
+<p> <span>以下是一些使用示例。</span> <span>在真正的国际化程序中，消息格式模式和其他静态字符串当然将从资源束中获取。</span> <span>其他参数将在运行时动态确定。</span> </p>
+<p> <span>第一个例子使用静态方法<code>MessageFormat.format</code> ，内部创建一个<code>MessageFormat</code>进行一次性使用：</span> </p>
+<blockquote>
+<span><pre>
+ int planet = 7;
+ String event = "a disturbance in the Force";
+
+ String result = MessageFormat.format(
+     "At {1,time} on {1,date}, there was {2} on planet {0,number,integer}.",
+     planet, new Date(), event);
+ </pre></span>
+</blockquote>
+<span>输出为：</span>
+<blockquote>
+<span><pre>
+ At 12:30 PM on Jul 3, 2053, there was a disturbance in the Force on planet 7.
+ </pre></span>
+</blockquote>
+<p> <span>以下示例创建可重复使用的<code>MessageFormat</code>实例：</span> </p>
+<blockquote>
+<span><pre>
+ int fileCount = 1273;
+ String diskName = "MyDisk";
+ Object[] testArgs = {new Long(fileCount), diskName};
+
+ MessageFormat form = new MessageFormat(
+     "The disk \"{1}\" contains {0} file(s).");
+
+ System.out.println(form.format(testArgs));
+ </pre></span>
+</blockquote>
+<span>fileCount的输出值<code>fileCount</code> ：</span>
+<blockquote>
+<span><pre>
+ The disk "MyDisk" contains 0 file(s).
+ The disk "MyDisk" contains 1 file(s).
+ The disk "MyDisk" contains 1,273 file(s).
+ </pre></span>
+</blockquote>
+<p> <span>对于更复杂的模式，您可以使用<code>ChoiceFormat</code>为单数和复数生成正确的形式：</span> </p>
+<blockquote>
+<span><pre>
+ MessageFormat form = new MessageFormat("The disk \"{1}\" contains {0}.");
+ double[] filelimits = {0,1,2};
+ String[] filepart = {"no files","one file","{0,number} files"};
+ ChoiceFormat fileform = new ChoiceFormat(filelimits, filepart);
+ form.setFormatByArgumentIndex(0, fileform);
+
+ int fileCount = 1273;
+ String diskName = "MyDisk";
+ Object[] testArgs = {new Long(fileCount), diskName};
+
+ System.out.println(form.format(testArgs));
+ </pre></span>
+</blockquote>
+<span>具有不同值的输出为<code>fileCount</code> ：</span>
+<blockquote>
+<span><pre>
+ The disk "MyDisk" contains no files.
+ The disk "MyDisk" contains one file.
+ The disk "MyDisk" contains 1,273 files.
+ </pre></span>
+</blockquote>
+<p> <span>您可以以<code>ChoiceFormat</code>方式创建ChoiceFormat，如上例所示，或通过使用模式。</span> <span>见<a href="../../java/text/ChoiceFormat.html" title="java.text中的类"><code>ChoiceFormat</code></a>以获取更多信息。</span> </p>
+<blockquote>
+<span><pre><code>
+ form.applyPattern(
+    "There {0,choice,0#are no files|1#is one file|1&lt;are {0,number,integer} files}.");
+ </code></pre></span>
+</blockquote>
+<p> <span><strong>注意：</strong>如上所述，由<code>ChoiceFormat</code>中的<code>MessageFormat</code>生成的字符串被视为特殊<code>MessageFormat</code> ;</span> <span>“{”的出现用于表示子格式，并导致递归。</span> <span>如果您以<code>MessageFormat</code>创建<code>MessageFormat</code>和<code>ChoiceFormat</code> （而不是使用字符串模式），则请小心不要产生自身递归的格式，这将导致无限循环。</span> </p>
+<p> <span>当单个参数在字符串中被多次解析时，最后一个匹配将是解析的最终结果。</span> <span>例如，</span> </p>
+<blockquote>
+<span><pre>
+ MessageFormat mf = new MessageFormat("{0,number,#.##}, {0,number,#.#}");
+ Object[] objs = {new Double(3.1415)};
+ String result = mf.format( objs );
+ // result now equals "3.14, 3.1"
+ objs = null;
+ objs = mf.parse(result, new ParsePosition(0));
+ // objs now equals {new Double(3.1)}
+ </pre></span>
+</blockquote>
+<p> <span>同样，使用包含多个相同参数的模式的<code>MessageFormat</code>对象进行解析将返回最后一个匹配项。</span> <span>例如，</span> </p>
+<blockquote>
+<span><pre>
+ MessageFormat mf = new MessageFormat("{0}, {0}, {0}");
+ String forParsing = "x, y, z";
+ Object[] objs = mf.parse(forParsing, new ParsePosition(0));
+ // result now equals {new String("z")}
+ </pre></span>
+</blockquote>
+<h4> <span><a name="synchronization">Synchronization</a></span> </h4>
+<p> <span>消息格式不同步。</span> <span>建议为每个线程创建单独的格式实例。</span> <span>如果多个线程同时访问格式，则必须在外部进行同步。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/util/Locale.html" title="java.util中的类"><code>Locale</code></a> ， <a href="../../java/text/Format.html" title="java.text中的类"><code>Format</code></a> ， <a href="../../java/text/NumberFormat.html" title="java.text中的类"><code>NumberFormat</code></a> ， <a href="../../java/text/DecimalFormat.html" title="java.text中的类"><code>DecimalFormat</code></a> ， <a href="../../java/text/DecimalFormatSymbols.html" title="java.text中的类"><code>DecimalFormatSymbols</code></a> ， <a href="../../java/text/ChoiceFormat.html" title="java.text中的类"><code>ChoiceFormat</code></a> ， <a href="../../java/text/DateFormat.html" title="java.text中的类"><code>DateFormat</code></a> ， <a href="../../java/text/SimpleDateFormat.html" title="java.text中的类"><code>SimpleDateFormat</code></a> ， <a href="../../serialized-form.html#java.text.MessageFormat">Serialized Form</a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.Field.html" title="class in java.text">MessageFormat.Field</a></span></code>
+<div class="block">
+              定义被用作属性键的常量 
+             <code>AttributedCharacterIterator</code>从返回 
+             <code>MessageFormat.formatToCharacterIterator</code> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#MessageFormat-java.lang.String-">MessageFormat</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</code>
+<div class="block">
+              为默认的 
+             <a href="../../java/util/Locale.Category.html#FORMAT"><code>FORMAT</code></a>区域设置和指定的模式构造一个MessageFormat。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#MessageFormat-java.lang.String-java.util.Locale-">MessageFormat</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern, <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> locale)</code>
+<div class="block">
+              为指定的区域设置和模式构造一个MessageFormat。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#applyPattern-java.lang.String-">applyPattern</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</code>
+<div class="block">
+              设置此消息格式使用的模式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#clone--">clone</a></span>()</code>
+<div class="block">
+              创建并返回此对象的副本。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#equals-java.lang.Object-">equals</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              两个消息格式对象之间的平等比较 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#format-java.lang.Object:A-java.lang.StringBuffer-java.text.FieldPosition-">format</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] arguments, <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> result, <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> pos)</code>
+<div class="block">
+              格式化一个对象数组，并将 
+             <code>MessageFormat</code>的格式（格式化元素替换为格式化对象）附加到提供的 
+             <code>StringBuffer</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#format-java.lang.Object-java.lang.StringBuffer-java.text.FieldPosition-">format</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> arguments, <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> result, <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> pos)</code>
+<div class="block">
+              格式化一组对象，并将 
+             <code>MessageFormat</code>的格式（格式化元素替换为格式化对象）附加到提供的 
+             <code>StringBuffer</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#format-java.lang.String-java.lang.Object...-">format</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>... arguments)</code>
+<div class="block">
+              使用给定的模式创建一个MessageFormat，并使用它来格式化给定的参数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#formatToCharacterIterator-java.lang.Object-">formatToCharacterIterator</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> arguments)</code>
+<div class="block">
+              格式化一组对象，并将它们插入到 
+             <code>MessageFormat</code>的模式中，生成一个 
+             <code>AttributedCharacterIterator</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../java/text/Format.html" title="class in java.text">Format</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#getFormats--">getFormats</a></span>()</code>
+<div class="block">
+              获取用于先前设置的模式字符串中的格式元素的格式。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../java/text/Format.html" title="class in java.text">Format</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#getFormatsByArgumentIndex--">getFormatsByArgumentIndex</a></span>()</code>
+<div class="block">
+              获取用于传递到 
+             <code>format</code>方法的值或从 
+             <code>parse</code>方法返回的 
+             <code>parse</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../java/util/Locale.html" title="class in java.util">Locale</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#getLocale--">getLocale</a></span>()</code>
+<div class="block">
+              获取创建或比较子格式时使用的区域设置。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              生成消息格式对象的哈希码。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#parse-java.lang.String-">parse</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> source)</code>
+<div class="block">
+              从给定字符串的开头解析文本以产生一个对象数组。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#parse-java.lang.String-java.text.ParsePosition-">parse</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> source, <a href="../../java/text/ParsePosition.html" title="class in java.text">ParsePosition</a> pos)</code>
+<div class="block">
+              解析字符串。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#parseObject-java.lang.String-java.text.ParsePosition-">parseObject</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> source, <a href="../../java/text/ParsePosition.html" title="class in java.text">ParsePosition</a> pos)</code>
+<div class="block">
+              从字符串中解析文本以生成对象数组。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#setFormat-int-java.text.Format-">setFormat</a></span>(int formatElementIndex, <a href="../../java/text/Format.html" title="class in java.text">Format</a> newFormat)</code>
+<div class="block">
+              设置在先前设置的模式字符串中使用具有给定格式元素索引的格式元素的格式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#setFormatByArgumentIndex-int-java.text.Format-">setFormatByArgumentIndex</a></span>(int argumentIndex, <a href="../../java/text/Format.html" title="class in java.text">Format</a> newFormat)</code>
+<div class="block">
+              设置使用给定参数索引的先前设置的模式字符串中的格式元素的格式。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#setFormats-java.text.Format:A-">setFormats</a></span>(<a href="../../java/text/Format.html" title="class in java.text">Format</a>[] newFormats)</code>
+<div class="block">
+              设置用于先前设置的模式字符串中的格式元素的格式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#setFormatsByArgumentIndex-java.text.Format:A-">setFormatsByArgumentIndex</a></span>(<a href="../../java/text/Format.html" title="class in java.text">Format</a>[] newFormats)</code>
+<div class="block">
+              设置用于传递到 
+             <code>format</code>方法的值或从 
+             <code>parse</code>方法返回的 
+             <code>parse</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#setLocale-java.util.Locale-">setLocale</a></span>(<a href="../../java/util/Locale.html" title="class in java.util">Locale</a> locale)</code>
+<div class="block">
+              设置创建或比较子格式时要使用的区域设置。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/MessageFormat.html#toPattern--">toPattern</a></span>()</code>
+<div class="block">
+              返回表示消息格式的当前状态的模式。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.text.Format">
+<!-- --> </a> <h3>Methods inherited from class java.text.<a href="../../java/text/Format.html" title="class in java.text">Format</a></h3> <code><a href="../../java/text/Format.html#format-java.lang.Object-">format</a>, <a href="../../java/text/Format.html#parseObject-java.lang.String-">parseObject</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#toString--">toString</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="MessageFormat-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>MessageFormat</h4> <pre>public MessageFormat(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</pre>
+<div class="block">
+<span>为默认的<a href="../../java/util/Locale.Category.html#FORMAT"><code>FORMAT</code></a>语言环境和指定的模式构造一个MessageFormat。</span>
+<span>构造函数首先设置区域设置，然后解析模式，并为其中包含的格式元素创建一个子格式列表。</span>
+<span>模式及其解释在class description中<a href="#patterns">规定</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pattern</code> - 此消息格式的模式 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果模式无效 
+           </dd>
+</dl> </li>
+</ul> <a name="MessageFormat-java.lang.String-java.util.Locale-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>MessageFormat</h4> <pre>public MessageFormat(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern,
+                     <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> locale)</pre>
+<div class="block">
+<span>为指定的区域设置和模式构造一个MessageFormat。</span>
+<span>构造函数首先设置区域设置，然后解析模式，并为其中包含的格式元素创建一个子格式列表。</span>
+<span>模式及其解释在class description中<a href="#patterns">规定</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pattern</code> - 此消息格式的模式 
+           </dd>
+<dd>
+<code>locale</code> - 此消息格式的区域设置 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果模式无效 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="setLocale-java.util.Locale-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setLocale</h4> <pre>public void setLocale(<a href="../../java/util/Locale.html" title="class in java.util">Locale</a> locale)</pre>
+<div class="block">
+<span>设置创建或比较子格式时要使用的区域设置。</span>
+<span>这将影响后续呼叫</span>
+<ul>
+<li> <span>到<a href="../../java/text/MessageFormat.html#applyPattern-java.lang.String-"><code>applyPattern</code></a>和<a href="../../java/text/MessageFormat.html#toPattern--"><code>toPattern</code></a>方法，如果格式元素指定格式类型，因此具有<code>applyPattern</code>方法中创建的<code>applyPattern</code> ，以及</span> </li>
+<li> <span>到<code>format</code>和<a href="../../java/text/MessageFormat.html#formatToCharacterIterator-java.lang.Object-"><code>formatToCharacterIterator</code></a>方法，如果格式元素不指定格式类型，因此在格式化方法中创建子格式。</span> </li>
+</ul>
+<span>已创建的子格式不受影响。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>locale</code> - 创建或比较子格式时要使用的区域设置 
+           </dd>
+</dl> </li>
+</ul> <a name="getLocale--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLocale</h4> <pre>public <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> getLocale()</pre>
+<div class="block">
+            获取创建或比较子格式时使用的区域设置。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             创建或比较子格式时使用的区域设置 
+           </dd>
+</dl> </li>
+</ul> <a name="applyPattern-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>applyPattern</h4> <pre>public void applyPattern(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</pre>
+<div class="block">
+<span>设置此消息格式使用的模式。</span>
+<span>该方法解析模式，并为其中包含的格式元素创建一个子格式列表。</span>
+<span>模式及其解释在class description中<a href="#patterns">规定</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pattern</code> - 此消息格式的模式 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果模式无效 
+           </dd>
+</dl> </li>
+</ul> <a name="toPattern--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toPattern</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toPattern()</pre>
+<div class="block">
+<span>返回表示消息格式的当前状态的模式。</span>
+<span>该字符串由内部信息构成，因此不一定等于之前应用的模式。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示消息格式的当前状态的模式 
+           </dd>
+</dl> </li>
+</ul> <a name="setFormatsByArgumentIndex-java.text.Format:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setFormatsByArgumentIndex</h4> <pre>public void setFormatsByArgumentIndex(<a href="../../java/text/Format.html" title="class in java.text">Format</a>[] newFormats)</pre>
+<div class="block">
+<span>设置用于传递到<code>format</code>方法中的值或从<code>parse</code>方法返回的<code>parse</code> 。</span>
+<span><code>newFormats</code>中元素的<code>newFormats</code>对应于在先前设置的模式字符串中使用的参数索引。</span>
+<span><code>newFormats</code>中格式的<code>newFormats</code>因此对应于传递给<code>format</code>方法的<code>arguments</code>数组或<code>format</code>方法返回的结果数组的元素<code>parse</code> 。</span>
+<p> <span>如果在模式字符串中使用多个格式元素的参数索引，则所有这些格式元素都使用相应的新格式。</span> <span>如果模式字符串中的任何格式元素都不使用参数索引，则忽略相应的新格式。</span> <span>如果提供的格式比所需的格式少，那么仅替换小于<code>newFormats.length</code>的参数索引的格式。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newFormats</code> - 要使用的新格式 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>newFormats</code>为空 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="setFormats-java.text.Format:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setFormats</h4> <pre>public void setFormats(<a href="../../java/text/Format.html" title="class in java.text">Format</a>[] newFormats)</pre>
+<div class="block">
+<span>设置用于先前设置的模式字符串中的格式元素的格式。</span>
+<span><code>newFormats</code>中格式的顺序对应于模式字符串中格式元素的顺序。</span>
+<p> <span>如果模式字符串所需的格式多于其他格式，则忽略其余格式。</span> <span>如果提供的格式少于所需的格式，那么只替换前<code>newFormats.length</code>格式。</span> </p>
+<p> <span>由于模式字符串中的格式元素的顺序在本地化期间经常发生变化，所以通常最好使用<a href="../../java/text/MessageFormat.html#setFormatsByArgumentIndex-java.text.Format:A-"><code>setFormatsByArgumentIndex</code></a>方法，该方法假定与传递给<code>format</code>方法或结果数组的<code>arguments</code>数组中的元素顺序相对应的格式顺序由<code>parse</code>方法返回。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newFormats</code> - 使用的新格式 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>newFormats</code>为空 
+           </dd>
+</dl> </li>
+</ul> <a name="setFormatByArgumentIndex-int-java.text.Format-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setFormatByArgumentIndex</h4> <pre>public void setFormatByArgumentIndex(int argumentIndex,
+                                     <a href="../../java/text/Format.html" title="class in java.text">Format</a> newFormat)</pre>
+<div class="block">
+<span>设置使用给定参数索引的先前设置的模式字符串中的格式元素的格式。</span>
+<span>参数索引是格式元素定义的一部分，并且表示传递给<code>format</code>方法的<code>arguments</code>数组的索引或由<code>parse</code>方法返回的结果数组。</span>
+<p> <span>如果参数索引用于模式字符串中的多个格式元素，则新格式将用于所有此类格式元素。</span> <span>如果参数索引不用于模式字符串中的任何格式元素，则将忽略新格式。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>argumentIndex</code> - 要使用新格式的参数索引 
+           </dd>
+<dd>
+<code>newFormat</code> - 要使用的新格式 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="setFormat-int-java.text.Format-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setFormat</h4> <pre>public void setFormat(int formatElementIndex,
+                      <a href="../../java/text/Format.html" title="class in java.text">Format</a> newFormat)</pre>
+<div class="block">
+<span>设置在先前设置的模式字符串中使用具有给定格式元素索引的格式元素的格式。</span>
+<span>格式元素索引是从模式字符串开始计数的格式元素的从零开始的数字。</span>
+<p> <span>由于模式字符串中的格式元素的顺序通常在本地化期间发生变化，所以通常最好使用<a href="../../java/text/MessageFormat.html#setFormatByArgumentIndex-int-java.text.Format-"><code>setFormatByArgumentIndex</code></a>方法，该方法根据它们指定的参数索引来访问格式元素。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>formatElementIndex</code> - 模式中格式元素的索引 
+           </dd>
+<dd>
+<code>newFormat</code> - 用于指定格式元素的格式 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArrayIndexOutOfBoundsException.html" title="class in java.lang">ArrayIndexOutOfBoundsException</a></code> - 如果 
+            <code>formatElementIndex</code>等于或大于模式字符串中格式元素的数量 
+           </dd>
+</dl> </li>
+</ul> <a name="getFormatsByArgumentIndex--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getFormatsByArgumentIndex</h4> <pre>public <a href="../../java/text/Format.html" title="class in java.text">Format</a>[] getFormatsByArgumentIndex()</pre>
+<div class="block">
+<span>获取用于传递给<code>format</code>方法的值的格式或从<code>parse</code>方法返回的<code>parse</code> 。</span>
+<span>返回数组中元素的索引对应于先前设置的模式字符串中使用的参数索引。</span>
+<span>的返回的数组中的格式的顺序因此对应于在元素的顺序<code>arguments</code>阵列传递给<code>format</code>方法或由所述返回的结果阵列<code>parse</code>方法。</span>
+<p> <span>如果模式字符串中的多个格式元素使用参数索引，则在数组中返回用于最后一个格式元素的格式。</span> <span>如果模式字符串中的任何格式元素都不使用参数索引，则在数组中返回null。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             用于模式中参数的格式 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="getFormats--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getFormats</h4> <pre>public <a href="../../java/text/Format.html" title="class in java.text">Format</a>[] getFormats()</pre>
+<div class="block">
+<span>获取用于先前设置的模式字符串中的格式元素的格式。</span>
+<span>返回数组中格式的顺序对应于模式字符串中格式元素的顺序。</span>
+<p> <span>由于模式字符串中的格式元素的顺序通常在本地化期间发生变化，所以通常最好使用<a href="../../java/text/MessageFormat.html#getFormatsByArgumentIndex--"><code>getFormatsByArgumentIndex</code></a>方法，该方法假定与传递给<code>format</code>方法的<code>arguments</code>数组中的元素顺序相对应的格式顺序或返回的结果数组按<code>parse</code>方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             用于格式元素格式的格式 
+           </dd>
+</dl> </li>
+</ul> <a name="format-java.lang.Object:A-java.lang.StringBuffer-java.text.FieldPosition-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>format</h4> <pre>public final <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> format(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] arguments,
+                                 <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> result,
+                                 <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> pos)</pre>
+<div class="block">
+<span>格式化一组对象，并将<code>MessageFormat</code>的格式（格式化元素替换为格式化对象）附加到所提供的<code>StringBuffer</code> 。</span>
+<p> <span>用于各个格式元素取代的文本被从格式元件的电流子格式和派生<code>arguments</code>元件格式元素的参数索引在由下表的第一匹配线所示。</span> <span>如果<code>arguments</code>为<code>null</code>或少于argumentIndex + 1元素，则参数<i>不可用</i> 。</span> </p>
+<span>  Subformat  Argument  Formatted Text    <i>any</i> <i>unavailable</i> <code>"{" + argumentIndex + "}"</code> <i>any</i> <code>null</code> <code>"null"</code> <code>instanceof ChoiceFormat</code> <i>any</i> <code>subformat.format(argument).indexOf('{') &gt;= 0 ?<br/> (new MessageFormat(subformat.format(argument), getLocale())).format(argument) : subformat.format(argument)</code> <code>!= null</code> <i>any</i> <code>subformat.format(argument)</code> <code>null</code> <code>instanceof Number</code> <code>NumberFormat.getInstance(getLocale()).format(argument)</code> <code>null</code> <code>instanceof Date</code> <code>DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, getLocale()).format(argument)</code> <code>null</code> <code>instanceof String</code> <code>argument</code> <code>null</code> <i>any</i> <code>argument.toString()</code> </span>
+<table border="1" summary="Examples of subformat,argument,and formatted text">
+</table>
+<p> <span>如果<code>pos</code>是非空，并且指的是<code>Field.ARGUMENT</code> ，将返回第一个格式化字符串的位置。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>arguments</code> - 要格式化和替换的对象数组。 
+           </dd>
+<dd>
+<code>result</code> - 附加文本。 
+           </dd>
+<dd>
+<span><code>pos</code> - 在输入端：一个对齐字段，如果需要的话。</span>
+<span>输出：对齐字段的偏移量。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             字符串缓冲区以 
+            <code>result</code> ，附带格式化的文本 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>arguments</code>数组中的参数不是使用它的格式元素所期望的类型。 
+           </dd>
+</dl> </li>
+</ul> <a name="format-java.lang.String-java.lang.Object...-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>format</h4> <pre>public static <a href="../../java/lang/String.html" title="class in java.lang">String</a> format(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern,
+                            <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>... arguments)</pre>
+<div class="block">
+<span>使用给定的模式创建一个MessageFormat，并使用它来格式化给定的参数。</span>
+<span>这相当于</span>
+<blockquote>
+<span><code>(new <a href="../../java/text/MessageFormat.html#MessageFormat-java.lang.String-"><code>MessageFormat</code></a>(pattern)).<a href="../../java/text/MessageFormat.html#format-java.lang.Object:A-java.lang.StringBuffer-java.text.FieldPosition-"><code>format</code></a>(arguments, new StringBuffer(), null).toString()</code></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pattern</code> - 模式字符串 
+           </dd>
+<dd>
+<code>arguments</code> - 要格式化的对象 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             格式化的字符串 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果模式无效，或者 
+            <code>arguments</code>数组中的参数不是使用它的格式元素所期望的类型。 
+           </dd>
+</dl> </li>
+</ul> <a name="format-java.lang.Object-java.lang.StringBuffer-java.text.FieldPosition-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>format</h4> <pre>public final <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> format(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> arguments,
+                                 <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> result,
+                                 <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> pos)</pre>
+<div class="block">
+<span>格式化一组对象，并将<code>MessageFormat</code>的格式附加到格式化对象的格式元素到所提供的<code>StringBuffer</code> 。</span>
+<span>这相当于</span>
+<blockquote>
+<span><code><a href="../../java/text/MessageFormat.html#format-java.lang.Object:A-java.lang.StringBuffer-java.text.FieldPosition-"><code>format</code></a>((Object[]) arguments, result, pos)</code></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/text/Format.html#format-java.lang.Object-java.lang.StringBuffer-java.text.FieldPosition-">format</a></code>在 
+            <code><a href="../../java/text/Format.html" title="class in java.text">Format</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>arguments</code> - 要格式化和替换的对象数组。 
+           </dd>
+<dd>
+<code>result</code> - 附加文本。 
+           </dd>
+<dd>
+<span><code>pos</code> - 打开输入：如果需要，则对齐字段。</span>
+<span>输出：对齐字段的偏移量。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             字符串缓冲区以 
+            <code>toAppendTo</code> ，附带格式化的文本 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>arguments</code>数组中的参数不是使用它的格式元素所期望的类型。 
+           </dd>
+</dl> </li>
+</ul> <a name="formatToCharacterIterator-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>formatToCharacterIterator</h4> <pre>public <a href="../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> formatToCharacterIterator(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> arguments)</pre>
+<div class="block">
+<span>格式化一组对象，并将它们插入到<code>MessageFormat</code>的模式中，生成一个<code>AttributedCharacterIterator</code> 。</span>
+<span>您可以使用返回的<code>AttributedCharacterIterator</code>构建生成的字符串，以及确定有关生成的字符串的信息。</span>
+<p> <span>返回的<code>AttributedCharacterIterator</code>的文本与返回的文本相同</span> </p>
+<blockquote>
+<span><code><a href="../../java/text/MessageFormat.html#format-java.lang.Object:A-java.lang.StringBuffer-java.text.FieldPosition-"><code>format</code></a>(arguments, new StringBuffer(), null).toString()</code></span>
+</blockquote>
+<p> <span>此外， <code>AttributedCharacterIterator</code>至少包含属性，指示从<code>arguments</code>数组中的参数生成文本的<code>arguments</code> 。</span> <span>这些属性的键的类型为<code>MessageFormat.Field</code> ，它们的值为<code>Integer</code>对象，指示生成文本的参数的<code>arguments</code>数组中的索引。</span> </p>
+<p> <span>来自<code>MessageFormat</code>使用的底层<code>Format</code>实例的属性/值也将放在结果<code>AttributedCharacterIterator</code> 。</span> <span>这样，您不仅可以在生成的字符串中找到参数的位置，还可以找到它所包含的字段。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/Format.html#formatToCharacterIterator-java.lang.Object-">formatToCharacterIterator</a></code>在 
+            <code><a href="../../java/text/Format.html" title="class in java.text">Format</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>arguments</code> - 要格式化和替换的对象数组。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             AttributedCharacterIterator描述格式化的值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>arguments</code>为空。 
+           </dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>arguments</code>数组中的参数不是使用它的格式元素所期望的类型。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="parse-java.lang.String-java.text.ParsePosition-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parse</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] parse(<a href="../../java/lang/String.html" title="class in java.lang">String</a> source,
+                      <a href="../../java/text/ParsePosition.html" title="class in java.text">ParsePosition</a> pos)</pre>
+<div class="block">
+<span>解析字符串。</span>
+<p> <span>警告：在许多情况下，解析可能会失败。</span> <span>例如：</span> </p>
+<ul>
+<li> <span>如果其中一个参数不发生在模式中。</span> </li>
+<li> <span>如果参数的格式丢失信息，例如使用大量格式化为“许多”的选择格式。</span> </li>
+<li> <span>还没有处理递归（其中替换的字符串包含{n}个引用）。</span> </li>
+<li> <span>如果解析的某些部分含糊不清，则不会总是找到匹配（或正确的匹配）。</span> <span>例如，如果模式“{1}，{2}”与字符串参数{“a，b”，“c”}一起使用，则它将格式化为“a，b，c”。</span> <span>当结果被解析时，它将返回{“a”，“b，c”}。</span> </li>
+<li> <span>如果单个参数在字符串中被多次解析，则后来的解析获胜。</span> </li>
+</ul>
+<span>解析失败时，请使用ParsePosition.getErrorIndex（）来查找字符串中解析失败的位置。</span>
+<span>返回的错误索引是字符串与之进行比较的子模式的起始偏移量。</span>
+<span>例如，如果解析字符串“AAA {0} BBB”与模式“AAD {0} BBB”进行比较，则错误索引为0.当发生错误时，对该方法的调用将返回null。</span>
+<span>如果源为null，则返回一个空数组。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>source</code> - 要解析的字符串 
+           </dd>
+<dd>
+<code>pos</code> - 解析位置 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一组解析的对象 
+           </dd>
+</dl> </li>
+</ul> <a name="parse-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parse</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] parse(<a href="../../java/lang/String.html" title="class in java.lang">String</a> source)
+               throws <a href="../../java/text/ParseException.html" title="class in java.text">ParseException</a></pre>
+<div class="block">
+<span>从给定字符串的开头解析文本以产生一个对象数组。</span>
+<span>该方法可能不会使用给定字符串的整个文本。</span>
+<p> <span>有关消息解析的更多信息，请参阅<a href="../../java/text/MessageFormat.html#parse-java.lang.String-java.text.ParsePosition-"><code>parse(String, ParsePosition)</code></a>方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>source</code> - A 
+            <code>String</code> ，其开头应解析。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             从字符串中解析出一个 
+            <code>Object</code>数组。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/text/ParseException.html" title="class in java.text">ParseException</a></code> - 如果指定字符串的开头不能被解析。 
+           </dd>
+</dl> </li>
+</ul> <a name="parseObject-java.lang.String-java.text.ParsePosition-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parseObject</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> parseObject(<a href="../../java/lang/String.html" title="class in java.lang">String</a> source,
+                          <a href="../../java/text/ParsePosition.html" title="class in java.text">ParsePosition</a> pos)</pre>
+<div class="block">
+<span>从字符串中解析文本以生成对象数组。</span>
+<p> <span>该方法尝试从<code>pos</code>给出的索引开始分析文本。</span> <span>如果解析成功，那么在使用最后一个字符之后，索引<code>pos</code>被更新为索引（解析不一定使用直到字符串末尾的所有字符），并且返回解析的对象数组。</span> <span>更新后的<code>pos</code>可用于指示下一次调用此方法的起始点。</span> <span>如果发生错误，则<code>pos</code>的索引不会更改，错误索引<code>pos</code>设置为发生错误的<code>pos</code>的索引，返回null。</span> </p>
+<p> <span>有关消息解析的更多信息，请参阅<a href="../../java/text/MessageFormat.html#parse-java.lang.String-java.text.ParsePosition-"><code>parse(String, ParsePosition)</code></a>方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/text/Format.html#parseObject-java.lang.String-java.text.ParsePosition-">parseObject</a></code>在 
+            <code><a href="../../java/text/Format.html" title="class in java.text">Format</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>source</code> - A 
+            <code>String</code> ，其中一部分应解析。 
+           </dd>
+<dd>
+<code>pos</code>
+<code>ParsePosition</code>的索引和错误索引信息的 
+            <code>pos</code> - A 
+            <code>ParsePosition</code>对象。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>从字符串中解析出一个<code>Object</code>数组。</span>
+<span>万一出错，返回null。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>pos</code>为空。 
+           </dd>
+</dl> </li>
+</ul> <a name="clone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>clone</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> clone()</pre>
+<div class="block">
+            创建并返回此对象的副本。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/Format.html#clone--">clone</a></code>在 
+            <code><a href="../../java/text/Format.html" title="class in java.text">Format</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个实例的一个克隆。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/Cloneable.html" title="java.lang中的接口"><code>Cloneable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+            两个消息格式对象之间的平等比较 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 用于比较的参考对象。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果此对象与obj参数相同;</span>
+<span><code>false</code>否则。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+            生成消息格式对象的哈希码。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该对象的哈希码值。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

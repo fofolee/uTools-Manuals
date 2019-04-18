@@ -1,0 +1,146 @@
+<article id="wikiArticle">
+<div></div>
+<p><code><strong>handler.construct()</strong></code> 方法用于拦截<a href="Reference/Operators/new" title="new 运算符创建一个用户定义的对象类型的实例或具有构造函数的内置对象的实例。"><code>new</code></a> 操作符. 为了使new操作符在生成的Proxy对象上生效，用于初始化代理的目标对象自身必须具有[[Construct]]内部方法（即 <code>new target</code> 必须是有效的）。</p>
+<p><iframe class="interactive interactive-js taller" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/proxyhandler-construct.html" width="100%"></iframe></p>
+<h2 id="语法">语法</h2>
+<pre class="brush: js">var p = new Proxy(target, {
+  construct: function(target, argumentsList, newTarget) {
+  }
+});
+</pre>
+<h3 id="参数">参数</h3>
+<p>下面的参数将会传递给<code>construct</code>方法，<code>this</code>绑定在handler上。</p>
+<dl>
+<dt><code>target</code></dt>
+<dd>目标对象。</dd>
+<dt><code>argumentsList</code></dt>
+<dd>constructor的参数列表。</dd>
+<dt><code>newTarget</code></dt>
+<dd>最初被调用的构造函数，就上面的例子而言是p。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p><code>construct</code> 方法必须返回一个对象。</p>
+<h2 id="描述">描述</h2>
+<p><code><strong>handler.construct()</strong></code> 方法用于拦截 <a href="Reference/Operators/new" title="new 运算符创建一个用户定义的对象类型的实例或具有构造函数的内置对象的实例。"><code>new</code></a>操作符。</p>
+<h3 id="拦截">拦截</h3>
+<p>该拦截器可以拦截以下操作:</p>
+<ul>
+<li><code>new proxy(...args)</code></li>
+<li><a href="Reference/Global_Objects/Reflect/construct" title="Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args)."><code>Reflect.construct()</code></a></li>
+</ul>
+<h3 id="约束">约束</h3>
+<p>如果违反以下约定，代理将会抛出错误 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>:</p>
+<ul>
+<li>必须返回一个对象.</li>
+</ul>
+<h2 id="示例">示例</h2>
+<p>下面代码演示如何拦截 <a href="Reference/Operators/new" title="new 运算符创建一个用户定义的对象类型的实例或具有构造函数的内置对象的实例。"><code>new</code></a> 操作。</p>
+<pre class="brush: js">var p = new Proxy(function() {}, {
+  construct: function(target, argumentsList, newTarget) {
+    console.log('called: ' + argumentsList.join(', '));
+    return { value: argumentsList[0] * 10 };
+  }
+});
+
+console.log(new p(1).value); // "called: 1"
+                             // 10
+</pre>
+<p>下面的代码违反了约定.</p>
+<pre class="brush: js">var p = new Proxy(function() {}, {
+  construct: function(target, argumentsList, newTarget) {
+    return 1;
+  }
+});
+
+new p(); // TypeError is thrown
+</pre>
+<p>下面的代码未能正确的初始化Proxy。Proxy初始化时，传给它的<code>target</code> 必须具有一个有效的constructor供<code>new</code>操作符调用。</p>
+<pre class="brush: js">var p = new Proxy({}, {
+  construct: function(target, argumentsList, newTarget) {
+    return {};
+  }
+});
+
+new p(); // TypeError is thrown, "p" is not a constructor
+</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">[[Construct]]</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">[[Construct]]</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>construct</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              18</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              18</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd></dl></section></div></div>
+<div id="compat-mobile"> </div>
+<h2 id="相关主题">相关主题</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Proxy" title="Proxy 对象用于定义基本操作的自定义行为（如属性查找，赋值，枚举，函数调用等）。"><code>Proxy</code></a></li>
+<li><a href="Reference/Global_Objects/Proxy/handler" title="处理器对象用来自定义代理对象的各种可代理操作。"><code>handler</code></a></li>
+<li><a href="Reference/Operators/new" title="new 运算符创建一个用户定义的对象类型的实例或具有构造函数的内置对象的实例。"><code>new</code></a> operator.</li>
+<li><a href="Reference/Global_Objects/Reflect/construct" title="Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args)."><code>Reflect.construct()</code></a></li>
+</ul>
+</article>

@@ -1,0 +1,217 @@
+<article id="wikiArticle">
+<div></div>
+<p><code><strong>then()</strong></code> 方法返回一个  <a class="new" href="/zh-CN/docs/Web/API/Promise" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!"><code>Promise</code></a> 。它最多需要有两个参数：Promise 的成功和失败情况的回调函数。</p>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/promise-then.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive demo is stored in a GitHub repository. If you'd like to contribute to the interactive demo project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<div class="note">
+<p>注意：如果忽略针对某个状态的回调函数参数，或者提供非函数 (nonfunction) 参数，那么 <code>then</code> 方法将会丢失关于该状态的回调函数信息，但是并不会产生错误。如果调用 <code>then</code> 的 <code>Promise</code> 的状态（fulfillment 或 rejection）发生改变，但是 <code>then</code> 中并没有关于这种状态的回调函数，那么 <code>then</code> 将创建一个没有经过回调函数处理的新 <code>Promise</code> 对象，这个新 <code>Promise</code> 只是简单地接受调用这个 <code>then</code> 的原 <code>Promise</code> 的终态作为它的终态。</p>
+</div>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre class="syntaxbox"><var>p.then(onFulfilled, onRejected)</var>;
+
+p.then(function(value) {
+   // fulfillment
+  }, function(reason) {
+  // rejection
+});
+</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt>onFulfilled</dt>
+<dd>当Promise变成接受状态（fulfillment）时，该参数作为回调函数被调用（参考： <a href="Reference/Function" title="此页面仍未被本地化, 期待您的翻译!"><code>Function</code></a>）。该函数有一个参数，即接受的最终结果（the fulfillment  value）。如果传入的 <code>onFulfilled </code>参数类型不是函数，则会在内部被替换为<code>(x) =&gt; x </code>，即原样返回 promise 最终结果的函数</dd>
+<dt>onRejected</dt>
+<dd>当Promise变成拒绝状态（rejection ）时，该参数作为回调函数被调用（参考： <a href="Reference/Function" title="此页面仍未被本地化, 期待您的翻译!"><code>Function</code></a>）。该函数有一个参数,，即拒绝的<code>原因（the rejection reason）</code>。</dd>
+</dl>
+<p> </p>
+<pre>var p = new Promise((resolve, reject) =&gt; {
+    resolve('foo')
+})
+
+// 'bar' 不是函数，会在内部被替换为 (x) =&gt; x
+p.then('bar').then((value) =&gt; {
+    console.log(value) // 'foo'
+})</pre>
+<p> </p>
+<dl>
+<dt>
+<h3 id="返回值">返回值</h3>
+<p>当一个<a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a>完成（fulfilled）或者失败（rejected），返回函数将被异步调用（由当前的线程循环来调度完成）。具体的返回值依据以下规则返回：</p>
+<ul>
+<li>如果then中的回调函数返回一个值，那么then返回的Promise将会成为接受状态，并且将返回的值作为接受状态的回调函数的参数值。</li>
+<li>如果then中的回调函数没有返回值，那么then返回的Promise将会成为接受状态，并且该接受状态的回调函数的参数值为 undefined。</li>
+<li>如果then中的回调函数抛出一个错误，那么then返回的Promise将会成为拒绝状态，并且将抛出的错误作为拒绝状态的回调函数的参数值。</li>
+<li>如果then中的回调函数返回一个已经是接受状态的Promise，那么then返回的Promise也会成为接受状态，并且将那个Promise的接受状态的回调函数的参数值作为该被返回的Promise的接受状态回调函数的参数值。</li>
+<li>如果then中的回调函数返回一个已经是拒绝状态的Promise，那么then返回的Promise也会成为拒绝状态，并且将那个Promise的拒绝状态的回调函数的参数值作为该被返回的Promise的拒绝状态回调函数的参数值。</li>
+<li>如果then中的回调函数返回一个未定状态（pending）的Promise，那么then返回Promise的状态也是未定的，并且它的终态与那个Promise的终态相同；同时，它变为终态时调用的回调函数参数与那个Promise变为终态时的回调函数的参数是相同的。</li>
+</ul>
+</dt>
+</dl>
+<h2 id="Description" name="Description">描述</h2>
+<p>由于 <code>then</code> 和 <a href="Reference/Global_Objects/Promise/catch" title="catch() 方法返回一个Promise，并且处理拒绝的情况。它的行为与调用Promise.prototype.then(undefined, onRejected) 相同。 (事实上, calling obj.catch(onRejected) 内部calls obj.then(undefined, onRejected))."><code>Promise.prototype.catch()</code></a> 方法都会返回 promise，它们可以被链式调用 — 一种称为<strong>复合</strong>（ <em>composition） </em>的操作.</p>
+<h2 id="示例">示例</h2>
+<h3 id="使用then方法"><code><font face="Open Sans, sans-serif">使用</font>then方法</code></h3>
+<pre class="brush: js">let p1 = new Promise(function(resolve, reject) {
+  resolve("Success!");
+  // or
+  // reject ("Error!");
+});
+
+p1.then(function(value) {
+  console.log(value); // Success!
+}, function(reason) {
+  console.log(reason); // Error!
+});
+</pre>
+<h3 id="链式调用">链式调用</h3>
+<p><font face="Open Sans, sans-serif">then 方法返回</font>一个Promise 对象，其允许方法链。</p>
+<p>你可以传递一个 lambda 给 then 并且如果它返回一个 promise，一个等价的 Promise 将暴露给后续的方法链。下面的代码片段使用 setTimout 函数来模拟异步代码操作。</p>
+<pre class="brush: js">Promise.resolve("foo")
+  // 1. 接收 "foo" 并与 "bar" 拼接，并将其结果做为下一个resolve返回。
+  .then(function(string) {
+    return new Promise(function(resolve, reject) {
+      setTimeout(function() {
+        string += 'bar';
+        resolve(string);
+      }, 1);
+    });
+  })
+  // 2. 接收 "foobar", 放入一个异步函数中处理该字符串
+  // 并将其打印到控制台中, 但是不将处理后的字符串返回到下一个。
+  .then(function(string) {
+    setTimeout(function() {
+      string += 'baz';
+      console.log(string);
+    }, 1)
+    return string;
+  })
+  // 3. 打印本节中代码将如何运行的帮助消息，
+  // 字符串实际上是由上一个回调函数之前的那块异步代码处理的。
+  .then(function(string) {
+    console.log("Last Then:  oops... didn't bother to instantiate and return " +
+                "a promise in the prior then so the sequence may be a bit " +
+                "surprising");
+
+    // 注意 `string` 这时不会存在 'baz'。
+    // 因为这是发生在我们通过setTimeout模拟的异步函数中。
+    console.log(string);
+});</pre>
+<p>当一个值只是从一个 lambda 内部返回时，它将有效地返回 Promise.resolve（&lt;由被调用的处理程序返回的值&gt;）。</p>
+<pre class="brush: js">var p2 = new Promise(function(resolve, reject) {
+  resolve(1);
+});
+
+p2.then(function(value) {
+  console.log(value); // 1
+  return value + 1;
+}).then(function(value) {
+  console.log(value + "- This synchronous usage is virtually pointless"); // 2- This synchronous usage is virtually pointless
+});
+
+p2.then(function(value) {
+  console.log(value); // 1
+});</pre>
+<p>如果函数抛出错误或返回一个拒绝的Promise，则调用将返回一个拒绝的Promise。</p>
+<pre class="brush: js">Promise.resolve()
+  .then( () =&gt; {
+    // 使 .then() 返回一个 rejected promise
+    throw 'Oh no!';
+  })
+  .then( () =&gt; {
+    console.log( 'Not called.' );
+  }, reason =&gt; {
+    console.error( 'onRejected function called: ', reason );
+});</pre>
+<p>在其他情况下，一个 resolving Promise 会被返回。在下面的例子里，第一个 then() 会返回一个用 resolving Promise 包装的 42，即使之前的 Promise 是 rejected 的。</p>
+<pre class="brush: js">Promise.reject()
+  .then( () =&gt; 99, () =&gt; 42 ) // onRejected returns 42 which is wrapped in a resolving Promise
+  .then( solution =&gt; console.log( 'Resolved with ' + solution ) ); // Resolved with 42</pre>
+<p>实际上，捕获 rejected promise 的需求经常大于使用 then 的两种情况语法，比如下面这样的：</p>
+<pre class="brush: js">Promise.resolve()
+  .then( () =&gt; {
+    // 使 .then() 返回一个 rejected promise
+    throw 'Oh no!';
+  })
+  .catch( reason =&gt; {
+    console.error( 'onRejected function called: ', reason );
+  })
+  .then( () =&gt; {
+    console.log( "I am always called even if the prior then's promise rejects" );
+  });</pre>
+<p>你也可以在另一个顶层函数上使用链式去实现带有 Promise-based API 的函数。</p>
+<pre class="brush: js">function fetch_current_data() {
+  // fetch() API 返回了一个 Promise.
+  // 这个函数提供了类似的API，
+  // 这个函数除了实现 Promise，它还能够完成更多的工作。
+  return fetch('current-data.json').then((response) =&gt; {
+    if (response.headers.get('content-type') != 'application/json') {
+      throw new TypeError();
+    }
+    var j = response.json();
+    // maybe do something with j
+    return j; // fulfillment value given to user of
+              // fetch_current_data().then()
+  });
+}</pre>
+<p>如果 <code>onFulfilled</code> 返回了一个 promise，<code>then</code> 的返回值就会被 Promise resolved或者rejected。</p>
+<pre class="brush: js">function resolveLater(resolve, reject) {
+  setTimeout(function () {
+    resolve(10);
+  }, 1000);
+}
+function rejectLater(resolve, reject) {
+  setTimeout(function () {
+    reject(20);
+  }, 1000);
+}
+
+var p1 = Promise.resolve('foo');
+var p2 = p1.then(function() {
+  // Return promise here, that will be resolved to 10 after 1 second
+  return new Promise(resolveLater);
+});
+p2.then(function(v) {
+  console.log('resolved', v);  // "resolved", 10
+}, function(e) {
+  // not called
+  console.log('rejected', e);
+});
+
+var p3 = p1.then(function() {
+  // Return promise here, that will be rejected with 20 after 1 second
+  return new Promise(rejectLater);
+});
+p3.then(function(v) {
+  // not called
+  console.log('resolved', v);
+}, function(e) {
+  console.log('rejected', e); // "rejected", 20
+});</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规范</th>
+<th scope="col">状态</th>
+<th scope="col">备注</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-promise.prototype.then" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Promise.prototype.then</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>ECMA标准的首次定义</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-promise.prototype.then" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Promise.prototype.then</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<p>No compatibility data found. Please contribute data for "javascript/promise" (depth: Promise.prototype.then) to the <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">MDN compatibility data repository</a>.</p>
+<p><br/>
+<strong style="font-size: 2.143rem; font-weight: 700; letter-spacing: -1px; line-height: 1;">相关链接</strong></p>
+<ul>
+<li><a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a></li>
+<li><a href="Reference/Global_Objects/Promise/catch" title="catch() 方法返回一个Promise，并且处理拒绝的情况。它的行为与调用Promise.prototype.then(undefined, onRejected) 相同。 (事实上, calling obj.catch(onRejected) 内部calls obj.then(undefined, onRejected))."><code>Promise.prototype.catch()</code></a></li>
+</ul>
+</article>

@@ -1,0 +1,253 @@
+<article id="wikiArticle">
+<div></div>
+<p><code><strong>Array.from()</strong></code> 方法从一个类似数组或可迭代对象中创建一个新的数组实例。</p>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/array-from.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre class="syntaxbox"><code>Array.from(arrayLike[, mapFn[, thisArg]])
+</code></pre>
+<h3 id="Parameters" name="Parameters">参数</h3>
+<dl>
+<dt><code>arrayLike</code></dt>
+<dd>想要转换成数组的伪数组对象或可迭代对象。</dd>
+<dt><code>mapFn (可选参数) </code></dt>
+<dd>如果指定了该参数，新数组中的每个元素会执行该回调函数。</dd>
+<dt><code>thisArg (可选参数)</code></dt>
+<dd>可选参数，执行回调函数 <code>mapFn</code> 时 <code>this</code> 对象。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>一个新的数组实例</p>
+<h2 id="描述">描述</h2>
+<p><code>Array.from()</code> 可以通过以下方式来创建数组对象：</p>
+<ul>
+<li>伪数组对象（拥有一个 <code>length</code> 属性和若干索引属性的任意对象）</li>
+<li><a href="Guide/iterable">可迭代对象</a>（可以获取对象中的元素,如 Map和 Set 等）</li>
+</ul>
+<p><code>Array.from()</code> 方法有一个可选参数 <code>mapFn</code>，让你可以在最后生成的数组上再执行一次 <a href="Reference/Global_Objects/Array/map" title="map() 方法创建一个新数组，其结果是该数组中的每个元素都调用一个提供的函数后返回的结果。"><code>map</code></a> 方法后再返回。也就是说<code> Array.from(obj, mapFn, thisArg) </code>就相当于<code> Array.from(obj).map(mapFn, thisArg),</code> 除非创建的不是可用的中间数组。 这对一些数组的子类<code>,</code>如  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays">typed arrays</a><font face="Consolas, Liberation Mono, Courier, monospace"> 来说很重要,</font> 因为中间数组的值在调用 map() 时需要是适当的类型。</p>
+<p><code>from()</code> 的 <code>length</code> 属性为 1 ，即<code>Array.from.length = 1</code>。</p>
+<p>在 ES2015 中， <code>Class</code> 语法允许我们为内置类型（比如 <code>Array</code>）和自定义类新建子类（比如叫 <code>SubArray</code>）。这些子类也会继承父类的静态方法，比如 <code>SubArray.from()</code>，调用该方法后会返回子类 <code>SubArray</code> 的一个实例，而不是 <code>Array</code> 的实例。</p>
+<h2 id="示例">示例</h2>
+<h3 id="Array_from_a_String">Array from a <code>String</code></h3>
+<pre class="brush: js">Array.from('foo'); 
+// ["f", "o", "o"]</pre>
+<h3 id="Array_from_a_Set">Array from a <code>Set</code></h3>
+<pre class="brush: js">let s = new Set(['foo', window]); 
+Array.from(s); 
+// ["foo", window]
+</pre>
+<h3 id="Array_from_a_Map">Array from a <code>Map</code></h3>
+<pre class="brush: js">let m = new Map([[1, 2], [2, 4], [4, 8]]);
+Array.from(m); 
+// [[1, 2], [2, 4], [4, 8]]
+</pre>
+<h3 id="Array_from_an_Array-like_object_(arguments)">Array from an Array-like object (arguments)</h3>
+<pre class="brush: js">function f() {
+  return Array.from(arguments);
+}
+
+f(1, 2, 3);
+
+// [1, 2, 3]</pre>
+<h3 id="在Array.from中使用箭头函数">在<code>Array.from</code>中使用箭头函数</h3>
+<pre class="brush: js">// Using an arrow function as the map function to
+// manipulate the elements
+Array.from([1, 2, 3], x =&gt; x + x);  
+// x =&gt; x + x代表这是一个函数，只是省略了其他的定义，这是一种Lambda表达式的写法
+// 箭头的意思表示从当前数组中取出一个值，然后自加，并将返回的结果添加到新数组中    
+// [2, 4, 6]
+
+
+// Generate a sequence of numbers
+// Since the array is initialized with `undefined` on each position,
+// the value of `v` below will be `undefined`
+Array.from({length: 5}, (v, i) =&gt; i);
+// [0, 1, 2, 3, 4]
+</pre>
+<h3 id="数组去重合并">数组去重合并</h3>
+<pre class="brush: js">function combine(){ 
+    let arr = [].concat.apply([], arguments);  //没有去重复的新数组 
+    return Array.from(new Set(arr));
+} 
+
+var m = [1, 2, 2], n = [2,3,3]; 
+console.log(combine(m,n));                     // [1, 2, 3]</pre>
+<h2 id="Polyfill">Polyfill</h2>
+<p>ECMA-262 第六版标准添加了<code> Array.from </code>。有些实现中可能尚未包括在其中。你可以通过在脚本前添加如下内容作为替代方法，以使用未原生支持的 <code>Array.from</code> 方法。该算法按照  ECMA-262 第六版中的规范实现，并假定 <code>Object</code> 和 <code>TypeError</code> 有其本身的值，  <code>callback.call</code> 对应 <a href="Reference/Global_Objects/Function/call" title="call() 方法调用一个函数, 其具有一个指定的this值和分别地提供的参数(参数的列表)。"><code>Function.prototype.call</code></a> 。此外，鉴于无法使用 Polyfill 实现真正的的迭代器，该实现不支持规范中定义的泛型可迭代元素。</p>
+<pre class="brush: js">// Production steps of ECMA-262, Edition 6, 22.1.2.1
+// Reference: https://people.mozilla.org/~jorendorff/es6-draft.html#sec-array.from
+if (!Array.from) {
+  Array.from = (function () {
+    var toStr = Object.prototype.toString;
+    var isCallable = function (fn) {
+      return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
+    };
+    var toInteger = function (value) {
+      var number = Number(value);
+      if (isNaN(number)) { return 0; }
+      if (number === 0 || !isFinite(number)) { return number; }
+      return (number &gt; 0 ? 1 : -1) * Math.floor(Math.abs(number));
+    };
+    var maxSafeInteger = Math.pow(2, 53) - 1;
+    var toLength = function (value) {
+      var len = toInteger(value);
+      return Math.min(Math.max(len, 0), maxSafeInteger);
+    };
+    var toItems = function (value) {
+      // support set
+      if (value.size &gt; 0 &amp;&amp; value.values) {
+        let values = value.values()
+        var it = values.next()
+        var o = []
+        while (!it.done) {
+          o.push(it.value)
+          it = values.next()
+        }
+        return o
+      }
+      return Object(value);
+    };
+    // The length property of the from method is 1.
+    return function from(arrayLike/*, mapFn, thisArg */) {
+      // 1. Let C be the this value.
+      var C = this;
+
+      // 2. Let items be ToObject(arrayLike).
+      var items = toItems(arrayLike);
+
+      // 3. ReturnIfAbrupt(items).
+      if (arrayLike == null) {
+        throw new TypeError("Array.from requires an array-like object - not null or undefined");
+      }
+
+      // 4. If mapfn is undefined, then let mapping be false.
+      var mapFn = arguments.length &gt; 1 ? arguments[1] : void undefined;
+      var T;
+      if (typeof mapFn !== 'undefined') {
+        // 5. else      
+        // 5. a If IsCallable(mapfn) is false, throw a TypeError exception.
+        if (!isCallable(mapFn)) {
+          throw new TypeError('Array.from: when provided, the second argument must be a function');
+        }
+
+        // 5. b. If thisArg was supplied, let T be thisArg; else let T be undefined.
+        if (arguments.length &gt; 2) {
+          T = arguments[2];
+        }
+      }
+
+      // 10. Let lenValue be Get(items, "length").
+      // 11. Let len be ToLength(lenValue).
+      var len = toLength(items.length);
+
+      // 13. If IsConstructor(C) is true, then
+      // 13. a. Let A be the result of calling the [[Construct]] internal method 
+      // of C with an argument list containing the single item len.
+      // 14. a. Else, Let A be ArrayCreate(len).
+      var A = isCallable(C) ? Object(new C(len)) : new Array(len);
+
+      // 16. Let k be 0.
+      var k = 0;
+      // 17. Repeat, while k &lt; len… (also steps a - h)
+      var kValue;
+      while (k &lt; len) {
+        kValue = items[k];
+        if (mapFn) {
+          A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
+        } else {
+          A[k] = kValue;
+        }
+        k += 1;
+      }
+      // 18. Let putStatus be Put(A, "length", len, true).
+      A.length = len;
+      // 20. Return A.
+      return A;
+    };
+  }());
+}
+</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-array.from" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Array.from</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-array.from" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Array.from</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div>
+<div class="hidden">The compatibility table in this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>from</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              32</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-unknown bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              32</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4.0.0</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><span class="bc-supports-unknown bc-supports">
+<abbr class="bc-level bc-level-unknown only-icon" title="Compatibility unknown">
+<span>Compatibility unknown</span>
+                  
+                </abbr></span></dt><dd>Compatibility unknown</dd></dl></section></div><p></p>
+</div>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a></li>
+<li><a href="Reference/Global_Objects/Array/map" title="map() 方法创建一个新数组，其结果是该数组中的每个元素都调用一个提供的函数后返回的结果。"><code>Array.prototype.map()</code></a></li>
+<li><a href="Reference/Global_Objects/TypedArray/from" title="TypedArray.from() 方法 从一个类数组或者可迭代对象中创建一个新类型数组。 这个方法和 Array.from()类似。"><code>TypedArray.from()</code></a></li>
+</ul>
+</article>

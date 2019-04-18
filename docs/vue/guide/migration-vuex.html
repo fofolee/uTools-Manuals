@@ -1,0 +1,77 @@
+<div class="content guide with-sidebar migration-vuex-guide">
+<h1>从 Vuex 0.6.x 迁移到 1.0</h1>
+<blockquote>
+<p>Vuex 2.0 已经发布了，但是这份指南只涵盖迁移到 1.0？这是打错了吗？此外，似乎 Vuex 1.0 和 2.0 也同时发布。这是怎么回事？我该用哪一个并且哪一个兼容 Vue 2.0呢？</p>
+</blockquote>
+<p>Vuex 1.0 和 2.0 如下：</p>
+<ul>
+<li>都完全支持 Vue 1.0 和 2.0</li>
+<li>将在可预见的未来保留支持</li>
+</ul>
+<p>然而它们的目标用户稍微有所不同。</p>
+<p><strong>Vuex 2.0</strong> 从根本上重新设计并且提供简洁的 API，用于帮助正在开始一个新项目的用户，或想要用客户端状态管理前沿技术的用户。<strong>此迁移指南不涵盖 Vuex 2.0 相关内容</strong>，因此如果你想了解更多，请查阅 <a href="https://vuex.vuejs.org/zh-cn/" rel="noopener" target="_blank">Vuex 2.0 文档</a>。</p>
+<p><strong>Vuex 1.0</strong> 主要是向下兼容，所以升级只需要很小的改动。推荐拥有大量现存代码库的用户，或只想尽可能平滑升级 Vue 2.0 的用户。这份指南致力促进这一过程，但仅包括迁移说明。完整使用指南请查阅 <a href="https://github.com/vuejs/vuex/tree/1.0/docs/zh-cn" rel="noopener" target="_blank">Vuex 1.0 文档</a>。</p>
+<h2 id="带字符串属性路径的-store-watch-替换"><a class="headerlink" href="#带字符串属性路径的-store-watch-替换" title="带字符串属性路径的 store.watch 替换"></a>带字符串属性路径的 <code>store.watch</code> <sup>替换</sup></h2><p><code>store.watch</code> 现在只接受函数。因此，下面例子你需要替换：</p>
+<pre><code class="hljs js">store.watch(<span class="hljs-string">'user.notifications'</span>, callback)</code></pre>
+<p>为：</p>
+<pre><code class="hljs js">store.watch(
+  <span class="hljs-comment">// 当返回结果改变...</span>
+  <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">state</span>) </span>{
+    <span class="hljs-keyword">return</span> state.user.notifications
+  },
+  <span class="hljs-comment">// 执行回调函数</span>
+  callback
+)</code></pre>
+<p>这帮助你更加完善的控制那些需要监听的响应式属性。</p>
+<div class="upgrade-path">
+<h4>升级方法</h4>
+<p>在代码库运行<a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移工具</a>，查找在 <code>store.watch</code> 中使用字符串作为第一个参数的事例。</p>
+</div>
+<h2 id="Store-的事件触发器-移除"><a class="headerlink" href="#Store-的事件触发器-移除" title="Store 的事件触发器 移除"></a>Store 的事件触发器 <sup>移除</sup></h2><p>store 实例不再暴露事件触发器 (event emitter) 接口 (<code>on</code>, <code>off</code>, <code>emit</code>)。如果你之前使用 store 作为全局的 event bus，迁移说明相关内容请查阅<a href="migration.html#dispatch-和-broadcast-替换">此章节</a>。</p>
+<p>为了替换正在使用观察 store 自身触发事件的这些接口，(例如：<code>store.on('mutation', callback)</code>)，我们引入新的方法 <code>store.subscribe</code>。在插件中的典型使用方式如下：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> myPlugin = <span class="hljs-function"><span class="hljs-params">store</span> =&gt;</span> {
+  store.subscribe(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">mutation, state</span>) </span>{
+    <span class="hljs-comment">// Do something...</span>
+  })
+}</code></pre>
+<p>更多信息请查阅<a href="https://github.com/vuejs/vuex/blob/1.0/docs/en/plugins.md" rel="noopener" target="_blank">插件文档</a>的示例。</p>
+<div class="upgrade-path">
+<h4>升级方式</h4>
+<p>在代码库运行<a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移工具</a>，查找使用了 <code>store.on</code>, <code>store.off</code>, <code>store.emit</code> 的事例。</p>
+</div>
+<h2 id="中间件-替换"><a class="headerlink" href="#中间件-替换" title="中间件 替换"></a>中间件 <sup>替换</sup></h2><p>中间件被替换为插件。插件是接收 store 作为仅有参数的基本函数，能够监听 store 中的 mutation 事件：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> myPlugins = <span class="hljs-function"><span class="hljs-params">store</span> =&gt;</span> {
+  store.subscribe(<span class="hljs-string">'mutation'</span>, (mutation, state) =&gt; {
+    <span class="hljs-comment">// Do something...</span>
+  })
+}</code></pre>
+<p>更多详情，请查阅 <a href="https://github.com/vuejs/vuex/blob/1.0/docs/en/plugins.md" rel="noopener" target="_blank">插件文档</a>。</p>
+<div class="upgrade-path">
+<h4>升级方法</h4>
+<p>在代码库运行<a href="https://github.com/vuejs/vue-migration-helper" rel="noopener" target="_blank">迁移工具</a>，查找使用了 <code>middlewares</code> 选项的事例。</p>
+</div>
+<div class="guide-links">
+<span>← <a href="migration-vue-router.html">从 Vue Router 0.7.x 迁移</a></span>
+<span style="float: right;"><a href="comparison.html">对比其他框架</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srcmigration-vuex.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

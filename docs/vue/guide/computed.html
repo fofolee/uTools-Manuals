@@ -1,0 +1,242 @@
+<div class="content guide with-sidebar computed-guide">
+<h1>计算属性和侦听器</h1>
+<h2 id="计算属性"><a class="headerlink" href="#计算属性" title="计算属性"></a>计算属性</h2><p>模板内的表达式非常便利，但是设计它们的初衷是用于简单运算的。在模板中放入太多的逻辑会让模板过重且难以维护。例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"example"</span>&gt;</span>
+  {{ message.split('').reverse().join('') }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>在这个地方，模板不再是简单的声明式逻辑。你必须看一段时间才能意识到，这里是想要显示变量 <code>message</code> 的翻转字符串。当你想要在模板中多次引用此处的翻转字符串时，就会更加难以处理。</p>
+<p>所以，对于任何复杂逻辑，你都应当使用<strong>计算属性</strong>。</p>
+<h3 id="基础例子"><a class="headerlink" href="#基础例子" title="基础例子"></a>基础例子</h3><pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"example"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Original message: "{{ message }}"<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Computed reversed message: "{{ reversedMessage }}"<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#example'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">message</span>: <span class="hljs-string">'Hello'</span>
+  },
+  <span class="hljs-attr">computed</span>: {
+    <span class="hljs-comment">// 计算属性的 getter</span>
+    reversedMessage: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-comment">// `this` 指向 vm 实例</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.message.split(<span class="hljs-string">''</span>).reverse().join(<span class="hljs-string">''</span>)
+    }
+  }
+})</code></pre>
+<p>结果：</p>
+<div id="example">
+<p>Original message: "{{ message }}"</p>
+<p>Computed reversed message: "{{ reversedMessage }}"</p>
+</div>
+<script>
+var vm = new Vue({
+  el: '#example',
+  data: {
+    message: 'Hello'
+  },
+  computed: {
+    reversedMessage: function () {
+      return this.message.split('').reverse().join('')
+    }
+  }
+})
+</script>
+<p>这里我们声明了一个计算属性 <code>reversedMessage</code>。我们提供的函数将用作属性 <code>vm.reversedMessage</code> 的 getter 函数：</p>
+<pre><code class="hljs js"><span class="hljs-built_in">console</span>.log(vm.reversedMessage) <span class="hljs-comment">// =&gt; 'olleH'</span>
+vm.message = <span class="hljs-string">'Goodbye'</span>
+<span class="hljs-built_in">console</span>.log(vm.reversedMessage) <span class="hljs-comment">// =&gt; 'eybdooG'</span></code></pre>
+<p>你可以打开浏览器的控制台，自行修改例子中的 vm。<code>vm.reversedMessage</code> 的值始终取决于 <code>vm.message</code> 的值。</p>
+<p>你可以像绑定普通属性一样在模板中绑定计算属性。Vue 知道 <code>vm.reversedMessage</code> 依赖于 <code>vm.message</code>，因此当 <code>vm.message</code> 发生改变时，所有依赖 <code>vm.reversedMessage</code> 的绑定也会更新。而且最妙的是我们已经以声明的方式创建了这种依赖关系：计算属性的 getter 函数是没有副作用 (side effect) 的，这使它更易于测试和理解。</p>
+<h3 id="计算属性缓存-vs-方法"><a class="headerlink" href="#计算属性缓存-vs-方法" title="计算属性缓存 vs 方法"></a>计算属性缓存 vs 方法</h3><p>你可能已经注意到我们可以通过在表达式中调用方法来达到同样的效果：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Reversed message: "{{ reversedMessage() }}"<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-comment">// 在组件中</span>
+methods: {
+  <span class="hljs-attr">reversedMessage</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.message.split(<span class="hljs-string">''</span>).reverse().join(<span class="hljs-string">''</span>)
+  }
+}</code></pre>
+<p>我们可以将同一函数定义为一个方法而不是一个计算属性。两种方式的最终结果确实是完全相同的。然而，不同的是<strong>计算属性是基于它们的响应式依赖进行缓存的</strong>。只在相关响应式依赖发生改变时它们才会重新求值。这就意味着只要 <code>message</code> 还没有发生改变，多次访问 <code>reversedMessage</code> 计算属性会立即返回之前的计算结果，而不必再次执行函数。</p>
+<p>这也同样意味着下面的计算属性将不再更新，因为 <code>Date.now()</code> 不是响应式依赖：</p>
+<pre><code class="hljs js">computed: {
+  <span class="hljs-attr">now</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">Date</span>.now()
+  }
+}</code></pre>
+<p>相比之下，每当触发重新渲染时，调用方法将<strong>总会</strong>再次执行函数。</p>
+<p>我们为什么需要缓存？假设我们有一个性能开销比较大的计算属性 <strong>A</strong>，它需要遍历一个巨大的数组并做大量的计算。然后我们可能有其他的计算属性依赖于 <strong>A</strong> 。如果没有缓存，我们将不可避免的多次执行 <strong>A</strong> 的 getter！如果你不希望有缓存，请用方法来替代。</p>
+<h3 id="计算属性-vs-侦听属性"><a class="headerlink" href="#计算属性-vs-侦听属性" title="计算属性 vs 侦听属性"></a>计算属性 vs 侦听属性</h3><p>Vue 提供了一种更通用的方式来观察和响应 Vue 实例上的数据变动：<strong>侦听属性</strong>。当你有一些数据需要随着其它数据变动而变动时，你很容易滥用 <code>watch</code>——特别是如果你之前使用过 AngularJS。然而，通常更好的做法是使用计算属性而不是命令式的 <code>watch</code> 回调。细想一下这个例子：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"demo"</span>&gt;</span>{{ fullName }}<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#demo'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">firstName</span>: <span class="hljs-string">'Foo'</span>,
+    <span class="hljs-attr">lastName</span>: <span class="hljs-string">'Bar'</span>,
+    <span class="hljs-attr">fullName</span>: <span class="hljs-string">'Foo Bar'</span>
+  },
+  <span class="hljs-attr">watch</span>: {
+    <span class="hljs-attr">firstName</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">val</span>) </span>{
+      <span class="hljs-keyword">this</span>.fullName = val + <span class="hljs-string">' '</span> + <span class="hljs-keyword">this</span>.lastName
+    },
+    <span class="hljs-attr">lastName</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">val</span>) </span>{
+      <span class="hljs-keyword">this</span>.fullName = <span class="hljs-keyword">this</span>.firstName + <span class="hljs-string">' '</span> + val
+    }
+  }
+})</code></pre>
+<p>上面代码是命令式且重复的。将它与计算属性的版本进行比较：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#demo'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">firstName</span>: <span class="hljs-string">'Foo'</span>,
+    <span class="hljs-attr">lastName</span>: <span class="hljs-string">'Bar'</span>
+  },
+  <span class="hljs-attr">computed</span>: {
+    <span class="hljs-attr">fullName</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.firstName + <span class="hljs-string">' '</span> + <span class="hljs-keyword">this</span>.lastName
+    }
+  }
+})</code></pre>
+<p>好得多了，不是吗？</p>
+<h3 id="计算属性的-setter"><a class="headerlink" href="#计算属性的-setter" title="计算属性的 setter"></a>计算属性的 setter</h3><p>计算属性默认只有 getter ，不过在需要时你也可以提供一个 setter ：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// ...</span>
+computed: {
+  <span class="hljs-attr">fullName</span>: {
+    <span class="hljs-comment">// getter</span>
+    get: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.firstName + <span class="hljs-string">' '</span> + <span class="hljs-keyword">this</span>.lastName
+    },
+    <span class="hljs-comment">// setter</span>
+    set: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">newValue</span>) </span>{
+      <span class="hljs-keyword">var</span> names = newValue.split(<span class="hljs-string">' '</span>)
+      <span class="hljs-keyword">this</span>.firstName = names[<span class="hljs-number">0</span>]
+      <span class="hljs-keyword">this</span>.lastName = names[names.length - <span class="hljs-number">1</span>]
+    }
+  }
+}
+<span class="hljs-comment">// ...</span></code></pre>
+<p>现在再运行 <code>vm.fullName = 'John Doe'</code> 时，setter 会被调用，<code>vm.firstName</code> 和 <code>vm.lastName</code> 也会相应地被更新。</p>
+<h2 id="侦听器"><a class="headerlink" href="#侦听器" title="侦听器"></a>侦听器</h2><p>虽然计算属性在大多数情况下更合适，但有时也需要一个自定义的侦听器。这就是为什么 Vue 通过 <code>watch</code> 选项提供了一个更通用的方法，来响应数据的变化。当需要在数据变化时执行异步或开销较大的操作时，这个方式是最有用的。</p>
+<p>例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"watch-example"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>
+    Ask a yes/no question:
+    <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"question"</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>{{ answer }}<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 因为 AJAX 库和通用工具的生态已经相当丰富，Vue 核心代码没有重复 --&gt;</span>
+<span class="hljs-comment">&lt;!-- 提供这些功能以保持精简。这也可以让你自由选择自己更熟悉的工具。 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="javascript">
+<span class="hljs-keyword">var</span> watchExampleVM = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#watch-example'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">question</span>: <span class="hljs-string">''</span>,
+    <span class="hljs-attr">answer</span>: <span class="hljs-string">'I cannot give you an answer until you ask a question!'</span>
+  },
+  <span class="hljs-attr">watch</span>: {
+    <span class="hljs-comment">// 如果 `question` 发生改变，这个函数就会运行</span>
+    question: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">newQuestion, oldQuestion</span>) </span>{
+      <span class="hljs-keyword">this</span>.answer = <span class="hljs-string">'Waiting for you to stop typing...'</span>
+      <span class="hljs-keyword">this</span>.debouncedGetAnswer()
+    }
+  },
+  <span class="hljs-attr">created</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-comment">// `_.debounce` 是一个通过 Lodash 限制操作频率的函数。</span>
+    <span class="hljs-comment">// 在这个例子中，我们希望限制访问 yesno.wtf/api 的频率</span>
+    <span class="hljs-comment">// AJAX 请求直到用户输入完毕才会发出。想要了解更多关于</span>
+    <span class="hljs-comment">// `_.debounce` 函数 (及其近亲 `_.throttle`) 的知识，</span>
+    <span class="hljs-comment">// 请参考：https://lodash.com/docs#debounce</span>
+    <span class="hljs-keyword">this</span>.debouncedGetAnswer = _.debounce(<span class="hljs-keyword">this</span>.getAnswer, <span class="hljs-number">500</span>)
+  },
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-attr">getAnswer</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.question.indexOf(<span class="hljs-string">'?'</span>) === <span class="hljs-number">-1</span>) {
+        <span class="hljs-keyword">this</span>.answer = <span class="hljs-string">'Questions usually contain a question mark. ;-)'</span>
+        <span class="hljs-keyword">return</span>
+      }
+      <span class="hljs-keyword">this</span>.answer = <span class="hljs-string">'Thinking...'</span>
+      <span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">this</span>
+      axios.get(<span class="hljs-string">'https://yesno.wtf/api'</span>)
+        .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">response</span>) </span>{
+          vm.answer = _.capitalize(response.data.answer)
+        })
+        .catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
+          vm.answer = <span class="hljs-string">'Error! Could not reach the API. '</span> + error
+        })
+    }
+  }
+})
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+<p>结果：</p>
+<div id="watch-example">
+<p>
+    Ask a yes/no question:
+    <input v-model="question"/>
+</p>
+<p>{{ answer }}</p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
+<script>
+var watchExampleVM = new Vue({
+  el: '#watch-example',
+  data: {
+    question: '',
+    answer: 'I cannot give you an answer until you ask a question!'
+  },
+  watch: {
+    question: function (newQuestion, oldQuestion) {
+      this.answer = 'Waiting for you to stop typing...'
+      this.debouncedGetAnswer()
+    }
+  },
+  created: function () {
+    this.debouncedGetAnswer = _.debounce(this.getAnswer, 500)
+  },
+  methods: {
+    getAnswer: function () {
+      if (this.question.indexOf('?') === -1) {
+        this.answer = 'Questions usually contain a question mark. ;-)'
+        return
+      }
+      this.answer = 'Thinking...'
+      var vm = this
+      axios.get('https://yesno.wtf/api')
+        .then(function (response) {
+          vm.answer = _.capitalize(response.data.answer)
+        })
+        .catch(function (error) {
+          vm.answer = 'Error! Could not reach the API. ' + error
+        })
+    }
+  }
+})
+</script>
+<p>在这个示例中，使用 <code>watch</code> 选项允许我们执行异步操作 (访问一个 API)，限制我们执行该操作的频率，并在我们得到最终结果前，设置中间状态。这些都是计算属性无法做到的。</p>
+<p>除了 <code>watch</code> 选项之外，您还可以使用命令式的 <a href="../api/#vm-watch">vm.$watch API</a>。</p>
+<div class="guide-links">
+<span>← <a href="syntax.html">模板语法</a></span>
+<span style="float: right;"><a href="class-and-style.html">Class 与 Style 绑定</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srccomputed.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

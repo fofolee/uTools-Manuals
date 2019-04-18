@@ -1,0 +1,178 @@
+<article id="wikiArticle">
+<div></div>
+<p><code><strong>call()</strong></code> 方法使用一个指定的 <code>this</code> 值和单独给出的一个或多个参数来调用一个函数。</p>
+<div class="note"><strong>注意：</strong>该方法的语法和作用与 <a href="Reference/Global_Objects/Function/apply" title="apply() 方法调用一个具有给定this值的函数，以及作为一个数组（或类似数组对象）提供的参数。"><code>apply()</code></a> 方法类似，只有一个区别，就是 <code>call()</code> 方法接受的是<strong>一个参数列表</strong>，而 <code>apply()</code> 方法接受的是<strong>一个包含多个参数的数组</strong>。</div>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/function-call.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox"><code><em>fun</em>.call(<em>thisArg</em>, <em>arg1</em>, <em>arg2</em>, ...)</code></pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>thisArg</code></dt>
+<dd>在 <em><code>fun</code></em> 函数运行时指定的 <code>this</code> 值<em>。</em>需要注意的是，指定的 <code>this</code> 值并不一定是该函数执行时真正的 <code>this</code> 值，如果这个函数在<a href="Reference/Strict_mode" title="如果你想改变你的代码，让其工作在具有限制性JavaScript环境中，请参阅转换成严格模式。"><code>非严格模式</code></a>下运行，则指定为 <a href="Reference/Global_Objects/null" title="值 null 特指对象的值未设置。它是 JavaScript 基本类型 之一。"><code>null</code></a> 和 <a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a> 的 <code>this</code> 值会自动指向全局对象（浏览器中就是 window 对象），同时值为原始值（数字，字符串，布尔值）的 <code>this</code> 会指向该原始值的自动包装对象。</dd>
+<dt><code>arg1, arg2, ...</code></dt>
+<dd>指定的参数列表。</dd>
+</dl>
+<h2 id="返回值">返回值</h2>
+<p>使用调用者提供的 <code>this</code> 值和参数调用该函数的返回值。若该方法没有返回值，则返回 <code>undefined</code>。</p>
+<h2 id="描述">描述</h2>
+<p><code>call()</code> 允许为不同的对象分配和调用属于一个对象的函数/方法。</p>
+<p><code>call()</code> 提供新的 <strong>this </strong>值给当前调用的函数/方法。你可以使用 <code>call</code> 来实现继承：写一个方法，然后让另外一个新的对象来继承它（而不是在新对象中再写一次这个方法）。</p>
+<h2 id="示例">示例</h2>
+<h3 id="使用_call_方法调用父构造函数">使用 <code>call</code> 方法调用父构造函数</h3>
+<p>在一个子构造函数中，你可以通过调用父构造函数的 <code>call</code> 方法来实现继承，类似于 <code>Java</code> 中的写法。下例中，使用 <code>Food</code> 和 <code>Toy </code>构造函数创建的对象实例都会拥有在 <code>Product</code> 构造函数中添加的 <code>name</code> 属性和 <code>price</code> 属性,但 <code>category</code> 属性是在各自的构造函数中定义的。</p>
+<pre class="brush: js">function Product(name, price) {
+  this.name = name;
+  this.price = price;
+}
+
+function Food(name, price) {
+  Product.call(this, name, price);
+  this.category = 'food';
+}
+
+function Toy(name, price) {
+  Product.call(this, name, price);
+  this.category = 'toy';
+}
+
+var cheese = new Food('feta', 5);
+var fun = new Toy('robot', 40);
+</pre>
+<h3 id="使用_call_方法调用匿名函数">使用 <code>call</code> 方法调用匿名函数</h3>
+<p>在下例中的 <code>for</code> 循环体内，我们创建了一个匿名函数，然后通过调用该函数的 <code>call</code> 方法，将每个数组元素作为指定的 <code>this</code> 值执行了那个匿名函数。这个匿名函数的主要目的是给每个数组元素对象添加一个 <code>print</code> 方法，这个 <code>print</code> 方法可以打印出各元素在数组中的正确索引号。当然，这里不是必须得让数组元素作为 <code>this</code> 值传入那个匿名函数（普通参数就可以），目的是为了演示 <code>call</code> 的用法。</p>
+<pre class="brush: js">var animals = [
+  { species: 'Lion', name: 'King' },
+  { species: 'Whale', name: 'Fail' }
+];
+
+for (var i = 0; i &lt; animals.length; i++) {
+  (function(i) {
+    this.print = function() {
+      console.log('#' + i + ' ' + this.species
+                  + ': ' + this.name);
+    }
+    this.print();
+  }).call(animals[i], i);
+}
+</pre>
+<h3 id="使用_call_方法调用函数并且指定上下文的_'this'">使用 <code>call</code> 方法调用函数并且指定上下文的 '<code>this</code>'</h3>
+<p>在下面的例子中，当调用 <code>greet</code> 方法的时候，该方法的<code>this</code>值会绑定到 <code>obj</code> 对象。</p>
+<pre class="brush: js">function greet() {
+  var reply = [this.animal, 'typically sleep between', this.sleepDuration].join(' ');
+  console.log(reply);
+}
+
+var obj = {
+  animal: 'cats', sleepDuration: '12 and 16 hours'
+};
+
+greet.call(obj);  // cats typically sleep between 12 and 16 hours
+</pre>
+<h3 id="使用_call_方法调用函数并且不指定第一个参数（argument）" style="margin-bottom: 20px; line-height: 30px;">使用 <code><strong>call</strong></code> 方法调用函数并且不指定第一个参数（<code>argument</code>）</h3>
+<p>在下面的例子中，我们调用了 <code>display</code> 方法，但并没有传递它的第一个参数。如果没有传递第一个参数，<code>this</code> 的值将会被绑定为全局对象。</p>
+<pre class="brush: js">var sData = 'Wisen';
+
+function display() {
+  console.log('sData value is %s ', this.sData);
+}
+
+display.call();  // sData value is Wisen</pre>
+<div class="note">
+<p><strong>注意：</strong>在严格模式下，<code>this</code> 的值将会是 <code>undefined</code>。见下文。</p>
+</div>
+<pre class="brush: js">'use strict';
+
+var sData = 'Wisen';
+
+function display() {
+  console.log('sData value is %s ', this.sData);
+}
+
+display.call(); // Cannot read the property of 'sData' of undefined</pre>
+<h2 id="规范" style="margin-bottom: 20px; line-height: 30px;">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规范版本</th>
+<th scope="col">状态</th>
+<th scope="col">说明</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%201st%20edition,%20June%201997.pdf" hreflang="en" lang="en" rel="noopener" title="ECMAScript 1st Edition (ECMA-262)">ECMAScript 1st Edition (ECMA-262)</a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>初始定义。在 JavaScript 1.3 中实现。</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-15.3.4.4" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">Function.prototype.call</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-function.prototype.call" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Function.prototype.call</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-function.prototype.call" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Function.prototype.call</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>call</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+<h2 id="See_also" name="See_also" style="margin-bottom: 20px; line-height: 30px;">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Function/bind" title="bind()方法创建一个新的函数，在调用时设置this关键字为提供的值。并在调用新函数时，将给定参数列表作为原函数的参数序列的前若干项。"><code>Function.prototype.bind()</code></a></li>
+<li><a href="Reference/Global_Objects/Function/apply" title="apply() 方法调用一个具有给定this值的函数，以及作为一个数组（或类似数组对象）提供的参数。"><code>Function.prototype.apply()</code></a></li>
+<li><a href="Introduction_to_Object-Oriented_JavaScript">JavaScript 面向对象入门</a></li>
+</ul>
+</article>

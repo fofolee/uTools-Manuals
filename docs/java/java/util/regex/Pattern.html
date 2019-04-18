@@ -1,0 +1,997 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.regex 
+   </div>
+<h2 class="title" title="Class Pattern">Class Pattern</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.util.regex.Pattern</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">Pattern</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../../java/io/Serializable.html" title="interface in java.io">Serializable</a></pre>
+<div class="block">
+<span>正则表达式的编译表示。</span>
+<p> <span>必须首先将正则表达式（指定为字符串）编译为此类的实例。</span> <span>然后将所得的图案可以被用来创建一个<a href="../../../java/util/regex/Matcher.html" title="java.util.regex中的类"><code>Matcher</code></a>对象可以匹配任意<a href="../../../java/lang/CharSequence.html" title="java.lang中的接口">character sequences</a>针对正则表达式。</span> <span>执行匹配的所有状态都驻留在匹配器中，所以许多匹配者可以共享相同的模式。</span> </p>
+<p> <span>因此，典型的调用序列</span> </p>
+<blockquote>
+<span><pre>
+ Pattern p = Pattern.<a href="../../../java/util/regex/Pattern.html#compile-java.lang.String-"><code>compile</code></a>("a*b");
+ Matcher m = p.<a href="../../../java/util/regex/Pattern.html#matcher-java.lang.CharSequence-"><code>matcher</code></a>("aaaaab");
+ boolean b = m.<a href="../../../java/util/regex/Matcher.html#matches--"><code>matches</code></a>();</pre></span>
+</blockquote>
+<p> <span>这个类定义了一个<a href="../../../java/util/regex/Pattern.html#matches-java.lang.String-java.lang.CharSequence-"><code>matches</code></a>方法，以便在正则表达式只使用一次时方便。</span> <span>该方法编译一个表达式，并在单个调用中匹配输入序列。</span> <span>该声明</span> </p>
+<blockquote>
+<span><pre>
+ boolean b = Pattern.matches("a*b", "aaaaab");</pre></span>
+</blockquote>
+<span>相当于上面的三个语句，尽管对于重复匹配，它的效率较低，因为它不允许编译的模式被重用。</span>
+<p> <span>这个类的实例是不可变的，可以安全地被多个并发线程使用。</span> <span>该实例<a href="../../../java/util/regex/Matcher.html" title="java.util.regex中的类"><code>Matcher</code></a>类不适合这样的使用是安全的。</span> </p>
+<h3> <span><a name="sum">Summary of regular-expression constructs</a></span> </h3>
+<span>  Construct Matches       Characters   <i>x</i> The character <i>x</i> <tt>\\</tt> The backslash character   <tt>\0</tt><i>n</i> The character with octal value <tt>0</tt><i>n</i> (0 <tt>&lt;=</tt> <i>n</i> <tt>&lt;=</tt> 7)   <tt>\0</tt><i>nn</i> The character with octal value <tt>0</tt><i>nn</i> (0 <tt>&lt;=</tt> <i>n</i> <tt>&lt;=</tt> 7)   <tt>\0</tt><i>mnn</i> The character with octal value <tt>0</tt><i>mnn</i> (0 <tt>&lt;=</tt> <i>m</i> <tt>&lt;=</tt> 3, 0 <tt>&lt;=</tt> <i>n</i> <tt>&lt;=</tt> 7)   <tt>\x</tt><i>hh</i> The character with hexadecimal value <tt>0x</tt><i>hh</i> <tt>\u</tt><i>hhhh</i> The character with hexadecimal value <tt>0x</tt><i>hhhh</i> <tt>\x</tt><i>{h...h}</i> The character with hexadecimal value <tt>0x</tt><i>h...h</i> (<a href="../../../java/lang/Character.html#MIN_CODE_POINT"><code>Character.MIN_CODE_POINT</code></a>  &lt;= <tt>0x</tt><i>h...h</i> &lt;=  <a href="../../../java/lang/Character.html#MAX_CODE_POINT"><code>Character.MAX_CODE_POINT</code></a>)   <tt>\t</tt> The tab character (<tt>'\u0009'</tt>)   <tt>\n</tt> The newline (line feed) character (<tt>'\u000A'</tt>)   <tt>\r</tt> The carriage-return character (<tt>'\u000D'</tt>)   <tt>\f</tt> The form-feed character (<tt>'\u000C'</tt>)   <tt>\a</tt> The alert (bell) character (<tt>'\u0007'</tt>)   <tt>\e</tt> The escape character (<tt>'\u001B'</tt>)   <tt>\c</tt><i>x</i> The control character corresponding to <i>x</i>       Character classes   <code>[abc]</code> <code>a</code>, <code>b</code>, or <code>c</code> (simple class)   <code>[^abc]</code> Any character except <code>a</code>, <code>b</code>, or <code>c</code> (negation)   <code>[a-zA-Z]</code> <code>a</code> through <code>z</code> or <code>A</code> through <code>Z</code>, inclusive (range)   <code>[a-d[m-p]]</code> <code>a</code> through <code>d</code>, or <code>m</code> through <code>p</code>: <code>[a-dm-p]</code> (union)   <code>[a-z&amp;&amp;[def]]</code> <code>d</code>, <code>e</code>, or <code>f</code> (intersection)   <code>[a-z&amp;&amp;[^bc]]</code> <code>a</code> through <code>z</code>, except for <code>b</code> and <code>c</code>: <code>[ad-z]</code> (subtraction)   <code>[a-z&amp;&amp;[^m-p]]</code> <code>a</code> through <code>z</code>, and not <code>m</code> through <code>p</code>: <code>[a-lq-z]</code>(subtraction)       Predefined character classes   <tt>.</tt> Any character (may or may not match <a href="#lt">line terminators</a>)   <tt>\d</tt> A digit: <tt>[0-9]</tt> <tt>\D</tt> A non-digit: <tt>[^0-9]</tt> <tt>\h</tt> A horizontal whitespace character: <tt>[ \t\xA0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000]</tt> <tt>\H</tt> A non-horizontal whitespace character: <tt>[^\h]</tt> <tt>\s</tt> A whitespace character: <tt>[ \t\n\x0B\f\r]</tt> <tt>\S</tt> A non-whitespace character: <tt>[^\s]</tt> <tt>\v</tt> A vertical whitespace character: <tt>[\n\x0B\f\r\x85\u2028\u2029]</tt> <tt>\V</tt> A non-vertical whitespace character: <tt>[^\v]</tt> <tt>\w</tt> A word character: <tt>[a-zA-Z_0-9]</tt> <tt>\W</tt> A non-word character: <tt>[^\w]</tt>       <b>POSIX character classes (US-ASCII only)</b> <code>\p{Lower}</code> A lower-case alphabetic character: <code>[a-z]</code> <code>\p{Upper}</code> An upper-case alphabetic character:<code>[A-Z]</code> <code>\p{ASCII}</code> All ASCII:<code>[\x00-\x7F]</code> <code>\p{Alpha}</code> An alphabetic character:<code>[\p{Lower}\p{Upper}]</code> <code>\p{Digit}</code> A decimal digit: <code>[0-9]</code> <code>\p{Alnum}</code> An alphanumeric character:<code>[\p{Alpha}\p{Digit}]</code> <code>\p{Punct}</code> Punctuation: One of <code>!"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}~</code>
+<!-- <code>[\!"#\$%&amp;'\(\)\*\+,\-\./:;\&lt;=\&gt;\?@\[\\\]\^_`\{\|\}~]</code>
+          <code>[\X21-\X2F\X31-\X40\X5B-\X60\X7B-\X7E]</code> --> <code>\p{Graph}</code> A visible character: <code>[\p{Alnum}\p{Punct}]</code> <code>\p{Print}</code> A printable character: <code>[\p{Graph}\x20]</code> <code>\p{Blank}</code> A space or a tab: <code>[ \t]</code> <code>\p{Cntrl}</code> A control character: <code>[\x00-\x1F\x7F]</code> <code>\p{XDigit}</code> A hexadecimal digit: <code>[0-9a-fA-F]</code> <code>\p{Space}</code> A whitespace character: <code>[ \t\n\x0B\f\r]</code>       java.lang.Character classes (simple <a href="#jcc">java character type</a>)   <tt>\p{javaLowerCase}</tt> Equivalent to java.lang.Character.isLowerCase()   <tt>\p{javaUpperCase}</tt> Equivalent to java.lang.Character.isUpperCase()   <tt>\p{javaWhitespace}</tt> Equivalent to java.lang.Character.isWhitespace()   <tt>\p{javaMirrored}</tt> Equivalent to java.lang.Character.isMirrored()       Classes for Unicode scripts, blocks, categories and binary properties   <code>\p{IsLatin}</code> A Latin script character (<a href="#usc">script</a>)   <code>\p{InGreek}</code> A character in the Greek block (<a href="#ubc">block</a>)   <code>\p{Lu}</code> An uppercase letter (<a href="#ucc">category</a>)   <code>\p{IsAlphabetic}</code> An alphabetic character (<a href="#ubpc">binary property</a>)   <code>\p{Sc}</code> A currency symbol   <code>\P{InGreek}</code> Any character except one in the Greek block (negation)   <code>[\p{L}&amp;&amp;[^\p{Lu}]]</code> Any letter except an uppercase letter (subtraction)       Boundary matchers   <tt>^</tt> The beginning of a line   <tt>$</tt> The end of a line   <tt>\b</tt> A word boundary   <tt>\B</tt> A non-word boundary   <tt>\A</tt> The beginning of the input   <tt>\G</tt> The end of the previous match   <tt>\Z</tt> The end of the input but for the final <a href="#lt">terminator</a>, if any   <tt>\z</tt> The end of the input       Linebreak matcher   <tt>\R</tt> Any Unicode linebreak sequence, is equivalent to <tt>\u000D\u000A|[\u000A\u000B\u000C\u000D\u0085\u2028\u2029] </tt>       Greedy quantifiers   <i>X</i><tt>?</tt> <i>X</i>, once or not at all   <i>X</i><tt>*</tt> <i>X</i>, zero or more times   <i>X</i><tt>+</tt> <i>X</i>, one or more times   <i>X</i><tt>{</tt><i>n</i><tt>}</tt> <i>X</i>, exactly <i>n</i> times   <i>X</i><tt>{</tt><i>n</i><tt>,}</tt> <i>X</i>, at least <i>n</i> times   <i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}</tt> <i>X</i>, at least <i>n</i> but not more than <i>m</i> times       Reluctant quantifiers   <i>X</i><tt>??</tt> <i>X</i>, once or not at all   <i>X</i><tt>*?</tt> <i>X</i>, zero or more times   <i>X</i><tt>+?</tt> <i>X</i>, one or more times   <i>X</i><tt>{</tt><i>n</i><tt>}?</tt> <i>X</i>, exactly <i>n</i> times   <i>X</i><tt>{</tt><i>n</i><tt>,}?</tt> <i>X</i>, at least <i>n</i> times   <i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}?</tt> <i>X</i>, at least <i>n</i> but not more than <i>m</i> times       Possessive quantifiers   <i>X</i><tt>?+</tt> <i>X</i>, once or not at all   <i>X</i><tt>*+</tt> <i>X</i>, zero or more times   <i>X</i><tt>++</tt> <i>X</i>, one or more times   <i>X</i><tt>{</tt><i>n</i><tt>}+</tt> <i>X</i>, exactly <i>n</i> times   <i>X</i><tt>{</tt><i>n</i><tt>,}+</tt> <i>X</i>, at least <i>n</i> times   <i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}+</tt> <i>X</i>, at least <i>n</i> but not more than <i>m</i> times       Logical operators   <i>XY</i> <i>X</i> followed by <i>Y</i> <i>X</i><tt>|</tt><i>Y</i> Either <i>X</i> or <i>Y</i> <tt>(</tt><i>X</i><tt>)</tt> X, as a <a href="#cg">capturing group</a>       Back references   <tt>\</tt><i>n</i> Whatever the <i>n</i><sup>th</sup> <a href="#cg">capturing group</a> matched   <tt>\</tt><i>k</i>&lt;<i>name</i>&gt; Whatever the <a href="#groupname">named-capturing group</a> "name" matched       Quotation   <tt>\</tt> Nothing, but quotes the following character   <tt>\Q</tt> Nothing, but quotes all characters until <tt>\E</tt> <tt>\E</tt> Nothing, but ends quoting started by <tt>\Q</tt>
+<!-- Metachars: !$()*+.<>?[\]^{|} -->      Special constructs (named-capturing and non-capturing)   <tt>(?&lt;<a href="#groupname">name</a>&gt;</tt><i>X</i><tt>)</tt> <i>X</i>, as a named-capturing group   <tt>(?:</tt><i>X</i><tt>)</tt> <i>X</i>, as a non-capturing group   <tt>(?idmsuxU-idmsuxU) </tt> Nothing, but turns match flags <a href="#CASE_INSENSITIVE">i</a> <a href="#UNIX_LINES">d</a> <a href="#MULTILINE">m</a> <a href="#DOTALL">s</a> <a href="#UNICODE_CASE">u</a> <a href="#COMMENTS">x</a> <a href="#UNICODE_CHARACTER_CLASS">U</a> on - off   <tt>(?idmsux-idmsux:</tt><i>X</i><tt>)</tt>   <i>X</i>, as a <a href="#cg">non-capturing group</a> with the given flags <a href="#CASE_INSENSITIVE">i</a> <a href="#UNIX_LINES">d</a> <a href="#MULTILINE">m</a> <a href="#DOTALL">s</a> <a href="#UNICODE_CASE">u</a> <a href="#COMMENTS">x</a> on - off   <tt>(?=</tt><i>X</i><tt>)</tt> <i>X</i>, via zero-width positive lookahead   <tt>(?!</tt><i>X</i><tt>)</tt> <i>X</i>, via zero-width negative lookahead   <tt>(?&lt;=</tt><i>X</i><tt>)</tt> <i>X</i>, via zero-width positive lookbehind   <tt>(?&lt;!</tt><i>X</i><tt>)</tt> <i>X</i>, via zero-width negative lookbehind   <tt>(?&gt;</tt><i>X</i><tt>)</tt> <i>X</i>, as an independent, non-capturing group  </span>
+<table border="0" cellpadding="1" cellspacing="0" summary="Regular expression constructs, and what they match">
+</table>
+<hr/>
+<h3> <span><a name="bs">Backslashes, escapes, and quoting</a></span> </h3>
+<p> <span>反斜杠字符（ <tt>'\'</tt> ）用于引入如上表中定义的转义结构，以及引用否则将被解释为未转义结构的字符。</span> <span>因此，表达式<tt>\\</tt>匹配单个反斜杠， <tt>\{</tt>匹配左括号。</span> </p>
+<p> <span>在任何不表示转义构造的字母字符之前使用反斜杠是一个错误;</span> <span>这些保留用于将来的正则表达式语言的扩展。</span> <span>反斜杠可以在非字母字符之前使用，而不管该角色是否是未转义构造的一部分。</span> </p>
+<p> <span>Java源代码中的字符串文字中的反斜杠将按照The Java™ Language Specification的要求被<cite>解释</cite>为Unicode转义（3.3节）或其他字符转义（第3.10.6节）。因此，有必要在表示正则表达式的字符串文字中加上反斜杠，以保护它们免受由Java字节码编译器解释。</span> <span>例如，字符串文字<tt>"\b"</tt>在解释为正则表达式时匹配单个退格字符，而<tt>"\\b"</tt>与字边界匹配。</span> <span>字符串字面值<tt>"\(hello\)"</tt>是非法的，并导致编译时错误;</span> <span>为了匹配字符串<tt>(hello)</tt> ，必须使用字符串文字<tt>"\\(hello\\)"</tt> 。</span> </p>
+<h3> <span><a name="cc">Character Classes</a></span> </h3>
+<p> <span>字符类可能出现在其他字符类中，并且可以由联合运算符（隐式）和交集运算符（ <tt>&amp;&amp;</tt> ）组成。</span> <span>union运算符表示一个包含至少一个操作数类中的每个字符的类。</span> <span>交点运算符表示包含两个操作数类中的每个字符的类。</span> </p>
+<p> <span>字符类运算符的优先级如下，从最高到最低：</span> </p>
+<blockquote>
+<span>
+<table border="0" cellpadding="1" cellspacing="0" summary="Precedence of character class operators.">
+<tbody>
+<tr>
+<th>1    </th>
+<td>Literal escape    </td>
+<td><tt>\x</tt></td>
+</tr>
+<tr>
+<th>2    </th>
+<td>Grouping</td>
+<td><tt>[...]</tt></td>
+</tr>
+<tr>
+<th>3    </th>
+<td>Range</td>
+<td><tt>a-z</tt></td>
+</tr>
+<tr>
+<th>4    </th>
+<td>Union</td>
+<td><tt>[a-e][i-u]</tt></td>
+</tr>
+<tr>
+<th>5    </th>
+<td>Intersection</td>
+<td><code>[a-z&amp;&amp;[aeiou]]</code></td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+<p> <span>请注意，一个不同的元字符集在字符类中比字符类以外有效。</span> <span>例如，正则表达式<tt>.</tt>在字符类中失去其特殊含义，而表达式<tt>-</tt>成为形成元字符的范围。</span> </p>
+<h3> <span><a name="lt">Line terminators</a></span> </h3>
+<p> <span><i>行终止符</i>是一个或两个字符的序列，用于标记输入字符序列的一行的末尾。</span> <span>以下内容被识别为线路终端器：</span> </p>
+<ul>
+<li> <span>换行符（换行）字符（ <tt>'\n'</tt> ），</span> </li>
+<li> <span>一个回车符，紧跟着一个换行符（ <tt>"\r\n"</tt> ），</span> </li>
+<li> <span>独立回车字符（ <tt>'\r'</tt> ），</span> </li>
+<li> <span>下一行字符（ <tt>'\u0085'</tt> ），</span> </li>
+<li> <span>行分隔符（ <tt>'\u2028'</tt> ）或</span> </li>
+<li> <span>段落分隔符（ <tt>'\u2029</tt> ）。</span> </li>
+</ul>
+<p> <span>如果<a href="../../../java/util/regex/Pattern.html#UNIX_LINES"><code>UNIX_LINES</code></a>模式被激活，则唯一识别的行终止符是换行符。</span> </p>
+<p> <span>正则表达式<tt>.</tt>匹配除行终止符之外的任何字符，除非指定了<a href="../../../java/util/regex/Pattern.html#DOTALL"><code>DOTALL</code></a>标志。</span> </p>
+<p> <span>默认情况下，正则表达式<tt>^</tt>和<tt>$</tt>忽略行终止符，仅分别在整个输入序列的开头和结尾进行匹配。</span> <span>如果<a href="../../../java/util/regex/Pattern.html#MULTILINE"><code>MULTILINE</code></a>模式被激活，则<tt>^</tt>在输入开始和任何行终止符之后匹配，除了输入结束。</span> <span>当在<a href="../../../java/util/regex/Pattern.html#MULTILINE"><code>MULTILINE</code></a>模式<tt>$</tt>匹配之前一个行终止符或输入序列的结尾。</span> </p>
+<h3> <span><a name="cg">Groups and capturing</a></span> </h3>
+<h4> <span><a name="gnumber">Group number</a></span> </h4>
+<p> <span>捕获组通过从左到右计算其开始括号进行编号。</span> <span>例如，在表达式<tt>((A)(B(C)))</tt>中，存在四个这样的组：</span> </p>
+<blockquote>
+<span>
+<table cellpadding="1" cellspacing="0" summary="Capturing group numberings">
+<tbody>
+<tr>
+<th>1    </th>
+<td><tt>((A)(B(C)))</tt></td>
+</tr>
+<tr>
+<th>2    </th>
+<td><tt>(A)</tt></td>
+</tr>
+<tr>
+<th>3    </th>
+<td><tt>(B(C))</tt></td>
+</tr>
+<tr>
+<th>4    </th>
+<td><tt>(C)</tt></td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+<p> <span>组零总是代表整个表达式。</span> </p>
+<p> <span>捕获组被如此命名，因为在匹配期间，保存与这样的组匹配的输入序列的每个子序列。</span> <span>捕获的子序列可以在表达式中稍后通过后向引用使用，并且一旦匹配操作完成，也可以从匹配器中获取捕获的子序列。</span> </p>
+<h4> <span><a name="groupname">Group name</a></span> </h4>
+<p> <span>捕获组也可以被分配一个“名称”，一个<tt>named-capturing group</tt> ，然后被“名称”后面引用。</span> <span>组名由以下字符组成。</span> <span>第一个字符必须是<tt>letter</tt> 。</span> </p>
+<ul>
+<li> <span>大写字母<tt>'A'</tt>至<tt>'Z'</tt> （ <tt>'\u0041'</tt>至<tt>'\u005a'</tt> ），</span> </li>
+<li> <span>小写字母<tt>'a'</tt>至<tt>'z'</tt> （ <tt>'\u0061'</tt>至<tt>'\u007a'</tt> ），</span> </li>
+<li> <span>数字<tt>'0'</tt>至<tt>'9'</tt> （ <tt>'\u0030'</tt>至<tt>'\u0039'</tt> ），</span> </li>
+</ul>
+<p> <span>A <tt>named-capturing group</tt>仍然按照Group number所述进行<a href="#gnumber">编号</a> 。</span> </p>
+<p> <span>与组相关联的捕获输入始终是组最近匹配的子序列。</span> <span>如果由于量化而对一个组进行了第二次评估，那么如果第二次评估失败，那么其以前捕获的值（如果有的话）将被保留。</span> <span>将字符串<tt>"aba"</tt>与表达式(a(b)?)+进行<tt>匹配</tt> ，例如，将组第2组设置为<tt>"b"</tt> 。</span> <span>所有捕获的输入在每次匹配开始时被丢弃。</span> </p>
+<p> <span>以<tt>(?</tt> <i>开头的</i>组是纯粹的<i>非捕获</i>组，不捕获文本，不计入组总数或<i>命名捕获</i>组。</span> </p>
+<h3> <span>Unicode支持</span> </h3>
+<p> <span>本课程符合<i>Unicode Technical Standard #18: Unicode Regular Expression</i>的1 <a href="http://www.unicode.org/reports/tr18/">级</a> ，加上RL2.1规范等同。</span> </p>
+<p> <span>如在Java源代码<tt>\u2014</tt> <b>Unicode转义序列</b>如在<cite>The Java™ Language Specification</cite>第3.3节描述的进行处理。</span> <span>这样的转义序列也由正则表达式解析器直接实现，以便可以在从文件或键盘读取的表达式中使用Unicode转义。</span> <span>因此，字符串<tt>"\u2014"</tt>和<tt>"\\u2014"</tt>虽然不相等，但编译成相同的模式，与十六进制值<tt>0x2014的字符匹配</tt> 。</span> </p>
+<p> <span>Unicode字符也可以通过使用其<b>十六进制表示法</b> （ <b>十六进制</b>代码点值）直接表示在正则<tt>表达式中</tt> ，如构造\x{...} <tt>所述</tt> ，例如补充字符U + 2011F可以指定为<tt>\x{2011F}</tt> ，而不是两个连续的Unicode转义代理对的序列<tt>\uD840</tt> <tt>\uDD1F</tt> 。</span> </p>
+<p> <span>Unicode脚本，块，类别和二进制属性用Perl中的<tt>\p</tt>和<tt>\P</tt>结构编写。</span> <span><tt>\p{</tt> <i>prop</i> <tt>}</tt>匹配如果输入具有属性<i>prop</i> ，而<tt>\P{</tt> <i>prop</i> <tt>}</tt>不匹配，如果输入具有该属性。</span> </p>
+<p> <span>脚本，块，类别和二进制属性可以在字符类的内部和外部使用。</span> </p>
+<p> <span><b><a name="usc">Scripts</a></b>被指定或者与前缀<code>Is</code> ，如<code>IsHiragana</code> ，或通过使用<code>script</code>关键词（或其短形式<code>sc</code> ），如<code>script=Hiragana</code>或<code>sc=Hiragana</code> 。</span> </p>
+<p> <span>所支持的脚本名称<code>Pattern</code>是接受和定义的有效脚本名称<a href="../../../java/lang/Character.UnicodeScript.html#forName-java.lang.String-"><code>UnicodeScript.forName</code></a> 。</span> </p>
+<p> <span><b><a name="ubc">Blocks</a></b>用前缀<code>In</code> （如<code>InMongolian</code> ，或使用关键字<code>block</code> （或其简称<code>blk</code> ），如<code>block=Mongolian</code>或<code>blk=Mongolian</code> 。</span> </p>
+<p> <span>受支持的块名称<code>Pattern</code>是接受和定义的有效块名称<a href="../../../java/lang/Character.UnicodeBlock.html#forName-java.lang.String-"><code>UnicodeBlock.forName</code></a> 。</span> </p>
+<p> <span><b><a name="ucc">Categories</a></b>可以用可选前缀<code>Is</code> ： <code>\p{L}</code>和<code>\p{IsL}</code>表示Unicode字母的类别。</span> <span>与脚本和块相同，也可以使用关键字<code>general_category</code> （或其简称<code>gc</code> ） <code>gc</code> ，如<code>general_category=Lu</code>或<code>gc=Lu</code> 。</span> </p>
+<p> <span>支持的类别是那些<a href="http://www.unicode.org/unicode/standard/standard.html"><i>The Unicode Standard</i></a>由指定的版本<a href="../../../java/lang/Character.html" title="java.lang中的类"><code>Character</code></a>类。</span> <span>类别名称是标准中定义的，包括规范性和信息性。</span> </p>
+<p> <span><b><a name="ubpc">Binary properties</a></b>用前缀<code>Is</code> ，如<code>IsAlphabetic</code> 。</span> <span>由Pattern支持的二进制<code>Pattern</code>是</span> </p>
+<ul>
+<li> <span>字母</span> </li>
+<li> <span>表意</span> </li>
+<li> <span>信</span> </li>
+<li> <span>小写</span> </li>
+<li> <span>大写</span> </li>
+<li> <span>柠檬酸</span> </li>
+<li> <span>标点</span> </li>
+<li> <span>控制</span> </li>
+<li> <span>White_Space</span> </li>
+<li> <span>数字</span> </li>
+<li> <span>Hex_Digit</span> </li>
+<li> <span>Join_Control</span> </li>
+<li> <span>Noncharacter_Code_Point</span> </li>
+<li> <span>分配</span> </li>
+</ul>
+<p> <span>以下预定<b>义字符类</b>和<b>POSIX字符类</b>符合<i>附件C：<i>Unicode Regular Expression </i>的兼容性属性</i>的<a href="http://www.unicode.org/reports/tr18/">建议</a> ，当<a href="../../../java/util/regex/Pattern.html#UNICODE_CHARACTER_CLASS">指定了<code>UNICODE_CHARACTER_CLASS</code></a>标志时。</span> </p>
+<span>  Classes Matches   <tt>\p{Lower}</tt> A lowercase character:<tt>\p{IsLowercase}</tt> <tt>\p{Upper}</tt> An uppercase character:<tt>\p{IsUppercase}</tt> <tt>\p{ASCII}</tt> All ASCII:<tt>[\x00-\x7F]</tt> <tt>\p{Alpha}</tt> An alphabetic character:<tt>\p{IsAlphabetic}</tt> <tt>\p{Digit}</tt> A decimal digit character:<tt>p{IsDigit}</tt> <tt>\p{Alnum}</tt> An alphanumeric character:<tt>[\p{IsAlphabetic}\p{IsDigit}]</tt> <tt>\p{Punct}</tt> A punctuation character:<tt>p{IsPunctuation}</tt> <tt>\p{Graph}</tt> A visible character: <tt>[^\p{IsWhite_Space}\p{gc=Cc}\p{gc=Cs}\p{gc=Cn}]</tt> <tt>\p{Print}</tt> A printable character: <code>[\p{Graph}\p{Blank}&amp;&amp;[^\p{Cntrl}]]</code> <tt>\p{Blank}</tt> A space or a tab: <code>[\p{IsWhite_Space}&amp;&amp;[^\p{gc=Zl}\p{gc=Zp}\x0a\x0b\x0c\x0d\x85]]</code> <tt>\p{Cntrl}</tt> A control character: <tt>\p{gc=Cc}</tt> <tt>\p{XDigit}</tt> A hexadecimal digit: <tt>[\p{gc=Nd}\p{IsHex_Digit}]</tt> <tt>\p{Space}</tt> A whitespace character:<tt>\p{IsWhite_Space}</tt> <tt>\d</tt> A digit: <tt>\p{IsDigit}</tt> <tt>\D</tt> A non-digit: <tt>[^\d]</tt> <tt>\s</tt> A whitespace character: <tt>\p{IsWhite_Space}</tt> <tt>\S</tt> A non-whitespace character: <tt>[^\s]</tt> <tt>\w</tt> A word character: <tt>[\p{Alpha}\p{gc=Mn}\p{gc=Me}\p{gc=Mc}\p{Digit}\p{gc=Pc}\p{IsJoin_Control}]</tt> <tt>\W</tt> A non-word character: <tt>[^\w]</tt> </span>
+<table border="0" cellpadding="1" cellspacing="0" summary="predefined and posix character classes in Unicode mode">
+</table>
+<p> <span><a name="jcc">Categories that behave like the java.lang.Character boolean is<i>methodname</i> methods (except for the deprecated ones) are available through the same <tt>\p{</tt><i>prop</i><tt>}</tt> syntax where the specified property has the name <tt>java<i>methodname</i></tt></a> 。</span> </p>
+<h3> <span>与Perl比较5</span> </h3>
+<p> <span><code>Pattern</code>引擎执行与Perl 5中出现的有序交替的传统的基于NFA的匹配。</span> </p>
+<p> <span>此类不支持Perl构造：</span> </p>
+<ul>
+<li><p> <span>预定义字符类（Unicode字符）</span> </p><p> <span><tt>\X    </tt>匹配Unicode <a href="http://www.unicode.org/reports/tr18/#Default_Grapheme_Clusters"><i>extended grapheme cluster</i></a></span> </p></li>
+<li><p> <span>反向引用构造<tt><i><tt>，\g{ñ}</tt></i></tt> <sup>第</sup> <i>n</i> <sup>个</sup> <a href="#cg">capturing group</a>和<tt>\g{</tt> <i>名</i> <tt>}</tt> <a href="#groupname">named-capturing group</a> 。</span> </p></li>
+<li><p> <span>已命名的字符结构，通过它的名字Unicode字符<tt>\N{</tt> <i>名</i> <tt>}。</tt></span> </p></li>
+<li><p> <span>条件构造<tt>(?(</tt> <i>条件</i> <tt>)</tt> <i>X</i> <tt>)</tt>和<tt>(?(</tt> <i>条件</i> <tt>)</tt> <i>X</i> <tt>|</tt> <i>Y</i> <tt>)</tt> ，</span> </p></li>
+<li><p> <span>嵌入代码构造<tt>(?{</tt> <i>代码</i> <tt>})</tt>和<tt>(??{</tt> <i>代码</i> <tt>})</tt> ，</span> </p></li>
+<li><p> <span>嵌入式注释语法<tt>(?#comment)</tt> ，和</span> </p></li>
+<li><p> <span>预处理操作<tt>\l</tt> <tt><tt>\u，\L</tt></tt>和<tt>\U。</tt></span> </p></li>
+</ul>
+<p> <span>Perl支持的构造方法</span> </p>
+<ul>
+<li><p> <span>字符类联合和交集，如above <a href="#cc">所述</a> 。</span> </p></li>
+</ul>
+<p> <span>与Perl有显着差异</span> </p>
+<ul>
+<li><p> <span>在Perl中， <tt>\1</tt>至<tt>\9</tt>总是被解释为反向引用;</span> <span>如果至少存在许多子表达式，则大于<tt>9</tt>的反斜杠转义的数字<tt>将</tt>被视为返回引用，否则，如果可能，将其解释为八进制转义。</span> <span>在这个类中，八进制转义必须始终以零开始。</span> <span>在这个类中， <tt>\1</tt>通过<tt>\9</tt>总是被解释为反向引用，并且如果至少在正则表达式的那一点存在许多子表达式，则更大的数字被接受为反向引用，否则解析器将丢弃数字，直到数字更小或等于现有的组数，或者是一位数。</span> </p></li>
+<li><p> <span>Perl使用<tt>g</tt>标志来请求在最后一场比赛停留的地方恢复的比赛。</span> <span>该功能由<a href="../../../java/util/regex/Matcher.html" title="java.util.regex中的类"><code>Matcher</code></a>类隐含提供： <a href="../../../java/util/regex/Matcher.html#find--"><code>find</code></a>方法的重复调用将在最后一个匹配关闭时恢复，除非匹配器被重置。</span> </p></li>
+<li><p> <span>在Perl中，表达式顶层的嵌入式标志会影响整个表达式。</span> <span>在这个类中，嵌入的标志总是在它们出现的时刻生效，无论它们在顶层还是在一个组中;</span> <span>在后一种情况下，标志在组的结尾恢复，就像在Perl中一样。</span> </p></li>
+</ul>
+<p> <span>有关正则表达式构造的行为的更准确的描述，请参阅<a href="http://www.oreilly.com/catalog/regex3/"><i>Mastering Regular Expressions, 3nd Edition</i>, Jeffrey E. F. Friedl, O'Reilly and Associates, 2006.</a></span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/String.html#split-java.lang.String-int-"><code>String.split(String, int)</code></a> ， 
+        <a href="../../../java/lang/String.html#split-java.lang.String-"><code>String.split(String)</code></a> ， 
+        <a href="../../../serialized-form.html#java.util.regex.Pattern">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#CANON_EQ">CANON_EQ</a></span></code>
+<div class="block">
+              实现规范等价。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#CASE_INSENSITIVE">CASE_INSENSITIVE</a></span></code>
+<div class="block">
+              启用不区分大小写的匹配。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#COMMENTS">COMMENTS</a></span></code>
+<div class="block">
+              允许空格和注释格式。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#DOTALL">DOTALL</a></span></code>
+<div class="block">
+              启用点阵模式。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#LITERAL">LITERAL</a></span></code>
+<div class="block">
+              启用模式的文字解析。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#MULTILINE">MULTILINE</a></span></code>
+<div class="block">
+              启用多行模式。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#UNICODE_CASE">UNICODE_CASE</a></span></code>
+<div class="block">
+              启用Unicode感知案例折叠。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#UNICODE_CHARACTER_CLASS">UNICODE_CHARACTER_CLASS</a></span></code>
+<div class="block">
+              启用Unicode版本的 
+             <i>预定义字符类</i>和 
+             <i>POSIX字符类</i> 。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#UNIX_LINES">UNIX_LINES</a></span></code>
+<div class="block">
+              启用Unix行模式。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/util/function/Predicate.html" title="interface in java.util.function">Predicate</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#asPredicate--">asPredicate</a></span>()</code>
+<div class="block">
+              创建可用于匹配字符串的谓词。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../../java/util/regex/Pattern.html" title="class in java.util.regex">Pattern</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#compile-java.lang.String-">compile</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> regex)</code>
+<div class="block">
+              将给定的正则表达式编译为模式。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static <a href="../../../java/util/regex/Pattern.html" title="class in java.util.regex">Pattern</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#compile-java.lang.String-int-">compile</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> regex, int flags)</code>
+<div class="block">
+              将给定的正则表达式编译为带有给定标志的模式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#flags--">flags</a></span>()</code>
+<div class="block">
+              返回此模式的匹配标志。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../java/util/regex/Matcher.html" title="class in java.util.regex">Matcher</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#matcher-java.lang.CharSequence-">matcher</a></span>(<a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input)</code>
+<div class="block">
+              创建一个匹配器，匹配给定的输入与此模式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#matches-java.lang.String-java.lang.CharSequence-">matches</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> regex, <a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input)</code>
+<div class="block">
+              编译给定的正则表达式，并尝试匹配给定的输入。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#pattern--">pattern</a></span>()</code>
+<div class="block">
+              返回编译此模式的正则表达式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#quote-java.lang.String-">quote</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> s)</code>
+<div class="block">
+              返回指定的 
+             <code>String</code>的文字模式 
+             <code>String</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#split-java.lang.CharSequence-">split</a></span>(<a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input)</code>
+<div class="block">
+              将给定的输入序列分成这个模式的匹配。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#split-java.lang.CharSequence-int-">split</a></span>(<a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input, int limit)</code>
+<div class="block">
+              将给定的输入序列分成这个模式的匹配。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../../java/util/stream/Stream.html" title="interface in java.util.stream">Stream</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#splitAsStream-java.lang.CharSequence-">splitAsStream</a></span>(<a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input)</code>
+<div class="block">
+              根据给定的输入序列创建一个流，该流与该模式匹配。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/regex/Pattern.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回此模式的字符串表示形式。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="UNIX_LINES">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>UNIX_LINES</h4> <pre>public static final int UNIX_LINES</pre>
+<div class="block">
+<span>启用Unix行模式。</span>
+<p> <span>在这种模式下，只有<tt>'\n'</tt>行结束在<tt><tt>.，^</tt></tt>和<tt>$</tt>行为的认可。</span> </p>
+<p> <span>Unix行模式也可以通过嵌入式标志表达式<tt>(?d)启用</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.util.regex.Pattern.UNIX_LINES">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="CASE_INSENSITIVE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>CASE_INSENSITIVE</h4> <pre>public static final int CASE_INSENSITIVE</pre>
+<div class="block">
+<span>启用不区分大小写的匹配。</span>
+<p> <span>默认情况下，不区分大小写的匹配假定仅匹配US-ASCII字符集中的字符。</span> <span>可以通过与此标志一起指定<a href="../../../java/util/regex/Pattern.html#UNICODE_CASE"><code>UNICODE_CASE</code></a>标志来启用Unicode感知不区分大小写的匹配。</span> </p>
+<p> <span>也可以通过嵌入式标志表达式<tt>(?i)</tt>启用不区分大小写的匹配。</span> </p>
+<p> <span>指定此标志可能会造成轻微的性能损失。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.util.regex.Pattern.CASE_INSENSITIVE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="COMMENTS">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>COMMENTS</h4> <pre>public static final int COMMENTS</pre>
+<div class="block">
+<span>允许空格和注释格式。</span>
+<p> <span>在此模式下，将忽略空格，并且以<tt>#</tt>开头的嵌入式注释将被忽略，直到行尾。</span> </p>
+<p> <span>注释模式也可以通过嵌入式标志表达式<tt>(?x)启用</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.util.regex.Pattern.COMMENTS">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="MULTILINE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>MULTILINE</h4> <pre>public static final int MULTILINE</pre>
+<div class="block">
+<span>启用多行模式。</span>
+<p> <span>在多行模式下，表达式<tt>^</tt>和<tt>$分别</tt>匹配行终止符或输入序列的结尾。</span> <span>默认情况下，这些表达式仅在整个输入序列的开头和结尾匹配。</span> </p>
+<p> <span>也可以通过嵌入式标志表达式<tt>(?m)</tt>启用多模式模式。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.util.regex.Pattern.MULTILINE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="LITERAL">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>LITERAL</h4> <pre>public static final int LITERAL</pre>
+<div class="block">
+<span>启用模式的文字解析。</span>
+<p> <span>当指定此标志时，指定模式的输入字符串将被视为文字字符序列。</span> <span>输入序列中的元字符或转义序列将没有特殊的含义。</span> </p>
+<p> <span>CASE_INSENSITIVE和UNICODE_CASE标志在与此标志一起使用时保持对匹配的影响。</span> <span>其他旗帜变得多余。</span> </p>
+<p> <span>没有嵌入的标志字符用于启用文字解析。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.util.regex.Pattern.LITERAL">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="DOTALL">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>DOTALL</h4> <pre>public static final int DOTALL</pre>
+<div class="block">
+<span>启用点阵模式。</span>
+<p> <span>在dotall模式下，表达式<tt>.</tt>匹配任何字符，包括行终止符。</span> <span>默认情况下，此表达式与行终止符不匹配。</span> </p>
+<p> <span>Dotall模式也可以通过嵌入式标志表达式<tt>(?s)启用</tt> 。</span> <span>（ <tt>s</tt>是“单行”模式的助记符，这在Perl中被称为）。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.util.regex.Pattern.DOTALL">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="UNICODE_CASE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>UNICODE_CASE</h4> <pre>public static final int UNICODE_CASE</pre>
+<div class="block">
+<span>启用Unicode感知案例折叠。</span>
+<p> <span>当指定此标志时，不区分大小写的匹配（由<a href="../../../java/util/regex/Pattern.html#CASE_INSENSITIVE"><code>CASE_INSENSITIVE</code></a>标志启用）以与Unicode标准一致的方式完成。</span> <span>默认情况下，不区分大小写的匹配假定仅匹配US-ASCII字符集中的字符。</span> </p>
+<p> <span>Unicode感知案例折叠也可以通过嵌入式标志表达式<tt>(?u)启用</tt> 。</span> </p>
+<p> <span>指定此标志可能会造成性能损失。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.util.regex.Pattern.UNICODE_CASE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="CANON_EQ">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>CANON_EQ</h4> <pre>public static final int CANON_EQ</pre>
+<div class="block">
+<span>实现规范等价。</span>
+<p> <span>当指定这个标志时，两个字符将被认为是匹配的，只有当他们的完整的规范分解符合时才匹配。</span> <span>表达<tt>"a\u030A"，</tt>例如，将指定该标志时，该字符串<tt>"\u00E5"</tt>匹配。</span> <span>默认情况下，匹配不考虑规范等价。</span> </p>
+<p> <span>没有嵌入的标志字符用于启用规范等效。</span> </p>
+<p> <span>指定此标志可能会造成性能损失。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.util.regex.Pattern.CANON_EQ">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="UNICODE_CHARACTER_CLASS">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>UNICODE_CHARACTER_CLASS</h4> <pre>public static final int UNICODE_CHARACTER_CLASS</pre>
+<div class="block">
+<span>启用Unicode版本的<i>预定义字符类</i>和<i>POSIX字符类</i> 。</span>
+<p> <span>当指定此标志时，（仅US-ASCII） <i>预定义字符类</i>和<i>POSIX字符类</i>符合<a href="http://www.unicode.org/reports/tr18/"><i>Unicode Technical Standard #18: Unicode Regular Expression</i></a> <i>附件C：兼容性属性</i> 。</span> </p>
+<p> <span>也可以通过嵌入式标志表达式<tt>(?U)</tt>启用UNICODE_CHARACTER_CLASS模式。</span> </p>
+<p> <span>该标志意味着UNICODE_CASE，也就是说，它可以支持Unicode感知案例折叠。</span> </p>
+<p> <span>指定此标志可能会造成性能损失。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.util.regex.Pattern.UNICODE_CHARACTER_CLASS">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="compile-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compile</h4> <pre>public static <a href="../../../java/util/regex/Pattern.html" title="class in java.util.regex">Pattern</a> compile(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> regex)</pre>
+<div class="block">
+            将给定的正则表达式编译为模式。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>regex</code> - 要编译的表达式 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             给定的正则表达式编译成一个模式 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/regex/PatternSyntaxException.html" title="class in java.util.regex">PatternSyntaxException</a></code> - 如果表达式的语法无效 
+           </dd>
+</dl> </li>
+</ul> <a name="compile-java.lang.String-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compile</h4> <pre>public static <a href="../../../java/util/regex/Pattern.html" title="class in java.util.regex">Pattern</a> compile(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> regex,
+                              int flags)</pre>
+<div class="block">
+            将给定的正则表达式编译为带有给定标志的模式。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>regex</code> - 要编译的表达式 
+           </dd>
+<dd>
+<code>flags</code> -匹配标志，一个位掩码，可能包括 
+            <a href="../../../java/util/regex/Pattern.html#CASE_INSENSITIVE"><code>CASE_INSENSITIVE</code></a> ， 
+            <a href="../../../java/util/regex/Pattern.html#MULTILINE"><code>MULTILINE</code></a> ， 
+            <a href="../../../java/util/regex/Pattern.html#DOTALL"><code>DOTALL</code></a> ， 
+            <a href="../../../java/util/regex/Pattern.html#UNICODE_CASE"><code>UNICODE_CASE</code></a> ， 
+            <a href="../../../java/util/regex/Pattern.html#CANON_EQ"><code>CANON_EQ</code></a> ， 
+            <a href="../../../java/util/regex/Pattern.html#UNIX_LINES"><code>UNIX_LINES</code></a> ， 
+            <a href="../../../java/util/regex/Pattern.html#LITERAL"><code>LITERAL</code></a> ， 
+            <a href="../../../java/util/regex/Pattern.html#UNICODE_CHARACTER_CLASS"><code>UNICODE_CHARACTER_CLASS</code></a>和 
+            <a href="../../../java/util/regex/Pattern.html#COMMENTS"><code>COMMENTS</code></a>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             给定的正则表达式编译成带有给定标志的模式 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果在 
+            <tt>flags</tt>中设置了与定义的匹配标志相对应的位之外的位值 
+           </dd>
+<dd>
+<code><a href="../../../java/util/regex/PatternSyntaxException.html" title="class in java.util.regex">PatternSyntaxException</a></code> - 如果表达式的语法无效 
+           </dd>
+</dl> </li>
+</ul> <a name="pattern--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>pattern</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> pattern()</pre>
+<div class="block">
+            返回编译此模式的正则表达式。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这种模式的来源 
+           </dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<p> <span>返回此模式的字符串表示形式。</span> <span>这是编译此模式的正则表达式。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#toString--">toString</a></code>在类 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该模式的字符串表示形式 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+</dl> </li>
+</ul> <a name="matcher-java.lang.CharSequence-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>matcher</h4> <pre>public <a href="../../../java/util/regex/Matcher.html" title="class in java.util.regex">Matcher</a> matcher(<a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input)</pre>
+<div class="block">
+            创建一个匹配器，匹配给定的输入与此模式。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>input</code> - 要匹配的字符序列 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这种模式的新匹配器 
+           </dd>
+</dl> </li>
+</ul> <a name="flags--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>flags</h4> <pre>public int flags()</pre>
+<div class="block">
+            返回此模式的匹配标志。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             编译此模式时指定的匹配标志 
+           </dd>
+</dl> </li>
+</ul> <a name="matches-java.lang.String-java.lang.CharSequence-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>matches</h4> <pre>public static boolean matches(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> regex,
+                              <a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input)</pre>
+<div class="block">
+<span>编译给定的正则表达式，并尝试匹配给定的输入。</span>
+<p> <span>调用这种方便的方式的形式</span> </p>
+<blockquote>
+<span><pre>
+ Pattern.matches(regex, input);</pre></span>
+</blockquote>
+<span>表现方式与表达式完全相同</span>
+<blockquote>
+<span><pre>
+ Pattern.compile(regex).matcher(input).matches()</pre></span>
+</blockquote>
+<p> <span>如果一个模式多次被使用，编译一次并重用它将比每次调用此方法更有效。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>regex</code> - 要编译的表达式 
+           </dd>
+<dd>
+<code>input</code> - 要匹配的字符序列 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             正则表达式是否匹配输入 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/regex/PatternSyntaxException.html" title="class in java.util.regex">PatternSyntaxException</a></code> - 如果表达式的语法无效 
+           </dd>
+</dl> </li>
+</ul> <a name="split-java.lang.CharSequence-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>split</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] split(<a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input,
+                      int limit)</pre>
+<div class="block">
+<span>将给定的输入序列分成这个模式的匹配。</span>
+<p> <span>由此方法返回的数组包含输入序列的每个子字符串，由与此模式匹配的另一个子序列终止，或者由输入序列的末尾终止。</span> <span>数组中的子字符串按照它们在输入中出现的顺序。</span> <span>如果该模式与输入的任何子序列不匹配，则生成的数组只有一个元素，即字符串形式的输入序列。</span> </p>
+<p> <span>当在输入序列的开始处存在正宽度匹配时，在结果数组的开始处包含一个空的前导子串。</span> <span>开始时的零宽度匹配不会产生这样的空的前导子串。</span> </p>
+<p> <span><tt>limit</tt>参数控制应用模式的次数，因此影响生成的数组的长度。</span> <span>如果极限<i>n</i>大于0，则模式最多应用<i>n</i> -1次，数组的长度不大于<i>n</i> ，数组的最后一个条目将包含超出最后一个匹配分隔符的所有输入。</span> <span>如果<i>n</i>是非正的，那么模式将被应用到尽可能多的次数，并且数组可以有任何长度。</span> <span>如果<i>n</i>为0，则模式将被应用尽可能多次，数组可以有任何长度，并且尾随的空字符串将被丢弃。</span> </p>
+<p> <span>例如，输入<tt>"boo:and:foo"</tt>通过以下参数产生以下结果：</span> </p>
+<blockquote>
+<span>
+<table cellpadding="1" cellspacing="0" summary="Split examples showing regex, limit, and result">
+<tbody>
+<tr>
+<th align="left"><i>Regex    </i></th>
+<th align="left"><i>Limit    </i></th>
+<th align="left"><i>Result    </i></th>
+</tr>
+<tr>
+<td align="center">:</td>
+<td align="center">2</td>
+<td><tt>{ "boo", "and:foo" }</tt></td>
+</tr>
+<tr>
+<td align="center">:</td>
+<td align="center">5</td>
+<td><tt>{ "boo", "and", "foo" }</tt></td>
+</tr>
+<tr>
+<td align="center">:</td>
+<td align="center">-2</td>
+<td><tt>{ "boo", "and", "foo" }</tt></td>
+</tr>
+<tr>
+<td align="center">o</td>
+<td align="center">5</td>
+<td><tt>{ "b", "", ":and:f", "", "" }</tt></td>
+</tr>
+<tr>
+<td align="center">o</td>
+<td align="center">-2</td>
+<td><tt>{ "b", "", ":and:f", "", "" }</tt></td>
+</tr>
+<tr>
+<td align="center">o</td>
+<td align="center">0</td>
+<td><tt>{ "b", "", ":and:f" }</tt></td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>input</code> - 要分割的字符序列 
+           </dd>
+<dd>
+<code>limit</code> - 结果阈值，如上所述 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过将输入围绕该模式的匹配分割来计算的字符串数组 
+           </dd>
+</dl> </li>
+</ul> <a name="split-java.lang.CharSequence-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>split</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] split(<a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input)</pre>
+<div class="block">
+<span>将给定的输入序列分成这个模式的匹配。</span>
+<p> <span>该方法的工作原理是通过调用具有给定输入序列和限制参数为零的双参数<a href="../../../java/util/regex/Pattern.html#split-java.lang.CharSequence-int-"><code>split</code></a>方法。</span> <span>因此，尾随的空字符串不会包含在结果数组中。</span> </p>
+<p> <span>输入<tt>"boo:and:foo"</tt> ，例如，使用以下表达式得到以下结果：</span> </p>
+<blockquote>
+<span>
+<table cellpadding="1" cellspacing="0" summary="Split examples showing regex and result">
+<tbody>
+<tr>
+<th align="left"><i>Regex    </i></th>
+<th align="left"><i>Result</i></th>
+</tr>
+<tr>
+<td align="center">:</td>
+<td><tt>{ "boo", "and", "foo" }</tt></td>
+</tr>
+<tr>
+<td align="center">o</td>
+<td><tt>{ "b", "", ":and:f" }</tt></td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>input</code> - 要分割的字符序列 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过将输入围绕该模式的匹配分割来计算的字符串数组 
+           </dd>
+</dl> </li>
+</ul> <a name="quote-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>quote</h4> <pre>public static <a href="../../../java/lang/String.html" title="class in java.lang">String</a> quote(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> s)</pre>
+<div class="block">
+<span>返回指定的<code>String</code>的文字模式<code>String</code> 。</span>
+<p> <span>该方法产生一个<code>String</code> ，可用于创建一个<code>Pattern</code> ，它将匹配字符串<code>s</code> ，就像它是一个文字模式。</span> </p>
+<span>输入序列中的元字符或转义序列将没有特殊的含义。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>s</code> - 要被字面化的字符串 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个文字字符串替换 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+</dl> </li>
+</ul> <a name="asPredicate--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>asPredicate</h4> <pre>public <a href="../../../java/util/function/Predicate.html" title="interface in java.util.function">Predicate</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt; asPredicate()</pre>
+<div class="block">
+            创建可用于匹配字符串的谓词。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             可用于匹配字符串的谓词 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.8 
+           </dd>
+</dl> </li>
+</ul> <a name="splitAsStream-java.lang.CharSequence-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>splitAsStream</h4> <pre>public <a href="../../../java/util/stream/Stream.html" title="interface in java.util.stream">Stream</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt; splitAsStream(<a href="../../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> input)</pre>
+<div class="block">
+<span>根据给定的输入序列创建一个流，该流与该模式匹配。</span>
+<p> <span>由此方法返回的流包含输入序列的每个子字符串，由与该模式匹配的另一个子序列终止，或者由输入序列的结尾终止。</span> <span>流中的子串按照它们在输入中出现的顺序。</span> <span>尾随的空字符串将被丢弃，不会在流中遇到。</span> </p>
+<p> <span>如果该模式与输入的任何子序列不匹配，则生成的流只有一个元素，即字符串形式的输入序列。</span> </p>
+<p> <span>当在输入序列的开始处存在正宽度匹配时，在流的开始处包含空的前导子串。</span> <span>开始时的零宽度匹配不会产生这样的空的前导子串。</span> </p>
+<p> <span>如果输入序列是可变的，则在执行终端流操作期间它必须保持不变。</span> <span>否则，终端流操作的结果未定义。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>input</code> - 要分割的字符序列 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过将输入分割为该模式的匹配计算的字符串流 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.8 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/util/regex/Pattern.html#split-java.lang.CharSequence-"><code>split(CharSequence)</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

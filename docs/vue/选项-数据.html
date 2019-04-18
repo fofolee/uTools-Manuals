@@ -1,0 +1,208 @@
+<h2 id="选项-数据"><a href="#选项-数据" class="headerlink" title="选项 / 数据" data-scroll="">选项 / 数据</a></h2><h3 id="data"><a href="#data" class="headerlink" title="data" data-scroll="">data</a></h3><ul>
+<li><p><strong>类型</strong>：<code>Object | Function</code></p>
+</li>
+<li><p><strong>限制</strong>：组件的定义只接受 <code>function</code>。</p>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p>Vue 实例的数据对象。Vue 将会递归将 data 的属性转换为 getter/setter，从而让 data 的属性能够响应数据变化。<strong>对象必须是纯粹的对象 (含有零个或多个的 key/value 对)</strong>：浏览器 API 创建的原生对象，原型上的属性会被忽略。大概来说，data 应该只能是数据 - 不推荐观察拥有状态行为的对象。</p>
+<p>一旦观察过，不需要再次在数据对象上添加响应式属性。因此推荐在创建实例之前，就声明所有的根级响应式属性。</p>
+<p>实例创建之后，可以通过 <code>vm.$data</code> 访问原始数据对象。Vue 实例也代理了 data 对象上所有的属性，因此访问 <code>vm.a</code> 等价于访问 <code>vm.$data.a</code>。</p>
+<p>以 <code>_</code> 或 <code>$</code> 开头的属性 <strong>不会</strong> 被 Vue 实例代理，因为它们可能和 Vue 内置的属性、API 方法冲突。你可以使用例如 <code>vm.$data._property</code> 的方式访问这些属性。</p>
+<p>当一个<strong>组件</strong>被定义，<code>data</code> 必须声明为返回一个初始数据对象的函数，因为组件可能被用来创建多个实例。如果 <code>data</code> 仍然是一个纯粹的对象，则所有的实例将<strong>共享引用</strong>同一个数据对象！通过提供 <code>data</code> 函数，每次创建一个新实例后，我们能够调用 <code>data</code> 函数，从而返回初始数据的一个全新副本数据对象。</p>
+<p>如果需要，可以通过将 <code>vm.$data</code> 传入 <code>JSON.parse(JSON.stringify(...))</code> 得到深拷贝的原始数据对象。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> data = { <span class="hljs-attr">a</span>: <span class="hljs-number">1</span> }
+
+<span class="hljs-comment">// 直接创建一个实例</span>
+<span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">data</span>: data
+})
+vm.a <span class="hljs-comment">// =&gt; 1</span>
+vm.$data === data <span class="hljs-comment">// =&gt; true</span>
+
+<span class="hljs-comment">// Vue.extend() 中 data 必须是函数</span>
+<span class="hljs-keyword">var</span> Component = Vue.extend({
+  <span class="hljs-attr">data</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> { <span class="hljs-attr">a</span>: <span class="hljs-number">1</span> }
+  }
+})</code></pre>
+<p>注意，如果你为 <code>data</code> 属性使用了箭头函数，则 <code>this</code> 不会指向这个组件的实例，不过你仍然可以将其实例作为函数的第一个参数来访问。</p>
+<pre><code class="hljs js">data: <span class="hljs-function"><span class="hljs-params">vm</span> =&gt;</span> ({ <span class="hljs-attr">a</span>: vm.myProp })</code></pre>
+</li>
+<li><p><strong>参考</strong>：<a href="guide/reactivity.html">深入响应式原理</a></p>
+</li>
+</ul>
+<h3 id="props"><a href="#props" class="headerlink" title="props" data-scroll="">props</a></h3><ul>
+<li><p><strong>类型</strong>：<code>Array&lt;string&gt; | Object</code></p>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p>props 可以是数组或对象，用于接收来自父组件的数据。props 可以是简单的数组，或者使用对象作为替代，对象允许配置高级选项，如类型检测、自定义验证和设置默认值。</p>
+<p>你可以基于对象的语法使用以下选项：</p>
+<ul>
+<li><code>type</code>: 可以是下列原生构造函数中的一种：<code>String</code>、<code>Number</code>、<code>Boolean</code>、<code>Array</code>、<code>Object</code>、<code>Date</code>、<code>Function</code>、<code>Symbol</code>、任何自定义构造函数、或上述内容组成的数组。会检查一个 prop 是否是给定的类型，否则抛出警告。Prop 类型的<a href="guide/components-props.html#Prop-类型">更多信息在此</a>。</li>
+<li><code>default</code>: <code>any</code><br>为该 prop 指定一个默认值。如果该 prop 没有被传入，则换做用这个值。对象或数组的默认值必须从一个工厂函数返回。</li>
+<li><code>required</code>: <code>Boolean</code><br>定义该 prop 是否是必填项。在非生产环境中，如果这个值为 truthy 且该 prop 没有被传入的，则一个控制台警告将会被抛出。</li>
+<li><code>validator</code>: <code>Function</code><br>自定义验证函数会将该 prop 的值作为唯一的参数代入。在非生产环境下，如果该函数返回一个 falsy 的值 (也就是验证失败)，一个控制台警告将会被抛出。你可以在<a href="guide/components-props.html#Prop-验证">这里</a>查阅更多 prop 验证的相关信息。</li>
+</ul>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 简单语法</span>
+Vue.component(<span class="hljs-string">'props-demo-simple'</span>, {
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'size'</span>, <span class="hljs-string">'myMessage'</span>]
+})
+
+<span class="hljs-comment">// 对象语法，提供验证</span>
+Vue.component(<span class="hljs-string">'props-demo-advanced'</span>, {
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-comment">// 检测类型</span>
+    height: <span class="hljs-built_in">Number</span>,
+    <span class="hljs-comment">// 检测类型 + 其他验证</span>
+    age: {
+      <span class="hljs-attr">type</span>: <span class="hljs-built_in">Number</span>,
+      <span class="hljs-attr">default</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">validator</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">value</span>) </span>{
+        <span class="hljs-keyword">return</span> value &gt;= <span class="hljs-number">0</span>
+      }
+    }
+  }
+})</code></pre>
+</li>
+<li><p><strong>参考</strong>：<a href="guide/components-props.html">Props</a></p>
+</li>
+</ul>
+<h3 id="propsData"><a href="#propsData" class="headerlink" title="propsData" data-scroll="">propsData</a></h3><ul>
+<li><p><strong>类型</strong>：<code>{ [key: string]: any }</code></p>
+</li>
+<li><p><strong>限制</strong>：只用于 <code>new</code> 创建的实例中。</p>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p>创建实例时传递 props。主要作用是方便测试。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> Comp = Vue.extend({
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'msg'</span>],
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;div&gt;{{ msg }}&lt;/div&gt;'</span>
+})
+
+<span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Comp({
+  <span class="hljs-attr">propsData</span>: {
+    <span class="hljs-attr">msg</span>: <span class="hljs-string">'hello'</span>
+  }
+})</code></pre>
+</li>
+</ul>
+<h3 id="computed"><a href="#computed" class="headerlink" title="computed" data-scroll="">computed</a></h3><ul>
+<li><p><strong>类型</strong>：<code>{ [key: string]: Function | { get: Function, set: Function } }</code></p>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p>计算属性将被混入到 Vue 实例中。所有 getter 和 setter 的 this 上下文自动地绑定为 Vue 实例。</p>
+<p>注意如果你为一个计算属性使用了箭头函数，则 <code>this</code> 不会指向这个组件的实例，不过你仍然可以将其实例作为函数的第一个参数来访问。</p>
+<pre><code class="hljs js">computed: {
+  <span class="hljs-attr">aDouble</span>: <span class="hljs-function"><span class="hljs-params">vm</span> =&gt;</span> vm.a * <span class="hljs-number">2</span>
+}</code></pre>
+<p>计算属性的结果会被缓存，除非依赖的响应式属性变化才会重新计算。注意，如果某个依赖 (比如非响应式属性) 在该实例范畴之外，则计算属性是<strong>不会</strong>被更新的。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">data</span>: { <span class="hljs-attr">a</span>: <span class="hljs-number">1</span> },
+  <span class="hljs-attr">computed</span>: {
+    <span class="hljs-comment">// 仅读取</span>
+    aDouble: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.a * <span class="hljs-number">2</span>
+    },
+    <span class="hljs-comment">// 读取和设置</span>
+    aPlus: {
+      <span class="hljs-attr">get</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.a + <span class="hljs-number">1</span>
+      },
+      <span class="hljs-attr">set</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">v</span>) </span>{
+        <span class="hljs-keyword">this</span>.a = v - <span class="hljs-number">1</span>
+      }
+    }
+  }
+})
+vm.aPlus   <span class="hljs-comment">// =&gt; 2</span>
+vm.aPlus = <span class="hljs-number">3</span>
+vm.a       <span class="hljs-comment">// =&gt; 2</span>
+vm.aDouble <span class="hljs-comment">// =&gt; 4</span></code></pre>
+</li>
+<li><p><strong>参考</strong>：<a href="guide/computed.html">计算属性</a></p>
+</li>
+</ul>
+<h3 id="methods"><a href="#methods" class="headerlink" title="methods" data-scroll="">methods</a></h3><ul>
+<li><p><strong>类型</strong>：<code>{ [key: string]: Function }</code></p>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p>methods 将被混入到 Vue 实例中。可以直接通过 VM 实例访问这些方法，或者在指令表达式中使用。方法中的 <code>this</code> 自动绑定为 Vue 实例。</p>
+<p class="tip">注意，<strong>不应该使用箭头函数来定义 method 函数</strong> (例如 <code>plus: () =&gt; this.a++</code>)。理由是箭头函数绑定了父级作用域的上下文，所以 <code>this</code> 将不会按照期望指向 Vue 实例，<code>this.a</code> 将是 undefined。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">data</span>: { <span class="hljs-attr">a</span>: <span class="hljs-number">1</span> },
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-attr">plus</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-keyword">this</span>.a++
+    }
+  }
+})
+vm.plus()
+vm.a <span class="hljs-comment">// 2</span></code></pre>
+</li>
+<li><p><strong>参考</strong>：<a href="guide/events.html">事件处理器</a></p>
+</li>
+</ul>
+<h3 id="watch"><a href="#watch" class="headerlink" title="watch" data-scroll="">watch</a></h3><ul>
+<li><p><strong>类型</strong>：<code>{ [key: string]: string | Function | Object | Array }</code></p>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p>一个对象，键是需要观察的表达式，值是对应回调函数。值也可以是方法名，或者包含选项的对象。Vue 实例将会在实例化时调用 <code>$watch()</code>，遍历 watch 对象的每一个属性。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">a</span>: <span class="hljs-number">1</span>,
+    <span class="hljs-attr">b</span>: <span class="hljs-number">2</span>,
+    <span class="hljs-attr">c</span>: <span class="hljs-number">3</span>,
+    <span class="hljs-attr">d</span>: <span class="hljs-number">4</span>,
+    <span class="hljs-attr">e</span>: {
+      <span class="hljs-attr">f</span>: {
+        <span class="hljs-attr">g</span>: <span class="hljs-number">5</span>
+      }
+    }
+  },
+  <span class="hljs-attr">watch</span>: {
+    <span class="hljs-attr">a</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">val, oldVal</span>) </span>{
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'new: %s, old: %s'</span>, val, oldVal)
+    },
+    <span class="hljs-comment">// 方法名</span>
+    b: <span class="hljs-string">'someMethod'</span>,
+    <span class="hljs-comment">// 深度 watcher</span>
+    c: {
+      <span class="hljs-attr">handler</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">val, oldVal</span>) </span>{ <span class="hljs-comment">/* ... */</span> },
+      <span class="hljs-attr">deep</span>: <span class="hljs-literal">true</span>
+    },
+    <span class="hljs-comment">// 该回调将会在侦听开始之后被立即调用</span>
+    d: {
+      <span class="hljs-attr">handler</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">val, oldVal</span>) </span>{ <span class="hljs-comment">/* ... */</span> },
+      <span class="hljs-attr">immediate</span>: <span class="hljs-literal">true</span>
+    },
+    <span class="hljs-attr">e</span>: [
+      <span class="hljs-string">'handle1'</span>,
+      <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">handle2</span> (<span class="hljs-params">val, oldVal</span>) </span>{ <span class="hljs-comment">/* ... */</span> },
+      {
+        <span class="hljs-attr">handler</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">handle3</span> (<span class="hljs-params">val, oldVal</span>) </span>{ <span class="hljs-comment">/* ... */</span> },
+        <span class="hljs-comment">/* ... */</span>
+      }
+    ],
+    <span class="hljs-comment">// watch vm.e.f's value: {g: 5}</span>
+    <span class="hljs-string">'e.f'</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">val, oldVal</span>) </span>{ <span class="hljs-comment">/* ... */</span> }
+  }
+})
+vm.a = <span class="hljs-number">2</span> <span class="hljs-comment">// =&gt; new: 2, old: 1</span></code></pre>
+<p class="tip">注意，<strong>不应该使用箭头函数来定义 watcher 函数</strong> (例如 <code>searchQuery: newValue =&gt; this.updateAutocomplete(newValue)</code>)。理由是箭头函数绑定了父级作用域的上下文，所以 <code>this</code> 将不会按照期望指向 Vue 实例，<code>this.updateAutocomplete</code> 将是 undefined。</p>
+</li>
+<li><p><strong>参考</strong>：<a href="#vm-watch">实例方法 / 数据 - vm.$watch</a></p>
+</li>
+</ul>

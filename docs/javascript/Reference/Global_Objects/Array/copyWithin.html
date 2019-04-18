@@ -1,0 +1,205 @@
+<article id="wikiArticle">
+<div></div>
+<div><code><strong>copyWithin()</strong></code> 方法浅复制数组的一部分到同一数组中的另一个位置，并返回它，而不修改其大小。</div>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/array-copywithin.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox"><var>arr</var>.copyWithin(<var>target[</var>, <var>start[</var>, <var>end]]</var>)
+</pre>
+<h3 id="Parameters" name="Parameters">参数</h3>
+<dl>
+<dt><code>target</code></dt>
+<dd>0 为基底的索引，复制序列到该位置。如果是负数，<code>target</code> 将从末尾开始计算。</dd>
+<dd>如果 <code>target</code> 大于等于 <code>arr.length</code>，将会不发生拷贝。如果 <code>target</code> 在 <code>start</code> 之后，复制的序列将被修改以符合 <code>arr.length</code>。</dd>
+<dt><code>start</code></dt>
+<dd>0 为基底的索引，开始复制元素的起始位置。如果是负数，<code>start</code> 将从末尾开始计算。</dd>
+<dd>如果 <code>start</code> 被忽略，<code>copyWithin</code> 将会从0开始复制。</dd>
+<dt><code>end</code></dt>
+<dd>0 为基底的索引，开始复制元素的结束位置。<code>copyWithin</code> 将会拷贝到该位置，但不包括 <code>end</code> 这个位置的元素。如果是负数， <code>end</code> 将从末尾开始计算。</dd>
+<dd>如果 <code>end</code> 被忽略，<code>copyWithin</code> 方法将会一直复制至数组结尾（默认为 <code>arr.length</code>）。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>改变后的数组。</p>
+<h2 id="描述">描述</h2>
+<p>参数 target、start 和 end 必须为整数。</p>
+<p>如果 start 为负，则其指定的索引位置等同于 length+start，length 为数组的长度。end 也是如此。</p>
+<p>copyWithin 方法不要求其 this 值必须是一个数组对象；除此之外，copyWithin 是一个可变方法，它可以改变 this 对象本身，并且返回它，而不仅仅是它的拷贝。</p>
+<p><code>copyWithin</code> 就像 C 和 C++ 的 <code>memcpy</code> 函数一样，且它是用来移动 <a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a> 或者 <a href="Reference/Global_Objects/TypedArray" title="一个TypedArray 对象描述一个底层的二进制数据缓存区的一个类似数组(array-like)视图。事实上，没有名为 TypedArray的全局对象，也没有一个名为的 TypedArray构造函数。相反，有许多不同的全局对象，下面会列出这些针对特定元素类型的类型化数组的构造函数。在下面的页面中，你会找到一些不管什么类型都公用的属性和方法。"><code>TypedArray</code></a> 数据的一个高性能的方法。复制以及粘贴序列这两者是为一体的操作;即使复制和粘贴区域重叠，粘贴的序列也会有拷贝来的值。</p>
+<p><code>copyWithin</code><strong> </strong>函数被设计为通用式的，其不要求其 <code>this</code> 值必须是一个<a href="Reference/Array" title="REDIRECT Array"><code>数组</code></a>对象。</p>
+<p><code>copyWithin</code> 是一个可变方法，它不会改变 this 的长度 length，但是会改变 this 本身的内容，且需要时会创建新的属性。</p>
+<h2 id="例子">例子</h2>
+<pre class="brush: js">let numbers = [1, 2, 3, 4, 5];
+
+numbers.copyWithin(-2);
+// [1, 2, 3, 1, 2]
+
+numbers.copyWithin(0, 3);
+// [4, 5, 3, 4, 5]
+
+numbers.copyWithin(0, 3, 4);
+// [4, 2, 3, 4, 5]
+
+numbers.copyWithin(-2, -3, -1);
+// [1, 2, 3, 3, 4]
+
+[].copyWithin.call({length: 5, 3: 1}, 0, 3);
+// {0: 1, 3: 1, length: 5}
+
+// ES2015 Typed Arrays are subclasses of Array
+var i32a = new Int32Array([1, 2, 3, 4, 5]);
+
+i32a.copyWithin(0, 2);
+// Int32Array [3, 4, 5, 4, 5]
+
+// On platforms that are not yet ES2015 compliant: 
+[].copyWithin.call(new Int32Array([1, 2, 3, 4, 5]), 0, 3, 4);
+// Int32Array [4, 2, 3, 4, 5]
+</pre>
+<h2 id="Polyfill">Polyfill</h2>
+<pre class="brush: js">if (!Array.prototype.copyWithin) {
+  Array.prototype.copyWithin = function(target, start/*, end*/) {
+    // Steps 1-2.
+    if (this == null) {
+      throw new TypeError('this is null or not defined');
+    }
+
+    var O = Object(this);
+
+    // Steps 3-5.
+    var len = O.length &gt;&gt;&gt; 0;
+
+    // Steps 6-8.
+    var relativeTarget = target &gt;&gt; 0;
+
+    var to = relativeTarget &lt; 0 ?
+      Math.max(len + relativeTarget, 0) :
+      Math.min(relativeTarget, len);
+
+    // Steps 9-11.
+    var relativeStart = start &gt;&gt; 0;
+
+    var from = relativeStart &lt; 0 ?
+      Math.max(len + relativeStart, 0) :
+      Math.min(relativeStart, len);
+
+    // Steps 12-14.
+    var end = arguments[2];
+    var relativeEnd = end === undefined ? len : end &gt;&gt; 0;
+
+    var final = relativeEnd &lt; 0 ?
+      Math.max(len + relativeEnd, 0) :
+      Math.min(relativeEnd, len);
+
+    // Step 15.
+    var count = Math.min(final - from, len - to);
+
+    // Steps 16-17.
+    var direction = 1;
+
+    if (from &lt; to &amp;&amp; to &lt; (from + count)) {
+      direction = -1;
+      from += count - 1;
+      to += count - 1;
+    }
+
+    // Step 18.
+    while (count &gt; 0) {
+      if (from in O) {
+        O[to] = O[from];
+      } else {
+        delete O[to];
+      }
+
+      from += direction;
+      to += direction;
+      count--;
+    }
+
+    // Step 19.
+    return O;
+  };
+}
+</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规范</th>
+<th scope="col">状态</th>
+<th scope="col">备注</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-array.prototype.copywithin" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Array.prototype.copyWithin</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/7.0/#sec-array.prototype.copywithin" hreflang="en" lang="en" rel="noopener">ECMAScript 2016 (ECMA-262)<br/><small lang="zh-CN">Array.prototype.copyWithin</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-array.prototype.copywithin" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Array.prototype.copyWithin</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table in this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>copyWithin</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              45</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              32</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              32</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              32</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4.0.0</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd></dl></section></div><p></p>
+<h2 id="参见">参见</h2>
+<ul>
+<li><a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a></li>
+</ul>
+</article>

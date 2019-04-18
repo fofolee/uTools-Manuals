@@ -1,0 +1,1643 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.io 
+   </div>
+<h2 class="title" title="Class ObjectInputStream">Class ObjectInputStream</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../java/io/InputStream.html" title="class in java.io">java.io.InputStream</a></li>
+<li>
+<ul class="inheritance">
+<li>java.io.ObjectInputStream</li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Closeable.html" title="java.io中的接口">Closeable</a> ， <a href="../../java/io/DataInput.html" title="java.io中的接口">DataInput</a> ， <a href="../../java/io/ObjectInput.html" title="java.io中的接口">ObjectInput</a> ， <a href="../../java/io/ObjectStreamConstants.html" title="java.io中的接口">ObjectStreamConstants</a> ， <a href="../../java/lang/AutoCloseable.html" title="java.lang中的接口">AutoCloseable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">ObjectInputStream</span>
+extends <a href="../../java/io/InputStream.html" title="class in java.io">InputStream</a>
+implements <a href="../../java/io/ObjectInput.html" title="interface in java.io">ObjectInput</a>, <a href="../../java/io/ObjectStreamConstants.html" title="interface in java.io">ObjectStreamConstants</a></pre>
+<div class="block">
+<span>ObjectInputStream反序列化先前使用ObjectOutputStream编写的原始数据和对象。</span>
+<p> <span>ObjectOutputStream和ObjectInputStream可以分别为与FileOutputStream和FileInputStream一起使用的对象图提供持久性存储的应用程序。</span> <span>ObjectInputStream用于恢复先前序列化的对象。</span> <span>其他用途包括使用套接字流在主机之间传递对象，或者在远程通信系统中进行封送和解组参数和参数。</span> </p>
+<p> <span>ObjectInputStream确保从流中创建的图中的所有对象的类型与Java虚拟机中存在的类匹配。</span> <span>根据需要使用标准机制加载类。</span> </p>
+<p> <span>只能从流中读取支持java.io.Serializable或java.io.Externalizable接口的对象。</span> </p>
+<p> <span>方法<code>readObject</code>用于从流中读取对象。</span> <span>应使用Java的安全铸造来获得所需的类型。</span> <span>在Java中，字符串和数组是对象，在序列化过程中被视为对象。</span> <span>读取时，需要将其转换为预期类型。</span> </p>
+<p> <span>可以使用DataInput上的适当方法从流中读取原始数据类型。</span> </p>
+<p> <span>对象的默认反序列化机制将每个字段的内容恢复为写入时的值和类型。</span> <span>声明为瞬态或静态的字段被反序列化过程忽略。</span> <span>对其他对象的引用导致根据需要从流中读取这些对象。</span> <span>使用参考共享机制正确恢复对象的图形。</span> <span>反序列化时总是分配新对象，这样可以防止现有对象被覆盖。</span> </p>
+<p> <span>读取对象类似于运行新对象的构造函数。</span> <span>为对象分配内存，并初始化为零（NULL）。</span> <span>对非可序列化类调用无索引构造函数，然后从最接近java.lang.object的可序列化类开始，从串中还原可序列化类的字段，并使用对象的最特定类完成。</span> </p>
+<p> <span>例如从ObjectOutputStream中的示例中写入的流中读取：</span> <br/></p>
+<pre>  <span>FileInputStream fis = new FileInputStream("t.tmp");
+      ObjectInputStream ois = new ObjectInputStream(fis);
+
+      int i = ois.readInt();
+      String today = (String) ois.readObject();
+      Date date = (Date) ois.readObject();
+
+      ois.close();</span> </pre>
+<p> <span>类通过实现java.io.Serializable或java.io.Externalizable接口来控制它们是如何序列化的。</span> </p>
+<p> <span>实现Serializable接口允许对象序列化保存和恢复对象的整个状态，并允许类在流被写入的时间和读取时间之间演变。</span> <span>它自动遍历对象之间的引用，保存和恢复整个图形。</span> </p>
+<p> <span>在序列化和反序列化过程中需要特殊处理的可序列化类应实现以下方法：</span> </p>
+<pre>  <span>private void writeObject(java.io.ObjectOutputStream stream)
+     throws IOException;
+ private void readObject(java.io.ObjectInputStream stream)
+     throws IOException, ClassNotFoundException;
+ private void readObjectNoData()
+     throws ObjectStreamException;</span> </pre>
+<p> <span>readObject方法负责使用通过相应的writeObject方法写入流的数据来读取和恢复其特定类的对象的状态。</span> <span>该方法不需要关注属于其超类或子类的状态。</span> <span>通过从ObjectInputStream读取各个字段的数据并对对象的相应字段进行分配来恢复状态。</span> <span>DataInput支持读取原始数据类型。</span> </p>
+<p> <span>任何尝试读取超过相应writeObject方法写入的自定义数据边界的对象数据将导致使用eof字段值为true的抛出OptionalDataException。</span> <span>超过分配数据结束的非对象读取将以与指示流结尾相同的方式反映数据的结尾：Bytewise读取将返回-1作为字节读取或读取的字节数，并且原语读取将抛出EOFExceptions。</span> <span>如果没有相应的writeObject方法，则默认序列化数据的结尾标记分配的数据的结尾。</span> </p>
+<p> <span>在readExternal方法中发出的原始和对象读取调用的行为方式相同 - 如果流已经位于由相应的writeExternal方法写入的数据的末尾，则对象读取会将可选数据异常与eof设置为true，Bytewise读取将返回-1，并且原始读取将抛出EOFExceptions。</span> <span>请注意，此行为对于使用旧的<code>ObjectStreamConstants.PROTOCOL_VERSION_1</code>协议编写的流不适用，其中由writeExternal方法写入的数据的结尾未划分，因此无法检测。</span> </p>
+<p> <span>如果序列化流未将给定类列为反序列化对象的超类，则readObjectNoData方法负责初始化其特定类的对象的状态。</span> <span>这可能发生在接收方使用与发送方不同的反序列化实例的类的版本的情况下，并且接收者的版本扩展了不被发送者版本扩展的类。</span> <span>如果序列化流已被篡改，也可能发生这种情况;</span> <span>因此，尽管存在“敌对”或不完整的源流，readObjectNoData可用于正确初始化反序列化对象。</span> </p>
+<p> <span>序列化不会读取或赋值任何不实现java.io.Serializable接口的对象的值。</span> <span>不可序列化的对象的子类可以是可序列化的。</span> <span>在这种情况下，非可序列化类必须有一个无参数构造函数，以允许其字段被初始化。</span> <span>在这种情况下，子类有责任保存并恢复不可序列化类的状态。</span> <span>通常情况下，该类的字段是可访问的（public，package或protected），或者可以使用get和set方法来恢复状态。</span> </p>
+<p> <span>反序列化对象时发生的任何异常都将被ObjectInputStream捕获并中止读取过程。</span> </p>
+<p> <span>实现Externalizable接口允许对象完全控制对象的序列化表单的内容和格式。</span> <span>调用Externalizable接口writeExternal和readExternal的方法来保存和恢复对象的状态。</span> <span>当由类实现时，他们可以使用ObjectOutput和ObjectInput的所有方法来写入和读取自己的状态。</span> <span>对象处理发生的任何版本控制都是有责任的。</span> </p>
+<p> <span>枚举常数的反序列化与普通可序列化或外部化对象不同。</span> <span>枚举常数的序列化形式仅由其名称组成;</span> <span>不传输常数的字段值。</span> <span>要反序列化枚举常量，ObjectInputStream从流中读取常量名称;</span> <span>然后通过使用枚举常量的基本类型和接收的常量名称作为参数调用静态方法<code>Enum.valueOf(Class, String)</code>获得反序列化常数。</span> <span>像其他可序列化或可外部化的对象一样，枚举常量可以作为随后在序列化流中出现的反向引用的目标。</span> <span>枚举常量被反序列化的过程无法自定义：在反序列化期间将忽略由枚举类型定义的任何特定于类的readObject，readObjectNoData和readResolve方法。</span> <span>类似地，任何serialPersistentFields或serialVersionUID字段声明也被忽略 - 所有枚举类型都有一个固定的serialVersionUID为0L。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         JDK1.1 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/io/DataInput.html" title="java.io中的接口"><code>DataInput</code></a> ， <a href="../../java/io/ObjectOutputStream.html" title="java.io中的类"><code>ObjectOutputStream</code></a> ， <a href="../../java/io/Serializable.html" title="java.io中的接口"><code>Serializable</code></a> ， <a href="../../../platform/serialization/spec/input.html">Object Serialization Specification, Section 3, Object Input Classes</a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.GetField.html" title="class in java.io">ObjectInputStream.GetField</a></span></code>
+<div class="block">
+              提供对从输入流读取的持久性字段的访问。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.java.io.ObjectStreamConstants">
+<!-- --> </a> <h3>Fields inherited from interface java.io.<a href="../../java/io/ObjectStreamConstants.html" title="interface in java.io">ObjectStreamConstants</a></h3> <code><a href="../../java/io/ObjectStreamConstants.html#baseWireHandle">baseWireHandle</a>, <a href="../../java/io/ObjectStreamConstants.html#PROTOCOL_VERSION_1">PROTOCOL_VERSION_1</a>, <a href="../../java/io/ObjectStreamConstants.html#PROTOCOL_VERSION_2">PROTOCOL_VERSION_2</a>, <a href="../../java/io/ObjectStreamConstants.html#SC_BLOCK_DATA">SC_BLOCK_DATA</a>, <a href="../../java/io/ObjectStreamConstants.html#SC_ENUM">SC_ENUM</a>, <a href="../../java/io/ObjectStreamConstants.html#SC_EXTERNALIZABLE">SC_EXTERNALIZABLE</a>, <a href="../../java/io/ObjectStreamConstants.html#SC_SERIALIZABLE">SC_SERIALIZABLE</a>, <a href="../../java/io/ObjectStreamConstants.html#SC_WRITE_METHOD">SC_WRITE_METHOD</a>, <a href="../../java/io/ObjectStreamConstants.html#STREAM_MAGIC">STREAM_MAGIC</a>, <a href="../../java/io/ObjectStreamConstants.html#STREAM_VERSION">STREAM_VERSION</a>, <a href="../../java/io/ObjectStreamConstants.html#SUBCLASS_IMPLEMENTATION_PERMISSION">SUBCLASS_IMPLEMENTATION_PERMISSION</a>, <a href="../../java/io/ObjectStreamConstants.html#SUBSTITUTION_PERMISSION">SUBSTITUTION_PERMISSION</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_ARRAY">TC_ARRAY</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_BASE">TC_BASE</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_BLOCKDATA">TC_BLOCKDATA</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_BLOCKDATALONG">TC_BLOCKDATALONG</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_CLASS">TC_CLASS</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_CLASSDESC">TC_CLASSDESC</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_ENDBLOCKDATA">TC_ENDBLOCKDATA</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_ENUM">TC_ENUM</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_EXCEPTION">TC_EXCEPTION</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_LONGSTRING">TC_LONGSTRING</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_MAX">TC_MAX</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_NULL">TC_NULL</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_OBJECT">TC_OBJECT</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_PROXYCLASSDESC">TC_PROXYCLASSDESC</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_REFERENCE">TC_REFERENCE</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_RESET">TC_RESET</a>, <a href="../../java/io/ObjectStreamConstants.html#TC_STRING">TC_STRING</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#ObjectInputStream--">ObjectInputStream</a></span>()</code>
+<div class="block">
+              为完全重新实现ObjectInputStream的子类提供一种方法，不必分配刚刚被ObjectInputStream实现使用的私有数据。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code> </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#ObjectInputStream-java.io.InputStream-">ObjectInputStream</a></span>(<a href="../../java/io/InputStream.html" title="class in java.io">InputStream</a> in)</code>
+<div class="block">
+              创建从指定的InputStream读取的ObjectInputStream。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t6"><span><a href="javascript:show(32);">弃用的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#available--">available</a></span>()</code>
+<div class="block">
+              返回可以读取而不阻塞的字节数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#close--">close</a></span>()</code>
+<div class="block">
+              关闭输入流。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#defaultReadObject--">defaultReadObject</a></span>()</code>
+<div class="block">
+              从此流读取当前类的非静态和非瞬态字段。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#enableResolveObject-boolean-">enableResolveObject</a></span>(boolean enable)</code>
+<div class="block">
+              启用流以允许从流中读取的对象被替换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#read--">read</a></span>()</code>
+<div class="block">
+              读取一个字节的数据。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#read-byte:A-int-int-">read</a></span>(byte[] buf, int off, int len)</code>
+<div class="block">
+              读入一个字节数组。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readBoolean--">readBoolean</a></span>()</code>
+<div class="block">
+              读取布尔值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>byte</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readByte--">readByte</a></span>()</code>
+<div class="block">
+              读取一个8位字节。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>char</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readChar--">readChar</a></span>()</code>
+<div class="block">
+              读一个16位字符。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>protected <a href="../../java/io/ObjectStreamClass.html" title="class in java.io">ObjectStreamClass</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readClassDescriptor--">readClassDescriptor</a></span>()</code>
+<div class="block">
+              从序列化流读取类描述符。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readDouble--">readDouble</a></span>()</code>
+<div class="block">
+              读64位双倍。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code><a href="../../java/io/ObjectInputStream.GetField.html" title="class in java.io">ObjectInputStream.GetField</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readFields--">readFields</a></span>()</code>
+<div class="block">
+              从流中读取持久性字段，并通过名称获取它们。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>float</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readFloat--">readFloat</a></span>()</code>
+<div class="block">
+              读32位浮点数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readFully-byte:A-">readFully</a></span>(byte[] buf)</code>
+<div class="block">
+              读取字节，阻塞直到读取所有字节。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readFully-byte:A-int-int-">readFully</a></span>(byte[] buf, int off, int len)</code>
+<div class="block">
+              读取字节，阻塞直到读取所有字节。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readInt--">readInt</a></span>()</code>
+<div class="block">
+              读取一个32位int。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readLine--">readLine</a></span>()</code>
+<div class="block">
+<span><span class="deprecatedLabel">已弃用</span></span>
+<div class="block">
+<span><span class="deprecationComment">此方法无法将字节正确转换为字符。</span></span>
+<span><span class="deprecationComment">有关详细信息和替代方案，请参阅DataInputStream。</span></span>
+</div>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readLong--">readLong</a></span>()</code>
+<div class="block">
+              读64位长。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readObject--">readObject</a></span>()</code>
+<div class="block">
+              从ObjectInputStream读取一个对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>protected <a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readObjectOverride--">readObjectOverride</a></span>()</code>
+<div class="block">
+              此方法由ObjectOutputStream的受信任子类调用，该子类使用受保护的无参构造函数构造ObjectOutputStream。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>short</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readShort--">readShort</a></span>()</code>
+<div class="block">
+              读取16位短。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readStreamHeader--">readStreamHeader</a></span>()</code>
+<div class="block">
+              提供了readStreamHeader方法来允许子类读取和验证自己的流标题。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readUnshared--">readUnshared</a></span>()</code>
+<div class="block">
+              从ObjectInputStream读取一个“非共享”对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readUnsignedByte--">readUnsignedByte</a></span>()</code>
+<div class="block">
+              读取一个无符号的8位字节。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readUnsignedShort--">readUnsignedShort</a></span>()</code>
+<div class="block">
+              读取无符号16位短。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#readUTF--">readUTF</a></span>()</code>
+<div class="block">
+              以 
+             <a href="DataInput.html#modified-utf-8">modified UTF-8</a>格式读取字符串。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#registerValidation-java.io.ObjectInputValidation-int-">registerValidation</a></span>(<a href="../../java/io/ObjectInputValidation.html" title="interface in java.io">ObjectInputValidation</a> obj, int prio)</code>
+<div class="block">
+              在返回图之前注册要验证的对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code>protected <a href="../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#resolveClass-java.io.ObjectStreamClass-">resolveClass</a></span>(<a href="../../java/io/ObjectStreamClass.html" title="class in java.io">ObjectStreamClass</a> desc)</code>
+<div class="block">
+              加载本地类等效的指定流类描述。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code>protected <a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#resolveObject-java.lang.Object-">resolveObject</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              此方法将允许ObjectInputStream的受信任子类在反序列化期间将一个对象替换为另一个对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code>protected <a href="../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#resolveProxyClass-java.lang.String:A-">resolveProxyClass</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a>[] interfaces)</code>
+<div class="block">
+<span>返回一个代理类，它实现代理类描述符中命名的接口;</span>
+<span>子类可以实现此方法从流中读取自定义数据以及动态代理类的描述符，从而允许它们为接口和代理类使用备用加载机制。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i30">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/io/ObjectInputStream.html#skipBytes-int-">skipBytes</a></span>(int len)</code>
+<div class="block">
+              跳过字节。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.io.InputStream">
+<!-- --> </a> <h3>Methods inherited from class java.io.<a href="../../java/io/InputStream.html" title="class in java.io">InputStream</a></h3> <code><a href="../../java/io/InputStream.html#mark-int-">mark</a>, <a href="../../java/io/InputStream.html#markSupported--">markSupported</a>, <a href="../../java/io/InputStream.html#read-byte:A-">read</a>, <a href="../../java/io/InputStream.html#reset--">reset</a>, <a href="../../java/io/InputStream.html#skip-long-">skip</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#toString--">toString</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.io.ObjectInput">
+<!-- --> </a> <h3>Methods inherited from interface java.io.<a href="../../java/io/ObjectInput.html" title="interface in java.io">ObjectInput</a></h3> <code><a href="../../java/io/ObjectInput.html#read-byte:A-">read</a>, <a href="../../java/io/ObjectInput.html#skip-long-">skip</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="ObjectInputStream-java.io.InputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ObjectInputStream</h4> <pre>public ObjectInputStream(<a href="../../java/io/InputStream.html" title="class in java.io">InputStream</a> in)
+                  throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>创建从指定的InputStream读取的ObjectInputStream。</span>
+<span>从流中读取序列化流头并进行验证。</span>
+<span>该构造函数将阻塞，直到相应的ObjectOutputStream已写入并刷新标题。</span>
+<p> <span>如果安装了一个安全管理器，那么这个构造函数将会在覆盖ObjectInputStream.readFields或ObjectInputStream.readUnshared方法的子类的构造函数直接或间接调用时检查“enableSubclassImplementation”SerializablePermission。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>in</code> - 要读取的输入流 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/StreamCorruptedException.html" title="class in java.io">StreamCorruptedException</a></code> - 如果流标题不正确 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在读取流标题时发生I / O错误 
+           </dd>
+<dd>
+<code><a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果不可信子类非法覆盖安全敏感方法 
+           </dd>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>in</code>是 
+            <code>null</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/io/ObjectInputStream.html#ObjectInputStream--"><code>ObjectInputStream()</code></a> ， 
+            <a href="../../java/io/ObjectInputStream.html#readFields--"><code>readFields()</code></a> ， 
+            <a href="../../java/io/ObjectOutputStream.html#ObjectOutputStream-java.io.OutputStream-"><code>ObjectOutputStream.ObjectOutputStream(OutputStream)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="ObjectInputStream--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>ObjectInputStream</h4> <pre>protected ObjectInputStream()
+                     throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                            <a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></pre>
+<div class="block">
+<span>为完全重新实现ObjectInputStream的子类提供一种方法，不必分配刚刚被ObjectInputStream实现使用的私有数据。</span>
+<p> <span>如果安装了安全管理器，则此方法首先使用<code>SerializablePermission("enableSubclassImplementation")</code>权限调用安全管理器的<code>checkPermission</code>方法，以确保启用子类化。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且其 
+            <code>checkPermission</code>方法拒绝启用子类化。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在创建此流时发生I / O错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/SecurityManager.html#checkPermission-java.security.Permission-"><code>SecurityManager.checkPermission(java.security.Permission)</code></a> ， <a href="../../java/io/SerializablePermission.html" title="java.io中的类"><code>SerializablePermission</code></a></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="readObject--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readObject</h4> <pre>public final <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> readObject()
+                        throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                               <a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></pre>
+<div class="block">
+<span>从ObjectInputStream读取一个对象。</span>
+<span>读取对象的类，类的签名以及类的非瞬态和非静态字段的值以及其所有超类型。</span>
+<span>可以使用writeObject和readObject方法覆盖类的默认反序列化。</span>
+<span>这个对象引用的对象被传递性地读取，以便通过readObject重构一个完整的对象图。</span>
+<p> <span>当其所有字段及其引用的对象完全还原时，根对象将被完全还原。</span> <span>此时，对象验证回调按照它们注册的优先级顺序执行。</span> <span>回调由对象（在readObject特殊方法中）注册，因为它们被单独还原。</span> </p>
+<p> <span>对于InputStream和不应反序列化的类的问题，抛出异常。</span> <span>所有异常都是对InputStream致命的，并将其置于不确定状态;</span> <span>呼叫者可以忽略或恢复流状态。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/ObjectInput.html#readObject--">readObject</a></code>在界面 
+            <code><a href="../../java/io/ObjectInput.html" title="interface in java.io">ObjectInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该对象从流中读取 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></code> - 无法找到序列化对象的类。 
+           </dd>
+<dd>
+<code><a href="../../java/io/InvalidClassException.html" title="class in java.io">InvalidClassException</a></code> - 序列化使用的类错误。 
+           </dd>
+<dd>
+<code><a href="../../java/io/StreamCorruptedException.html" title="class in java.io">StreamCorruptedException</a></code> - 流中的控制信息不一致。 
+           </dd>
+<dd>
+<code><a href="../../java/io/OptionalDataException.html" title="class in java.io">OptionalDataException</a></code> - 在流中找到原始数据，而不是对象。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 任何常见的输入/输出相关异常。 
+           </dd>
+</dl> </li>
+</ul> <a name="readObjectOverride--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readObjectOverride</h4> <pre>protected <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> readObjectOverride()
+                             throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                                    <a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></pre>
+<div class="block">
+<span>此方法由ObjectOutputStream的受信任子类调用，该子类使用受保护的无参构造函数构造ObjectOutputStream。</span>
+<span>该子类预计将提供一个具有修饰符“final”的覆盖方法。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             对象从流中读取。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></code> - 无法找到序列化对象的类定义。 
+           </dd>
+<dd>
+<code><a href="../../java/io/OptionalDataException.html" title="class in java.io">OptionalDataException</a></code> - 在流中找到原始数据，而不是对象。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果从底层流读取I / O错误 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/io/ObjectInputStream.html#ObjectInputStream--"><code>ObjectInputStream()</code></a> ， 
+            <a href="../../java/io/ObjectInputStream.html#readObject--"><code>readObject()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="readUnshared--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readUnshared</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> readUnshared()
+                    throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                           <a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></pre>
+<div class="block">
+<span>从ObjectInputStream读取一个“非共享”对象。</span>
+<span>此方法与readObject相同，只是它阻止对readObject的后续调用和readUnshared返回对通过此调用获取的反序列化实例的其他引用。</span>
+<span>特别：</span>
+<ul>
+<li> <span>如果调用readUnshared来反序列化一个反向引用（以前已经写入流的对象的流表示），则抛出ObjectStreamException。</span> </li>
+<li> <span>如果readUnshared成功返回，则随后尝试反序列化对readUnshared反序列化的流处理的反向引用将导致抛出ObjectStreamException。</span> </li>
+</ul>
+<span>通过readUnshared对对象进行反序列化将使与返回对象关联的流句柄无效。</span>
+<span>请注意，这本身并不总是保证readUnshared返回的引用是唯一的;</span>
+<span>反序列化对象可以定义一个readResolve方法，该方法返回对其他方可见的对象，或者readUnshared可以返回在流中或通过外部方式在其他地方可获取的Class对象或枚举常量。</span>
+<span>如果反序列化对象定义了一个readResolve方法，并且该方法的调用返回一个数组，那么readUnshared返回该数组的浅克隆;</span>
+<span>这样可以保证返回的数组对象是唯一的，即使在底层数据流已经被处理的情况下，也不能再从调用readObject或readUnshared在ObjectInputStream上获取。</span>
+<p> <span>覆盖此方法的ObjectInputStream子类只能在拥有“enableSubclassImplementation”SerializablePermission的安全上下文中构建;</span> <span>任何尝试在没有此权限的情况下实例化此类子类将导致抛出SecurityException。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             参考反序列化对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></code> - 如果无法找到反序列化对象的类 
+           </dd>
+<dd>
+<code><a href="../../java/io/StreamCorruptedException.html" title="class in java.io">StreamCorruptedException</a></code> - 如果流中的控制信息不一致 
+           </dd>
+<dd>
+<code><a href="../../java/io/ObjectStreamException.html" title="class in java.io">ObjectStreamException</a></code> - 如果 
+            <code><a href="../../java/io/ObjectStreamException.html" title="class in java.io">ObjectStreamException</a></code>化对象已经出现在流中 
+           </dd>
+<dd>
+<code><a href="../../java/io/OptionalDataException.html" title="class in java.io">OptionalDataException</a></code> - 如果原始数据是下一个流 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果在反序列化期间发生I / O错误 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="defaultReadObject--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>defaultReadObject</h4> <pre>public void defaultReadObject()
+                       throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                              <a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></pre>
+<div class="block">
+<span>从此流读取当前类的非静态和非瞬态字段。</span>
+<span>这只能从被反序列化的类的readObject方法调用。</span>
+<span>否则将抛出NotActiveException异常。</span>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></code> - 如果无法找到序列化对象的类。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误。 
+           </dd>
+<dd>
+<code><a href="../../java/io/NotActiveException.html" title="class in java.io">NotActiveException</a></code> - 如果流当前未读取对象。 
+           </dd>
+</dl> </li>
+</ul> <a name="readFields--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readFields</h4> <pre>public <a href="../../java/io/ObjectInputStream.GetField.html" title="class in java.io">ObjectInputStream.GetField</a> readFields()
+                                      throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                                             <a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></pre>
+<div class="block">
+            从流中读取持久性字段，并通过名称获取它们。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>GetField</code>对象表示反序列 
+            <code>GetField</code>对象的持久字段 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></code> - 如果无法找到序列化对象的类。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误。 
+           </dd>
+<dd>
+<code><a href="../../java/io/NotActiveException.html" title="class in java.io">NotActiveException</a></code> - 如果流当前未读取对象。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="registerValidation-java.io.ObjectInputValidation-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>registerValidation</h4> <pre>public void registerValidation(<a href="../../java/io/ObjectInputValidation.html" title="interface in java.io">ObjectInputValidation</a> obj,
+                               int prio)
+                        throws <a href="../../java/io/NotActiveException.html" title="class in java.io">NotActiveException</a>,
+                               <a href="../../java/io/InvalidObjectException.html" title="class in java.io">InvalidObjectException</a></pre>
+<div class="block">
+<span>在返回图之前注册要验证的对象。</span>
+<span>虽然类似于resolveObject这些验证在整个图形重新构建之后被调用。</span>
+<span>通常，readObject方法将使用流注册对象，以便当所有对象都被还原时，可以执行最后一组验证。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 接收验证回调的对象。 
+           </dd>
+<dd>
+<span><code>prio</code> - 控制<code>prio</code>的顺序;零是一个很好的默认值。</span>
+<span>使用较高的数字可以提前回调，较低的数字可用于以后的回调。</span>
+<span>在优先级中，回调按照特定顺序进行处理。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/NotActiveException.html" title="class in java.io">NotActiveException</a></code> - 流当前未读取对象，因此无法注册回调。 
+           </dd>
+<dd>
+<code><a href="../../java/io/InvalidObjectException.html" title="class in java.io">InvalidObjectException</a></code> - 验证对象为null。 
+           </dd>
+</dl> </li>
+</ul> <a name="resolveClass-java.io.ObjectStreamClass-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>resolveClass</h4> <pre>protected <a href="../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; resolveClass(<a href="../../java/io/ObjectStreamClass.html" title="class in java.io">ObjectStreamClass</a> desc)
+                         throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                                <a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></pre>
+<div class="block">
+<span>加载本地类等效的指定流类描述。</span>
+<span>子类可以实现此方法，以允许从备用源获取类。</span>
+<p> <span>在相应的方法<code>ObjectOutputStream</code>是<code>annotateClass</code> 。</span> <span>对于流中的每个唯一类，此方法将仅调用一次。</span> <span>这个方法可以通过子类来实现，使用一个备用的加载机制，但必须返回一个<code>类</code>对象。</span> <span>一旦返回，如果类不是数组类，其serialVersionUID与序列化类的serialVersionUID进行比较，如果不匹配，则反序列化失败，并抛出<a href="../../java/io/InvalidClassException.html" title="java.io中的类"><code>InvalidClassException</code></a> 。</span> </p>
+<p> <span>在此方法的默认实现<code>ObjectInputStream</code>返回调用的结果</span> </p>
+<pre>  <span>Class.forName(desc.getName(), false, loader)</span> </pre>
+<span>其中<code>loader</code>的确定如下：如果当前线程的堆栈中有一个方法，其声明类是由用户定义的类加载器定义的（并且不是为了实现反射调用而生成的），则<code>loader</code>是对应于最接近的类加载器的类加载器这种方法到当前执行的帧;</span>
+<span>否则， <code>loader</code>是<code>null</code> 。</span>
+<span>如果该调用导致<code>ClassNotFoundException</code>和传递的名称<code>ObjectStreamClass</code>是一个基本类型或void Java语言的关键字，那么实例<code>类</code>表示基本类型或void对象将被退回（例如， <code>ObjectStreamClass</code>名为<code>"int"</code>会解决到<code>Integer.TYPE</code> ）。</span>
+<span>否则， <code>ClassNotFoundException</code>将被抛出这个方法的调用者。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>desc</code> - 
+            <code>ObjectStreamClass</code>类的实例 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>类</code>对象对应于 
+            <code>desc</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 任何通常的输入/输出异常。 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></code> - 如果无法找到序列化对象的类。 
+           </dd>
+</dl> </li>
+</ul> <a name="resolveProxyClass-java.lang.String:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>resolveProxyClass</h4> <pre>protected <a href="../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; resolveProxyClass(<a href="../../java/lang/String.html" title="class in java.lang">String</a>[] interfaces)
+                              throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                                     <a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></pre>
+<div class="block">
+<span>返回一个代理类，它实现代理类描述符中命名的接口;</span>
+<span>子类可以实现此方法从流中读取自定义数据以及动态代理类的描述符，从而允许它们为接口和代理类使用备用加载机制。</span>
+<p> <span>对于流中的每个唯一代理类描述符，该方法被称为一次。</span> </p>
+<p> <span>在相应的方法<code>ObjectOutputStream</code>是<code>annotateProxyClass</code> 。</span> <span>对于给定的子类<code>ObjectInputStream</code>重写该方法中， <code>annotateProxyClass</code>中的相应子类方法<code>ObjectOutputStream</code>必须写由该方法读取的任何数据或对象。</span> </p>
+<p> <span>这种方法的默认实现<code>ObjectInputStream</code>返回调用的结果<code>Proxy.getProxyClass</code>与列表<code>类</code>对象为在指定接口<code>interfaces</code>参数。</span> <span>每个接口名称<code>i</code>的<code>类</code>对象是通过调用返回的值</span> </p>
+<pre>  <span>Class.forName(i, false, loader)</span> </pre>
+<span>其中<code>loader</code>是第一个非<code>null</code>类加载器的执行堆栈，或<code>null</code>如果没有非<code>null</code>类加载器在堆栈（ <code>resolveClass</code>方法使用相同的类加载器选择）。</span>
+<span>除非任何解析的界面是非公开的，否则同样的值<code>loader</code>也是类加载器传递给<code>Proxy.getProxyClass</code> ;</span>
+<span>如果存在非公共接口，则会传递其类加载器（如果遇到多个非公共接口类加载器，则抛出<code>IllegalAccessError</code> ）。</span>
+<span>如果<code>Proxy.getProxyClass</code>抛出<code>IllegalArgumentException</code> ， <code>resolveProxyClass</code>将抛出一个<code>ClassNotFoundException</code>包含<code>IllegalArgumentException</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>interfaces</code> - 在代理类描述符中反序列化的接口名称列表 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             指定接口的代理类 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> -由底层抛出的任何异常 
+            <code>InputStream</code>
+</dd>
+<dd>
+<code><a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></code> - 如果无法找到代理类或任何命名接口 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/io/ObjectOutputStream.html#annotateProxyClass-java.lang.Class-"><code>ObjectOutputStream.annotateProxyClass(Class)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="resolveObject-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>resolveObject</h4> <pre>protected <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> resolveObject(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)
+                        throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>此方法将允许ObjectInputStream的受信任子类在反序列化期间将一个对象替换为另一个对象。</span>
+<span>在调用enableResolveObject之前，将禁用替换对象。</span>
+<span>enableResolveObject方法检查请求解析对象的流可以被信任。</span>
+<span>对可序列化对象的每个引用都传递给resolveObject。</span>
+<span>为了确保对象的私有状态不会被无意地暴露，只有信任的流可能使用resolveObject。</span>
+<p> <span>在读取对象之后，在从readObject返回之前调用此方法。</span> <span>默认的resolveObject方法只返回相同的对象。</span> </p>
+<p> <span>当子类替换对象时，必须确保替换对象与引用将被存储的每个字段兼容。</span> <span>类型不是字段或数组元素类型的子类的对象通过引发异常终止序列化，并且不存储该对象。</span> </p>
+<p> <span>当首次遇到每个对象时，此方法仅调用一次。</span> <span>对对象的所有后续引用将被重定向到新对象。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 要替代的对象 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             替代对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 任何通常的输入/输出异常。 
+           </dd>
+</dl> </li>
+</ul> <a name="enableResolveObject-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>enableResolveObject</h4> <pre>protected boolean enableResolveObject(boolean enable)
+                               throws <a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></pre>
+<div class="block">
+<span>启用流以允许从流中读取的对象被替换。</span>
+<span>启用时，将为正在反序列化的每个对象调用resolveObject方法。</span>
+<p> <span>如果<i>enable</i>为真，并且安装了一个安全管理器，则该方法首先使用<code>SerializablePermission("enableSubstitution")</code>权限调用安全管理器的<code>checkPermission</code>方法，以确保启用流允许从流中读取的对象被替换。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>enable</code> -真正的能够使用的 
+            <code>resolveObject</code>为每个对象反序列化 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此方法被调用之前的前一个设置 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且其 
+            <code>checkPermission</code>方法拒绝启用流，以允许从流中读取的对象被替换。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/SecurityManager.html#checkPermission-java.security.Permission-"><code>SecurityManager.checkPermission(java.security.Permission)</code></a> ， <a href="../../java/io/SerializablePermission.html" title="java.io中的类"><code>SerializablePermission</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="readStreamHeader--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readStreamHeader</h4> <pre>protected void readStreamHeader()
+                         throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                                <a href="../../java/io/StreamCorruptedException.html" title="class in java.io">StreamCorruptedException</a></pre>
+<div class="block">
+<span>提供了readStreamHeader方法来允许子类读取和验证自己的流标题。</span>
+<span>它读取和验证魔术数字和版本号。</span>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 从底层 
+            <code>InputStream</code>读取时是否存在I / O错误 
+           </dd>
+<dd>
+<code><a href="../../java/io/StreamCorruptedException.html" title="class in java.io">StreamCorruptedException</a></code> - 如果流中的控制信息不一致 
+           </dd>
+</dl> </li>
+</ul> <a name="readClassDescriptor--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readClassDescriptor</h4> <pre>protected <a href="../../java/io/ObjectStreamClass.html" title="class in java.io">ObjectStreamClass</a> readClassDescriptor()
+                                         throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                                                <a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></pre>
+<div class="block">
+<span>从序列化流读取类描述符。</span>
+<span>当ObjectInputStream期望类描述符作为序列化流中的下一个项时，调用此方法。</span>
+<span>ObjectInputStream的子类可以覆盖此方法，以读取已经以非标准格式（由ObjectOutputStream的子类覆盖了<code>writeClassDescriptor</code>方法）的类<code>writeClassDescriptor</code> 。</span>
+<span>默认情况下，此方法根据对象序列化规范中定义的格式读取类描述符。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             类描述符读取 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误。 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ClassNotFoundException.html" title="class in java.lang">ClassNotFoundException</a></code> - 如果找不到类描述符表示中使用的序列化对象的类 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/io/ObjectOutputStream.html#writeClassDescriptor-java.io.ObjectStreamClass-"><code>ObjectOutputStream.writeClassDescriptor(java.io.ObjectStreamClass)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="read--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public int read()
+         throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>读取一个字节的数据。</span>
+<span>如果没有输入可用，此方法将阻止。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/ObjectInput.html#read--">read</a></code>在界面 
+            <code><a href="../../java/io/ObjectInput.html" title="interface in java.io">ObjectInput</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/InputStream.html#read--">read</a></code>在类别 
+            <code><a href="../../java/io/InputStream.html" title="class in java.io">InputStream</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             读取字节，如果达到流的结尾，则返回-1。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="read-byte:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public int read(byte[] buf,
+                int off,
+                int len)
+         throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>读入一个字节数组。</span>
+<span>该方法将阻塞，直到有些输入可用。</span>
+<span>考虑使用java.io.DataInputStream.readFully来读取“length”字节。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/ObjectInput.html#read-byte:A-int-int-">read</a></code>在界面 
+            <code><a href="../../java/io/ObjectInput.html" title="interface in java.io">ObjectInput</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/io/InputStream.html#read-byte:A-int-int-">read</a></code>在类别 
+            <code><a href="../../java/io/InputStream.html" title="class in java.io">InputStream</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>buf</code> - 读取数据的缓冲区 
+           </dd>
+<dd>
+<code>off</code> - 数据的起始偏移量 
+           </dd>
+<dd>
+<code>len</code> - 读取的最大字节数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             读取的实际字节数，到达流结束时返回-1。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/io/DataInputStream.html#readFully-byte:A-int-int-"><code>DataInputStream.readFully(byte[],int,int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="available--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>available</h4> <pre>public int available()
+              throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            返回可以读取而不阻塞的字节数。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/ObjectInput.html#available--">available</a></code>在界面 
+            <code><a href="../../java/io/ObjectInput.html" title="interface in java.io">ObjectInput</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/io/InputStream.html#available--">available</a></code>在 
+            <code><a href="../../java/io/InputStream.html" title="class in java.io">InputStream</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             可用字节数。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 从底层 
+            <code>InputStream</code>读取时是否存在I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="close--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>close</h4> <pre>public void close()
+           throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>关闭输入流。</span>
+<span>必须调用释放与流相关联的任何资源。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/Closeable.html#close--">close</a></code>在接口 
+            <code><a href="../../java/io/Closeable.html" title="interface in java.io">Closeable</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/ObjectInput.html#close--">close</a></code>在接口 
+            <code><a href="../../java/io/ObjectInput.html" title="interface in java.io">ObjectInput</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/AutoCloseable.html#close--">close</a></code>在接口 
+            <code><a href="../../java/lang/AutoCloseable.html" title="interface in java.lang">AutoCloseable</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/io/InputStream.html#close--">close</a></code>在类别 
+            <code><a href="../../java/io/InputStream.html" title="class in java.io">InputStream</a></code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readBoolean--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readBoolean</h4> <pre>public boolean readBoolean()
+                    throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读取布尔值。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readBoolean--">readBoolean</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             布尔读取。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readByte--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readByte</h4> <pre>public byte readByte()
+              throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读取一个8位字节。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readByte--">readByte</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             读取8位字节。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readUnsignedByte--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readUnsignedByte</h4> <pre>public int readUnsignedByte()
+                     throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读取一个无符号的8位字节。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readUnsignedByte--">readUnsignedByte</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             读取8位字节。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readChar--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readChar</h4> <pre>public char readChar()
+              throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读一个16位字符。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readChar--">readChar</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             16位字符读取。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readShort--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readShort</h4> <pre>public short readShort()
+                throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读取16位短。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readShort--">readShort</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             16位短读。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readUnsignedShort--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readUnsignedShort</h4> <pre>public int readUnsignedShort()
+                      throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读取无符号16位短。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readUnsignedShort--">readUnsignedShort</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             16位短读。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readInt--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readInt</h4> <pre>public int readInt()
+            throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读取一个32位int。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readInt--">readInt</a></code>在接口 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             32位整数读取。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readLong--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readLong</h4> <pre>public long readLong()
+              throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读64位长。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readLong--">readLong</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             读64位长。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readFloat--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readFloat</h4> <pre>public float readFloat()
+                throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读32位浮点数。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readFloat--">readFloat</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             32位浮点读。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readDouble--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readDouble</h4> <pre>public double readDouble()
+                  throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读64位双倍。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readDouble--">readDouble</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             64位双读。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readFully-byte:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readFully</h4> <pre>public void readFully(byte[] buf)
+               throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读取字节，阻塞直到读取所有字节。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readFully-byte:A-">readFully</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>buf</code> - 读取数据的缓冲区 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readFully-byte:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readFully</h4> <pre>public void readFully(byte[] buf,
+                      int off,
+                      int len)
+               throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            读取字节，阻塞直到读取所有字节。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readFully-byte:A-int-int-">readFully</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>buf</code> - 读取数据的缓冲区 
+           </dd>
+<dd>
+<code>off</code> - 数据的起始偏移量 
+           </dd>
+<dd>
+<code>len</code> - 要读取的最大字节数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/EOFException.html" title="class in java.io">EOFException</a></code> - 如果达到文件结尾。 
+           </dd>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="skipBytes-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>skipBytes</h4> <pre>public int skipBytes(int len)
+              throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            跳过字节。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#skipBytes-int-">skipBytes</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>len</code> - 要跳过的字节数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             实际跳过的字节数。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="readLine--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>readLine</h4> <pre><a href="../../java/lang/Deprecated.html" title="annotation in java.lang">@Deprecated</a>
+public <a href="../../java/lang/String.html" title="class in java.lang">String</a> readLine()
+                            throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span><span class="deprecatedLabel">已弃用</span></span>
+<span><span class="deprecationComment">此方法无法将字节正确转换为字符。</span></span>
+<span><span class="deprecationComment">有关详细信息和替代方案，请参阅DataInputStream。</span></span>
+</div>
+<div class="block">
+            在\ n，\ r，\ r \ n或EOF终止的行中读取。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readLine--">readLine</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一行的字符串副本。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 从底层 
+            <code>InputStream</code>读取时是否存在I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="readUTF--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>readUTF</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> readUTF()
+               throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            以 
+           <a href="DataInput.html#modified-utf-8">modified UTF-8</a>格式读取字符串。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/DataInput.html#readUTF--">readUTF</a></code>在界面 
+            <code><a href="../../java/io/DataInput.html" title="interface in java.io">DataInput</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             字符串。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 从底层 
+            <code>InputStream</code>读取时是否存在I / O错误 
+           </dd>
+<dd>
+<code><a href="../../java/io/UTFDataFormatException.html" title="class in java.io">UTFDataFormatException</a></code> - 如果读取的字节不表示字符串的有效修改的UTF-8编码 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

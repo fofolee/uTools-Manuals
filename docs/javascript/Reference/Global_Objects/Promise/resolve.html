@@ -1,0 +1,169 @@
+<article id="wikiArticle">
+<div></div>
+<div><code><strong>Promise.resolve(value)</strong></code>方法返回一个以给定值解析后的<a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a> 对象。但如果这个值是个thenable（即带有then方法），返回的promise会“跟随”这个thenable的对象，采用它的最终状态（指resolved/rejected/pending/settled）；如果传入的value本身就是promise对象，则该对象作为Promise.resolve方法的返回值返回；否则以该值为成功状态返回promise对象。</div>
+<div> </div>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/promise-resolve.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive demo is stored in a GitHub repository. If you'd like to contribute to the interactive demo project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre class="syntaxbox"><var>Promise.resolve(value)</var>;
+Promise.resolve(promise);
+Promise.resolve(thenable);</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt>value</dt>
+<dd>
+<p>将被<code>Promise</code>对象解析的参数。也可以是一个<code>Promise</code>对象，或者是一个thenable。</p>
+</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>返回一个解析过带着给定值的<code>Promise</code>对象，如果返回值是一个promise对象，则直接返回这个Promise对象。</p>
+<h2 id="Description" name="Description">描述</h2>
+<p>静态方法 <code>Promise.resolve</code>返回一个解析过的<code>Promise</code>对象.</p>
+<h2 id="示例">示例</h2>
+<h3 id="使用静态方法Promise.resolve">使用静态方法<code>Promise.resolve</code></h3>
+<pre class="brush: js">Promise.resolve("Success").then(function(value) {
+  console.log(value); // "Success"
+}, function(value) {
+  // 不会被调用
+});
+</pre>
+<h3 id="对一个数组进行resolve">对一个数组进行resolve</h3>
+<pre class="brush: js">var p = Promise.resolve([1,2,3]);
+p.then(function(v) {
+  console.log(v[0]); // 1
+});
+</pre>
+<h3 id="Resolve另一个promise对象">Resolve另一个promise对象</h3>
+<pre class="brush: js">var original = Promise.resolve('我在第二行');
+var cast = Promise.resolve(original);
+cast.then(function(value) {
+  console.log('value: ' + value);
+});
+console.log('original === cast ? ' + (original === cast));
+
+/*
+*  打印顺序如下，这里有一个同步异步先后执行的区别
+*  original === cast ? true
+*  value: 我在第二行
+*/</pre>
+<h3 id="resolve_thenable的对象们并抛出错误">resolve thenable的对象们并抛出错误</h3>
+<pre class="brush: js">// Resolve一个thenable对象
+var p1 = Promise.resolve({ 
+  then: function(onFulfill, onReject) { onFulfill("fulfilled!"); }
+});
+console.log(p1 instanceof Promise) // true, 这是一个Promise对象
+
+p1.then(function(v) {
+    console.log(v); // 输出"fulfilled!"
+  }, function(e) {
+    // 不会被调用
+});
+
+// Thenable在callback之前抛出异常
+// Promise rejects
+var thenable = { then: function(resolve) {
+  throw new TypeError("Throwing");
+  resolve("Resolving");
+}};
+
+var p2 = Promise.resolve(thenable);
+p2.then(function(v) {
+  // 不会被调用
+}, function(e) {
+  console.log(e); // TypeError: Throwing
+});
+
+// Thenable在callback之后抛出异常
+// Promise resolves
+var thenable = { then: function(resolve) {
+  resolve("Resolving");
+  throw new TypeError("Throwing");
+}};
+
+var p3 = Promise.resolve(thenable);
+p3.then(function(v) {
+  console.log(v); // 输出"Resolving"
+}, function(e) {
+  // 不会被调用
+});
+</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-promise.resolve" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Promise.resolve</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>ECMA标准中的首次定义</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-promise.resolve" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Promise.resolve</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<p> </p>
+<p class="hidden">The compatibility table in this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</p>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>resolve</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              32</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              29</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              19</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4.4.3</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              32</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              29</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              0.12</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd></dl></section></div><p></p>
+<p> </p>
+<h2 id="参见">参见</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a></li>
+</ul>
+</article>

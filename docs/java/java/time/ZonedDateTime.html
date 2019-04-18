@@ -1,0 +1,3210 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.time 
+   </div>
+<h2 class="title" title="Class ZonedDateTime">Class ZonedDateTime</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.time.ZonedDateTime</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../java/lang/Comparable.html" title="java.lang中的接口">Comparable</a> &lt; <a href="../../java/time/chrono/ChronoZonedDateTime.html" title="java.time.chrono中的接口">ChronoZonedDateTime</a> &lt;？&gt;&gt;， <a href="../../java/time/chrono/ChronoZonedDateTime.html" title="java.time.chrono中的接口">ChronoZonedDateTime</a> &lt; <a href="../../java/time/LocalDate.html" title="java.time中的类">LocalDate</a> &gt;， <a href="../../java/time/temporal/Temporal.html" title="java.time.temporal中的接口">Temporal</a> ， <a href="../../java/time/temporal/TemporalAccessor.html" title="java.time.temporal中的接口">TemporalAccessor</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">ZonedDateTime</span>
+extends <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a>, <a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;, <a href="../../java/io/Serializable.html" title="interface in java.io">Serializable</a></pre>
+<div class="block">
+<span>ISO- <code>2007-12-03T10:15:30+01:00 Europe/Paris</code> ，例如<code>2007-12-03T10:15:30+01:00 Europe/Paris</code> 。</span>
+<p> <span><code>ZonedDateTime</code>是具有时区的日期时间的不可变表示。</span> <span>此类存储所有日期和时间字段，精度为纳秒，时区为区域偏移量，用于处理模糊的本地日期时间。</span> <span>例如，值“2007年10月2日在13：45.30.123456789 +欧洲/巴黎时区的+02：00”可以存储在<code>ZonedDateTime</code> 。</span> </p>
+<p> <span>该类处理从本地时间线<code>LocalDateTime</code>到即时时间线<code>Instant</code> 。</span> <span>两个时间线之间的差异是与UTC /格林威治的偏移量，由<code>ZoneOffset</code> 。</span> </p>
+<p> <span>两个时间线之间的转换涉及计算使用的偏移<a href="../../java/time/zone/ZoneRules.html" title="java.time.zone中的类"><code>rules</code></a>从所访问的<code>ZoneId</code> 。</span> <span>获取瞬时的偏移是简单的，因为每个瞬间只有一个有效的偏移量。</span> <span>相比之下，获取本地日期时间的偏移量并不简单。</span> <span>有三种情况：</span> </p>
+<ul>
+<li> <span>正常，有一个有效的偏移。</span> <span>在一年的绝大多数情况下，正常情况适用于当地日期时间单一有效抵消。</span> </li>
+<li> <span>间隙，零有效偏移。</span> <span>这是由于春季夏令时从“冬季”变为“夏季”，时钟向前倾斜。</span> <span>在间隙中，存在没有有效偏移量的本地日期时间值。</span> </li>
+<li> <span>重叠，有两个有效的偏移。</span> <span>这是由于秋季夏令时间从“夏季”变为“冬季”而将时钟倒退。</span> <span>在重叠中，存在具有两个有效偏移量的本地日期时间值。</span> </li>
+</ul>
+<p> <span>任何通过获取偏移量从本地日期时间直接或隐式转换的方法都有可能变得复杂。</span> </p>
+<p> <span>对于差距，总体策略是，如果当地日期时间落在一个差距的中间，那么由此产生的划分的日期时间将有一个本地日期时间向前移动距离的差距，导致一个日期 - 时间在后来的偏移，通常是“夏天”的时间。</span> </p>
+<p> <span>对于重叠，总体策略是如果本地日期时间落在重叠的中间，那么以前的偏移将被保留。</span> <span>如果没有先前的偏移量，或者以前的偏移量是无效的，则使用较早的偏移量，通常是“夏季”时间。另外两种方法， <a href="../../java/time/ZonedDateTime.html#withEarlierOffsetAtOverlap--"><code>withEarlierOffsetAtOverlap()</code></a>和<a href="../../java/time/ZonedDateTime.html#withLaterOffsetAtOverlap--"><code>withLaterOffsetAtOverlap()</code>可</a>帮助管理重叠的情况。</span> </p>
+<p> <span>在设计方面，这个班主要被视为<code>LocalDateTime</code>和<code>ZoneId</code> 。</span> <span><code>ZoneOffset</code>是一个重要的但次要的信息，用于确保类代表即时，特别是在夏令时重叠。</span> </p>
+<p> <span>这是一个<a href="../../java/lang/doc-files/ValueBased.html">value-based</a>类;</span> <span>使用身份敏感的操作（包括引用相等（的<code>==</code>上的实例），标识哈希码，或同步） <code>ZonedDateTime</code>可具有不可预测的结果，应当避免。</span> <span><code>equals</code>方法应用于比较。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">实现要求：</span>
+</dt>
+<dd>
+<span>A <code>ZonedDateTime</code>拥有相当于三个独立对象的状态，一个<code>LocalDateTime</code> ，一个<code>ZoneId</code>和解决的<code>ZoneOffset</code> 。</span>
+<span>偏移量和本地日期时间用于在必要时定义一个瞬间。</span>
+<span>区域ID用于获取偏移量如何以及何时更改的规则。</span>
+<span>偏移不能自由设置，因为区域控制哪些偏移是有效的。</span>
+<p> <span>这个类是不可变的和线程安全的。</span> </p>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.8 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../serialized-form.html#java.time.ZonedDateTime">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#equals-java.lang.Object-">equals</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              检查这个日期时间是否等于另一个日期时间。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#format-java.time.format.DateTimeFormatter-">format</a></span>(<a href="../../java/time/format/DateTimeFormatter.html" title="class in java.time.format">DateTimeFormatter</a> formatter)</code>
+<div class="block">
+              使用指定的格式化程序格式化此日期时间。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#from-java.time.temporal.TemporalAccessor-">from</a></span>(<a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a> temporal)</code>
+<div class="block">
+              从时间对象获取一个 
+             <code>ZonedDateTime</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#get-java.time.temporal.TemporalField-">get</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</code>
+<div class="block">
+              从此日期时间获取指定字段的值为 
+             <code>int</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getDayOfMonth--">getDayOfMonth</a></span>()</code>
+<div class="block">
+              获取月份字段。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../java/time/DayOfWeek.html" title="enum in java.time">DayOfWeek</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getDayOfWeek--">getDayOfWeek</a></span>()</code>
+<div class="block">
+              获取星期几字段，这是一个枚举 
+             <code>DayOfWeek</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getDayOfYear--">getDayOfYear</a></span>()</code>
+<div class="block">
+              获得日期字段。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getHour--">getHour</a></span>()</code>
+<div class="block">
+              获取时间字段。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getLong-java.time.temporal.TemporalField-">getLong</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</code>
+<div class="block">
+              从此日期时间获取指定字段的值作为 
+             <code>long</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getMinute--">getMinute</a></span>()</code>
+<div class="block">
+              获取小时字段。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../java/time/Month.html" title="enum in java.time">Month</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getMonth--">getMonth</a></span>()</code>
+<div class="block">
+              使用 
+             <code>Month</code>枚举获取月份字段。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getMonthValue--">getMonthValue</a></span>()</code>
+<div class="block">
+              将月份字段从1到12。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getNano--">getNano</a></span>()</code>
+<div class="block">
+              获得纳秒第二场。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code><a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getOffset--">getOffset</a></span>()</code>
+<div class="block">
+              获取区域偏移量，例如“+01：00”。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getSecond--">getSecond</a></span>()</code>
+<div class="block">
+              获得第二分钟的字段。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getYear--">getYear</a></span>()</code>
+<div class="block">
+              获取年份字段。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#getZone--">getZone</a></span>()</code>
+<div class="block">
+              获得时区，如“欧洲/巴黎”。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              这个日期时间的哈希码。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#isSupported-java.time.temporal.TemporalField-">isSupported</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</code>
+<div class="block">
+              检查指定的字段是否受支持。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#isSupported-java.time.temporal.TemporalUnit-">isSupported</a></span>(<a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              检查指定的单位是否受支持。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minus-long-java.time.temporal.TemporalUnit-">minus</a></span>(long amountToSubtract, <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              返回此日期时间的副本，并减去指定的金额。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minus-java.time.temporal.TemporalAmount-">minus</a></span>(<a href="../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amountToSubtract)</code>
+<div class="block">
+              返回此日期时间的副本，并减去指定的金额。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minusDays-long-">minusDays</a></span>(long days)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，并以指定的时间段（以天为单位）减去。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minusHours-long-">minusHours</a></span>(long hours)</code>
+<div class="block">
+              以指定的时间段返回此 
+             <code>ZonedDateTime</code>的副本， 
+             <code>ZonedDateTime</code>数字。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minusMinutes-long-">minusMinutes</a></span>(long minutes)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，其中指定的时间间隔以分钟为单位。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minusMonths-long-">minusMonths</a></span>(long months)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，指定的时间以月为单位减去。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minusNanos-long-">minusNanos</a></span>(long nanos)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的副本，以指定的时间减去纳秒。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minusSeconds-long-">minusSeconds</a></span>(long seconds)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，其中指定的时间间隔以秒为单位。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minusWeeks-long-">minusWeeks</a></span>(long weeks)</code>
+<div class="block">
+              以指定的周期返回此 
+             <code>ZonedDateTime</code>的副本， 
+             <code>ZonedDateTime</code>星期。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#minusYears-long-">minusYears</a></span>(long years)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，并以减去的年份为单位。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i30">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#now--">now</a></span>()</code>
+<div class="block">
+              从默认时区的系统时钟获取当前的日期时间。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i31">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#now-java.time.Clock-">now</a></span>(<a href="../../java/time/Clock.html" title="class in java.time">Clock</a> clock)</code>
+<div class="block">
+              从指定的时钟获取当前的日期时间。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i32">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#now-java.time.ZoneId-">now</a></span>(<a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              从指定时区的系统时钟获取当前的日期时间。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i33">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#of-int-int-int-int-int-int-int-java.time.ZoneId-">of</a></span>(int year, int month, int dayOfMonth, int hour, int minute, int second, int nanoOfSecond, <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              从年，月，日，时，分，秒，纳秒和时区获取 
+             <code>ZonedDateTime</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i34">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#of-java.time.LocalDate-java.time.LocalTime-java.time.ZoneId-">of</a></span>(<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a> date, <a href="../../java/time/LocalTime.html" title="class in java.time">LocalTime</a> time, <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              从当地的日期和时间获取一个 
+             <code>ZonedDateTime</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i35">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#of-java.time.LocalDateTime-java.time.ZoneId-">of</a></span>(<a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a> localDateTime, <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              从本地日期时间获取 
+             <code>ZonedDateTime</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i36">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#ofInstant-java.time.Instant-java.time.ZoneId-">ofInstant</a></span>(<a href="../../java/time/Instant.html" title="class in java.time">Instant</a> instant, <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              从 
+             <code>Instant</code>获取一个 
+             <code>ZonedDateTime</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i37">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#ofInstant-java.time.LocalDateTime-java.time.ZoneOffset-java.time.ZoneId-">ofInstant</a></span>(<a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a> localDateTime, <a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> offset, <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              从通过组合本地日期时间和偏移量形成的瞬间获取 
+             <code>ZonedDateTime</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i38">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#ofLocal-java.time.LocalDateTime-java.time.ZoneId-java.time.ZoneOffset-">ofLocal</a></span>(<a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a> localDateTime, <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone, <a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> preferredOffset)</code>
+<div class="block">
+              从本地日期时间获取 
+             <code>ZonedDateTime</code>的实例，如果可能，使用首选偏移量。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i39">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#ofStrict-java.time.LocalDateTime-java.time.ZoneOffset-java.time.ZoneId-">ofStrict</a></span>(<a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a> localDateTime, <a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> offset, <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              获取 
+             <code>ZonedDateTime</code>的实例，严格验证本地日期时间，偏移量和区域ID的组合。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i40">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#parse-java.lang.CharSequence-">parse</a></span>(<a href="../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> text)</code>
+<div class="block">
+              从文本字符串（例如 
+             <code>2007-12-03T10:15:30+01:00[Europe/Paris]</code>获取一个 
+             <code>ZonedDateTime</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i41">
+<td class="colFirst"><code>static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#parse-java.lang.CharSequence-java.time.format.DateTimeFormatter-">parse</a></span>(<a href="../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> text, <a href="../../java/time/format/DateTimeFormatter.html" title="class in java.time.format">DateTimeFormatter</a> formatter)</code>
+<div class="block">
+              从使用特定格式化程序的文本字符串获取一个 
+             <code>ZonedDateTime</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i42">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plus-long-java.time.temporal.TemporalUnit-">plus</a></span>(long amountToAdd, <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              返回此日期时间的副本，并添加指定的金额。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i43">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plus-java.time.temporal.TemporalAmount-">plus</a></span>(<a href="../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amountToAdd)</code>
+<div class="block">
+              返回此日期时间的副本，并添加指定的金额。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i44">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plusDays-long-">plusDays</a></span>(long days)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，其中指定的时间段以天添加。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i45">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plusHours-long-">plusHours</a></span>(long hours)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，其指定时间以小时为单位。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i46">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plusMinutes-long-">plusMinutes</a></span>(long minutes)</code>
+<div class="block">
+              以指定的时间段返回此 
+             <code>ZonedDateTime</code>的副本，以分钟为单位。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i47">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plusMonths-long-">plusMonths</a></span>(long months)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，其中指定的时间段以月为单位。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i48">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plusNanos-long-">plusNanos</a></span>(long nanos)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，其指定时间以纳秒为单位。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i49">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plusSeconds-long-">plusSeconds</a></span>(long seconds)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，并以指定的时间段（以秒为单位）添加。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i50">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plusWeeks-long-">plusWeeks</a></span>(long weeks)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的副本，并以指定的周期添加周数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i51">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#plusYears-long-">plusYears</a></span>(long years)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的副本，并以指定的时间段添加。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i52">
+<td class="colFirst"><code>&lt;R&gt; R</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#query-java.time.temporal.TemporalQuery-">query</a></span>(<a href="../../java/time/temporal/TemporalQuery.html" title="interface in java.time.temporal">TemporalQuery</a>&lt;R&gt; query)</code>
+<div class="block">
+              使用指定的查询查询此日期时间。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i53">
+<td class="colFirst"><code><a href="../../java/time/temporal/ValueRange.html" title="class in java.time.temporal">ValueRange</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#range-java.time.temporal.TemporalField-">range</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</code>
+<div class="block">
+              获取指定字段的有效值的范围。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i54">
+<td class="colFirst"><code><a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#toLocalDate--">toLocalDate</a></span>()</code>
+<div class="block">
+              获得这个日期时间的 
+             <code>LocalDate</code>部分。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i55">
+<td class="colFirst"><code><a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#toLocalDateTime--">toLocalDateTime</a></span>()</code>
+<div class="block">
+              获得这个日期时间的 
+             <code>LocalDateTime</code>部分。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i56">
+<td class="colFirst"><code><a href="../../java/time/LocalTime.html" title="class in java.time">LocalTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#toLocalTime--">toLocalTime</a></span>()</code>
+<div class="block">
+              获得这个日期时间的 
+             <code>LocalTime</code>部分。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i57">
+<td class="colFirst"><code><a href="../../java/time/OffsetDateTime.html" title="class in java.time">OffsetDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#toOffsetDateTime--">toOffsetDateTime</a></span>()</code>
+<div class="block">
+              将此日期时间转换为 
+             <code>OffsetDateTime</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i58">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#toString--">toString</a></span>()</code>
+<div class="block">
+              将此日期时间输出为 
+             <code>String</code> ，例如 
+             <code>2007-12-03T10:15:30+01:00[Europe/Paris]</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i59">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#truncatedTo-java.time.temporal.TemporalUnit-">truncatedTo</a></span>(<a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的副本，其 
+             <code>ZonedDateTime</code>时间。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i60">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#until-java.time.temporal.Temporal-java.time.temporal.TemporalUnit-">until</a></span>(<a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> endExclusive, <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              根据指定的单位计算到另一个日期时间的时间量。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i61">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#with-java.time.temporal.TemporalAdjuster-">with</a></span>(<a href="../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a> adjuster)</code>
+<div class="block">
+              返回此日期时间的调整副本。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i62">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#with-java.time.temporal.TemporalField-long-">with</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field, long newValue)</code>
+<div class="block">
+              返回此日期时间的副本，并将指定的字段设置为新值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i63">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withDayOfMonth-int-">withDayOfMonth</a></span>(int dayOfMonth)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的副本，日期值更改。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i64">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withDayOfYear-int-">withDayOfYear</a></span>(int dayOfYear)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，并更改日期。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i65">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withEarlierOffsetAtOverlap--">withEarlierOffsetAtOverlap</a></span>()</code>
+<div class="block">
+              将本日期时间的副本返回到本地时间线重叠处，将区域偏移更改为两个有效偏移量的较早者。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i66">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withFixedOffsetZone--">withFixedOffsetZone</a></span>()</code>
+<div class="block">
+              返回此日期时间的副本，区域ID设置为偏移量。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i67">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withHour-int-">withHour</a></span>(int hour)</code>
+<div class="block">
+              返回此 
+             <code>ZonedDateTime</code>的副本，并更改日期值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i68">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withLaterOffsetAtOverlap--">withLaterOffsetAtOverlap</a></span>()</code>
+<div class="block">
+              返回此日期的副本，将区域偏移更改为本地时间线重叠的两个有效偏移量的后面。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i69">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withMinute-int-">withMinute</a></span>(int minute)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的副本，小时值更改。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i70">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withMonth-int-">withMonth</a></span>(int month)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的副本，年月值被更改。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i71">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withNano-int-">withNano</a></span>(int nanoOfSecond)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的副本，纳秒变化值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i72">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withSecond-int-">withSecond</a></span>(int second)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的副本，其中二分之一值更改。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i73">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withYear-int-">withYear</a></span>(int year)</code>
+<div class="block">
+              返回这个 
+             <code>ZonedDateTime</code>的年份值更改的副本。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i74">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withZoneSameInstant-java.time.ZoneId-">withZoneSameInstant</a></span>(<a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              使用不同的时区返回此日期时间的副本，保留即时。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i75">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZonedDateTime.html#withZoneSameLocal-java.time.ZoneId-">withZoneSameLocal</a></span>(<a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              使用不同的时区返回此日期时间的副本，如果可能，保留本地日期时间。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.time.chrono.ChronoZonedDateTime">
+<!-- --> </a> <h3>Methods inherited from interface java.time.chrono.<a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a></h3> <code><a href="../../java/time/chrono/ChronoZonedDateTime.html#compareTo-java.time.chrono.ChronoZonedDateTime-">compareTo</a>, <a href="../../java/time/chrono/ChronoZonedDateTime.html#getChronology--">getChronology</a>, <a href="../../java/time/chrono/ChronoZonedDateTime.html#isAfter-java.time.chrono.ChronoZonedDateTime-">isAfter</a>, <a href="../../java/time/chrono/ChronoZonedDateTime.html#isBefore-java.time.chrono.ChronoZonedDateTime-">isBefore</a>, <a href="../../java/time/chrono/ChronoZonedDateTime.html#isEqual-java.time.chrono.ChronoZonedDateTime-">isEqual</a>, <a href="../../java/time/chrono/ChronoZonedDateTime.html#timeLineOrder--">timeLineOrder</a>, <a href="../../java/time/chrono/ChronoZonedDateTime.html#toEpochSecond--">toEpochSecond</a>, <a href="../../java/time/chrono/ChronoZonedDateTime.html#toInstant--">toInstant</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="now--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>now</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> now()</pre>
+<div class="block">
+<span>从默认时区的系统时钟获取当前的日期时间。</span>
+<p> <span>这将查询默认时区中的<a href="../../java/time/Clock.html#systemDefaultZone--"><code>system clock</code></a>以获取当前的日期时间。</span> <span>区域和偏移量将根据时钟中的时区设置。</span> </p>
+<p> <span>使用此方法将阻止使用备用时钟进行测试，因为时钟是硬编码的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前日期时间使用系统时钟，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="now-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>now</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> now(<a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>从指定时区的系统时钟获取当前的日期时间。</span>
+<p> <span>这将查询<a href="../../java/time/Clock.html#system-java.time.ZoneId-"><code>system clock</code></a>以获取当前的日期时间。</span> <span>指定时区可以避免对默认时区的依赖。</span> <span>偏移量将从指定的时区计算。</span> </p>
+<p> <span>使用此方法将阻止使用备用时钟进行测试，因为时钟是硬编码的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>zone</code> - 要使用的区域ID，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前日期时间使用系统时钟，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="now-java.time.Clock-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>now</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> now(<a href="../../java/time/Clock.html" title="class in java.time">Clock</a> clock)</pre>
+<div class="block">
+<span>从指定的时钟获取当前的日期时间。</span>
+<p> <span>这将查询指定的时钟以获取当前的日期时间。</span> <span>区域和偏移量将根据时钟中的时区设置。</span> </p>
+<p> <span>使用此方法可以使用备用时钟进行测试。</span> <span>替代时钟可以使用<a href="../../java/time/Clock.html" title="java.time中的类"><code>dependency injection</code>引入</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>clock</code> - 要使用的时钟，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前日期时间，不为null 
+           </dd>
+</dl> </li>
+</ul> <a name="of-java.time.LocalDate-java.time.LocalTime-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>of</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> of(<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a> date,
+                               <a href="../../java/time/LocalTime.html" title="class in java.time">LocalTime</a> time,
+                               <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>从当地的日期和时间获取<code>ZonedDateTime</code>的实例。</span>
+<p> <span>这将创建一个划分的日期时间，尽可能地将输入的本地日期和时间进行匹配。</span> <span>时区规则（如夏令时）意味着并非每个本地日期时间对指定的区域都有效，因此可能会调整本地日期时间。</span> </p>
+<p> <span>当地的日期时间，首先结合形成当地的日期时间。</span> <span>然后，本地日期时间在时间线上解析为单个时刻。</span> <span>这是通过从区域ID的<a href="../../java/time/zone/ZoneRules.html" title="java.time.zone中的类"><code>rules</code></a>定义的本地日期时间中找到UTC /格林威治的有效偏移量来实现的。</span> </p>
+<p> <span>在大多数情况下，本地日期时间只有一个有效的偏移量。</span> <span>在重叠的情况下，当设置时钟时，有两个有效的偏移量。</span> <span>该方法使用通常对应于“summer”的较早的偏移量。</span> </p>
+<p> <span>在间隙的情况下，当时钟向前跳转时，没有有效的偏移。</span> <span>相反，本地日期时间被调整为稍后间隔的长度。</span> <span>对于典型的1小时夏令时更改，本地日期时间将在一小时后移动到通常对应于“夏季”的偏移量。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>date</code> - 本地日期，不为null 
+           </dd>
+<dd>
+<code>time</code> - 当地时间，不为空 
+           </dd>
+<dd>
+<code>zone</code> - 时区，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             偏移日期时间，不为null 
+           </dd>
+</dl> </li>
+</ul> <a name="of-java.time.LocalDateTime-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>of</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> of(<a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a> localDateTime,
+                               <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>从当地的日期时间获取一个<code>ZonedDateTime</code>的实例。</span>
+<p> <span>这将创建一个与输入本地日期时间相匹配的划分的日期时间。</span> <span>时区规则（如夏令时）意味着并非每个本地日期时间对指定的区域都有效，因此可能会调整本地日期时间。</span> </p>
+<p> <span>本地日期时间在时间线上解析为单个时刻。</span> <span>这是通过从区域ID的<a href="../../java/time/zone/ZoneRules.html" title="java.time.zone中的类"><code>rules</code></a>定义的本地日期时间中找到UTC /格林威治的有效偏移量来实现的。</span> </p>
+<p> <span>在大多数情况下，本地日期时间只有一个有效的偏移量。</span> <span>在重叠的情况下，当设置时钟时，有两个有效的偏移量。</span> <span>该方法使用通常对应于“summer”的较早的偏移量。</span> </p>
+<p> <span>在间隙的情况下，当时钟向前跳转时，没有有效的偏移。</span> <span>相反，本地日期时间被调整为稍后间隔的长度。</span> <span>对于典型的1小时夏令时更改，本地日期时间将在一小时后移动到通常对应于“夏季”的偏移量。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>localDateTime</code> - 本地日期时间，不为空 
+           </dd>
+<dd>
+<code>zone</code> - 时区，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             划分的日期时间，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="of-int-int-int-int-int-int-int-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>of</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> of(int year,
+                               int month,
+                               int dayOfMonth,
+                               int hour,
+                               int minute,
+                               int second,
+                               int nanoOfSecond,
+                               <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>从一年，一个月，一天，一小时，分钟，秒，纳秒和时区获取<code>ZonedDateTime</code>的实例。</span>
+<p> <span>这将创建一个划分的日期时间，尽可能地紧密匹配七个指定字段的本地日期时间。</span> <span>时区规则（如夏令时）意味着并非每个本地日期时间对指定的区域都有效，因此可能会调整本地日期时间。</span> </p>
+<p> <span>本地日期时间在时间线上解析为单个时刻。</span> <span>这是通过从区域ID的<a href="../../java/time/zone/ZoneRules.html" title="java.time.zone中的类"><code>rules</code></a>定义的本地日期时间中找到UTC /格林威治的有效偏移量来实现的。</span> </p>
+<p> <span>在大多数情况下，本地日期时间只有一个有效的偏移量。</span> <span>在重叠的情况下，当设置时钟时，有两个有效的偏移量。</span> <span>该方法使用通常对应于“summer”的较早的偏移量。</span> </p>
+<p> <span>在间隙的情况下，当时钟向前跳转时，没有有效的偏移。</span> <span>相反，本地日期时间被调整为稍后间隔的长度。</span> <span>对于典型的1小时夏令时更改，本地日期时间将在一小时后移动到通常对应于“夏季”的偏移量。</span> </p>
+<p> <span>该方法主要用于编写测试用例。</span> <span>非测试代码通常会使用其他方法来创建一个偏移时间。</span> <span><code>LocalDateTime</code>具有相同工厂方法的五个附加便利变体，其参数较少。</span> <span>在这里不提供它们来减少API的占用空间。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>year</code> - 从MIN_YEAR到MAX_YEAR的年份 
+           </dd>
+<dd>
+<code>month</code> - 从1月1日至12日（12月）的月份， 
+           </dd>
+<dd>
+<code>dayOfMonth</code> - 代表从1到31的月份 
+           </dd>
+<dd>
+<code>hour</code> - 代表从0到23的小时 
+           </dd>
+<dd>
+<code>minute</code> - 从0到59表示的小时 
+           </dd>
+<dd>
+<code>second</code> - 从0到59的秒表示 
+           </dd>
+<dd>
+<code>nanoOfSecond</code> - 表示从0到999,999,999的纳秒 
+           </dd>
+<dd>
+<code>zone</code> - 时区，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             偏移日期时间，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果任何字段的值超出范围，或者如果月的日期对于月份无效 
+           </dd>
+</dl> </li>
+</ul> <a name="ofLocal-java.time.LocalDateTime-java.time.ZoneId-java.time.ZoneOffset-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ofLocal</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> ofLocal(<a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a> localDateTime,
+                                    <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone,
+                                    <a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> preferredOffset)</pre>
+<div class="block">
+<span>从本地日期时间获取<code>ZonedDateTime</code>的实例，如果可能，使用首选偏移量。</span>
+<p> <span>本地日期时间在时间线上解析为单个时刻。</span> <span>这是通过从区域ID的<a href="../../java/time/zone/ZoneRules.html" title="java.time.zone中的类"><code>rules</code></a>定义的本地日期时间中找到UTC /格林威治的有效偏移量来实现的。</span> </p>
+<p> <span>在大多数情况下，本地日期时间只有一个有效的偏移量。</span> <span>在重叠的情况下，时钟被设置回来，有两个有效的偏移量。</span> <span>如果首选偏移量是有效偏移之一，则使用它。</span> <span>否则，将使用较早的有效偏移量，通常对应于“summer”。</span> </p>
+<p> <span>在间隙向前跳跃的情况下，没有有效的偏移。</span> <span>相反，本地日期时间被调整为稍后间隔的长度。</span> <span>对于典型的1小时夏令时更改，本地日期时间将在一小时后移动到通常对应于“夏季”的偏移量。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>localDateTime</code> - 本地日期时间，不为空 
+           </dd>
+<dd>
+<code>zone</code> - 时区，不为空 
+           </dd>
+<dd>
+<code>preferredOffset</code> - 区域偏移量，如果没有偏好，则为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             划分的日期时间，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="ofInstant-java.time.Instant-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ofInstant</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> ofInstant(<a href="../../java/time/Instant.html" title="class in java.time">Instant</a> instant,
+                                      <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>从<code>Instant</code>获得<code>ZonedDateTime</code>的一个<code>Instant</code> 。</span>
+<p> <span>这将创建一个与指定的时间相同的分区日期时间。</span> <span>调用<a href="../../java/time/chrono/ChronoZonedDateTime.html#toInstant--"><code>ChronoZonedDateTime.toInstant()</code></a>将返回等于这里使用的时刻。</span> </p>
+<p> <span>将瞬间转换为划分的日期时间很简单，因为每个时刻只有一个有效的偏移量。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>instant</code> - 即时创建日期时间，不为null 
+           </dd>
+<dd>
+<code>zone</code> - 时区，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             划分的日期时间，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出了支持范围 
+           </dd>
+</dl> </li>
+</ul> <a name="ofInstant-java.time.LocalDateTime-java.time.ZoneOffset-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ofInstant</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> ofInstant(<a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a> localDateTime,
+                                      <a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> offset,
+                                      <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>从通过组合本地日期时间和偏移量形成的瞬间获取<code>ZonedDateTime</code>的实例。</span>
+<p> <span>这将创建一个划区的日期时间<a href="../../java/time/chrono/ChronoLocalDateTime.html#toInstant-java.time.ZoneOffset-"><code>combining</code></a> <code>LocalDateTime</code>和<code>ZoneOffset</code> 。</span> <span>这种组合唯一地指定了一个没有歧义的瞬间。</span> </p>
+<p> <span>将瞬间转换为划分的日期时间很简单，因为每个时刻只有一个有效的偏移量。</span> <span>如果有效偏移量与指定的偏移量不同，则划分的日期 - 时间的日期 - 时间和偏移量将与指定的偏移量不同。</span> </p>
+<p> <span>如果<code>ZoneId</code>中使用是<code>ZoneOffset</code> ，该方法等效于<a href="../../java/time/ZonedDateTime.html#of-java.time.LocalDateTime-java.time.ZoneId-"><code>of(LocalDateTime, ZoneId)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>localDateTime</code> - 本地日期时间，不为空 
+           </dd>
+<dd>
+<code>offset</code> - 区域偏移，不为空 
+           </dd>
+<dd>
+<code>zone</code> - 时区，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             划分的日期时间，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="ofStrict-java.time.LocalDateTime-java.time.ZoneOffset-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ofStrict</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> ofStrict(<a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a> localDateTime,
+                                     <a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> offset,
+                                     <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>获取<code>ZonedDateTime</code>的实例，严格验证本地日期时间，偏移量和区域ID的组合。</span>
+<p> <span>这将创建一个分区的日期时间，以确保偏移量对于本地日期时间根据指定的区域的规则有效。</span> <span>如果偏移量无效，则抛出异常。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>localDateTime</code> - 本地日期时间，不为空 
+           </dd>
+<dd>
+<code>offset</code> - 区域偏移，不为空 
+           </dd>
+<dd>
+<code>zone</code> - 时区，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             划分的日期时间，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="from-java.time.temporal.TemporalAccessor-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>from</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> from(<a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a> temporal)</pre>
+<div class="block">
+<span>从时间对象获取一个<code>ZonedDateTime</code>的实例。</span>
+<p> <span>这将根据指定的时间获得一个划区的日期时间。</span> <span>A <code>TemporalAccessor</code>表示一个任意的日期和时间信息集，该工厂转换为<code>ZonedDateTime</code>一个实例。</span> </p>
+<p> <span>转换将第一获得<code>ZoneId</code>从时间对象，回落到一个<code>ZoneOffset</code>如果必要的话。</span> <span>然后，它会尝试获得<code>Instant</code> ，回落到<code>LocalDateTime</code> ，如果必要的。</span> <span>结果将是<code>ZoneId</code>或<code>ZoneOffset</code>与<code>Instant</code>或<code>LocalDateTime</code> 。</span> <span>允许实现执行优化，例如访问与相关对象相当的那些字段。</span> </p>
+<p> <span>该方法中，功能接口的签名相匹配<a href="../../java/time/temporal/TemporalQuery.html" title="java.time.temporal中的接口"><code>TemporalQuery</code></a>允许它在通过方法参考，查询中使用<code>ZonedDateTime::from</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#from-java.time.temporal.TemporalAccessor-">from</a></code>中的 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>temporal</code> - 要转换的时间对象，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             划分的日期时间，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法转换为 
+            <code>ZonedDateTime</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/time/chrono/Chronology.html#zonedDateTime-java.time.temporal.TemporalAccessor-"><code>Chronology.zonedDateTime(TemporalAccessor)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="parse-java.lang.CharSequence-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parse</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> parse(<a href="../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> text)</pre>
+<div class="block">
+<span>从文本字符串（例如<code>2007-12-03T10:15:30+01:00[Europe/Paris]</code>获取一个<code>ZonedDateTime</code>的实例。</span>
+<p> <span>字符串必须表示有效的日期时间，并使用<a href="../../java/time/format/DateTimeFormatter.html#ISO_ZONED_DATE_TIME"><code>DateTimeFormatter.ISO_ZONED_DATE_TIME</code></a>进行解析。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>text</code> - 要解析的文本，如“2007-12-03T10：15：30 + 01：00 [欧洲/巴黎]”，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             解析的分区日期时间，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/format/DateTimeParseException.html" title="class in java.time.format">DateTimeParseException</a></code> - 如果文本无法解析 
+           </dd>
+</dl> </li>
+</ul> <a name="parse-java.lang.CharSequence-java.time.format.DateTimeFormatter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parse</h4> <pre>public static <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> parse(<a href="../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> text,
+                                  <a href="../../java/time/format/DateTimeFormatter.html" title="class in java.time.format">DateTimeFormatter</a> formatter)</pre>
+<div class="block">
+<span>从使用特定格式化程序的文本字符串获取一个<code>ZonedDateTime</code>的实例。</span>
+<p> <span>使用格式化程序解析文本，返回日期时间。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>text</code> - 要解析的文本，不为空 
+           </dd>
+<dd>
+<code>formatter</code> - 使用的格式化程序，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             解析的分区日期时间，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/format/DateTimeParseException.html" title="class in java.time.format">DateTimeParseException</a></code> - 如果文本无法解析 
+           </dd>
+</dl> </li>
+</ul> <a name="isSupported-java.time.temporal.TemporalField-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isSupported</h4> <pre>public boolean isSupported(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</pre>
+<div class="block">
+<span>检查指定的字段是否受支持。</span>
+<p> <span>这将检查是否可以查询指定字段的日期时间。</span> <span>如果是假，然后调用<a href="../../java/time/ZonedDateTime.html#range-java.time.temporal.TemporalField-"><code>range</code></a> ， <a href="../../java/time/ZonedDateTime.html#get-java.time.temporal.TemporalField-"><code>get</code></a>和<a href="../../java/time/ZonedDateTime.html#with-java.time.temporal.TemporalField-long-"><code>with(TemporalField, long)</code></a>方法会抛出异常。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>那么查询是在这里实现的。</span> <span>支持的字段有：</span> </p>
+<ul>
+<li> <code>NANO_OF_SECOND</code> </li>
+<li> <code>NANO_OF_DAY</code> </li>
+<li> <code>MICRO_OF_SECOND</code> </li>
+<li> <code>MICRO_OF_DAY</code> </li>
+<li> <code>MILLI_OF_SECOND</code> </li>
+<li> <code>MILLI_OF_DAY</code> </li>
+<li> <code>SECOND_OF_MINUTE</code> </li>
+<li> <code>SECOND_OF_DAY</code> </li>
+<li> <code>MINUTE_OF_HOUR</code> </li>
+<li> <code>MINUTE_OF_DAY</code> </li>
+<li> <code>HOUR_OF_AMPM</code> </li>
+<li> <code>CLOCK_HOUR_OF_AMPM</code> </li>
+<li> <code>HOUR_OF_DAY</code> </li>
+<li> <code>CLOCK_HOUR_OF_DAY</code> </li>
+<li> <code>AMPM_OF_DAY</code> </li>
+<li> <code>DAY_OF_WEEK</code> </li>
+<li> <code>ALIGNED_DAY_OF_WEEK_IN_MONTH</code> </li>
+<li> <code>ALIGNED_DAY_OF_WEEK_IN_YEAR</code> </li>
+<li> <code>DAY_OF_MONTH</code> </li>
+<li> <code>DAY_OF_YEAR</code> </li>
+<li> <code>EPOCH_DAY</code> </li>
+<li> <code>ALIGNED_WEEK_OF_MONTH</code> </li>
+<li> <code>ALIGNED_WEEK_OF_YEAR</code> </li>
+<li> <code>MONTH_OF_YEAR</code> </li>
+<li> <code>PROLEPTIC_MONTH</code> </li>
+<li> <code>YEAR_OF_ERA</code> </li>
+<li> <code>YEAR</code> </li>
+<li> <code>ERA</code> </li>
+<li> <code>INSTANT_SECONDS</code> </li>
+<li> <code>OFFSET_SECONDS</code> </li>
+</ul>
+<span>所有其他<code>ChronoField</code>实例将返回false。</span>
+<p> <span>如果该字段不是<code>ChronoField</code> ，则该方法的结果是通过调用<code>TemporalField.isSupportedBy(TemporalAccessor)</code>通过<code>this</code>作为参数获得的。</span> <span>字段是否受支持由字段决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#isSupported-java.time.temporal.TemporalField-">isSupported</a></code>在界面 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#isSupported-java.time.temporal.TemporalField-">isSupported</a></code>在接口 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要检查的字段，null返回假 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果在此日期时间内支持该字段，则为true，否则为false 
+           </dd>
+</dl> </li>
+</ul> <a name="isSupported-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isSupported</h4> <pre>public boolean isSupported(<a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>检查指定的单位是否受支持。</span>
+<p> <span>这将检查指定的单位是否可以添加到该日期时间或从该日期时间中减去。</span> <span>如果是false，那么调用<a href="../../java/time/ZonedDateTime.html#plus-long-java.time.temporal.TemporalUnit-"><code>plus(long, TemporalUnit)</code></a>和<a href="../../java/time/ZonedDateTime.html#minus-long-java.time.temporal.TemporalUnit-"><code>minus</code></a>方法会抛出异常。</span> </p>
+<p> <span>如果单位是<a href="../../java/time/temporal/ChronoUnit.html" title="枚举在java.time.temporal"><code>ChronoUnit</code>，</a>那么在这里实现查询。</span> <span>支持的单位是：</span> </p>
+<ul>
+<li> <code>NANOS</code> </li>
+<li> <code>MICROS</code> </li>
+<li> <code>MILLIS</code> </li>
+<li> <code>SECONDS</code> </li>
+<li> <code>MINUTES</code> </li>
+<li> <code>HOURS</code> </li>
+<li> <code>HALF_DAYS</code> </li>
+<li> <code>DAYS</code> </li>
+<li> <code>WEEKS</code> </li>
+<li> <code>MONTHS</code> </li>
+<li> <code>YEARS</code> </li>
+<li> <code>DECADES</code> </li>
+<li> <code>CENTURIES</code> </li>
+<li> <code>MILLENNIA</code> </li>
+<li> <code>ERAS</code> </li>
+</ul>
+<span>所有其他<code>ChronoUnit</code>实例将返回false。</span>
+<p> <span>如果该单元不是<code>ChronoUnit</code> ，则此方法的结果是通过调用获得<code>TemporalUnit.isSupportedBy(Temporal)</code>传递<code>this</code>作为参数。</span> <span>设备是否受支持由本机决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#isSupported-java.time.temporal.TemporalUnit-">isSupported</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#isSupported-java.time.temporal.TemporalUnit-">isSupported</a></code>在接口 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>unit</code> - 要检查的单位，null返回false 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果可以添加/减去单位，则为真，否则为false 
+           </dd>
+</dl> </li>
+</ul> <a name="range-java.time.temporal.TemporalField-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>range</h4> <pre>public <a href="../../java/time/temporal/ValueRange.html" title="class in java.time.temporal">ValueRange</a> range(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</pre>
+<div class="block">
+<span>获取指定字段的有效值的范围。</span>
+<p> <span>范围对象表示字段的最小和最大有效值。</span> <span>此日期时间用于提高返回范围的准确性。</span> <span>如果不可能返回范围，因为该字段不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>那么查询是在这里实现的。</span> <span><a href="../../java/time/ZonedDateTime.html#isSupported-java.time.temporal.TemporalField-"><code>supported fields</code></a>将返回适当的范围实例。</span> <span>所有其他<code>ChronoField</code>实例将抛出一个<code>UnsupportedTemporalTypeException</code> 。</span> </p>
+<p> <span>如果该字段不是<code>ChronoField</code> ，则该方法的结果是通过调用<code>TemporalField.rangeRefinedBy(TemporalAccessor)</code>通过<code>this</code>作为参数获得的。</span> <span>是否可以获得范围由字段确定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#range-java.time.temporal.TemporalField-">range</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#range-java.time.temporal.TemporalField-">range</a></code>中的 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 查询范围的字段，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             字段的有效值的范围不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能获得该字段的范围 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果该字段不被支持 
+           </dd>
+</dl> </li>
+</ul> <a name="get-java.time.temporal.TemporalField-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>get</h4> <pre>public int get(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</pre>
+<div class="block">
+<span>从此日期时间获取指定字段的值为<code>int</code> 。</span>
+<p> <span>这将查询指定字段的值的日期时间。</span> <span>返回的值将始终在该字段的值的有效范围内。</span> <span>如果不可能返回值，因为该字段不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>那么查询是在这里实现的。</span> <span>该<a href="../../java/time/ZonedDateTime.html#isSupported-java.time.temporal.TemporalField-"><code>supported fields</code></a>将返回基于此日期时间有效值，除了<code>NANO_OF_DAY</code> ， <code>MICRO_OF_DAY</code> ， <code>EPOCH_DAY</code> ， <code>PROLEPTIC_MONTH</code>和<code>INSTANT_SECONDS</code>这是太大，无法在<code>int</code> ，并抛出一个<code>DateTimeException</code> 。</span> <span>所有其他<code>ChronoField</code>实例会抛出一个<code>UnsupportedTemporalTypeException</code> 。</span> </p>
+<p> <span>如果该字段是不是一个<code>ChronoField</code> ，则此方法的结果是通过调用获得<code>TemporalField.getFrom(TemporalAccessor)</code>传递<code>this</code>作为参数。</span> <span>该值是否可以获得，该值代表什么值由该字段决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#get-java.time.temporal.TemporalField-">get</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#get-java.time.temporal.TemporalField-">get</a></code>在接口 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要获取的字段，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该字段的值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法获取该字段的值或该值超出该字段的有效值的范围 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果该字段不受支持或值范围超过 
+            <code>int</code>
+</dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="getLong-java.time.temporal.TemporalField-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLong</h4> <pre>public long getLong(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</pre>
+<div class="block">
+<span>从此日期时间获取指定字段的值为<code>long</code> 。</span>
+<p> <span>这将查询指定字段的值的日期时间。</span> <span>如果不可能返回值，因为该字段不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>那么查询是在这里实现的。</span> <span><a href="../../java/time/ZonedDateTime.html#isSupported-java.time.temporal.TemporalField-"><code>supported fields</code></a>将根据此日期时间返回有效值。</span> <span>所有其他<code>ChronoField</code>实例都会抛出<code>UnsupportedTemporalTypeException</code> 。</span> </p>
+<p> <span>如果该字段是不是一个<code>ChronoField</code> ，则此方法的结果是通过调用获得<code>TemporalField.getFrom(TemporalAccessor)</code>传递<code>this</code>作为参数。</span> <span>该值是否可以获得，该值代表什么值由该字段决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#getLong-java.time.temporal.TemporalField-">getLong</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#getLong-java.time.temporal.TemporalField-">getLong</a></code>在接口 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要获取的字段，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该字段的值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法获取字段的值 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果该字段不被支持 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="getOffset--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getOffset</h4> <pre>public <a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> getOffset()</pre>
+<div class="block">
+<span>获取区域偏移量，例如“+01：00”。</span>
+<p> <span>这是当地时间与UTC /格林威治的抵消。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#getOffset--">getOffset</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             区域偏移，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="withEarlierOffsetAtOverlap--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withEarlierOffsetAtOverlap</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withEarlierOffsetAtOverlap()</pre>
+<div class="block">
+<span>将本日期时间的副本返回到本地时间线重叠处，将区域偏移更改为两个有效偏移量的较早者。</span>
+<p> <span>当本地时间线重叠时，例如在秋季夏令时切换时，此方法仅有效果。</span> <span>在这种情况下，本地日期时间有两个有效的偏移量。</span> <span>调用此方法将返回一个分区的日期时间，其中选择的两个之前的早期。</span> </p>
+<p> <span>如果在不重叠的情况下调用此方法，则返回<code>this</code> 。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#withEarlierOffsetAtOverlap--">withEarlierOffsetAtOverlap</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与较早的偏移量，不为null 
+           </dd>
+</dl> </li>
+</ul> <a name="withLaterOffsetAtOverlap--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withLaterOffsetAtOverlap</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withLaterOffsetAtOverlap()</pre>
+<div class="block">
+<span>返回此日期的副本，将区域偏移更改为本地时间线重叠的两个有效偏移量的后面。</span>
+<p> <span>当本地时间线重叠时，例如在秋季夏令时切换时，此方法仅有效果。</span> <span>在这种情况下，本地日期时间有两个有效的偏移量。</span> <span>调用此方法将返回一个分区的日期时间，后两个选择。</span> </p>
+<p> <span>如果在不重叠的情况下调用此方法，则返回<code>this</code> 。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#withLaterOffsetAtOverlap--">withLaterOffsetAtOverlap</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与稍后的偏移量，不为null 
+           </dd>
+</dl> </li>
+</ul> <a name="getZone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getZone</h4> <pre>public <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> getZone()</pre>
+<div class="block">
+<span>获得时区，如“欧洲/巴黎”。</span>
+<p> <span>这将返回区域ID。</span> <span>这标识了时区<a href="../../java/time/zone/ZoneRules.html" title="java.time.zone中的类"><code>rules</code></a> ，它决定了UTC /格林威治的偏移量何时以及如何变化。</span> </p>
+<p> <span><a href="../../java/time/ZonedDateTime.html#getOffset--">区号</a>可能与<a href="../../java/time/ZonedDateTime.html#getOffset--">offset</a>相同。</span> <span>如果这是真的，那么任何未来的计算（如加法或减法）都不会因时区规则而复杂的边缘情况。</span> <span>参见<a href="../../java/time/ZonedDateTime.html#withFixedOffsetZone--"><code>withFixedOffsetZone()</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#getZone--">getZone</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             时区，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="withZoneSameLocal-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withZoneSameLocal</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withZoneSameLocal(<a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>使用不同的时区返回此日期时间的副本，如果可能，保留本地日期时间。</span>
+<p> <span>此方法更改时区并保留本地日期时间。</span> <span>如果对于新区域无效，则本地日期时间将被更改，使用与<code>ofLocal(LocalDateTime, ZoneId, ZoneOffset)</code>相同的方法<a href="../../java/time/ZonedDateTime.html#ofLocal-java.time.LocalDateTime-java.time.ZoneId-java.time.ZoneOffset-">确定</a> 。</span> </p>
+<p> <span>要更改区域并调整本地日期时间，请使用<a href="../../java/time/ZonedDateTime.html#withZoneSameInstant-java.time.ZoneId-"><code>withZoneSameInstant(ZoneId)</code></a> 。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#withZoneSameLocal-java.time.ZoneId-">withZoneSameLocal</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>zone</code> - 时区改为，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于此日期时间与请求的区域，不为null 
+           </dd>
+</dl> </li>
+</ul> <a name="withZoneSameInstant-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withZoneSameInstant</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withZoneSameInstant(<a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>使用不同的时区返回此日期时间的副本，保留即时。</span>
+<p> <span>该方法更改时区并保留即时。</span> <span>这通常会导致本地日期时间的更改。</span> </p>
+<p> <span>该方法基于保留相同的时刻，因此本地时间线上的间隙和重叠对结果没有影响。</span> </p>
+<p> <span>要保持本地时间更改偏移量，请使用<a href="../../java/time/ZonedDateTime.html#withZoneSameLocal-java.time.ZoneId-"><code>withZoneSameLocal(ZoneId)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#withZoneSameInstant-java.time.ZoneId-">withZoneSameInstant</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>zone</code> - 时区改为，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于此日期时间与请求的区域，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="withFixedOffsetZone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withFixedOffsetZone</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withFixedOffsetZone()</pre>
+<div class="block">
+<span>返回此日期时间的副本，区域ID设置为偏移量。</span>
+<p> <span>这将返回分区日期 - 时间，其中区域ID与<a href="../../java/time/ZonedDateTime.html#getOffset--"><code>getOffset()</code></a>相同。</span> <span>结果的当地日期时间，偏移量和时间将与此日期时间相同。</span> </p>
+<p> <span>将日期时间设置为固定的单个偏移量意味着由于时区规则，任何未来的计算（如加法或减法）都不会有复杂的边缘情况。</span> <span>当通过网络发送分区的日期时间时，这也可能很有用，因为大多数协议（如ISO-8601）只处理偏移量，而不是基于区域的区域ID。</span> </p>
+<p> <span>这相当于<code>ZonedDateTime.of(zdt.toLocalDateTime(), zdt.getOffset())</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>的区域ID设置为偏移，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="toLocalDateTime--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toLocalDateTime</h4> <pre>public <a href="../../java/time/LocalDateTime.html" title="class in java.time">LocalDateTime</a> toLocalDateTime()</pre>
+<div class="block">
+<span>获得这个日期时间的<code>LocalDateTime</code>部分。</span>
+<p> <span>这将返回与此日期时间相同年份，月份，日期和时间的<code>LocalDateTime</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#toLocalDateTime--">toLocalDateTime</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个日期时间的本地日期时间部分，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="toLocalDate--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toLocalDate</h4> <pre>public <a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a> toLocalDate()</pre>
+<div class="block">
+<span>获得这个日期时间的<code>LocalDate</code>部分。</span>
+<p> <span>这将返回与此日期时间相同年份，月份和日期的<code>LocalDate</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#toLocalDate--">toLocalDate</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此日期时间的日期部分不为null 
+           </dd>
+</dl> </li>
+</ul> <a name="getYear--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getYear</h4> <pre>public int getYear()</pre>
+<div class="block">
+<span>获取年份字段。</span>
+<p> <span>此方法返回一年的<code>int</code>值<code>int</code>值。</span> </p>
+<p> <span>通过这种方法返回的年份是根据get(YEAR)是<code>get(YEAR)</code> 。</span> <span>要获得年龄，使用<code>get(YEAR_OF_ERA)</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             年，从MIN_YEAR到MAX_YEAR 
+           </dd>
+</dl> </li>
+</ul> <a name="getMonthValue--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMonthValue</h4> <pre>public int getMonthValue()</pre>
+<div class="block">
+<span>将月份字段从1到12。</span>
+<p> <span>该方法将从8月1日起的<code>int</code>的月份返回到12。如果通过调用<a href="../../java/time/ZonedDateTime.html#getMonth--"><code>getMonth()</code></a>使用枚举<a href="../../java/time/Month.html" title="枚举在java.time中"><code>Month</code></a> ，应用程序代码通常会更加清晰。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             从1到12年的月份 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/time/ZonedDateTime.html#getMonth--"><code>getMonth()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMonth--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMonth</h4> <pre>public <a href="../../java/time/Month.html" title="enum in java.time">Month</a> getMonth()</pre>
+<div class="block">
+<span>使用<code>Month</code>枚举获取月份字段。</span>
+<p> <span>此方法返回本月的枚举<a href="../../java/time/Month.html" title="枚举在java.time中"><code>Month</code></a> 。</span> <span>这避免了对<code>int</code>值意味着什么的<code>int</code> 。</span> <span>如果您需要访问原始的<code>int</code>值，那么枚举将提供<a href="../../java/time/Month.html#getValue--"><code>int value</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             月份，不为零 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/time/ZonedDateTime.html#getMonthValue--"><code>getMonthValue()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getDayOfMonth--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDayOfMonth</h4> <pre>public int getDayOfMonth()</pre>
+<div class="block">
+<span>获取月份字段。</span>
+<p> <span>此方法返回月份的<code>int</code>值<code>int</code>值。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             从1到31日 
+           </dd>
+</dl> </li>
+</ul> <a name="getDayOfYear--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDayOfYear</h4> <pre>public int getDayOfYear()</pre>
+<div class="block">
+<span>获得日期字段。</span>
+<p> <span>此方法返回原始年份<code>int</code>值。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一年中，从1到365，或闰年366 
+           </dd>
+</dl> </li>
+</ul> <a name="getDayOfWeek--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDayOfWeek</h4> <pre>public <a href="../../java/time/DayOfWeek.html" title="enum in java.time">DayOfWeek</a> getDayOfWeek()</pre>
+<div class="block">
+<span>获取星期几字段，这是一个枚举<code>DayOfWeek</code> 。</span>
+<p> <span>此方法返回星期几的枚举<a href="../../java/time/DayOfWeek.html" title="枚举在java.time中"><code>DayOfWeek</code></a> 。</span> <span>这避免了对<code>int</code>值意味着什么的<code>int</code> 。</span> <span>如果您需要访问原始的<code>int</code>值，那么枚举将提供<a href="../../java/time/DayOfWeek.html#getValue--"><code>int value</code></a> 。</span> </p>
+<p> <span>附加信息可以从<code>DayOfWeek</code>获得。</span> <span>这包括值的文本名称。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             星期几不为零 
+           </dd>
+</dl> </li>
+</ul> <a name="toLocalTime--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toLocalTime</h4> <pre>public <a href="../../java/time/LocalTime.html" title="class in java.time">LocalTime</a> toLocalTime()</pre>
+<div class="block">
+<span>获得这个日期时间的<code>LocalTime</code>部分。</span>
+<p> <span>这将返回一个<code>LocalTime</code>与这个日期时间相同的小时，分钟，秒和纳秒。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#toLocalTime--">toLocalTime</a></code>在界面 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个日期时间的一部分，不是null 
+           </dd>
+</dl> </li>
+</ul> <a name="getHour--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getHour</h4> <pre>public int getHour()</pre>
+<div class="block">
+            获取时间字段。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             时间从0到23 
+           </dd>
+</dl> </li>
+</ul> <a name="getMinute--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMinute</h4> <pre>public int getMinute()</pre>
+<div class="block">
+            获取小时字段。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             分钟，从0到59 
+           </dd>
+</dl> </li>
+</ul> <a name="getSecond--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSecond</h4> <pre>public int getSecond()</pre>
+<div class="block">
+            获得第二分钟的字段。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             第二分钟，从0到59 
+           </dd>
+</dl> </li>
+</ul> <a name="getNano--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNano</h4> <pre>public int getNano()</pre>
+<div class="block">
+            获得纳秒第二场。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             纳秒，从0到999,999,999 
+           </dd>
+</dl> </li>
+</ul> <a name="with-java.time.temporal.TemporalAdjuster-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>with</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> with(<a href="../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a> adjuster)</pre>
+<div class="block">
+<span>返回此日期时间的调整副本。</span>
+<p> <span>这返回一个<code>ZonedDateTime</code> ，基于这一个，日期时间被调整。</span> <span>调整使用指定的调整器策略对象进行。</span> <span>阅读调整器的文档，了解将进行什么调整。</span> </p>
+<p> <span>一个简单的调整器可能只是设置一个字段，如年份字段。</span> <span>更复杂的调整器可能会将日期设置为该月的最后一天。</span> <span><code>TemporalAdjuster</code>中提供了一些常见的<a href="../../java/time/temporal/TemporalAdjuster.html" title="java.time.temporal中的接口">调整</a> 。</span> <span>这些包括找到“月的最后一天”和“下周三”。</span> <span>关键的日期时间课程也实现了<code>TemporalAdjuster</code>界面，如<a href="../../java/time/Month.html" title="枚举在java.time中"><code>Month</code></a>和<a href="../../java/time/MonthDay.html" title="java.time中的类"><code>MonthDay</code></a> 。</span> <span>调整员负责处理特殊情况，如月份和闰年的不同长度。</span> </p>
+<p> <span>例如这个代码在7月的最后一天返回一个日期：</span> </p>
+<pre>  <span>import static java.time.Month.*;
+  import static java.time.temporal.Adjusters.*;
+
+  result = zonedDateTime.with(JULY).with(lastDayOfMonth());</span> </pre>
+<p> <span>类<a href="../../java/time/LocalDate.html" title="java.time中的类"><code>LocalDate</code></a>和<a href="../../java/time/LocalTime.html" title="java.time中的类"><code>LocalTime</code></a>实现<code>TemporalAdjuster</code> ，因此该方法可用于更改日期，时间或偏移量：</span> </p>
+<pre>  <span>result = zonedDateTime.with(date);
+  result = zonedDateTime.with(time);</span> </pre>
+<p> <span><a href="../../java/time/ZoneOffset.html" title="java.time中的类"><code>ZoneOffset</code></a>也实现了<code>TemporalAdjuster</code>但是使用它作为参数通常没有影响。</span> <span><code>ZonedDateTime</code>的偏移量主要由时区控制。</span> <span>因此，更改偏移量通常不会有意义，因为本地日期时间和区域只有一个有效的偏移量。</span> <span>如果划分的日期时间与夏令时重叠，则偏移量用于在两个有效偏移之间切换。</span> <span>在所有其他情况下，偏移量将被忽略。</span> </p>
+<p> <span>该方法的结果是通过调用<a href="../../java/time/temporal/TemporalAdjuster.html#adjustInto-java.time.temporal.Temporal-"><code>TemporalAdjuster.adjustInto(Temporal)</code></a>方法在指定的调整器上通过<code>this</code>作为参数。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#with-java.time.temporal.TemporalAdjuster-">with</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalAdjuster-">with</a></code>在界面 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>adjuster</code> - 调整器使用，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于 
+            <code>this</code>进行了调整，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行调整 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="with-java.time.temporal.TemporalField-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>with</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> with(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field,
+                          long newValue)</pre>
+<div class="block">
+<span>返回此日期时间的副本，并将指定的字段设置为新值。</span>
+<p> <span>这将返回一个<code>ZonedDateTime</code> ，基于此一个，指定字段的值更改。</span> <span>这可以用于更改任何支持的字段，例如年，月或月。</span> <span>如果不可能设置该值，因为该字段不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>在某些情况下，更改指定的字段可能会导致生成的日期时间变得无效，例如将月份从1月31日更改为2月将导致日期无效。</span> <span>在这种情况下，该领域负责解决日期。</span> <span>通常，它将选择先前的有效日期，这将是本例中最后一个有效的二月份。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>则在此处实现调整。</span> </p>
+<p> <span><code>INSTANT_SECONDS</code>字段将返回指定时间的日期时间。</span> <span>区域和纳秒不变。</span> <span>结果将具有来自新的即时和原始区域的偏移。</span> <span>如果新的即时值超出有效范围，则将抛出<code>DateTimeException</code> 。</span> </p>
+<p> <span>通常会忽略<code>OFFSET_SECONDS</code>字段。</span> <span><code>ZonedDateTime</code>的偏移量主要由时区控制。</span> <span>因此，更改偏移量通常不会有意义，因为本地日期时间和区域只有一个有效的偏移量。</span> <span>如果划分的日期时间与夏令时重叠，则偏移量用于在两个有效偏移之间切换。</span> <span>在所有其他情况下，偏移量将被忽略。</span> <span>如果新的偏移值超出有效范围，那么将抛出一个<code>DateTimeException</code> 。</span> </p>
+<p> <span>另一个<a href="../../java/time/ZonedDateTime.html#isSupported-java.time.temporal.TemporalField-"><code>supported fields</code></a>将按照<a href="../../java/time/ZonedDateTime.html#isSupported-java.time.temporal.TemporalField-"><code>LocalDateTime</code></a>的匹配方法进行<a href="../../java/time/LocalDateTime.html#with-java.time.temporal.TemporalField-long-">操作</a> 。</span> <span>该区域不是计算的一部分，将不变。</span> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间处于重叠状态，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>所有其他<code>ChronoField</code>实例都会抛出一个<code>UnsupportedTemporalTypeException</code> 。</span> </p>
+<p> <span>如果该字段是不是一个<code>ChronoField</code> ，则此方法的结果是通过调用获得<code>TemporalField.adjustInto(Temporal, long)</code>传递<code>this</code>作为参数。</span> <span>在这种情况下，该字段决定是否以及如何调整即时。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#with-java.time.temporal.TemporalField-long-">with</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalField-long-">with</a></code>在接口 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要在结果中设置的字段，不为空 
+           </dd>
+<dd>
+<code>newValue</code> - 结果中字段的新值 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于 
+            <code>this</code>与指定的字段设置，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果字段无法设置 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果该字段不被支持 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="withYear-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withYear</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withYear(int year)</pre>
+<div class="block">
+<span>返回这个<code>ZonedDateTime</code>的年份值更改的副本。</span>
+<p> <span>这是在当地时间线<a href="../../java/time/LocalDateTime.html#withYear-int-">当地时间<code>changing the year</code></a>运行的。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>year</code> - 从MIN_YEAR到MAX_YEAR的结果年份 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与请求的年份，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果年值无效 
+           </dd>
+</dl> </li>
+</ul> <a name="withMonth-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withMonth</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withMonth(int month)</pre>
+<div class="block">
+<span>返回这个<code>ZonedDateTime</code>的副本， <code>ZonedDateTime</code>更改月份值。</span>
+<p> <span>这是在当地时间线<a href="../../java/time/LocalDateTime.html#withMonth-int-">当地时间<code>changing the month</code></a>运行的。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>month</code> - 从1月1日至12日（12月），确定结果的月份 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与请求的月份，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果月份值无效 
+           </dd>
+</dl> </li>
+</ul> <a name="withDayOfMonth-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withDayOfMonth</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withDayOfMonth(int dayOfMonth)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，并<code>ZonedDateTime</code>日期值。</span>
+<p> <span>这是在当地时间线<a href="../../java/time/LocalDateTime.html#withDayOfMonth-int-">当地时间的<code>changing the day-of-month</code></a>运行。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dayOfMonth</code> - 在1月28日至31日之间的结果中设定的月份 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与请求的一天，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果月日的价值无效，或者月的日期对于月份无效 
+           </dd>
+</dl> </li>
+</ul> <a name="withDayOfYear-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withDayOfYear</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withDayOfYear(int dayOfYear)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，并更改日期。</span>
+<p> <span>这是在本地时间线上<a href="../../java/time/LocalDateTime.html#withDayOfYear-int-">运行</a>的，当地的日期时间是<a href="../../java/time/LocalDateTime.html#withDayOfYear-int-"><code>changing the day-of-year</code></a> 。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dayOfYear</code> - 设定结果的日期，从1到365-366 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于此日期与请求的日期，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果日期年值无效，或者如果当年的无效年份 
+           </dd>
+</dl> </li>
+</ul> <a name="withHour-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withHour</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withHour(int hour)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，并更改日期值。</span>
+<p> <span>这是在当地时间线<a href="../../java/time/LocalDateTime.html#withHour-int-">当地时间的changing the time</a>运行。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间处于重叠状态，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hour</code> - 设置结果的时刻，从0到23 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与请求的小时，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果小时值无效 
+           </dd>
+</dl> </li>
+</ul> <a name="withMinute-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withMinute</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withMinute(int minute)</pre>
+<div class="block">
+<span>返回这个<code>ZonedDateTime</code>的副本，小时值更改。</span>
+<p> <span>这是在本地时间线当地日期时间的<a href="../../java/time/LocalDateTime.html#withMinute-int-">changing the time</a>运行。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间处于重叠状态，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>minute</code> - 在0到59之间设置的小时 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与请求的分钟，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果分钟值无效 
+           </dd>
+</dl> </li>
+</ul> <a name="withSecond-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withSecond</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withSecond(int second)</pre>
+<div class="block">
+<span>返回这个<code>ZonedDateTime</code>的副本，其中二分之一值更改。</span>
+<p> <span>这是在当地时间线<a href="../../java/time/LocalDateTime.html#withSecond-int-">当地时间changing the time</a>运行。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>second</code> - 在0到59之间设置结果的 
+            <code>second</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与请求的秒，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果第二个值无效 
+           </dd>
+</dl> </li>
+</ul> <a name="withNano-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>withNano</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> withNano(int nanoOfSecond)</pre>
+<div class="block">
+<span>返回这个<code>ZonedDateTime</code>的副本，纳秒变化值。</span>
+<p> <span>这在当地的时间线当地的日期时间是<a href="../../java/time/LocalDateTime.html#withNano-int-">changing the time</a> 。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nanoOfSecond</code> - 纳秒的设定结果，从0到999,999,999 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与请求的纳秒，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果纳米值无效 
+           </dd>
+</dl> </li>
+</ul> <a name="truncatedTo-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>truncatedTo</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> truncatedTo(<a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本， <code>ZonedDateTime</code>时间。</span>
+<p> <span>截断返回原始日期时间的副本，其中小于指定单位的字段设置为零。</span> <span>例如，使用<a href="../../java/time/temporal/ChronoUnit.html#MINUTES"><code>minutes</code></a>单元进行<a href="../../java/time/temporal/ChronoUnit.html#MINUTES">截断</a>将将第二分钟和第二纳秒字段设置为零。</span> </p>
+<p> <span>该单位必须有一个<a href="../../java/time/temporal/TemporalUnit.html#getDuration--">duration</a> ，分为标准日期的长度，无余数。</span> <span>这包括所有提供的时间单位<a href="../../java/time/temporal/ChronoUnit.html" title="枚举在java.time.temporal"><code>ChronoUnit</code></a>和<a href="../../java/time/temporal/ChronoUnit.html#DAYS"><code>DAYS</code></a> 。</span> <span>其他单位抛出异常。</span> </p>
+<p> <span>这是在本地时间线上操作的， <a href="../../java/time/LocalDateTime.html#truncatedTo-java.time.temporal.TemporalUnit-">当地时间</a>是<code>truncating</code>。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>unit</code> - 截断到的单位，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间截断的时间，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法截断 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+</dl> </li>
+</ul> <a name="plus-java.time.temporal.TemporalAmount-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plus</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plus(<a href="../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amountToAdd)</pre>
+<div class="block">
+<span>返回此日期时间的副本，并添加指定的金额。</span>
+<p> <span>这返回一个<code>ZonedDateTime</code> ，基于这一个，添加了指定的数量。</span> <span>量通常是<a href="../../java/time/Period.html" title="java.time中的类"><code>Period</code></a>或<a href="../../java/time/Duration.html" title="java.time中的类"><code>Duration</code></a> ，而可以是任何其他类型的实现<a href="../../java/time/temporal/TemporalAmount.html" title="java.time.temporal中的接口"><code>TemporalAmount</code></a>接口。</span> </p>
+<p> <span>通过调用<a href="../../java/time/temporal/TemporalAmount.html#addTo-java.time.temporal.Temporal-"><code>TemporalAmount.addTo(Temporal)</code></a>将计算委托给金额对象。</span> <span>数量执行可以以任何方式实现添加，但是它通常会回调到<a href="../../java/time/ZonedDateTime.html#plus-long-java.time.temporal.TemporalUnit-"><code>plus(long, TemporalUnit)</code></a> 。</span> <span>请参阅金额执行的文档，以确定是否可以成功添加。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#plus-java.time.temporal.TemporalAmount-">plus</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#plus-java.time.temporal.TemporalAmount-">plus</a></code>在接口 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToAdd</code> - 要添加的金额，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与添加，而不是null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能添加 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="plus-long-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plus</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plus(long amountToAdd,
+                          <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>返回此日期时间的副本，并添加指定的金额。</span>
+<p> <span>这将返回一个<code>ZonedDateTime</code> ，基于这一个，以添加的单位数量。</span> <span>如果不可能添加金额，因为单位不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoUnit.html" title="枚举在java.time.temporal"><code>ChronoUnit</code>，</a>那么在这里实现添加。</span> <span>该区域不是计算的一部分，结果将不会改变。</span> <span>日期和时间单位的计算不同。</span> </p>
+<p> <span>日期单位在当地时间线上运行。</span> <span>该时间段首先添加到本地日期时间，然后使用区域ID转换回分区日期时间。</span> <span>该转换使用<a href="../../java/time/ZonedDateTime.html#ofLocal-java.time.LocalDateTime-java.time.ZoneId-java.time.ZoneOffset-"><code>ofLocal(LocalDateTime, ZoneId, ZoneOffset)</code></a>与添加之前的偏移量。</span> </p>
+<p> <span>时间单位在即时时间线上运行。</span> <span>该时间段首先添加到本地日期时间，然后使用区域ID转换回分区日期时间。</span> <span>该转换使用<a href="../../java/time/ZonedDateTime.html#ofInstant-java.time.LocalDateTime-java.time.ZoneOffset-java.time.ZoneId-"><code>ofInstant(LocalDateTime, ZoneOffset, ZoneId)</code></a>与添加之前的偏移量。</span> </p>
+<p> <span>如果该字段是不是一个<code>ChronoUnit</code> ，则此方法的结果是通过调用获得<code>TemporalUnit.addTo(Temporal, long)</code>传递<code>this</code>作为参数。</span> <span>在这种情况下，单元确定是否以及如何执行添加。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#plus-long-java.time.temporal.TemporalUnit-">plus</a></code>中的 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#plus-long-java.time.temporal.TemporalUnit-">plus</a></code>在界面 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToAdd</code> - 添加到结果中的单位数量可能为负数 
+           </dd>
+<dd>
+<code>unit</code> - 要添加的单位，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于此日期时间与指定的数量添加，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能添加 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="plusYears-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusYears</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plusYears(long years)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，并以指定的时间段添加。</span>
+<p> <span>这<a href="../../java/time/LocalDateTime.html#plusYears-long-">将按</a>当地时间线<a href="../../java/time/LocalDateTime.html#plusYears-long-"><code>adding years</code>运行</a>到当地的日期。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>years</code> - 多年来补充，可能是负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与添加的年份，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="plusMonths-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusMonths</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plusMonths(long months)</pre>
+<div class="block">
+<span>返回这个<code>ZonedDateTime</code>的副本，其中指定的时间段以月为单位。</span>
+<p> <span>这<a href="../../java/time/LocalDateTime.html#plusMonths-long-">将按</a>当地时间线<a href="../../java/time/LocalDateTime.html#plusMonths-long-"><code>adding months</code>运行</a>到当地的日期。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>months</code> - 要补充的月份，可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与添加的月份，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="plusWeeks-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusWeeks</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plusWeeks(long weeks)</pre>
+<div class="block">
+<span>以指定的周期返回此<code>ZonedDateTime</code>的副本，以周为单位。</span>
+<p> <span>这是在本地时间线上运行的，当地的日期时间是<a href="../../java/time/LocalDateTime.html#plusWeeks-long-"><code>adding weeks</code></a> 。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>weeks</code> - 要添加的星期可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与添加的星期，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出了支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="plusDays-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusDays</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plusDays(long days)</pre>
+<div class="block">
+<span>返回指定期间的ZonedDateTime的副本， <code>ZonedDateTime</code>天数。</span>
+<p> <span>这在本地时间线上运行，当地的日期时间是<a href="../../java/time/LocalDateTime.html#plusDays-long-"><code>adding days</code></a> 。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间处于重叠状态，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>days</code> - 添加的日子可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与添加的天数，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="plusHours-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusHours</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plusHours(long hours)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，其指定时间以小时为单位。</span>
+<p> <span>这将在即时的时间线上运行，这样添加一个小时将始终是一个小时之后的持续时间。</span> <span>这可能导致本地日期时间改变一个小时以外的数量。</span> <span>请注意，这是与日，月，年使用的不同的方法，因此添加一天与添加24小时不同。</span> </p>
+<p> <span>例如，考虑弹簧DST切换意味着本地时间01:00至01:59发生两次从偏移+02：00到+01：00两次的时区。</span> </p>
+<ul>
+<li> <span>增加一个小时00：30 + 02：00将导致01：30 + 02：00</span> </li>
+<li> <span>在01：30 + 02：00加1小时将会在01：30 + 01：00</span> </li>
+<li> <span>在01：30 + 01：00加1小时将会在02：30 + 01：00</span> </li>
+<li> <span>增加三个小时到00：30 + 02：00将导致02：30 + 01：00</span> </li>
+</ul>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hours</code> - 添加的时间可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与添加的小时数，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出了支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="plusMinutes-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusMinutes</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plusMinutes(long minutes)</pre>
+<div class="block">
+<span>以指定的时间段返回此<code>ZonedDateTime</code>的副本，以分钟为单位。</span>
+<p> <span>这将在即时时间线上运行，这样添加一分钟将始终是一分钟后的持续时间。</span> <span>这可能导致本地日期时间改变一分钟以外的数量。</span> <span>请注意，这是与日，月，年使用的不同的方法。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>minutes</code> - 要添加的分钟，可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间加上分钟，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="plusSeconds-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusSeconds</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plusSeconds(long seconds)</pre>
+<div class="block">
+<span>以指定的时间段返回此<code>ZonedDateTime</code>的副本，以秒为单位。</span>
+<p> <span>这在即时时间线上运行，使得添加一秒将始终是一秒钟的持续时间。</span> <span>这可能导致本地日期时间改变一秒以外的数量。</span> <span>请注意，这是与日，月，年使用的不同的方法。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>seconds</code> - 添加的秒数可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间添加的秒，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="plusNanos-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusNanos</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> plusNanos(long nanos)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，其指定时间以纳秒为单位。</span>
+<p> <span>这在即时时间线上运行，使得添加一个纳米将始终是一纳秒的持续时间。</span> <span>这可能导致本地日期时间改变不是一个纳米的数量。</span> <span>请注意，这是与日，月，年使用的不同的方法。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nanos</code> - 
+            <code>nanos</code>添加，可能是负的 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间加上纳秒，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="minus-java.time.temporal.TemporalAmount-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minus</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minus(<a href="../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amountToSubtract)</pre>
+<div class="block">
+<span>返回此日期时间的副本，并减去指定的金额。</span>
+<p> <span>这将返回一个<code>ZonedDateTime</code> ，基于此，减去指定的数量。</span> <span>量通常是<a href="../../java/time/Period.html" title="java.time中的类"><code>Period</code></a>或<a href="../../java/time/Duration.html" title="java.time中的类"><code>Duration</code></a> ，而可以是任何其他类型的实现<a href="../../java/time/temporal/TemporalAmount.html" title="java.time.temporal中的接口"><code>TemporalAmount</code></a>接口。</span> </p>
+<p> <span>通过调用<a href="../../java/time/temporal/TemporalAmount.html#subtractFrom-java.time.temporal.Temporal-"><code>TemporalAmount.subtractFrom(Temporal)</code></a>将计算委托给金额对象。</span> <span>数量执行可以以任何方式实现减法，但是它通常会回调到<a href="../../java/time/ZonedDateTime.html#minus-long-java.time.temporal.TemporalUnit-"><code>minus(long, TemporalUnit)</code></a> 。</span> <span>请参阅数量实施的文档，以确定是否可以成功减去它们。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#minus-java.time.temporal.TemporalAmount-">minus</a></code>中的 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#minus-java.time.temporal.TemporalAmount-">minus</a></code>在界面 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToSubtract</code> - 减去量，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与减法而不是null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行减法 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="minus-long-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minus</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minus(long amountToSubtract,
+                           <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>返回此日期时间的副本，并减去指定的金额。</span>
+<p> <span>这将返回一个<code>ZonedDateTime</code> ，基于这一个，减去的单位数量。</span> <span>如果不可能减去金额，因为该单位不受支持或出于某种其他原因，则会抛出异常。</span> </p>
+<p> <span>日期和时间单位的计算不同。</span> </p>
+<p> <span>日期单位在当地时间线上运行。</span> <span>该时间段首先从本地日期时间减去，然后使用区域ID转换回分区日期时间。</span> <span>转换使用<a href="../../java/time/ZonedDateTime.html#ofLocal-java.time.LocalDateTime-java.time.ZoneId-java.time.ZoneOffset-"><code>ofLocal(LocalDateTime, ZoneId, ZoneOffset)</code></a>与<a href="../../java/time/ZonedDateTime.html#ofLocal-java.time.LocalDateTime-java.time.ZoneId-java.time.ZoneOffset-">减法</a>之前的偏移量。</span> </p>
+<p> <span>时间单位在即时时间线上运行。</span> <span>该时间段首先从本地日期时间减去，然后使用区域ID转换回分区日期时间。</span> <span>转换使用<a href="../../java/time/ZonedDateTime.html#ofInstant-java.time.LocalDateTime-java.time.ZoneOffset-java.time.ZoneId-"><code>ofInstant(LocalDateTime, ZoneOffset, ZoneId)</code></a>与<a href="../../java/time/ZonedDateTime.html#ofInstant-java.time.LocalDateTime-java.time.ZoneOffset-java.time.ZoneId-">减法</a>之前的偏移量。</span> </p>
+<p> <span>该方法相当于<a href="../../java/time/ZonedDateTime.html#plus-long-java.time.temporal.TemporalUnit-"><code>plus(long, TemporalUnit)</code></a> ，其数量被否定。</span> <span>请参阅该方法，以了解如何添加，从而减去运算。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#minus-long-java.time.temporal.TemporalUnit-">minus</a></code>在界面 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#minus-long-java.time.temporal.TemporalUnit-">minus</a></code>中的 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToSubtract</code> - 从结果中减去单位的数量可能为负数 
+           </dd>
+<dd>
+<code>unit</code> - 减去量的单位，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于此日期时间减去指定的数量，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行减法 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="minusYears-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusYears</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minusYears(long years)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，以减去的年份为单位。</span>
+<p> <span>这<a href="../../java/time/LocalDateTime.html#minusYears-long-">将按</a>当地时间线<a href="../../java/time/LocalDateTime.html#minusYears-long-"><code>subtracting years</code>运行</a>到当地的日期。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间处于重叠状态，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>years</code> - 减去年份，可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与减去的年份，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出了支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="minusMonths-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusMonths</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minusMonths(long months)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，其中指定的时间以月为单位减去。</span>
+<p> <span>这在当地的时间线<a href="../../java/time/LocalDateTime.html#minusMonths-long-"><code>subtracting months</code>运行</a>到当地的日期。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>months</code> - 减去的月份，可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与减去的月份，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="minusWeeks-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusWeeks</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minusWeeks(long weeks)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，其中指定的周期以星期为单位减去。</span>
+<p> <span>这<a href="../../java/time/LocalDateTime.html#minusWeeks-long-">将按</a>当地时间线<a href="../../java/time/LocalDateTime.html#minusWeeks-long-"><code>subtracting weeks</code>运行</a>到当地的日期。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间重叠，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>weeks</code> - 减去星期，可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间与减去的星期，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="minusDays-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusDays</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minusDays(long days)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，其中指定的时间间隔以天减去。</span>
+<p> <span>这将在当地的时间线<a href="../../java/time/LocalDateTime.html#minusDays-long-"><code>subtracting days</code>运行</a>到当地的日期。</span> <span>然后将其转换回<code>ZonedDateTime</code> ，使用区域ID获取偏移量。</span> </p>
+<p> <span>当转换回<code>ZonedDateTime</code>时，如果本地日期时间处于重叠状态，则可能会保留偏移量，否则将使用较早的偏移量。</span> <span>如果有差距，当地的日期时间将按差距的长短进行调整。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>days</code> - 减去的日子可能是负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间 
+            <code>ZonedDateTime</code>的日期，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="minusHours-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusHours</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minusHours(long hours)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，其中指定的时间以小时为单位减去。</span>
+<p> <span>这在即时时间线上运行，使得减去一小时将始终是一小时前的持续时间。</span> <span>这可能导致本地日期时间改变一个小时以外的数量。</span> <span>请注意，这是与日，月，年使用的不同的方法，因此减去一天与添加24小时不同。</span> </p>
+<p> <span>例如，考虑弹簧DST切换意味着本地时间01:00至01:59发生两次从偏移+02：00到+01：00两次的时区。</span> </p>
+<ul>
+<li> <span>从02：30 + 01：00减去一个小时将导致01：30 + 02：00</span> </li>
+<li> <span>从01：30 + 01：00减去一小时将会导致01：30 + 02：00</span> </li>
+<li> <span>从01：30 + 02：00减去一个小时将导致00：30 + 01：00</span> </li>
+<li> <span>从02：30 + 01：00减去三个小时将导致00：30 + 02：00</span> </li>
+</ul>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hours</code> - 减去的时间可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间减去小时，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出了支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="minusMinutes-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusMinutes</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minusMinutes(long minutes)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，其中指定的时间间隔以分钟为单位。</span>
+<p> <span>这在即时时间线上运行，使得减去一分钟将始终是一分钟前的持续时间。</span> <span>这可能导致本地日期时间改变一分钟以外的数量。</span> <span>请注意，这是与日，月，年使用的不同的方法。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>minutes</code> - 减去的 
+            <code>minutes</code>可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间减去分钟，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="minusSeconds-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusSeconds</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minusSeconds(long seconds)</pre>
+<div class="block">
+<span>返回此<code>ZonedDateTime</code>的副本，其中指定的时间间隔以秒为单位。</span>
+<p> <span>这在即时时间线上操作，使得减去一秒将始终是早一秒的持续时间。</span> <span>这可能导致本地日期时间改变一秒以外的数量。</span> <span>请注意，这是与日，月，年使用的不同的方法。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>seconds</code> - 减去的秒数可能为负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于此日期时间减去秒，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="minusNanos-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusNanos</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> minusNanos(long nanos)</pre>
+<div class="block">
+<span>返回这个<code>ZonedDateTime</code>的副本，以指定的时间减去纳秒。</span>
+<p> <span>这在即时时间线上操作，使得减去一个纳米将始终是一个纳米的持续时间。</span> <span>这可能导致本地日期时间改变不是一个纳米的数量。</span> <span>请注意，这是与日，月，年使用的不同的方法。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nanos</code> - 
+            <code>nanos</code>减去，可能是负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ZonedDateTime</code>基于这个日期时间减去纳秒，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出支持的日期范围 
+           </dd>
+</dl> </li>
+</ul> <a name="query-java.time.temporal.TemporalQuery-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>query</h4> <pre>public &lt;R&gt; R query(<a href="../../java/time/temporal/TemporalQuery.html" title="interface in java.time.temporal">TemporalQuery</a>&lt;R&gt; query)</pre>
+<div class="block">
+<span>使用指定的查询查询此日期时间。</span>
+<p> <span>这将使用指定的查询策略对象查询此日期时间。</span> <span><code>TemporalQuery</code>对象定义了用于获取结果的逻辑。</span> <span>阅读查询的文档，以了解该方法的结果。</span> </p>
+<p> <span>该方法的结果是通过调用<a href="../../java/time/temporal/TemporalQuery.html#queryFrom-java.time.temporal.TemporalAccessor-"><code>TemporalQuery.queryFrom(TemporalAccessor)</code></a>方法，通过<code>this</code>作为参数的指定查询。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#query-java.time.temporal.TemporalQuery-">query</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#query-java.time.temporal.TemporalQuery-">query</a></code>在接口 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>R</code> - 结果的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>query</code> - 要调用的查询，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             查询结果可能返回null（由查询定义） 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法查询（由查询定义） 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出（由查询定义） 
+           </dd>
+</dl> </li>
+</ul> <a name="until-java.time.temporal.Temporal-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>until</h4> <pre>public long until(<a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> endExclusive,
+                  <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>根据指定的单位计算到另一个日期时间的时间量。</span>
+<p> <span>这可以计算两个<code>ZonedDateTime</code>对象之间的时间量，单位为<code>TemporalUnit</code> 。</span> <span>起点和终点是<code>this</code>和指定的日期时间。</span> <span>如果结束在开始之前，结果将为负数。</span> <span>例如，可以使用<code>startDateTime.until(endDateTime, DAYS)</code>两个日期时间之间的时间<code>startDateTime.until(endDateTime, DAYS)</code> 。</span> </p>
+<p> <span>所述<code>Temporal</code>传递给此方法被转换为<code>ZonedDateTime</code>使用<a href="../../java/time/ZonedDateTime.html#from-java.time.temporal.TemporalAccessor-"><code>from(TemporalAccessor)</code></a> 。</span> <span>如果两个划分的日期时间之间的时区不同，则指定的结束日期时间被标准化为与此日期时间相同的区域。</span> </p>
+<p> <span>计算返回一个整数，表示两个日期时间之间的完整单位数。</span> <span>例如，2012-06-15T00：00Z和2012-08-14T23：59Z之间的月份只能是一个月，是两个月不到一分钟。</span> </p>
+<p> <span>使用这种方法有两种等效的方法。</span> <span>第一个是调用这个方法。</span> <span>二是使用<a href="../../java/time/temporal/TemporalUnit.html#between-java.time.temporal.Temporal-java.time.temporal.Temporal-"><code>TemporalUnit.between(Temporal, Temporal)</code></a> ：</span> </p>
+<pre>  <span>// these two lines are equivalent
+   amount = start.until(end, MONTHS);
+   amount = MONTHS.between(start, end);</span> </pre>
+<span>应该根据这种做法进行选择，使代码更易读。</span>
+<p> <span><code>ChronoUnit</code>的方法实现了<a href="../../java/time/temporal/ChronoUnit.html" title="枚举在java.time.temporal">计算</a> 。</span> <span>单位<code>NANOS</code> ， <code>MICROS</code> ， <code>MILLIS</code> ， <code>SECONDS</code> ， <code>MINUTES</code> ， <code>HOURS</code>和<code>HALF_DAYS</code> ， <code>DAYS</code> ， <code>WEEKS</code> ， <code>MONTHS</code> ， <code>YEARS</code> ， <code>DECADES</code> ， <code>CENTURIES</code> ， <code>MILLENNIA</code>和<code>ERAS</code>都支持。</span> <span>其他<code>ChronoUnit</code>值会抛出异常。</span> </p>
+<p> <span>日期和时间单位的计算不同。</span> </p>
+<p> <span>日期单位使用本地日期时间在本地时间线上运行。</span> <span>例如，无论是否有夏令时改变，从第一天中午到第二天，以天为单位的时间段，一律不计一天。</span> </p>
+<p> <span>时间单位在即时时间线上运行。</span> <span>计算有效地将两个划分的日期时间转换为时刻，然后计算时刻之间的时间间隔。</span> <span>例如，根据是否有夏令时更改，从第1天中午到第二天（小时）之间的期间可能是23,24或25小时（或其他一些数量）。</span> </p>
+<p> <span>如果单位不是<code>ChronoUnit</code> ，那么这个方法的结果是通过调用<code>this</code>作为第一个参数通过<code>this</code>获得的， <code>TemporalUnit.between(Temporal, Temporal)</code>后的输入是时间作为第二个参数。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#until-java.time.temporal.Temporal-java.time.temporal.TemporalUnit-">until</a></code>在接口 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>endExclusive</code> - 结束日期，排他，转换为 
+            <code>ZonedDateTime</code> ，不为空 
+           </dd>
+<dd>
+<code>unit</code> - 衡量金额的单位，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在此日期和结束日期时间之间的时间量 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能计算金额，或者结束时间不能转换为 
+            <code>ZonedDateTime</code>
+</dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="format-java.time.format.DateTimeFormatter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>format</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> format(<a href="../../java/time/format/DateTimeFormatter.html" title="class in java.time.format">DateTimeFormatter</a> formatter)</pre>
+<div class="block">
+<span>使用指定的格式化程序格式化此日期时间。</span>
+<p> <span>这个日期时间将传递给格式化程序以生成一个字符串。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#format-java.time.format.DateTimeFormatter-">format</a></code>中的 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>formatter</code> - 要使用的格式化程序，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             格式化的日期时间字符串，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 打印时是否发生错误 
+           </dd>
+</dl> </li>
+</ul> <a name="toOffsetDateTime--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toOffsetDateTime</h4> <pre>public <a href="../../java/time/OffsetDateTime.html" title="class in java.time">OffsetDateTime</a> toOffsetDateTime()</pre>
+<div class="block">
+<span>将此日期时间转换为<code>OffsetDateTime</code> 。</span>
+<p> <span>这将使用本地日期时间和偏移量创建偏移日期时间。</span> <span>区域ID被忽略。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示相同本地日期时间和偏移量的偏移日期时间，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+<span>检查这个日期时间是否等于另一个日期时间。</span>
+<p> <span>比较是基于偏移日期时间和区域。</span> <span>只有<code>ZonedDateTime</code>类型的<code>ZonedDateTime</code>被比较，其他类型返回false。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#equals-java.lang.Object-">equals</a></code>中的 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 要检查的对象，null返回false 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果这等于其他日期时间，则为true 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+            这个日期时间的哈希码。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#hashCode--">hashCode</a></code>在接口 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个合适的哈希码 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>将此日期时间输出为<code>String</code> ，例如<code>2007-12-03T10:15:30+01:00[Europe/Paris]</code> 。</span>
+<p> <span>格式由<code>LocalDateTime</code>组成，其次是<code>ZoneOffset</code> 。</span> <span>如果<code>ZoneId</code>与偏移量不相同，则输出ID。</span> <span>如果偏移量和ID相同，输出与ISO-8601兼容。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/chrono/ChronoZonedDateTime.html#toString--">toString</a></code>中的 
+            <code><a href="../../java/time/chrono/ChronoZonedDateTime.html" title="interface in java.time.chrono">ChronoZonedDateTime</a>&lt;<a href="../../java/time/LocalDate.html" title="class in java.time">LocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#toString--">toString</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此日期时间的字符串表示形式，不为null 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

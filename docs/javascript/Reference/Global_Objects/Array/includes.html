@@ -1,0 +1,199 @@
+<article id="wikiArticle">
+<div> </div>
+<p><code><strong>includes()</strong></code> 方法用来判断一个数组是否包含一个指定的值，根据情况，如果包含则返回 true，否则返回false。</p>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/array-includes.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="语法">语法</h2>
+<pre><var>arr</var>.includes(<var>valueToFind[</var>, <var>fromIndex]</var>)</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>valueToFind</code></dt>
+<dd>
+<p>需要查找的元素值。</p>
+<div class="blockIndicator note">
+<p><strong>Note:  </strong>使用<strong> </strong><code>includes()</code>比较字符串和字符时是区分大小写。</p>
+</div>
+</dd>
+<dt><code>fromIndex</code> <span class="inlineIndicator optional optionalInline">可选</span></dt>
+<dd>从<code>fromIndex</code> 索引处开始查找 <code>valueToFind</code>。如果为负值，则按升序从 <code>array.length + fromIndex</code> 的索引开始搜 （即使从末尾开始往前跳 <code>fromIndex</code> 的绝对值个索引，然后往后搜寻）。默认为 0。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>A <a href="Reference/Boolean" title="此页面仍未被本地化, 期待您的翻译!"><code>Boolean</code></a> which is <code>true</code> if the value <code>valueToFind</code> is found within the array (or the part of the array indicated by the index <code>fromIndex</code>, if specified). Values of zero are all considered to be equal regardless of sign (that is, -0 is considered to be equal to both 0 and +0), but <code>false</code> is not considered to be the same as 0.</p>
+<p>返回一个布尔值 <a href="Reference/Boolean" title="此页面仍未被本地化, 期待您的翻译!"><code>Boolean</code></a> ，如果在数组中找到了（如果传入了 <code>fromIndex</code> ，表示在 <code>fromIndex</code> 指定的索引范围中找到了）则返回 <code>true</code> 。</p>
+<div class="note">
+<p><strong>Note:</strong> Technically speaking, <code>includes()</code> uses the <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness#Same-value-zero_equality">sameValueZero</a></code> algorithm to determine whether the given element is found.</p>
+</div>
+<h2 id="示例">示例</h2>
+<pre class="brush: js">[1, 2, 3].includes(2);     // true
+[1, 2, 3].includes(4);     // false
+[1, 2, 3].includes(3, 3);  // false
+[1, 2, 3].includes(3, -1); // true
+[1, 2, NaN].includes(NaN); // true
+</pre>
+<h3 id="fromIndex_大于等于数组长度">fromIndex 大于等于数组长度</h3>
+<p>如果 <code>fromIndex</code> 大于等于数组的长度，则会返回 <code>false</code>，且该数组不会被搜索。</p>
+<pre class="brush: js">var arr = ['a', 'b', 'c'];
+
+arr.includes('c', 3);   // false
+arr.includes('c', 100); // false</pre>
+<h3 id="计算出的索引小于_0">计算出的索引小于 0</h3>
+<p>如果 <code>fromIndex </code>为负值，计算出的索引将作为开始搜索<code>searchElement</code>的位置。如果计算出的索引小于 0，则整个数组都会被搜索。</p>
+<pre class="brush: js">// array length is 3
+// fromIndex is -100
+// computed index is 3 + (-100) = -97
+
+var arr = ['a', 'b', 'c'];
+
+arr.includes('a', -100); // true
+arr.includes('b', -100); // true
+arr.includes('c', -100); // true
+arr.includes('a', -2); // false</pre>
+<h3 id="作为通用方法的_includes()">作为通用方法的 includes()</h3>
+<p><code>includes()</code> 方法有意设计为通用方法。它不要求<code>this</code>值是数组对象，所以它可以被用于其他类型的对象 (比如类数组对象)。下面的例子展示了 在函数的 <a href="Reference/Functions/arguments">arguments</a> 对象上调用的 <code>includes()</code> 方法。</p>
+<pre class="brush: js">(function() {
+  console.log([].includes.call(arguments, 'a')); // true
+  console.log([].includes.call(arguments, 'd')); // false
+})('a','b','c');</pre>
+<h2 id="Polyfill">Polyfill</h2>
+<pre class="brush: js">// https://tc39.github.io/ecma262/#sec-array.prototype.includes
+if (!Array.prototype.includes) {
+  Object.defineProperty(Array.prototype, 'includes', {
+    value: function(valueToFind, fromIndex) {
+
+      if (this == null) {
+        throw new TypeError('"this" is null or not defined');
+      }
+
+      // 1. Let O be ? ToObject(this value).
+      var o = Object(this);
+
+      // 2. Let len be ? ToLength(? Get(O, "length")).
+      var len = o.length &gt;&gt;&gt; 0;
+
+      // 3. If len is 0, return false.
+      if (len === 0) {
+        return false;
+      }
+
+      // 4. Let n be ? ToInteger(fromIndex).
+      //    (If fromIndex is undefined, this step produces the value 0.)
+      var n = fromIndex | 0;
+
+      // 5. If n ≥ 0, then
+      //  a. Let k be n.
+      // 6. Else n &lt; 0,
+      //  a. Let k be len + n.
+      //  b. If k &lt; 0, let k be 0.
+      var k = Math.max(n &gt;= 0 ? n : len - Math.abs(n), 0);
+
+      function sameValueZero(x, y) {
+        return x === y || (typeof x === 'number' &amp;&amp; typeof y === 'number' &amp;&amp; isNaN(x) &amp;&amp; isNaN(y));
+      }
+
+      // 7. Repeat, while k &lt; len
+      while (k &lt; len) {
+        // a. Let elementK be the result of ? Get(O, ! ToString(k)).
+        // b. If SameValueZero(valueToFind, elementK) is true, return true.
+        if (sameValueZero(o[k], valueToFind)) {
+          return true;
+        }
+        // c. Increase k by 1. 
+        k++;
+      }
+
+      // 8. Return false
+      return false;
+    }
+  });
+}
+</pre>
+<p>译者注：polyfill 没有实现 对于 <code>NaN</code> 的检测。</p>
+<p>如果你需要支持那些不支持<code><a href="https://developer.mozilla.orgReference/Global_Objects/Object/defineProperty">Object.defineProperty</a></code>的废弃JavaScript 引擎，你最好不要 polyfill <code>Array.prototype</code> 方法，因为你不能使它们不可枚举。</p>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规范</th>
+<th scope="col">状态</th>
+<th scope="col">备注</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/7.0/#sec-array.prototype.includes" hreflang="en" lang="en" rel="noopener">ECMAScript 2016 (ECMA-262)<br/><small lang="zh-CN">Array.prototype.includes</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-array.prototype.includes" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Array.prototype.includes</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table in this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>includes</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              14</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              43</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              14</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              43</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs bc-has-history"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div><section class="bc-history" id="sect1"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 5.0.0: this feature is behind the <code>--harmony</code> runtime flag.</dd></dl></section></td></tr></tbody></table><section class="bc-legend" id="sect2"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><abbr class="only-icon" title="User must explicitly enable this feature."><span>User must explicitly enable this feature.</span><i class="ic-disabled"></i></abbr></dt><dd>User must explicitly enable this feature.</dd></dl></section></div><p></p>
+<h2 id="参见">参见</h2>
+<ul>
+<li><a href="Reference/Global_Objects/TypedArray/includes" title="includes()方法判断类型化数组中是否含有特定元素，并相应返回true 或者false ，这个方法的算法和Array.prototype.includes()相同。 TypedArray 是这里的 类型化数组 之一。"><code>TypedArray.prototype.includes()</code></a></li>
+<li><a href="Reference/Global_Objects/String/includes" title="includes() 方法用于判断一个字符串是否包含在另一个字符串中，根据情况返回 true 或 false。"><code>String.prototype.includes()</code></a></li>
+<li><a href="Reference/Global_Objects/Array/indexOf" title="indexOf()方法返回在数组中可以找到一个给定元素的第一个索引，如果不存在，则返回-1。"><code>Array.prototype.indexOf()</code></a></li>
+<li><a href="Reference/Global_Objects/Array/find" title="find() 方法返回数组中满足提供的测试函数的第一个元素的值。否则返回 undefined。"><code>Array.prototype.find()</code></a></li>
+<li><a href="Reference/Global_Objects/Array/findIndex" title="findIndex()方法返回数组中满足提供的测试函数的第一个元素的索引。否则返回-1。"><code>Array.prototype.findIndex()</code></a></li>
+</ul>
+</article>

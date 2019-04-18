@@ -1,0 +1,1447 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.nio.channels 
+   </div>
+<h2 class="title" title="Class FileChannel">Class FileChannel</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../java/nio/channels/spi/AbstractInterruptibleChannel.html" title="class in java.nio.channels.spi">java.nio.channels.spi.AbstractInterruptibleChannel</a></li>
+<li>
+<ul class="inheritance">
+<li>java.nio.channels.FileChannel</li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Closeable.html" title="java.io中的接口">Closeable</a> ， <a href="../../../java/lang/AutoCloseable.html" title="java.lang中的接口">AutoCloseable</a> ， <a href="../../../java/nio/channels/ByteChannel.html" title="java.nio.channels中的接口">ByteChannel</a> ， <a href="../../../java/nio/channels/Channel.html" title="java.nio.channels中的接口">Channel</a> ， <a href="../../../java/nio/channels/GatheringByteChannel.html" title="java.nio.channels中的接口">GatheringByteChannel</a> ， <a href="../../../java/nio/channels/InterruptibleChannel.html" title="java.nio.channels中的接口">InterruptibleChannel</a> ， <a href="../../../java/nio/channels/ReadableByteChannel.html" title="java.nio.channels中的接口">ReadableByteChannel</a> ， <a href="../../../java/nio/channels/ScatteringByteChannel.html" title="java.nio.channels中的接口">ScatteringByteChannel</a> ， <a href="../../../java/nio/channels/SeekableByteChannel.html" title="java.nio.channels中的接口">SeekableByteChannel</a> ， <a href="../../../java/nio/channels/WritableByteChannel.html" title="java.nio.channels中的接口">WritableByteChannel</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">FileChannel</span>
+extends <a href="../../../java/nio/channels/spi/AbstractInterruptibleChannel.html" title="class in java.nio.channels.spi">AbstractInterruptibleChannel</a>
+implements <a href="../../../java/nio/channels/SeekableByteChannel.html" title="interface in java.nio.channels">SeekableByteChannel</a>, <a href="../../../java/nio/channels/GatheringByteChannel.html" title="interface in java.nio.channels">GatheringByteChannel</a>, <a href="../../../java/nio/channels/ScatteringByteChannel.html" title="interface in java.nio.channels">ScatteringByteChannel</a></pre>
+<div class="block">
+<span>用于读取，写入，映射和操作文件的通道。</span>
+<p> <span>的文件信道是<a href="../../../java/nio/channels/SeekableByteChannel.html" title="java.nio.channels中的接口"><code>SeekableByteChannel</code></a> ，其连接到一个文件。</span> <span>它的文件中有一个当前<i>位置</i> ，可以是<a href="../../../java/nio/channels/FileChannel.html#position--"><code><i>queried</i></code></a>和<a href="../../../java/nio/channels/FileChannel.html#position-long-"><code><i>modified</i></code></a> 。</span> <span>该文件本身包含一个可变长度的字节序列，可以被读取和写入，并且可以查询其当前的<a href="../../../java/nio/channels/FileChannel.html#size--"><code><i>size</i></code></a> 。</span> <span>当字节写入超过其当前大小时，文件的大小会增加;</span> <span>当文件大小为<code><i>truncated</i></code>时，文件的大小会<a href="../../../java/nio/channels/FileChannel.html#truncate-long-">减小</a> 。</span> <span>该文件还可以具有一些关联的<i>元数据</i> ，例如访问权限，内容类型和最后修改时间;</span> <span>这个类没有定义元数据访问的方法。</span> </p>
+<p> <span>除了熟悉的字节通道的读，写和关闭操作外，此类定义了以下特定于文件的操作：</span> </p>
+<ul>
+<li><p> <span>字节可能是<a href="../../../java/nio/channels/FileChannel.html#read-java.nio.ByteBuffer-long-"><code>read</code></a>或<a href="../../../java/nio/channels/FileChannel.html#write-java.nio.ByteBuffer-long-"><code><i>written</i></code></a>在文件中的绝对位置，不影响通道当前位置。</span> </p></li>
+<li><p> <span>一个文件的区域可能是<a href="../../../java/nio/channels/FileChannel.html#map-java.nio.channels.FileChannel.MapMode-long-long-"><code><i>mapped</i></code></a>直接进入内存;</span> <span>对于大文件，这通常比调用通常的<tt>read</tt>或<tt>write</tt>方法更有效。</span> </p></li>
+<li><p> <span>对文件进行的更新可能是<a href="../../../java/nio/channels/FileChannel.html#force-boolean-">底层</a>存储设备的<code><i>forced out</i></code>，确保在系统崩溃时数据不会丢失。</span> </p></li>
+<li><p> <span>字节可以从文件<a href="../../../java/nio/channels/FileChannel.html#transferTo-long-long-java.nio.channels.WritableByteChannel-"><code><i>to some other channel</i></code></a>和<a href="../../../java/nio/channels/FileChannel.html#transferFrom-java.nio.channels.ReadableByteChannel-long-long-"><code><i>vice versa</i></code>传输</a> ，可以由许多操作系统优化到非常快速的文件系统高速缓存传输。</span> </p></li>
+<li><p> <span>文件的区域可能是其他程序访问的<a href="../../../java/nio/channels/FileLock.html" title="java.nio.channels中的类"><code><i>locked</i></code></a> 。</span> </p></li>
+</ul>
+<p> <span>文件通道可以安全使用多个并发线程。</span> <span><a href="../../../java/nio/channels/Channel.html#close--"><code>close</code></a>方法可以随时调用，由<a href="../../../java/nio/channels/Channel.html" title="java.nio.channels中的接口"><code>Channel</code></a>接口指定。</span> <span>任何涉及频道的位置或可以更改文件大小的操作只能在任何给定的时间进行;</span> <span>当第一个仍在进行时尝试启动第二个此类操作将阻止，直到第一个操作完成。</span> <span>其他行动，特别是那些采取明确立场的行为，可以同时进行;</span> <span>它们是否实际上依赖于潜在的实现，因此是未指定的。</span> </p>
+<p> <span>由该类的实例提供的文件的视图保证与同一程序中其他实例提供的同一文件的其他视图一致。</span> <span>但是，由于这个类的一个实例提供的视图可能与也可能不一致，这是由于由底层操作系统执行的缓存和由网络文件系统协议引起的延迟而由其他同时运行的程序所看到的。</span> <span>无论这些其他程序的编写语言如何，以及它们是在同一台机器还是在其他机器上运行，都是如此。</span> <span>任何这种不一致的确切性质是系统依赖性的，因此是未指定的。</span> </p>
+<p> <span>通过调用<a href="../../../java/nio/channels/FileChannel.html#open-java.nio.file.Path-java.util.Set-java.nio.file.attribute.FileAttribute...-">此类</a>定义的<a href="../../../java/nio/channels/FileChannel.html#open-java.nio.file.Path-java.util.Set-java.nio.file.attribute.FileAttribute...-"><code>open</code></a>方法之一创建文件通道。</span> <span>的文件信道也可以从现有的获得<a href="../../../java/io/FileInputStream.html#getChannel--"><code>FileInputStream</code></a> ， <a href="../../../java/io/FileOutputStream.html#getChannel--"><code>FileOutputStream</code></a> ，或<a href="../../../java/io/RandomAccessFile.html#getChannel--"><code>RandomAccessFile</code></a>对象通过调用该对象的<tt>getChannel</tt>方法，它返回被连接到相同的基本文件的文件信道。</span> <span>在文件通道从现有流或随机访问文件获取的情况下，文件通道的状态与<tt>getChannel</tt>方法返回通道的对象的<tt>状态密切相关</tt> 。</span> <span>更改频道的位置，无论是显式地还是通过读取或写入字节，都会改变原始对象的文件位置，反之亦然。</span> <span>通过文件通道更改文件的长度将会改变通过始发对象所看到的长度，反之亦然。</span> <span>通过写入字节来更改文件的内容将会改变原始对象所看到的内容，反之亦然。</span> <span><a name="open-mode"></a></span> </p>
+<p> <span>在这个类中，这个类指定一个“开放阅读”，“开放写作”或“开放阅读和写作”的实例是必需的。</span> <span>通过<a href="../../../java/io/FileInputStream.html" title="java.io中的类">88417600971309</a>实例的<a href="../../../java/io/FileInputStream.html#getChannel--"><code>getChannel</code></a>方法获得的<a href="../../../java/io/FileInputStream.html" title="java.io中的类">频道</a>将被开放供阅读。</span> <span>通过<a href="../../../java/io/FileOutputStream.html" title="java.io中的类"><code>FileOutputStream</code></a>实例的<a href="../../../java/io/FileOutputStream.html#getChannel--"><code>getChannel</code></a>方法获得的通道将开放供书写。</span> <span>最后，通过所获得的信道<a href="../../../java/io/RandomAccessFile.html#getChannel--"><code>getChannel</code></a>一个的方法<a href="../../../java/io/RandomAccessFile.html" title="java.io中的类"><code>RandomAccessFile</code></a>实例将是开放的，如果该实例用模式<tt>"r"</tt>创建和将开放阅读和如果该实例用模式<tt>"rw"</tt>创建写入读取。</span> <span><a name="append-mode"></a></span> </p>
+<p> <span>即打开用于写入的文件的信道可以是在<i>附加模式下</i> ，例如，如果它是从由调用创建的文件输出流获得<a href="../../../java/io/FileOutputStream.html#FileOutputStream-java.io.File-boolean-"><code>FileOutputStream(File,boolean)</code></a>构造和传递<tt>true</tt>用于第二参数。</span> <span>在该模式中，相对写入操作的每次调用首先将位置前进到文件的末尾，然后写入所请求的数据。</span> <span>在单一原子操作中是否提升位置和写入数据是依赖于系统的，因此是未指定的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/io/FileInputStream.html#getChannel--"><code>FileInputStream.getChannel()</code></a> ， 
+        <a href="../../../java/io/FileOutputStream.html#getChannel--"><code>FileOutputStream.getChannel()</code></a> ， 
+        <a href="../../../java/io/RandomAccessFile.html#getChannel--"><code>RandomAccessFile.getChannel()</code></a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.MapMode.html" title="class in java.nio.channels">FileChannel.MapMode</a></span></code>
+<div class="block">
+              文件映射模式的类型安全枚举。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#FileChannel--">FileChannel</a></span>()</code>
+<div class="block">
+              初始化此类的新实例。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#force-boolean-">force</a></span>(boolean metaData)</code>
+<div class="block">
+              强制将此通道文件的任何更新写入包含该通道的存储设备。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../java/nio/channels/FileLock.html" title="class in java.nio.channels">FileLock</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#lock--">lock</a></span>()</code>
+<div class="block">
+              获取此通道文件的排他锁。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/channels/FileLock.html" title="class in java.nio.channels">FileLock</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#lock-long-long-boolean-">lock</a></span>(long position, long size, boolean shared)</code>
+<div class="block">
+              获取此通道文件的给定区域的锁定。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/MappedByteBuffer.html" title="class in java.nio">MappedByteBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#map-java.nio.channels.FileChannel.MapMode-long-long-">map</a></span>(<a href="../../../java/nio/channels/FileChannel.MapMode.html" title="class in java.nio.channels">FileChannel.MapMode</a> mode, long position, long size)</code>
+<div class="block">
+              将此频道文件的区域直接映射到内存中。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>static <a href="../../../java/nio/channels/FileChannel.html" title="class in java.nio.channels">FileChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#open-java.nio.file.Path-java.nio.file.OpenOption...-">open</a></span>(<a href="../../../java/nio/file/Path.html" title="interface in java.nio.file">Path</a> path, <a href="../../../java/nio/file/OpenOption.html" title="interface in java.nio.file">OpenOption</a>... options)</code>
+<div class="block">
+              打开或创建文件，返回文件通道以访问该文件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static <a href="../../../java/nio/channels/FileChannel.html" title="class in java.nio.channels">FileChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#open-java.nio.file.Path-java.util.Set-java.nio.file.attribute.FileAttribute...-">open</a></span>(<a href="../../../java/nio/file/Path.html" title="interface in java.nio.file">Path</a> path, <a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;? extends <a href="../../../java/nio/file/OpenOption.html" title="interface in java.nio.file">OpenOption</a>&gt; options, <a href="../../../java/nio/file/attribute/FileAttribute.html" title="interface in java.nio.file.attribute">FileAttribute</a>&lt;?&gt;... attrs)</code>
+<div class="block">
+              打开或创建文件，返回文件通道以访问该文件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>abstract long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#position--">position</a></span>()</code>
+<div class="block">
+              返回此频道的文件位置。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/channels/FileChannel.html" title="class in java.nio.channels">FileChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#position-long-">position</a></span>(long newPosition)</code>
+<div class="block">
+              设置此通道的文件位置。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>abstract int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#read-java.nio.ByteBuffer-">read</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst)</code>
+<div class="block">
+              从该通道读取到给定缓冲区的字节序列。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#read-java.nio.ByteBuffer:A-">read</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] dsts)</code>
+<div class="block">
+              从该通道读取到给定缓冲区的字节序列。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>abstract long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#read-java.nio.ByteBuffer:A-int-int-">read</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] dsts, int offset, int length)</code>
+<div class="block">
+              从该通道读取字节序列到给定缓冲区的子序列中。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>abstract int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#read-java.nio.ByteBuffer-long-">read</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst, long position)</code>
+<div class="block">
+              从给定的文件位置开始，从该通道读取一个字节序列到给定的缓冲区。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>abstract long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#size--">size</a></span>()</code>
+<div class="block">
+              返回此通道文件的当前大小。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>abstract long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#transferFrom-java.nio.channels.ReadableByteChannel-long-long-">transferFrom</a></span>(<a href="../../../java/nio/channels/ReadableByteChannel.html" title="interface in java.nio.channels">ReadableByteChannel</a> src, long position, long count)</code>
+<div class="block">
+              从给定的可读字节通道将字节传输到该通道的文件中。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>abstract long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#transferTo-long-long-java.nio.channels.WritableByteChannel-">transferTo</a></span>(long position, long count, <a href="../../../java/nio/channels/WritableByteChannel.html" title="interface in java.nio.channels">WritableByteChannel</a> target)</code>
+<div class="block">
+              将该通道文件的字节传输到给定的可写字节通道。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/channels/FileChannel.html" title="class in java.nio.channels">FileChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#truncate-long-">truncate</a></span>(long size)</code>
+<div class="block">
+              将此频道的文件截断为给定大小。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../../java/nio/channels/FileLock.html" title="class in java.nio.channels">FileLock</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#tryLock--">tryLock</a></span>()</code>
+<div class="block">
+              尝试获取此频道文件的排他锁。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/channels/FileLock.html" title="class in java.nio.channels">FileLock</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#tryLock-long-long-boolean-">tryLock</a></span>(long position, long size, boolean shared)</code>
+<div class="block">
+              尝试获取此通道文件的给定区域的锁定。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>abstract int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#write-java.nio.ByteBuffer-">write</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src)</code>
+<div class="block">
+              从给定的缓冲区向该通道写入一个字节序列。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#write-java.nio.ByteBuffer:A-">write</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] srcs)</code>
+<div class="block">
+              从给定的缓冲区向该通道写入一系列字节。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>abstract long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#write-java.nio.ByteBuffer:A-int-int-">write</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] srcs, int offset, int length)</code>
+<div class="block">
+              从给定缓冲区的子序列将一个字节序列写入该通道。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>abstract int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/FileChannel.html#write-java.nio.ByteBuffer-long-">write</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src, long position)</code>
+<div class="block">
+              从给定的缓冲区向给定的文件位置开始，向该通道写入一个字节序列。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.nio.channels.spi.AbstractInterruptibleChannel">
+<!-- --> </a> <h3>Methods inherited from class java.nio.channels.spi.<a href="../../../java/nio/channels/spi/AbstractInterruptibleChannel.html" title="class in java.nio.channels.spi">AbstractInterruptibleChannel</a></h3> <code><a href="../../../java/nio/channels/spi/AbstractInterruptibleChannel.html#begin--">begin</a>, <a href="../../../java/nio/channels/spi/AbstractInterruptibleChannel.html#close--">close</a>, <a href="../../../java/nio/channels/spi/AbstractInterruptibleChannel.html#end-boolean-">end</a>, <a href="../../../java/nio/channels/spi/AbstractInterruptibleChannel.html#implCloseChannel--">implCloseChannel</a>, <a href="../../../java/nio/channels/spi/AbstractInterruptibleChannel.html#isOpen--">isOpen</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.nio.channels.Channel">
+<!-- --> </a> <h3>Methods inherited from interface java.nio.channels.<a href="../../../java/nio/channels/Channel.html" title="interface in java.nio.channels">Channel</a></h3> <code><a href="../../../java/nio/channels/Channel.html#close--">close</a>, <a href="../../../java/nio/channels/Channel.html#isOpen--">isOpen</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="FileChannel--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>FileChannel</h4> <pre>protected FileChannel()</pre>
+<div class="block">
+            初始化此类的新实例。 
+          </div> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="open-java.nio.file.Path-java.util.Set-java.nio.file.attribute.FileAttribute...-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>open</h4> <pre>public static <a href="../../../java/nio/channels/FileChannel.html" title="class in java.nio.channels">FileChannel</a> open(<a href="../../../java/nio/file/Path.html" title="interface in java.nio.file">Path</a> path,
+                               <a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;? extends <a href="../../../java/nio/file/OpenOption.html" title="interface in java.nio.file">OpenOption</a>&gt; options,
+                               <a href="../../../java/nio/file/attribute/FileAttribute.html" title="interface in java.nio.file.attribute">FileAttribute</a>&lt;?&gt;... attrs)
+                        throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>打开或创建文件，返回文件通道以访问该文件。</span>
+<p> <span><code>options</code>参数确定文件的打开方式。</span> <span><a href="../../../java/nio/file/StandardOpenOption.html#READ"><code>READ</code></a>和<a href="../../../java/nio/file/StandardOpenOption.html#WRITE"><code>WRITE</code></a>选项确定文件是否应被打开用于读取和/或写入。</span> <span>如果数组中没有包含选项（或<a href="../../../java/nio/file/StandardOpenOption.html#APPEND"><code>APPEND</code></a>选项），则打开文件进行阅读。</span> <span>默认情况下，文件开始时开始读写。</span> </p>
+<p> <span>除了<code>READ</code>和<code>WRITE</code> ，还可能存在以下选项：</span> </p>
+<span>  Option Description    <a href="../../../java/nio/file/StandardOpenOption.html#APPEND"><code>APPEND</code></a>   If this option is present then the file is opened for writing and each invocation of the channel's <code>write</code> method first advances the position to the end of the file and then writes the requested data. Whether the advancement of the position and the writing of the data are done in a single atomic operation is system-dependent and therefore unspecified. This option may not be used in conjunction with the <code>READ</code> or <code>TRUNCATE_EXISTING</code> options.     <a href="../../../java/nio/file/StandardOpenOption.html#TRUNCATE_EXISTING"><code>TRUNCATE_EXISTING</code></a>   If this option is present then the existing file is truncated to a size of 0 bytes. This option is ignored when the file is opened only for reading.     <a href="../../../java/nio/file/StandardOpenOption.html#CREATE_NEW"><code>CREATE_NEW</code></a>   If this option is present then a new file is created, failing if the file already exists. When creating a file the check for the existence of the file and the creation of the file if it does not exist is atomic with respect to other file system operations. This option is ignored when the file is opened only for reading.     <a href="../../../java/nio/file/StandardOpenOption.html#CREATE"><code>CREATE</code></a>   If this option is present then an existing file is opened if it exists, otherwise a new file is created. When creating a file the check for the existence of the file and the creation of the file if it does not exist is atomic with respect to other file system operations. This option is ignored if the <code>CREATE_NEW</code> option is also present or the file is opened only for reading.     <a href="../../../java/nio/file/StandardOpenOption.html#DELETE_ON_CLOSE"><code>DELETE_ON_CLOSE</code></a>   When this option is present then the implementation makes a <em>best effort</em> attempt to delete the file when closed by the the <a href="../../../java/nio/channels/spi/AbstractInterruptibleChannel.html#close--"><code>close</code></a> method. If the <code>close</code> method is not invoked then a <em>best effort</em> attempt is made to delete the file when the Java virtual machine terminates.    <a href="../../../java/nio/file/StandardOpenOption.html#SPARSE"><code>SPARSE</code></a>   When creating a new file this option is a <em>hint</em> that the new file will be sparse. This option is ignored when not creating a new file.     <a href="../../../java/nio/file/StandardOpenOption.html#SYNC"><code>SYNC</code></a>   Requires that every update to the file's content or metadata be written synchronously to the underlying storage device. (see <a href="../file/package-summary.html#integrity"> Synchronized I/O file integrity</a>).     <a href="../../../java/nio/file/StandardOpenOption.html#DSYNC"><code>DSYNC</code></a>   Requires that every update to the file's content be written synchronously to the underlying storage device. (see <a href="../file/package-summary.html#integrity"> Synchronized I/O file integrity</a>).   </span>
+<table border="1" cellpadding="5" summary="">
+</table>
+<p> <span>实施还可以支持其他选项。</span> </p>
+<p> <span><code>attrs</code>参数是文件<a href="../../../java/nio/file/attribute/FileAttribute.html" title="java.nio.file.attribute中的接口"><code>file-attributes</code></a>的可选数组，用于在创建文件时以<a href="../../../java/nio/file/attribute/FileAttribute.html" title="java.nio.file.attribute中的接口">原子方式</a>进行设置。</span> </p>
+<p> <span>新的信道是通过调用创建<a href="../../../java/nio/file/spi/FileSystemProvider.html#newFileChannel-java.nio.file.Path-java.util.Set-java.nio.file.attribute.FileAttribute...-"><code>newFileChannel</code></a>上创建该提供商方法<code>Path</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>path</code> - 打开或创建文件的路径 
+           </dd>
+<dd>
+<code>options</code> - 指定文件打开方式的选项 
+           </dd>
+<dd>
+<code>attrs</code> - 创建文件时以原子方式设置的文件属性的可选列表 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个新的文件通道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果集合包含无效的选项组合 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> -如果 
+            <code>path</code>已与不支持创建文件信道，或不支持的打开选项提供商相关联的指定，或阵列包含可以在创建文件时不被原子地设置一个属性 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+<dd>
+<span><code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安装了一个安全管理器，并且拒绝执行所需的未指定的权限。</span>
+<span>在默认提供程序的情况下，如果打开文件进行阅读，则调用<a href="../../../java/lang/SecurityManager.html#checkRead-java.lang.String-"><code>SecurityManager.checkRead(String)</code></a>方法来检查读取访问。</span>
+<span>如果文件被打开以写入，则调用<a href="../../../java/lang/SecurityManager.html#checkWrite-java.lang.String-"><code>SecurityManager.checkWrite(String)</code></a>方法来检查写访问</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+</dl> </li>
+</ul> <a name="open-java.nio.file.Path-java.nio.file.OpenOption...-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>open</h4> <pre>public static <a href="../../../java/nio/channels/FileChannel.html" title="class in java.nio.channels">FileChannel</a> open(<a href="../../../java/nio/file/Path.html" title="interface in java.nio.file">Path</a> path,
+                               <a href="../../../java/nio/file/OpenOption.html" title="interface in java.nio.file">OpenOption</a>... options)
+                        throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>打开或创建文件，返回文件通道以访问该文件。</span>
+<p> <span>调用此方法的行为方式与调用完全相同</span> </p>
+<pre>  <span>fc.<a href="../../../java/nio/channels/FileChannel.html#open-java.nio.file.Path-java.util.Set-java.nio.file.attribute.FileAttribute...-"><code>open</code></a>(file, opts, new FileAttribute&lt;?&gt;[0]);</span> </pre>
+<span>其中<code>opts</code>是一组在<code>options</code>数组中指定的选项。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>path</code> - 打开或创建文件的路径 
+           </dd>
+<dd>
+<code>options</code> - 指定文件打开方式的选项 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个新的文件通道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果集合包含无效的选项组合 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> -如果 
+            <code>path</code>与不支持创建文件通道的提供者，或者不支持的开放式选项关联指定 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+<dd>
+<span><code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安装了一个安全管理器，并且拒绝执行所需的未指定的权限。</span>
+<span>在默认提供程序的情况下，如果打开文件进行阅读，则调用<a href="../../../java/lang/SecurityManager.html#checkRead-java.lang.String-"><code>SecurityManager.checkRead(String)</code></a>方法来检查读取访问。</span>
+<span>如果打开文件写入，则调用<a href="../../../java/lang/SecurityManager.html#checkWrite-java.lang.String-"><code>SecurityManager.checkWrite(String)</code></a>方法来检查写访问</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+</dl> </li>
+</ul> <a name="read-java.nio.ByteBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public abstract int read(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst)
+                  throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从该通道读取到给定缓冲区的字节序列。</span>
+<p> <span>从该通道的当前文件位置开始读取字节，然后以实际读取的字节数更新文件位置。</span> <span>否则，此方法的行为与<code>ReadableByteChannel</code>界面中的<a href="../../../java/nio/channels/ReadableByteChannel.html" title="java.nio.channels中的接口">规定</a>完全相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ReadableByteChannel.html#read-java.nio.ByteBuffer-">read</a></code>在接口 
+            <code><a href="../../../java/nio/channels/ReadableByteChannel.html" title="interface in java.nio.channels">ReadableByteChannel</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/SeekableByteChannel.html#read-java.nio.ByteBuffer-">read</a></code>在接口 
+            <code><a href="../../../java/nio/channels/SeekableByteChannel.html" title="interface in java.nio.channels">SeekableByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dst</code> - 要传输字节的缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             读取的字节数，可能为零，如果通道已达到流出端， 
+            <tt>则为-1</tt>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在读操作正在进行时关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在读取操作正在中断当前线程，从而关闭通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="read-java.nio.ByteBuffer:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public abstract long read(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] dsts,
+                          int offset,
+                          int length)
+                   throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从该通道读取字节序列到给定缓冲区的子序列中。</span>
+<p> <span>从该通道的当前文件位置开始读取字节，然后以实际读取的字节数更新文件位置。</span> <span>否则，此方法的行为与<code>ScatteringByteChannel</code>接口中的<a href="../../../java/nio/channels/ScatteringByteChannel.html" title="java.nio.channels中的接口">规定</a>完全相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ScatteringByteChannel.html#read-java.nio.ByteBuffer:A-int-int-">read</a></code>在接口 
+            <code><a href="../../../java/nio/channels/ScatteringByteChannel.html" title="interface in java.nio.channels">ScatteringByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dsts</code> - 要传输字节的缓冲区 
+           </dd>
+<dd>
+<span><code>offset</code> - 要传输字节的第一个缓冲区的缓冲区数组内的偏移量;</span>
+<span>必须是非负数，不得大于<tt>dsts.length</tt></span>
+</dd>
+<dd>
+<span><code>length</code> - 要访问的缓冲区的最大数量;</span>
+<span>必须是非负数，不得大于<tt>dsts.length</tt> - <tt>offset</tt></span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             读取的字节数，可能为零，或 
+            <tt>-1，</tt>如果通道已达到流出端 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在读取操作正在进行中关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在读取操作正在进行时中断当前线程，从而关闭通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="read-java.nio.ByteBuffer:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public final long read(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] dsts)
+                throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从该通道读取到给定缓冲区的字节序列。</span>
+<p> <span>从该通道的当前文件位置开始读取字节，然后以实际读取的字节数更新文件位置。</span> <span>否则，此方法的行为与<code>ScatteringByteChannel</code>接口中的<a href="../../../java/nio/channels/ScatteringByteChannel.html" title="java.nio.channels中的接口">规定</a>完全相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ScatteringByteChannel.html#read-java.nio.ByteBuffer:A-">read</a></code>在接口 
+            <code><a href="../../../java/nio/channels/ScatteringByteChannel.html" title="interface in java.nio.channels">ScatteringByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dsts</code> - 要传输字节的缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             读取的字节数，可能为零，如果通道已达到流出末尾， 
+            <tt>则为-1</tt>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在读取操作正在进行时关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在读取操作正在进行中断当前线程，从而关闭通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="write-java.nio.ByteBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public abstract int write(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src)
+                   throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从给定的缓冲区向该通道写入一个字节序列。</span>
+<p> <span>字节从该通道的当前文件位置开始写入，除非通道处于附加模式，在这种情况下，位置首先提前到文件的末尾。</span> <span>如果需要，文件生长以容纳写入的字节，然后文件位置用实际写入的字节数更新。</span> <span>否则，此方法的行为与<code>WritableByteChannel</code>接口的<a href="../../../java/nio/channels/WritableByteChannel.html" title="java.nio.channels中的接口">规定</a>完全相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/SeekableByteChannel.html#write-java.nio.ByteBuffer-">write</a></code>在接口 
+            <code><a href="../../../java/nio/channels/SeekableByteChannel.html" title="interface in java.nio.channels">SeekableByteChannel</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/WritableByteChannel.html#write-java.nio.ByteBuffer-">write</a></code>中的 
+            <code><a href="../../../java/nio/channels/WritableByteChannel.html" title="interface in java.nio.channels">WritableByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>src</code> - 要检索字节的缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             写入的字节数，可能为零 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在写操作正在进行时关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在写操作正在进行时中断当前线程，从而关闭通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="write-java.nio.ByteBuffer:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public abstract long write(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] srcs,
+                           int offset,
+                           int length)
+                    throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从给定缓冲区的子序列将一个字节序列写入该通道。</span>
+<p> <span>字节从该通道的当前文件位置开始写入，除非通道处于附加模式，在这种情况下，位置首先提前到文件的末尾。</span> <span>如果需要，文件生长以容纳写入的字节，然后文件位置用实际写入的字节数更新。</span> <span>否则，此方法的行为与<code>GatheringByteChannel</code>界面中的<a href="../../../java/nio/channels/GatheringByteChannel.html" title="java.nio.channels中的接口">规定</a>完全相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/GatheringByteChannel.html#write-java.nio.ByteBuffer:A-int-int-">write</a></code>在接口 
+            <code><a href="../../../java/nio/channels/GatheringByteChannel.html" title="interface in java.nio.channels">GatheringByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>srcs</code> - 要检索字节的缓冲区 
+           </dd>
+<dd>
+<span><code>offset</code> - 要从中检索字节的第一个缓冲区的缓冲区数组中的偏移量;</span>
+<span>必须是非负数，不得大于<tt>srcs.length</tt></span>
+</dd>
+<dd>
+<span><code>length</code> - 要访问的缓冲区的最大数量;</span>
+<span>必须是非负数，不得大于<tt>srcs.length</tt> - <tt>offset</tt></span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             写入的字节数，可能为零 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在写操作正在进行时关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在写操作正在进行时中断当前线程，从而关闭通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="write-java.nio.ByteBuffer:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public final long write(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] srcs)
+                 throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从给定的缓冲区向该通道写入一系列字节。</span>
+<p> <span>字节从该通道的当前文件位置开始写入，除非通道处于附加模式，在这种情况下，位置首先提前到文件的末尾。</span> <span>如果需要，文件生长以容纳写入的字节，然后文件位置用实际写入的字节数更新。</span> <span>否则，此方法的行为与<code>GatheringByteChannel</code>接口中的<a href="../../../java/nio/channels/GatheringByteChannel.html" title="java.nio.channels中的接口">规定</a>完全相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/GatheringByteChannel.html#write-java.nio.ByteBuffer:A-">write</a></code>在接口 
+            <code><a href="../../../java/nio/channels/GatheringByteChannel.html" title="interface in java.nio.channels">GatheringByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>srcs</code> - 要检索字节的缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             写入的字节数，可能为零 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在写操作正在进行时关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在写操作正在进行时中断当前线程，从而关闭通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="position--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>position</h4> <pre>public abstract long position()
+                       throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            返回此频道的文件位置。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/SeekableByteChannel.html#position--">position</a></code>在接口 
+            <code><a href="../../../java/nio/channels/SeekableByteChannel.html" title="interface in java.nio.channels">SeekableByteChannel</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该通道的文件位置是从文件开始到当前位置的非负整数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此频道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="position-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>position</h4> <pre>public abstract <a href="../../../java/nio/channels/FileChannel.html" title="class in java.nio.channels">FileChannel</a> position(long newPosition)
+                              throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>设置此通道的文件位置。</span>
+<p> <span>将位置设置为大于文件当前大小的值是合法的，但不会更改文件的大小。</span> <span>稍后在这样的位置读取字节的尝试将立即返回文件结束指示。</span> <span>稍后在这样的位置写入字节的尝试将导致文件生长以适应新的字节;</span> <span>未指定上一个文件结尾和新写入的字节之间的任何字节的值。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/SeekableByteChannel.html#position-long-">position</a></code>在接口 
+            <code><a href="../../../java/nio/channels/SeekableByteChannel.html" title="interface in java.nio.channels">SeekableByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newPosition</code> - 新的位置，一个非负整数，从文件开始计数字节数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此文件通道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果新位置为负 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="size--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>size</h4> <pre>public abstract long size()
+                   throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            返回此通道文件的当前大小。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/SeekableByteChannel.html#size--">size</a></code>中的 
+            <code><a href="../../../java/nio/channels/SeekableByteChannel.html" title="interface in java.nio.channels">SeekableByteChannel</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该通道文件的当前大小，以字节为单位 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="truncate-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>truncate</h4> <pre>public abstract <a href="../../../java/nio/channels/FileChannel.html" title="class in java.nio.channels">FileChannel</a> truncate(long size)
+                              throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>将此频道的文件截断为给定大小。</span>
+<p> <span>如果给定的大小小于文件的当前大小，则文件将被截断，丢弃超出文件新端的任何字节。</span> <span>如果给定的大小大于或等于文件的当前大小，则该文件不会被修改。</span> <span>在任一情况下，如果此通道的文件位置大于给定大小，则将其设置为该大小。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/SeekableByteChannel.html#truncate-long-">truncate</a></code>在接口 
+            <code><a href="../../../java/nio/channels/SeekableByteChannel.html" title="interface in java.nio.channels">SeekableByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>size</code> - 新的大小，非负字节数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此文件通道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/NonWritableChannelException.html" title="class in java.nio.channels">NonWritableChannelException</a></code> - 如果此通道未打开以进行写入 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果新尺寸为负 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="force-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>force</h4> <pre>public abstract void force(boolean metaData)
+                    throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>强制将此通道文件的任何更新写入包含该通道的存储设备。</span>
+<p> <span>如果此通道的文件驻留在本地存储设备上，那么当该方法返回时，将保证自创建该通道以来创建的该文件所做的所有更改，或自上次调用该方法以来，都将写入该设备。</span> <span>这对于确保系统崩溃时不会丢失关键信息非常有用。</span> </p>
+<p> <span>如果文件不在本地设备上，则不会提供此类保证。</span> </p>
+<p> <span><tt>metaData</tt>参数可用于限制此方法执行所需的I / O操作数。</span> <span>为此参数传入<tt>false</tt>表示只更新文件的内容需要被写入存储设备;</span> <span>通过<tt>true</tt>表示必须写入文件的内容和元数据的更新，这通常需要至少一个I / O操作。</span> <span>该参数实际上是否具有任何效果取决于底层操作系统，因此未指定。</span> </p>
+<p> <span>调用此方法可能会导致I / O操作发生，即使通道仅打开读取。</span> <span>例如，某些操作系统将最后访问时间作为文件的元数据的一部分进行维护，并且每次读取文件时都会更新此时间。</span> <span>这是否实际上是系统依赖的，因此是未指定的。</span> </p>
+<p> <span>此方法只能通过此类中定义的方法强制对此通道文件进行的更改。</span> <span>它可以或可以不强制通过修改一个的内容所做的更改<a href="../../../java/nio/MappedByteBuffer.html" title="java.nio中的类"><code><i>mapped byte buffer</i></code></a>通过调用获得<a href="../../../java/nio/channels/FileChannel.html#map-java.nio.channels.FileChannel.MapMode-long-long-"><code>map</code></a>方法。</span> <span>调用映射字节缓冲区的<a href="../../../java/nio/MappedByteBuffer.html#force--"><code>force</code></a>方法将强制对缓冲区内容的更改进行写入。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>metaData</code> - 如果<tt>true</tt>那么需要这种方法来强制更改文件的内容和要写入存储的元数据;</span>
+<span>否则，它只需要强制更改内容</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="transferTo-long-long-java.nio.channels.WritableByteChannel-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>transferTo</h4> <pre>public abstract long transferTo(long position,
+                                long count,
+                                <a href="../../../java/nio/channels/WritableByteChannel.html" title="interface in java.nio.channels">WritableByteChannel</a> target)
+                         throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>将该通道文件的字节传输到给定的可写字节通道。</span>
+<p> <span>尝试从该通道文件中的给定<tt>position</tt>开始读取最多<tt>count</tt>个字节，并将其写入目标通道。</span> <span>此方法的调用可能会传送或不传送所有请求的字节;</span> <span>是否这样做取决于渠道的性质和状态。</span> <span>如果该通道的文件包含少于<tt>count</tt>个字节，从给定的<tt>position</tt>开始，或者如果目标通道是非阻塞的，并且在其输出缓冲区中有少于<tt>count</tt>个字节的空闲， <tt>那么传输的</tt>字节数将少于所<tt>请求的</tt>字节数。</span> </p>
+<p> <span>此方法不会修改此频道的位置。</span> <span>如果给定的位置大于文件的当前大小，则不会传输任何字节。</span> <span>如果目标通道具有位置，则从该位置开始写入字节，然后将该位置递增写入的字节数。</span> </p>
+<p> <span>该方法比从该通道读取并写入目标通道的简单循环更有效。</span> <span>许多操作系统可以将字节直接从文件系统缓存传输到目标通道，而无需实际复制它们。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>position</code> - 传输开始的文件中的位置;</span>
+<span>必须是非负的</span>
+</dd>
+<dd>
+<span><code>count</code> - 要传输的最大字节数;</span>
+<span>必须是非负的</span>
+</dd>
+<dd>
+<code>target</code> - 目标频道 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             实际传输的字节数，可能为零 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数的前提条件不成立 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonReadableChannelException.html" title="class in java.nio.channels">NonReadableChannelException</a></code> - 如果这个频道没有打开阅读 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonWritableChannelException.html" title="class in java.nio.channels">NonWritableChannelException</a></code> - 如果目标通道未打开以进行写入 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道或目标通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在传输过程中关闭任一通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在传输过程中中断当前线程，从而关闭两个通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="transferFrom-java.nio.channels.ReadableByteChannel-long-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>transferFrom</h4> <pre>public abstract long transferFrom(<a href="../../../java/nio/channels/ReadableByteChannel.html" title="interface in java.nio.channels">ReadableByteChannel</a> src,
+                                  long position,
+                                  long count)
+                           throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从给定的可读字节通道将字节传输到该通道的文件中。</span>
+<p> <span>尝试从源通道读取<tt>count</tt>个字节，并将其写入此通道的文件，从给定的<tt>position</tt>开始。</span> <span>此方法的调用可能会传送或不传送所有请求的字节;</span> <span>是否这样做取决于渠道的性质和状态。</span> <span>如果源通道<tt>剩余</tt>少于<tt>count</tt>个字节，或者源通道为非阻塞，并且其输入缓冲区中<tt>立即可用的</tt>字节少于<tt>8841760419806</tt>字节，则将少于所<tt>请求的</tt>字节数。</span> </p>
+<p> <span>此方法不会修改此频道的位置。</span> <span>如果给定的位置大于文件的当前大小，则不会传输任何字节。</span> <span>如果源通道具有位置，则从该位置开始读取字节，然后将该位置递增读取的字节数。</span> </p>
+<p> <span>该方法比从源通道读取并写入此通道的简单循环可能更有效。</span> <span>许多操作系统可以将字节直接从源通道传输到文件系统高速缓存中，而无需实际复制它们。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>src</code> - 源频道 
+           </dd>
+<dd>
+<span><code>position</code> - 传输开始的文件中的位置;</span>
+<span>必须是非负的</span>
+</dd>
+<dd>
+<span><code>count</code> - 要传输的最大字节数;</span>
+<span>必须是非负的</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             实际传输的字节数，可能为零 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数的前提条件不成立 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonReadableChannelException.html" title="class in java.nio.channels">NonReadableChannelException</a></code> - 如果源通道未打开读取 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonWritableChannelException.html" title="class in java.nio.channels">NonWritableChannelException</a></code> - 如果此通道未打开以进行写入 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道或源通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在传输过程中关闭任一通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在传输过程中中断当前线程，从而关闭两个通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="read-java.nio.ByteBuffer-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public abstract int read(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst,
+                         long position)
+                  throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从给定的文件位置开始，从该通道读取一个字节序列到给定的缓冲区。</span>
+<p> <span>该方法的工作原理与<a href="../../../java/nio/channels/FileChannel.html#read-java.nio.ByteBuffer-"><code>read(ByteBuffer)</code></a>方法相同，只是从给定文件位置而不是在通道的当前位置开始读取字节。</span> <span>此方法不会修改此频道的位置。</span> <span>如果给定的位置大于文件的当前大小，则不会读取任何字节。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dst</code> - 要传输字节的缓冲区 
+           </dd>
+<dd>
+<span><code>position</code> - 传输开始的文件位置;</span>
+<span>必须是非负的</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果给定的位置大于或等于文件的当前大小，读取的字节数（可能为零）或 
+            <tt>-1</tt>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果位置为负 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonReadableChannelException.html" title="class in java.nio.channels">NonReadableChannelException</a></code> - 如果此频道未打开阅读 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在读取操作正在进行时关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在读取操作正在进行中断当前线程，从而关闭通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="write-java.nio.ByteBuffer-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public abstract int write(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src,
+                          long position)
+                   throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从给定的缓冲区向给定的文件位置开始，向该通道写入一个字节序列。</span>
+<p> <span>该方法的工作方式与<a href="../../../java/nio/channels/FileChannel.html#write-java.nio.ByteBuffer-"><code>write(ByteBuffer)</code></a>方法相同，只是字节从给定的文件位置而不是在通道的当前位置写入。</span> <span>此方法不会修改此频道的位置。</span> <span>如果给定的位置大于文件的当前大小，那么该文件将被生长以适应新的字节;</span> <span>未指定上一个文件结尾和新写入的字节之间的任何字节的值。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>src</code> - 要传输字节的缓冲区 
+           </dd>
+<dd>
+<span><code>position</code> - 传输开始的文件位置;</span>
+<span>必须是非负的</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             写入的字节数，可能为零 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果位置为负 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonWritableChannelException.html" title="class in java.nio.channels">NonWritableChannelException</a></code> - 如果这个频道没有开放写作 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在写操作正在进行时关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedByInterruptException.html" title="class in java.nio.channels">ClosedByInterruptException</a></code> - 如果另一个线程在写操作正在进行时中断当前线程，从而关闭通道并设置当前线程的中断状态 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="map-java.nio.channels.FileChannel.MapMode-long-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>map</h4> <pre>public abstract <a href="../../../java/nio/MappedByteBuffer.html" title="class in java.nio">MappedByteBuffer</a> map(<a href="../../../java/nio/channels/FileChannel.MapMode.html" title="class in java.nio.channels">FileChannel.MapMode</a> mode,
+                                     long position,
+                                     long size)
+                              throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>将此频道文件的区域直接映射到内存中。</span>
+<p> <span>文件的区域可以以三种模式之一映射到存储器中：</span> </p>
+<ul>
+<li><p> <span><i>只读：</i>任何尝试修改生成的缓冲区将导致抛出<a href="../../../java/nio/ReadOnlyBufferException.html" title="java.nio中的类"><code>ReadOnlyBufferException</code></a> 。</span> <span>（ <a href="../../../java/nio/channels/FileChannel.MapMode.html#READ_ONLY"><code>MapMode.READ_ONLY</code></a> ）</span> </p></li>
+<li><p> <span><i>读/写：</i>对结果缓冲区所做的更改将最终传播到文件中;</span> <span>它们可能也可能不会被映射到同一文件的其他程序可见。</span> <span>（ <a href="../../../java/nio/channels/FileChannel.MapMode.html#READ_WRITE"><code>MapMode.READ_WRITE</code></a> ）</span> </p></li>
+<li><p> <span><i>私有：</i>对结果缓冲区所做的更改不会传播到该文件，并且对于映射了相同文件的其他程序将不可见;</span> <span>相反，它们将导致要创建的缓冲区的修改部分的私有副本。</span> <span>（ <a href="../../../java/nio/channels/FileChannel.MapMode.html#PRIVATE"><code>MapMode.PRIVATE</code></a> ）</span> </p></li>
+</ul>
+<p> <span>对于只读映射，此通道必须已打开才能读取;</span> <span>对于读/写或私有映射，此通道必须已被打开以供读写。</span> </p>
+<p> <span>该<a href="../../../java/nio/MappedByteBuffer.html" title="java.nio中的类">方法</a>返回的<a href="../../../java/nio/MappedByteBuffer.html" title="java.nio中的类"><code><i>mapped byte buffer</i></code></a>的位置为零，容量为<tt>size</tt> ;</span> <span>它的标记将是未定义的。</span> <span>缓冲区及其表示的映射将保持有效，直到缓冲区本身被垃圾回收为止。</span> </p>
+<p> <span>映射一旦建立，就不依赖于用于创建它的文件通道。</span> <span>关闭通道，特别是对映射的有效性没有影响。</span> </p>
+<p> <span>内存映射文件的许多细节固有地依赖于底层操作系统，因此是未指定的。</span> <span>当请求的区域未完全包含在该通道的文件中时，此方法的行为是未指定的。</span> <span>对该程序或另一个的底层文件的内容或大小进行的更改是否被传播到缓冲区是未指定的。</span> <span>缓冲区的更改传播到文件的速率是未指定的。</span> </p>
+<p> <span>对于大多数操作系统，将文件映射到内存中比通过通常的<a href="../../../java/nio/channels/FileChannel.html#read-java.nio.ByteBuffer-"><code>read</code></a>和<a href="../../../java/nio/channels/FileChannel.html#write-java.nio.ByteBuffer-"><code>write</code></a>方法读取或写入几十千字节的数据<a href="../../../java/nio/channels/FileChannel.html#read-java.nio.ByteBuffer-">更</a> <a href="../../../java/nio/channels/FileChannel.html#write-java.nio.ByteBuffer-">昂贵</a> 。</span> <span>从性能的角度来看，通常只能将较大的文件映射到内存中。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>mode</code> -一个常量<a href="../../../java/nio/channels/FileChannel.MapMode.html#READ_ONLY"><code>READ_ONLY</code></a> ， <a href="../../../java/nio/channels/FileChannel.MapMode.html#READ_WRITE"><code>READ_WRITE</code></a> ，或<a href="../../../java/nio/channels/FileChannel.MapMode.html#PRIVATE"><code>PRIVATE</code></a>在所定义<a href="../../../java/nio/channels/FileChannel.MapMode.html" title="java.nio.channels中的类"><code>FileChannel.MapMode</code></a>类，根据该文件是否是要被映射的只读，读/写，或私人（写入时复制），分别</span>
+</dd>
+<dd>
+<span><code>position</code> - 映射区域要启动的文件中的位置;</span>
+<span>必须是非负的</span>
+</dd>
+<dd>
+<span><code>size</code> - 要映射的区域的大小;</span>
+<span>必须是非负数，不得大于<a href="../../../java/lang/Integer.html#MAX_VALUE"><code>Integer.MAX_VALUE</code></a></span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             映射的字节缓冲区 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/NonReadableChannelException.html" title="class in java.nio.channels">NonReadableChannelException</a></code> - 如果 
+            <tt>mode</tt>是 
+            <a href="../../../java/nio/channels/FileChannel.MapMode.html#READ_ONLY"><code>READ_ONLY</code></a>但是这个频道没有打开阅读 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonWritableChannelException.html" title="class in java.nio.channels">NonWritableChannelException</a></code> - 如果 
+            <tt>mode</tt>是 
+            <a href="../../../java/nio/channels/FileChannel.MapMode.html#READ_WRITE"><code>READ_WRITE</code></a>或 
+            <a href="../../../java/nio/channels/FileChannel.MapMode.html#PRIVATE"><code>PRIVATE</code>，</a>但这个频道没有打开读写 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数的前提条件不成立 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/nio/channels/FileChannel.MapMode.html" title="java.nio.channels中的类"><code>FileChannel.MapMode</code></a> ， <a href="../../../java/nio/MappedByteBuffer.html" title="java.nio中的类"><code>MappedByteBuffer</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="lock-long-long-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>lock</h4> <pre>public abstract <a href="../../../java/nio/channels/FileLock.html" title="class in java.nio.channels">FileLock</a> lock(long position,
+                              long size,
+                              boolean shared)
+                       throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>获取此通道文件的给定区域的锁定。</span>
+<p> <span>此方法的调用将阻塞，直到该区域被锁定，此通道关闭或调用的线程被中断（以先到者为准）。</span> </p>
+<p> <span>如果此通道在调用此方法期间由另一个线程关闭，则将抛出<a href="../../../java/nio/channels/AsynchronousCloseException.html" title="java.nio.channels中的类"><code>AsynchronousCloseException</code></a> 。</span> </p>
+<p> <span>如果在等待获取锁定的情况下调用线程中断，则其中断状态将被设置，并且将抛出一个<a href="../../../java/nio/channels/FileLockInterruptionException.html" title="java.nio.channels中的类"><code>FileLockInterruptionException</code></a> 。</span> <span>如果在调用此方法时调用了调用者的中断状态，那么将立即抛出该异常;</span> <span>线程的中断状态不会改变。</span> </p>
+<p> <span>由<tt>position</tt>和<tt>size参数指定的</tt>区域不需要包含在实际的底层文件内，甚至与实际的底层文件重叠。</span> <span>锁定区域的大小固定;</span> <span>如果锁定区域最初包含文件的结尾，并且文件增长超出该区域，那么该文件的新部分将不会被该锁覆盖。</span> <span>如果文件的大小增加，并且整个文件都需要锁定，则应该锁定从零开始并且不小于文件的预期最大大小的区域。</span> <span>零参数<a href="../../../java/nio/channels/FileChannel.html#lock--"><code>lock()</code></a>方法简单地锁定一个大小为<a href="../../../java/lang/Long.html#MAX_VALUE"><code>Long.MAX_VALUE</code></a>的区域。</span> </p>
+<p> <span>某些操作系统不支持共享锁，在这种情况下，共享锁的请求将自动转换为独占锁的请求。</span> <span>新获取的锁是共享的还是独占的可以通过调用生成的锁定对象的<a href="../../../java/nio/channels/FileLock.html#isShared--"><code>isShared</code></a>方法来测试。</span> </p>
+<p> <span>文件锁代表整个Java虚拟机。</span> <span>它们不适用于通过同一虚拟机中的多个线程来控制对文件的访问。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>position</code> - 锁定区域要启动的位置;</span>
+<span>必须是非负的</span>
+</dd>
+<dd>
+<span><code>size</code> - 锁定区域的大小;</span>
+<span>必须是非负数，并且总和<tt>position</tt> + <tt>size</tt>必须是非负数</span>
+</dd>
+<dd>
+<span><code>shared</code> - <tt>true</tt>请求共享锁，在这种情况下，该通道必须打开才能读取（可能写入）;</span>
+<span><tt>false</tt>要求一个独占锁，在这种情况下，这个通道必须是开放的写（和可能阅读）</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示新获取的锁的锁定对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数的前提条件不成立 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此频道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在此方法中阻止调用线程时关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/FileLockInterruptionException.html" title="class in java.nio.channels">FileLockInterruptionException</a></code> - 如果调用线程在此方法中被阻止时中断 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/OverlappingFileLockException.html" title="class in java.nio.channels">OverlappingFileLockException</a></code> - 如果与该请求区域重叠的锁已由该Java虚拟机保存，或者该方法中已阻止另一个线程，并尝试锁定重叠区域 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonReadableChannelException.html" title="class in java.nio.channels">NonReadableChannelException</a></code> - 如果 
+            <tt>shared</tt>是 
+            <tt>true</tt>这个频道没有打开阅读 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonWritableChannelException.html" title="class in java.nio.channels">NonWritableChannelException</a></code> - 如果 
+            <tt>shared</tt>是 
+            <tt>false</tt>但是这个频道没有开放写作 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/nio/channels/FileChannel.html#lock--"><code>lock()</code></a> ， 
+            <a href="../../../java/nio/channels/FileChannel.html#tryLock--"><code>tryLock()</code></a> ， 
+            <a href="../../../java/nio/channels/FileChannel.html#tryLock-long-long-boolean-"><code>tryLock(long,long,boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="lock--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>lock</h4> <pre>public final <a href="../../../java/nio/channels/FileLock.html" title="class in java.nio.channels">FileLock</a> lock()
+                    throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>获取此通道文件的排他锁。</span>
+<p> <span>调用此方法的形式为<tt>fc.lock()的</tt>行为方式与调用完全相同</span> </p>
+<pre>  <span>fc.<a href="../../../java/nio/channels/FileChannel.html#lock-long-long-boolean-"><code>lock</code></a>(0L, Long.MAX_VALUE, false)</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示新获取的锁的锁定对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousCloseException.html" title="class in java.nio.channels">AsynchronousCloseException</a></code> - 如果另一个线程在此方法中阻止调用线程时关闭此通道 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/FileLockInterruptionException.html" title="class in java.nio.channels">FileLockInterruptionException</a></code> - 如果调用线程在此方法中被阻塞时中断 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/OverlappingFileLockException.html" title="class in java.nio.channels">OverlappingFileLockException</a></code> - 如果与该请求区域重叠的锁已由该Java虚拟机保留，或者该方法中已经阻止了另一个线程，并尝试锁定同一文件的重叠区域 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NonWritableChannelException.html" title="class in java.nio.channels">NonWritableChannelException</a></code> - 如果这个频道没有开放写作 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/nio/channels/FileChannel.html#lock-long-long-boolean-"><code>lock(long,long,boolean)</code></a> ， 
+            <a href="../../../java/nio/channels/FileChannel.html#tryLock--"><code>tryLock()</code></a> ， 
+            <a href="../../../java/nio/channels/FileChannel.html#tryLock-long-long-boolean-"><code>tryLock(long,long,boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="tryLock-long-long-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>tryLock</h4> <pre>public abstract <a href="../../../java/nio/channels/FileLock.html" title="class in java.nio.channels">FileLock</a> tryLock(long position,
+                                 long size,
+                                 boolean shared)
+                          throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>尝试获取此通道文件的给定区域的锁定。</span>
+<p> <span>此方法不阻止。</span> <span>调用总是立即返回，要么获取了请求的区域的锁定，要么没有这样做。</span> <span>如果由于重叠的锁被另一个程序持有而无法获取锁，则返回<tt>null</tt> 。</span> <span>如果由于任何其他原因无法获取锁，则抛出适当的异常。</span> </p>
+<p> <span>由<tt>position</tt>和<tt>size参数指定的</tt>区域不需要包含在实际的底层文件内，甚至与实际的底层文件重叠。</span> <span>锁定区域的大小固定;</span> <span>如果锁定区域最初包含文件的结尾，并且文件增长超出该区域，那么该文件的新部分将不会被该锁覆盖。</span> <span>如果文件的大小增加，并且整个文件都需要锁定，则应该锁定从零开始并且不小于文件的预期最大大小的区域。</span> <span>零参数<a href="../../../java/nio/channels/FileChannel.html#tryLock--"><code>tryLock()</code></a>方法简单地锁定一个大小为<a href="../../../java/lang/Long.html#MAX_VALUE"><code>Long.MAX_VALUE</code></a>的区域。</span> </p>
+<p> <span>某些操作系统不支持共享锁，在这种情况下，共享锁的请求将自动转换为独占锁的请求。</span> <span>新获取的锁是共享的还是独占的都可以通过调用生成的锁定对象的<a href="../../../java/nio/channels/FileLock.html#isShared--"><code>isShared</code></a>方法进行测试。</span> </p>
+<p> <span>文件锁代表整个Java虚拟机。</span> <span>它们不适用于通过同一虚拟机中的多个线程来控制对文件的访问。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>position</code> - 锁定区域要启动的位置;</span>
+<span>必须是非负的</span>
+</dd>
+<dd>
+<span><code>size</code> - 锁定区域的大小;</span>
+<span>必须是非负数，并且总和<tt>position</tt> + <tt>size</tt>必须是非负数</span>
+</dd>
+<dd>
+<code>shared</code> - 
+            <tt>true</tt>要求共享锁， 
+            <tt>false</tt>要求排他锁 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示新获取的锁的锁定对象，如果由于另一个程序保持重叠锁定而无法获取锁， 
+            <tt>则为</tt> null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数的前提条件不成立 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此频道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/OverlappingFileLockException.html" title="class in java.nio.channels">OverlappingFileLockException</a></code> - 如果与该请求区域重叠的锁已由该Java虚拟机保留，或者该方法中已阻止另一个线程，并尝试锁定同一文件的重叠区域 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/nio/channels/FileChannel.html#lock--"><code>lock()</code></a> ， 
+            <a href="../../../java/nio/channels/FileChannel.html#lock-long-long-boolean-"><code>lock(long,long,boolean)</code></a> ， 
+            <a href="../../../java/nio/channels/FileChannel.html#tryLock--"><code>tryLock()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="tryLock--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>tryLock</h4> <pre>public final <a href="../../../java/nio/channels/FileLock.html" title="class in java.nio.channels">FileLock</a> tryLock()
+                       throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>尝试获取此频道文件的排他锁。</span>
+<p> <span>调用此方法的形式为<tt>fc.tryLock()的</tt>行为方式与调用完全相同</span> </p>
+<pre>  <span>fc.<a href="../../../java/nio/channels/FileChannel.html#tryLock-long-long-boolean-"><code>tryLock</code></a>(0L, Long.MAX_VALUE, false)</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示新获取的锁的锁定对象，如果由于另一个程序保持重叠锁定而无法获取锁， 
+            <tt>则为</tt> null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/OverlappingFileLockException.html" title="class in java.nio.channels">OverlappingFileLockException</a></code> - 如果与该请求区域重叠的锁已由该Java虚拟机保留，或者该方法中是否已阻止另一个线程，并尝试锁定重叠区域 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/nio/channels/FileChannel.html#lock--"><code>lock()</code></a> ， 
+            <a href="../../../java/nio/channels/FileChannel.html#lock-long-long-boolean-"><code>lock(long,long,boolean)</code></a> ， 
+            <a href="../../../java/nio/channels/FileChannel.html#tryLock-long-long-boolean-"><code>tryLock(long,long,boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

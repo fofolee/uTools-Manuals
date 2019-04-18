@@ -1,0 +1,973 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     org.ietf.jgss 
+   </div>
+<h2 class="title" title="Class GSSManager">Class GSSManager</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>org.ietf.jgss.GSSManager</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">GSSManager</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span>该类作为其他重要GSS-API类的工厂，并提供有关支持的机制的信息。</span>
+<span>它可以创建实现以下三个GSS-API接口的类的实例： <a href="../../../org/ietf/jgss/GSSName.html" title="org.ietf.jgss中的接口"><code>GSSName</code></a> ， <a href="../../../org/ietf/jgss/GSSCredential.html" title="org.ietf.jgss中的接口"><code>GSSCredential</code></a>和<a href="../../../org/ietf/jgss/GSSContext.html" title="org.ietf.jgss中的接口"><code>GSSContext</code></a> 。</span>
+<span>它还具有查询可用机制列表和每种机制支持的参数的方法。</span>
+<p> <span>默认的<code>GSSManager</code>子类的实例可以通过静态方法<a href="../../../org/ietf/jgss/GSSManager.html#getInstance--"><code>getInstance</code>获得</a> ，但应用程序可以自由地实例化GSSManager的其他子<code>GSSManager</code> 。</span> <span>默认的<code>GSSManager</code>实例将支持除了任何其他Kerberos v5 GSS-API机制。</span> <span>该机制由Oid“1.2.840.113554.1.2.2”标识，并在RFC 1964中定义。</span> </p>
+<p> <span>扩展<code>GSSManager</code>抽象类的子类可以被实现为使用一些熟知的服务提供者规范的基于模块提供者的层。</span> <span><code>GSSManager</code> API允许应用程序设置这种实现的提供程序首选项。</span> <span>这些方法还允许实现抛出一个明确定义的异常，以防止不支持基于提供程序的配置。</span> <span>期望可移植的应用程序应该意识到这一点，并通过捕获异常来彻底恢复。</span> </p>
+<p> <span>预计提供者将使用三种最常见的方式：</span> </p>
+<p></p>
+<ol>
+<li> <span>应用程序不关心使用的提供程序（默认情况）。</span> </li>
+<li> <span>应用程序希望特定的提供者优先使用，无论是针对特定机制还是所有时间，无论机制如何。</span> </li>
+<li> <span>应用程序希望尽可能地使用本地配置的提供程序，但是如果缺少一个或多个机制的支持，那么该应用程序想要退回到其自己的提供程序。</span> </li>
+</ol>
+<p> <span><code>GSSManager</code>类有两种使能这些使用模式的方法： <a href="../../../org/ietf/jgss/GSSManager.html#addProviderAtFront-java.security.Provider-org.ietf.jgss.Oid-"><code>addProviderAtFront</code></a>和<a href="../../../org/ietf/jgss/GSSManager.html#addProviderAtEnd-java.security.Provider-org.ietf.jgss.Oid-"><code>addProviderAtEnd</code></a> 。</span> <span>这些方法具有创建<i>&lt;provider，oid&gt;</i>对的有序列表的效果，其中每对指示给定oid的提供者的偏好。</span> </p>
+<p> <span>重要的是要注意，由GSSManager创建的不同GSS-API对象之间存在某些交互，其中用于特定机制的提供程序可能需要在所有对象之间保持一致。</span> <span>例如，如果GSSCredential包含机制<i>m</i>的提供者<i>p</i>中的元素，则通常应将其传递给将使用提供者<i>p</i>作为机制<i>m</i>的GSSContext。</span> <span>最大可移植性的一个简单的经验法则是，不同的GSSManager创建的对象不应该混合，如果可能，应该创建一个不同的GSSManager实例，如果应用程序想在已经创建一个对象的<code>addProviderAtFront</code>上调用<code>addProviderAtFront</code>方法。</span> </p>
+<p> <span>以下是一些示例代码，显示如何使用GSSManager：</span> </p>
+<p></p>
+<pre>  <span>GSSManager manager = GSSManager.getInstance();
+
+     Oid krb5Mechanism = new Oid("1.2.840.113554.1.2.2");
+     Oid krb5PrincipalNameType = new Oid("1.2.840.113554.1.2.2.1");
+
+     // Identify who the client wishes to be
+     GSSName userName = manager.createName("duke", GSSName.NT_USER_NAME);
+
+     // Identify the name of the server. This uses a Kerberos specific
+     // name format.
+     GSSName serverName = manager.createName("nfs/foo.sun.com",
+                                             krb5PrincipalNameType);
+
+     // Acquire credentials for the user
+     GSSCredential userCreds = manager.createCredential(userName,
+                                             GSSCredential.DEFAULT_LIFETIME,
+                                             krb5Mechanism,
+                                             GSSCredential.INITIATE_ONLY);
+
+     // Instantiate and initialize a security context that will be
+     // established with the server
+     GSSContext context = manager.createContext(serverName,
+                                                krb5Mechanism,
+                                                userCreds,
+                                                GSSContext.DEFAULT_LIFETIME);</span> </pre>
+<p> <span>服务器端可能会使用此源的以下变体：</span> </p>
+<p></p>
+<pre>  <span>// Acquire credentials for the server
+     GSSCredential serverCreds = manager.createCredential(serverName,
+                                             GSSCredential.DEFAULT_LIFETIME,
+                                             krb5Mechanism,
+                                             GSSCredential.ACCEPT_ONLY);
+
+     // Instantiate and initialize a security context that will
+     // wait for an establishment request token from the client
+     GSSContext context = manager.createContext(serverCreds);</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSName.html" title="org.ietf.jgss中的接口"><code>GSSName</code></a> ， <a href="../../../org/ietf/jgss/GSSCredential.html" title="org.ietf.jgss中的接口"><code>GSSCredential</code></a> ， <a href="../../../org/ietf/jgss/GSSContext.html" title="org.ietf.jgss中的接口"><code>GSSContext</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#GSSManager--">GSSManager</a></span>()</code> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#addProviderAtEnd-java.security.Provider-org.ietf.jgss.Oid-">addProviderAtEnd</a></span>(<a href="../../../java/security/Provider.html" title="class in java.security">Provider</a> p, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)</code>
+<div class="block">
+              该方法用于向GSSManager指示，如果没有找到支持给定机制的其他提供程序，应用程序将希望使用特定的提供程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#addProviderAtFront-java.security.Provider-org.ietf.jgss.Oid-">addProviderAtFront</a></span>(<a href="../../../java/security/Provider.html" title="class in java.security">Provider</a> p, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)</code>
+<div class="block">
+              该方法用于向GSSManager指示当给定机制需要支持时，应用程序希望在所有其他提供程序之前使用特定的提供程序。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSContext.html" title="interface in org.ietf.jgss">GSSContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createContext-byte:A-">createContext</a></span>(byte[] interProcessToken)</code>
+<div class="block">
+              用于创建先前导出的上下文的工厂方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSContext.html" title="interface in org.ietf.jgss">GSSContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createContext-org.ietf.jgss.GSSCredential-">createContext</a></span>(<a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a> myCred)</code>
+<div class="block">
+              用于在受体侧创建上下文的工厂方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSContext.html" title="interface in org.ietf.jgss">GSSContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createContext-org.ietf.jgss.GSSName-org.ietf.jgss.Oid-org.ietf.jgss.GSSCredential-int-">createContext</a></span>(<a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> peer, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech, <a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a> myCred, int lifetime)</code>
+<div class="block">
+              用于在启动者侧创建上下文的工厂方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createCredential-org.ietf.jgss.GSSName-int-org.ietf.jgss.Oid:A-int-">createCredential</a></span>(<a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> name, int lifetime, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a>[] mechs, int usage)</code>
+<div class="block">
+              用于通过一组机制获取凭据的工厂方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createCredential-org.ietf.jgss.GSSName-int-org.ietf.jgss.Oid-int-">createCredential</a></span>(<a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> name, int lifetime, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech, int usage)</code>
+<div class="block">
+              用于获取单一机制凭证的工厂方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createCredential-int-">createCredential</a></span>(int usage)</code>
+<div class="block">
+              用于获取默认凭据的工厂方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createName-byte:A-org.ietf.jgss.Oid-">createName</a></span>(byte[] name, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType)</code>
+<div class="block">
+              将包含名称的字节数组从指定的命名空间转换为GSSName对象的Factory方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createName-byte:A-org.ietf.jgss.Oid-org.ietf.jgss.Oid-">createName</a></span>(byte[] name, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)</code>
+<div class="block">
+              将包含名称的字节数组从指定的命名空间转换为GSSName对象的Factory方法，并同时为机制进行规范化。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createName-java.lang.String-org.ietf.jgss.Oid-">createName</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> nameStr, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType)</code>
+<div class="block">
+              将字符串名称从指定的命名空间转换为GSSName对象的Factory方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#createName-java.lang.String-org.ietf.jgss.Oid-org.ietf.jgss.Oid-">createName</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> nameStr, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType, <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)</code>
+<div class="block">
+              将字符串名称从指定的命名空间转换为GSSName对象并将其同时用于机制进行规范化的Factory方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>static <a href="../../../org/ietf/jgss/GSSManager.html" title="class in org.ietf.jgss">GSSManager</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#getInstance--">getInstance</a></span>()</code>
+<div class="block">
+              返回默认的GSSManager实现。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#getMechs--">getMechs</a></span>()</code>
+<div class="block">
+              返回GSS-API调用者通过此GSSManager可用的机制列表。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#getMechsForName-org.ietf.jgss.Oid-">getMechsForName</a></span>(<a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType)</code>
+<div class="block">
+              返回支持指定名称类型的机制列表。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>abstract <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../org/ietf/jgss/GSSManager.html#getNamesForMech-org.ietf.jgss.Oid-">getNamesForMech</a></span>(<a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)</code>
+<div class="block">
+              返回指定机制支持的名称类型。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="GSSManager--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>GSSManager</h4> <pre>public GSSManager()</pre> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getInstance--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getInstance</h4> <pre>public static <a href="../../../org/ietf/jgss/GSSManager.html" title="class in org.ietf.jgss">GSSManager</a> getInstance()</pre>
+<div class="block">
+            返回默认的GSSManager实现。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             GSSManager实现 
+           </dd>
+</dl> </li>
+</ul> <a name="getMechs--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMechs</h4> <pre>public abstract <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a>[] getMechs()</pre>
+<div class="block">
+<span>返回GSS-API调用者通过此GSSManager可用的机制列表。</span>
+<span>从<a href="../../../org/ietf/jgss/GSSManager.html#getInstance--"><code>getInstance()</code></a>方法获取的默认GSSManager在其列表中包含Oid“1.2.840.113554.1.2.2”。</span>
+<span>此Oid标识了RFC 1964中定义的Kerberos v5 GSS-API机制。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>对应于可用机制的Oid对象数组。</span>
+<span>当没有机制<code>null</code>时，返回一个<code>null</code>值（一个例子是动态配置机制，当前没有安装任何机制）。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getNamesForMech-org.ietf.jgss.Oid-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNamesForMech</h4> <pre>public abstract <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a>[] getNamesForMech(<a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)
+                               throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>返回指定机制支持的名称类型。</span>
+<p> <span>默认的GSSManager实例包括对Kerberos v5机制的支持。</span> <span>当表明该机制（“1.2.840.113554.1.2.2”），则返回的列表将包含至少以下nametypes： <a href="../../../org/ietf/jgss/GSSName.html#NT_HOSTBASED_SERVICE"><code>GSSName.NT_HOSTBASED_SERVICE</code></a> ， <a href="../../../org/ietf/jgss/GSSName.html#NT_EXPORT_NAME"><code>GSSName.NT_EXPORT_NAME</code></a>和Kerberos V5具体的OID“1.2.840.113554.1.2.2.1”。</span> <span>Oid“1.2.840.113554.1.2.2.1”的命名空间在RFC 1964中定义。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>mech</code> - 查询的机制的Oid 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             对应于机制支持的名称类型的Oid对象数组。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSManager.html#getMechsForName-org.ietf.jgss.Oid-"><code>getMechsForName(Oid)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMechsForName-org.ietf.jgss.Oid-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMechsForName</h4> <pre>public abstract <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a>[] getMechsForName(<a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType)</pre>
+<div class="block">
+<span>返回支持指定名称类型的机制列表。</span>
+<p> <span>在Kerberos v5机制（“1.2.840.113554.1.2.2”）将始终在此列表中，当指示NAMETYPE是一个返回<a href="../../../org/ietf/jgss/GSSName.html#NT_HOSTBASED_SERVICE"><code>GSSName.NT_HOSTBASED_SERVICE</code></a> ， <a href="../../../org/ietf/jgss/GSSName.html#NT_EXPORT_NAME"><code>GSSName.NT_EXPORT_NAME</code></a> ，或“1.2.840.113554.1.2.2.1”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nameType</code> - 要查找的名称类型的Oid 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>对应于支持指定名称类型的机制的Oid对象数组。</span>
+<span>当没有找到支持指定名称类型的<code>null</code>时返回null。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSManager.html#getNamesForMech-org.ietf.jgss.Oid-"><code>getNamesForMech(Oid)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="createName-java.lang.String-org.ietf.jgss.Oid-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createName</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> createName(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> nameStr,
+                                   <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType)
+                            throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>将字符串名称从指定的命名空间转换为GSSName对象的Factory方法。</span>
+<span>一般来说，创建的<code>GSSName</code>对象将包含该名称的多个表示，一个用于支持的每个机制;</span>
+<span>两个例外是这个例外，当命名空间类型参数指示NT_EXPORT_NAME或GSS-API实现不是多机制时。</span>
+<span>不建议将此方法与NT_EXPORT_NAME类型一起使用，因为将以前导出的名称组合为字符串的任意字节可能会导致字符编码方案出现问题。</span>
+<span>在这种情况下，建议将字节直接传递到此方法<a href="../../../org/ietf/jgss/GSSManager.html#createName-byte:A-org.ietf.jgss.Oid-"><code>createName</code></a>的重载形式。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nameStr</code> - 表示要创建的名称的可打印形式的字符串。 
+           </dd>
+<dd>
+<span><code>nameType</code> - Oid指定提供的可打印名称的命名空间。</span>
+<span><code>null</code>可以用于指定每个检查nameStr的机制都假设机制特定的默认可打印语法。</span>
+<span>使用这种方法使用数据类型NT_EXPORT_NAME是不可取的。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示指定的主体的GSSName 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAME"><code>GSSException.BAD_NAME</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSName.html" title="org.ietf.jgss中的接口"><code>GSSName</code></a> ， <a href="../../../org/ietf/jgss/GSSName.html#NT_EXPORT_NAME"><code>GSSName.NT_EXPORT_NAME</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="createName-byte:A-org.ietf.jgss.Oid-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createName</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> createName(byte[] name,
+                                   <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType)
+                            throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>将包含名称的字节数组从指定的命名空间转换为GSSName对象的Factory方法。</span>
+<span>一般来说，创建的<code>GSSName</code>对象将包含多个表示名称，一个表示支持的每个机制;</span>
+<span>两个例外是这个例外，当命名空间类型参数指示NT_EXPORT_NAME或GSS-API实现不是多机制时。</span>
+<span>根据给定的数学类型选择的一些编码方案，传入的字节由每个底层机制解释。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 包含要创建的名称的字节数组 
+           </dd>
+<dd>
+<span><code>nameType</code> - Oid指定字节数组中提供的名称的命名空间。</span>
+<span><code>null</code>可以用于指定每个检查字节数组的机制应该假定机制特定的默认语法。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示指定的主体的GSSName 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAME"><code>GSSException.BAD_NAME</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSName.html" title="org.ietf.jgss中的接口"><code>GSSName</code></a> ， <a href="../../../org/ietf/jgss/GSSName.html#NT_EXPORT_NAME"><code>GSSName.NT_EXPORT_NAME</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="createName-java.lang.String-org.ietf.jgss.Oid-org.ietf.jgss.Oid-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createName</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> createName(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> nameStr,
+                                   <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType,
+                                   <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)
+                            throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>将字符串名称从指定的命名空间转换为GSSName对象并将其同时用于机制进行规范化的Factory方法。</span>
+<span>换句话说，这个方法是一个实用工具，相当于两个步骤： <a href="../../../org/ietf/jgss/GSSManager.html#createName-java.lang.String-org.ietf.jgss.Oid-"><code>createName</code></a>然后也是<a href="../../../org/ietf/jgss/GSSName.html#canonicalize-org.ietf.jgss.Oid-"><code>GSSName.canonicalize</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nameStr</code> - 表示要创建的名称的可打印形式的字符串。 
+           </dd>
+<dd>
+<span><code>nameType</code> - Oid指定提供的可打印名称的命名空间。</span>
+<span><code>null</code>可用于指定检查nameStr的每个机制都应该假定机制特定的默认可打印语法。</span>
+<span>使用这种方法使用数据类型NT_EXPORT_NAME是不可取的。</span>
+</dd>
+<dd>
+<code>mech</code> - Oid指定名称应该被规范化的机制 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示指定的主体的GSSName 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAME"><code>GSSException.BAD_NAME</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSName.html#canonicalize-org.ietf.jgss.Oid-"><code>GSSName.canonicalize(Oid)</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSName.html#NT_EXPORT_NAME"><code>GSSName.NT_EXPORT_NAME</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="createName-byte:A-org.ietf.jgss.Oid-org.ietf.jgss.Oid-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createName</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> createName(byte[] name,
+                                   <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> nameType,
+                                   <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)
+                            throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>将包含名称的字节数组从指定的命名空间转换为GSSName对象的Factory方法，并同时为机制进行规范化。</span>
+<span>换句话说，这个方法是一个实用工具，相当于两个步骤： <a href="../../../org/ietf/jgss/GSSManager.html#createName-byte:A-org.ietf.jgss.Oid-"><code>createName</code></a>然后也是<a href="../../../org/ietf/jgss/GSSName.html#canonicalize-org.ietf.jgss.Oid-"><code>GSSName.canonicalize</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 包含要创建的名称的字节数组 
+           </dd>
+<dd>
+<span><code>nameType</code> - Oid指定字节数组中提供的名称的命名空间。</span>
+<span><code>null</code>可以用于指定每个检查字节数组的机制应该假定机制特定的默认语法。</span>
+</dd>
+<dd>
+<code>mech</code> - Oid指定名称应该被规范化的机制 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示指定的主体的GSSName 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAME"><code>GSSException.BAD_NAME</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../org/ietf/jgss/GSSName.html#canonicalize-org.ietf.jgss.Oid-"><code>GSSName.canonicalize(Oid)</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSName.html#NT_EXPORT_NAME"><code>GSSName.NT_EXPORT_NAME</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="createCredential-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createCredential</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a> createCredential(int usage)
+                                        throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>用于获取默认凭据的工厂方法。</span>
+<span>这将导致GSS-API针对机制，名称和生命周期集合使用系统特定的默认值。</span>
+<p> <span>GSS-API机制提供商必须对呼叫者强制执行本地访问控制策略，以防止未经授权的呼叫者获取他们无权的凭据。</span> <span>不同机制提供者所需的种类可以在每个机制的基础上进行记录。</span> <span>失败的权限检查可能会导致从此方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>usage</code> - 此凭证对象的预期用途。</span>
+<span>此参数的值必须是一个： <a href="../../../org/ietf/jgss/GSSCredential.html#INITIATE_AND_ACCEPT"><code>GSSCredential.INITIATE_AND_ACCEPT</code></a> ， <a href="../../../org/ietf/jgss/GSSCredential.html#ACCEPT_ONLY"><code>GSSCredential.ACCEPT_ONLY</code></a>和<a href="../../../org/ietf/jgss/GSSCredential.html#INITIATE_ONLY"><code>GSSCredential.INITIATE_ONLY</code></a> 。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所请求类型的GSSCredential。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAME"><code>GSSException.BAD_NAME</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CREDENTIALS_EXPIRED"><code>GSSException.CREDENTIALS_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CRED"><code>GSSException.NO_CRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSCredential.html" title="org.ietf.jgss中的接口"><code>GSSCredential</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="createCredential-org.ietf.jgss.GSSName-int-org.ietf.jgss.Oid-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createCredential</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a> createCredential(<a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> name,
+                                               int lifetime,
+                                               <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech,
+                                               int usage)
+                                        throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>用于获取单一机制凭证的工厂方法。</span>
+<p> <span>GSS-API机制提供商必须对呼叫者强制执行本地访问控制策略，以防止未经授权的呼叫者获取他们无权的凭据。</span> <span>不同机制提供者所需的种类可以在每个机制的基础上进行记录。</span> <span>失败的权限检查可能会导致从此方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span> </p>
+<p> <span>生命周期的非默认值不能总是被底层机制所尊重，因此应该准备<a href="../../../org/ietf/jgss/GSSCredential.html#getRemainingLifetime--">好在</a>返回的凭证上调用<code>getRemainingLifetime</code>。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要获得该证书的校长的姓名。</span>
+<span>使用<code>null</code>指定默认主体。</span>
+</dd>
+<dd>
+<span><code>lifetime</code> - 凭证应该保持有效的秒数。</span>
+<span>使用<a href="../../../org/ietf/jgss/GSSCredential.html#INDEFINITE_LIFETIME"><code>GSSCredential.INDEFINITE_LIFETIME</code></a>请求凭据具有最长允许的生命周期。</span>
+<span>使用<a href="../../../org/ietf/jgss/GSSCredential.html#DEFAULT_LIFETIME"><code>GSSCredential.DEFAULT_LIFETIME</code></a>请求默认凭据生存期。</span>
+</dd>
+<dd>
+<span><code>mech</code> - 所需机制的Oid。</span>
+<span>使用<code>(Oid) null</code>请求默认机制。</span>
+</dd>
+<dd>
+<span><code>usage</code> - 此凭证对象的预期用途。</span>
+<span>此参数的值必须是一个： <a href="../../../org/ietf/jgss/GSSCredential.html#INITIATE_AND_ACCEPT"><code>GSSCredential.INITIATE_AND_ACCEPT</code></a> ， <a href="../../../org/ietf/jgss/GSSCredential.html#ACCEPT_ONLY"><code>GSSCredential.ACCEPT_ONLY</code></a>和<a href="../../../org/ietf/jgss/GSSCredential.html#INITIATE_ONLY"><code>GSSCredential.INITIATE_ONLY</code></a> 。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所请求类型的GSSCredential。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAME"><code>GSSException.BAD_NAME</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CREDENTIALS_EXPIRED"><code>GSSException.CREDENTIALS_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CRED"><code>GSSException.NO_CRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSCredential.html" title="org.ietf.jgss中的接口"><code>GSSCredential</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="createCredential-org.ietf.jgss.GSSName-int-org.ietf.jgss.Oid:A-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createCredential</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a> createCredential(<a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> name,
+                                               int lifetime,
+                                               <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a>[] mechs,
+                                               int usage)
+                                        throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>用于通过一组机制获取凭据的工厂方法。</span>
+<span>此方法尝试获取名为mechs的阵列中指定的每个机制的凭据。</span>
+<span>要确定获取凭据成功的机制列表，呼叫者应使用<a href="../../../org/ietf/jgss/GSSCredential.html#getMechs--"><code>GSSCredential.getMechs</code></a>方法。</span>
+<p> <span>GSS-API机制提供商必须对呼叫者强制执行本地访问控制策略，以防止未经授权的呼叫者获取他们无权的凭据。</span> <span>不同机制提供者所需的种类可以在每个机制的基础上进行记录。</span> <span>失败的权限检查可能会导致从此方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span> </p>
+<p> <span>生命周期的非默认值不能始终被基础机制所尊重，因此应用程序应准备<a href="../../../org/ietf/jgss/GSSCredential.html#getRemainingLifetime--">好在</a>返回的凭证上调用<code>getRemainingLifetime</code>。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要获得该证书的委托人的姓名。</span>
+<span>使用<code>null</code>指定默认主体。</span>
+</dd>
+<dd>
+<span><code>lifetime</code> - 凭证应该保持有效的秒数。</span>
+<span>使用<a href="../../../org/ietf/jgss/GSSCredential.html#INDEFINITE_LIFETIME"><code>GSSCredential.INDEFINITE_LIFETIME</code></a>请求凭据具有最大允许的生命周期。</span>
+<span>使用<a href="../../../org/ietf/jgss/GSSCredential.html#DEFAULT_LIFETIME"><code>GSSCredential.DEFAULT_LIFETIME</code></a>请求默认凭证生命周期。</span>
+</dd>
+<dd>
+<span><code>mechs</code> - 一个Oid数组，表示要获取凭据的机制。</span>
+<span>使用<code>(Oid[]) null</code>请求系统特定的默认机制集。</span>
+</dd>
+<dd>
+<span><code>usage</code> - 此凭证对象的预期用途。</span>
+<span>此参数的值必须是一个： <a href="../../../org/ietf/jgss/GSSCredential.html#INITIATE_AND_ACCEPT"><code>GSSCredential.INITIATE_AND_ACCEPT</code></a> ， <a href="../../../org/ietf/jgss/GSSCredential.html#ACCEPT_ONLY"><code>GSSCredential.ACCEPT_ONLY</code></a>和<a href="../../../org/ietf/jgss/GSSCredential.html#INITIATE_ONLY"><code>GSSCredential.INITIATE_ONLY</code></a> 。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所请求类型的GSSCredential。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#BAD_NAME"><code>GSSException.BAD_NAME</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#CREDENTIALS_EXPIRED"><code>GSSException.CREDENTIALS_EXPIRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CRED"><code>GSSException.NO_CRED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSCredential.html" title="org.ietf.jgss中的接口"><code>GSSCredential</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="createContext-org.ietf.jgss.GSSName-org.ietf.jgss.Oid-org.ietf.jgss.GSSCredential-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createContext</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSContext.html" title="interface in org.ietf.jgss">GSSContext</a> createContext(<a href="../../../org/ietf/jgss/GSSName.html" title="interface in org.ietf.jgss">GSSName</a> peer,
+                                         <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech,
+                                         <a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a> myCred,
+                                         int lifetime)
+                                  throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>用于在启动者侧创建上下文的工厂方法。</span>
+<span>一些机制提供者可能会要求呼叫者被授予启动安全上下文的权限。</span>
+<span>失败的权限检查可能会导致从此方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span>
+<p> <span>生命周期的非默认值不能始终被基础机制所尊重，因此应用程序应准备在返回的上下文中调用<a href="../../../org/ietf/jgss/GSSContext.html#getLifetime--"><code>getLifetime</code></a> 。</span> </p>
+<p></p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>peer</code> - 目标对等体的名称。 
+           </dd>
+<dd>
+<span><code>mech</code> - 所需机制的Oid。</span>
+<span>使用<code>null</code>请求默认机制。</span>
+</dd>
+<dd>
+<span><code>myCred</code> - 启动器的凭据。</span>
+<span>使用<code>null</code>充当默认启动器主体。</span>
+</dd>
+<dd>
+<span><code>lifetime</code> - 为上下文<code>lifetime</code>的生命周期（以秒为单位）。</span>
+<span>使用<a href="../../../org/ietf/jgss/GSSContext.html#INDEFINITE_LIFETIME"><code>GSSContext.INDEFINITE_LIFETIME</code></a>请求上下文具有最大允许的生命周期。</span>
+<span>使用<a href="../../../org/ietf/jgss/GSSContext.html#DEFAULT_LIFETIME"><code>GSSContext.DEFAULT_LIFETIME</code></a>请求上下文的默认生命周期。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个未成立的GSSContext 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CRED"><code>GSSException.NO_CRED</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#CREDENTIALS_EXPIRED"><code>GSSException.CREDENTIALS_EXPIRED</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#BAD_NAMETYPE"><code>GSSException.BAD_NAMETYPE</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSContext.html" title="org.ietf.jgss中的接口"><code>GSSContext</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="createContext-org.ietf.jgss.GSSCredential-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createContext</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSContext.html" title="interface in org.ietf.jgss">GSSContext</a> createContext(<a href="../../../org/ietf/jgss/GSSCredential.html" title="interface in org.ietf.jgss">GSSCredential</a> myCred)
+                                  throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>用于在受体侧创建上下文的工厂方法。</span>
+<span>上下文的属性将从提供给accept方法的输入令牌确定。</span>
+<span>一些机制提供者可能要求呼叫者被授予接受安全上下文的权限。</span>
+<span>失败的权限检查可能会导致从此方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>myCred</code> - 接受者的凭据。</span>
+<span>使用<code>null</code>作为默认的接受者主体。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个未成立的GSSContext 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> - 包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CRED"><code>GSSException.NO_CRED</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#CREDENTIALS_EXPIRED"><code>GSSException.CREDENTIALS_EXPIRED</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#BAD_MECH"><code>GSSException.BAD_MECH</code></a>
+<a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSContext.html" title="org.ietf.jgss中的接口"><code>GSSContext</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="createContext-byte:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createContext</h4> <pre>public abstract <a href="../../../org/ietf/jgss/GSSContext.html" title="interface in org.ietf.jgss">GSSContext</a> createContext(byte[] interProcessToken)
+                                  throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>用于创建先前导出的上下文的工厂方法。</span>
+<span>上下文属性将从输入令牌确定，不能通过set方法进行修改。</span>
+<p> <span>实施不需要支持安全上下文的进程间传输。</span> <span>在导出上下文之前，调用<a href="../../../org/ietf/jgss/GSSContext.html#isTransferable--"><code>GSSContext.isTransferable</code></a>将指示上下文是否可转移。</span> <span>在调用一个实现此方法不支持它会导致<code>GSSException</code>错误代码<a href="../../../org/ietf/jgss/GSSException.html#UNAVAILABLE"><code>GSSException.UNAVAILABLE</code></a> 。</span> <span>一些机制提供者可能要求呼叫者被授予启动或接受安全上下文的权限。</span> <span>失败的权限检查可能会导致从该方法抛出<a href="../../../java/lang/SecurityException.html" title="java.lang中的类"><code>SecurityException</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>interProcessToken</code> - 以前从导出方法发出的令牌。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             以前建立的GSSContext 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#NO_CONTEXT"><code>GSSException.NO_CONTEXT</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#DEFECTIVE_TOKEN"><code>GSSException.DEFECTIVE_TOKEN</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#UNAVAILABLE"><code>GSSException.UNAVAILABLE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#UNAUTHORIZED"><code>GSSException.UNAUTHORIZED</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../org/ietf/jgss/GSSContext.html" title="org.ietf.jgss中的接口"><code>GSSContext</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="addProviderAtFront-java.security.Provider-org.ietf.jgss.Oid-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addProviderAtFront</h4> <pre>public abstract void addProviderAtFront(<a href="../../../java/security/Provider.html" title="class in java.security">Provider</a> p,
+                                        <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)
+                                 throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>该方法用于向GSSManager指示当给定机制需要支持时，应用程序希望在所有其他提供程序之前使用特定的提供程序。</span>
+<span>当使用null值而不是<code>Oid</code>的Oid时，GSSManager必须在所有其他机构之前使用指定的提供程序，无论机制如何。</span>
+<span>只有当指定的提供商不支持所需的机制时，GSSManager才会移动到不同的提供商。</span>
+<p> <span>调用此方法反复保留较旧的设置，但优先降低它们，从而形成提供者的有序列表和顶部增长的<code>Oid</code>对。</span> </p>
+<p> <span>使用null <code>Oid</code>调用addProviderAtFront将删除在GSSManager实例中为此提供程序设置的所有先前首选项。</span> <span>使用非空值调用addProviderAtFront <code>Oid</code>将删除使用此机制和此提供程序一起设置的任何先前的首选项。</span> </p>
+<p> <span>如果GSSManager实现不支持具有可插拔提供程序体系结构的SPI，那么它应该抛出GSSException状态代码GSSException.UNAVAILABLE以指示该操作不可用。</span> </p>
+<p> <span>假设应用程序希望在需要任何机制时首先检查提供程序A，它将调用：</span> </p>
+<p></p>
+<pre>  <span>GSSManager mgr = GSSManager.getInstance();
+         // mgr may at this point have its own pre-configured list
+         // of provider preferences. The following will prepend to
+         // any such list:
+
+         mgr.addProviderAtFront(A, null);</span> </pre>
+<span>现在如果还希望Oid m1的机制始终是在提供者B之前从先前设置的A被检查得到的，它会调用：</span>
+<p></p>
+<pre>  <span>mgr.addProviderAtFront(B, m1);</span> </pre>
+<span>那么GSSManager会先检查一下是否需要m1。</span>
+<span>如果B没有提供对m1的支持，则GSSManager将继续检查A.如果在m2与m1不同的地方需要任何机制m2，则GSSManager将跳过B并直接与A进行检查。</span>
+<p> <span>假设在稍后的时间，对同一GSSManager实例进行以下调用：</span> </p>
+<p></p>
+<pre>  <span>mgr.addProviderAtFront(B, null)</span> </pre>
+<span>那么先前设置的对（B，m1）被归纳并且应该被删除。</span>
+<span>有效地，首选项列表现在成为{（B，null），（A，null），... //后跟预先配置的列表。</span>
+<p> <span>但请注意，以下电话：</span> </p>
+<pre>  <span>mgr.addProviderAtFront(A, m3)</span> </pre>
+<span>不包含（A，null）的先前设置，列表将有效地成为{（A，m3），（B，null），（A，null），...}</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>p</code> - 在需要支持时需要使用的提供程序实例。 
+           </dd>
+<dd>
+<code>mech</code> - 提供者正在设置的机制 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#UNAVAILABLE"><code>GSSException.UNAVAILABLE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="addProviderAtEnd-java.security.Provider-org.ietf.jgss.Oid-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>addProviderAtEnd</h4> <pre>public abstract void addProviderAtEnd(<a href="../../../java/security/Provider.html" title="class in java.security">Provider</a> p,
+                                      <a href="../../../org/ietf/jgss/Oid.html" title="class in org.ietf.jgss">Oid</a> mech)
+                               throws <a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></pre>
+<div class="block">
+<span>该方法用于向GSSManager指示，如果没有找到支持给定机制的其他提供程序，应用程序将希望使用特定的提供程序。</span>
+<span>当使用null值代替机制的Oid时，GSSManager必须使用指定的提供程序进行任何机制。</span>
+<p> <span>调用此方法可重复保留较旧的设置，但优先级高于较新的设置，从而形成提供者和Oid对的有序列表。</span> <span>因此，较早的提供者设置将在此之前首先被利用。</span> </p>
+<p> <span>如果先前存在的任何偏好与此处设置的偏好设置冲突，则GSSManager应忽略此请求。</span> </p>
+<p> <span>如果GSSManager实现不支持具有可插拔提供程序体系结构的SPI，那么它应该抛出GSSException状态代码GSSException.UNAVAILABLE以指示该操作不可用。</span> </p>
+<p> <span>假设应用程序希望当需要Oid m1的机制时，系统默认提供者始终先检查，并且只有当它们不支持m1时，才能检查提供者A.</span> <span>然后会打电话：</span> </p>
+<p></p>
+<pre>  <span>GSSManager mgr = GSSManager.getInstance();
+         mgr.addProviderAtEnd(A, m1);</span> </pre>
+<span>现在，如果还希望在所有配置的提供程序已经被检查后，对于所有机制，提供商B都将被检查，那么它将会调用：</span>
+<p></p>
+<pre>  <span>mgr.addProviderAtEnd(B, null);</span> </pre>
+<span>有效地，偏好列表现在变为{...，（A，m1），（B，null）}。</span>
+<p> <span>假设在稍后的时间，对同一GSSManager实例进行以下调用：</span> </p>
+<p></p>
+<pre>  <span>mgr.addProviderAtEnd(B, m2)</span> </pre>
+<span>那么以前的设置（B，null）包含这个，因此该请求应该被忽略。</span>
+<span>如果已经存在（A，m1）或（B，null）的已存在对的请求，同样会发生。</span>
+<p> <span>但请注意，以下电话：</span> </p>
+<p></p>
+<pre>  <span>mgr.addProviderAtEnd(A, null)</span> </pre>
+<span>（A，m1）的先前设置不包含，列表将有效地成为{...，（A，m1），（B，null），（A，null）}</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>p</code> - 在需要支持机制时应该使用的提供程序实例。 
+           </dd>
+<dd>
+<code>mech</code> - 正在设置提供程序的机制 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../org/ietf/jgss/GSSException.html" title="class in org.ietf.jgss">GSSException</a></code> -包含以下主要错误代码： 
+            <a href="../../../org/ietf/jgss/GSSException.html#UNAVAILABLE"><code>GSSException.UNAVAILABLE</code></a> ， 
+            <a href="../../../org/ietf/jgss/GSSException.html#FAILURE"><code>GSSException.FAILURE</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

@@ -1,0 +1,138 @@
+<article id="wikiArticle">
+<div> <div class="blockIndicator experimental indicator-warning">
+<p><span title="这是一个实验性的 API，请尽量不要在生产环境中使用它。"><i class="icon-beaker"> </i></span> <strong>这是一个实验中的功能</strong><br/>此功能某些浏览器尚在开发中，请参考<a href="#Browser_compatibility">浏览器兼容性表格</a>以得到在不同浏览器中适合使用的前缀。由于该功能对应的标准文档可能被重新修订，所以在未来版本的浏览器中该功能的语法和行为可能随之改变。</p>
+</div></div>
+<p><strong><code>WebAssembly.compile()</code></strong> 方法编译WebAssembly二进制代码到一个<a href="Reference/Global_Objects/WebAssembly/Module" title="所有 Module 实例继承自 Module() 构造函数的原型对象 —— 修改它会影响所有 Module 实例。"><code>WebAssembly.Module</code></a> 对象。如果在实例化之前有必要去编译一个模块，那么这个方法是有用的（否则，将会使用<a href="Reference/Global_Objects/WebAssembly/instantiate" title="WebAssembly.instantiate() 是编译和实例化 WebAssembly 代码的主要方法.  这个方法有两个重载方式:"><code>WebAssembly.instantiate()</code></a> 方法）</p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox">Promise&lt;WebAssembly.Module&gt; WebAssembly.compile(bufferSource);</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><em>bufferSource</em></dt>
+<dd>一个包含你想编译的wasm模块二进制代码的 <a href="/en-US/docs/Web/JavaScript/Typed_arrays">typed array</a>(类型数组) or <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer">ArrayBuffer</a>(数组缓冲区)</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>一个解析为 <a href="Reference/Global_Objects/WebAssembly/Module" title="所有 Module 实例继承自 Module() 构造函数的原型对象 —— 修改它会影响所有 Module 实例。"><code>WebAssembly.Module</code></a> 的<code>Promise</code> 对象。</p>
+<h3 id="异常">异常</h3>
+<ul>
+<li>如果 <code>bufferSource</code> 不是一个 <a href="/en-US/docs/Web/JavaScript/Typed_arrays">typed array</a>, 将抛出一个 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> 。</li>
+<li>如果编译失败 promise 将会 reject 一个 <a class="new" href="Reference/Global_Objects/WebAssembly/CompileError" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!"><code>WebAssembly.CompileError</code></a>。</li>
+</ul>
+<h2 id="例子">例子</h2>
+<p>下面的例子 (查看GitHub上的 <a class="external" href="https://github.com/mdn/webassembly-examples/blob/master/js-api-examples/index-compile.html" rel="noopener">index-compile.html</a> 例子, 并且也能 <a class="external" href="https://mdn.github.io/webassembly-examples/js-api-examples/index-compile.html" rel="noopener">查看运行效果</a>) 使用 <code>compile()</code> 方法编译加载进来的 simple.wasm 二进制代码并且使用 <a href="/en-US/docs/Web/API/Worker/postMessage">postMessage()</a> 发送给一个 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">worker</a>。</p>
+<pre class="brush: js">var worker = new Worker("wasm_worker.js");
+
+fetch('simple.wasm').then(response =&gt;
+  response.arrayBuffer()
+).then(bytes =&gt;
+  WebAssembly.compile(bytes)
+).then(mod =&gt;
+  worker.postMessage(mod)
+);</pre>
+<p>在线程中 (查看 <code><a class="external" href="https://github.com/mdn/webassembly-examples/blob/master/js-api-examples/wasm_worker.js" rel="noopener">wasm_worker.js</a></code>) 我们定义了一个导入对象共模块使用，然后设置了一个事件处理函数来接收主线程发送过来的模块。当模块被接收之后，我们使用<a href="Reference/Global_Objects/WebAssembly/Instantiate" title="WebAssembly.instantiate() 是编译和实例化 WebAssembly 代码的主要方法.  这个方法有两个重载方式:"><code>WebAssembly.Instantiate()</code></a> 方法创建了一个实例，调用从它里面导出的一个方法，接下来展示了我们可以用 <a class="new" href="Reference/Global_Objects/WebAssembly/Module/exports" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!"><code>WebAssembly.Module.exports</code></a> 属性来调用模块上返回的可用信息。</p>
+<pre class="brush: js">var importObject = {
+  imports: {
+    imported_func: function(arg) {
+      console.log(arg);
+    }
+  }
+};
+
+onmessage = function(e) {
+  console.log('module received from main thread');
+  var mod = e.data;
+
+  WebAssembly.instantiate(mod, importObject).then(function(instance) {
+    instance.exports.exported_func();
+  });
+
+  var exports = WebAssembly.Module.exports(mod);
+  console.log(exports[0]);
+};</pre>
+<h2 id="Specifications">Specifications</h2>
+<table class="standard-table">
+<thead>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a class="external" href="https://webassembly.github.io/spec/js-api/#webassemblycompile" hreflang="en" lang="en" rel="noopener">WebAssembly JavaScript Interface<br/><small lang="zh-CN">compile()</small></a></td>
+<td><span class="spec-WD">Working Draft</span></td>
+<td>Initial draft definition.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Browser_compatibility" name="Browser_compatibility">Browser compatibility</h2>
+<div>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>compile</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              16</td><td class="bc-supports-yes bc-browser-firefox bc-has-history"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              52<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect1"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              52<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Disabled in the Firefox 52 Extended Support Release (ESR).</dd></dl></section></td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              44</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              11</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57</td><td class="bc-supports-yes bc-browser-edge_mobile bc-has-history"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect2"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> This feature is behind the <code>Experimental JavaScript Features</code> preference.</dd></dl></section></td><td class="bc-supports-yes bc-browser-firefox_android bc-has-history"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              52<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect3"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              52<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Disabled in the Firefox 52 Extended Support Release (ESR).</dd></dl></section></td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              44</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              11</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              7.0</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8.0.0</td></tr></tbody></table><section class="bc-legend" id="sect4"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><abbr class="only-icon" title="See implementation notes."><span>See implementation notes.</span><i class="ic-footnote"></i></abbr></dt><dd>See implementation notes.</dd><dt><abbr class="only-icon" title="User must explicitly enable this feature."><span>User must explicitly enable this feature.</span><i class="ic-disabled"></i></abbr></dt><dd>User must explicitly enable this feature.</dd></dl></section></div><p></p>
+</div>
+<h2 id="See_also">See also</h2>
+<ul>
+<li><a href="/en-US/docs/WebAssembly">WebAssembly</a> overview page</li>
+<li><a href="/en-US/docs/WebAssembly/Concepts">WebAssembly concepts</a></li>
+<li><a href="/en-US/docs/WebAssembly/Using_the_JavaScript_API">Using the WebAssembly JavaScript API</a></li>
+</ul>
+</article>

@@ -1,0 +1,146 @@
+<div class="content guide with-sidebar custom-directive-guide">
+<h1>自定义指令</h1>
+<h2 id="简介"><a class="headerlink" href="#简介" title="简介"></a>简介</h2><p>除了核心功能默认内置的指令 (<code>v-model</code> 和 <code>v-show</code>)，Vue 也允许注册自定义指令。注意，在 Vue2.0 中，代码复用和抽象的主要形式是组件。然而，有的情况下，你仍然需要对普通 DOM 元素进行底层操作，这时候就会用到自定义指令。举个聚焦输入框的例子，如下：</p>
+<div class="demo" id="simplest-directive-example">
+<input v-focus=""/>
+</div>
+<script>
+Vue.directive('focus', {
+  inserted: function (el) {
+    el.focus()
+  }
+})
+new Vue({
+  el: '#simplest-directive-example'
+})
+</script>
+<p>当页面加载时，该元素将获得焦点 (注意：<code>autofocus</code> 在移动版 Safari 上不工作)。事实上，只要你在打开这个页面后还没点击过任何内容，这个输入框就应当还是处于聚焦状态。现在让我们用指令来实现这个功能：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 注册一个全局自定义指令 `v-focus`</span>
+Vue.directive(<span class="hljs-string">'focus'</span>, {
+  <span class="hljs-comment">// 当被绑定的元素插入到 DOM 中时……</span>
+  inserted: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">el</span>) </span>{
+    <span class="hljs-comment">// 聚焦元素</span>
+    el.focus()
+  }
+})</code></pre>
+<p>如果想注册局部指令，组件中也接受一个 <code>directives</code> 的选项：</p>
+<pre><code class="hljs js">directives: {
+  <span class="hljs-attr">focus</span>: {
+    <span class="hljs-comment">// 指令的定义</span>
+    inserted: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">el</span>) </span>{
+      el.focus()
+    }
+  }
+}</code></pre>
+<p>然后你可以在模板中任何元素上使用新的 <code>v-focus</code> 属性，如下：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-focus</span>&gt;</span></code></pre>
+<h2 id="钩子函数"><a class="headerlink" href="#钩子函数" title="钩子函数"></a>钩子函数</h2><p>一个指令定义对象可以提供如下几个钩子函数 (均为可选)：</p>
+<ul>
+<li><p><code>bind</code>：只调用一次，指令第一次绑定到元素时调用。在这里可以进行一次性的初始化设置。</p>
+</li>
+<li><p><code>inserted</code>：被绑定元素插入父节点时调用 (仅保证父节点存在，但不一定已被插入文档中)。</p>
+</li>
+<li><p><code>update</code>：所在组件的 VNode 更新时调用，<strong>但是可能发生在其子 VNode 更新之前</strong>。指令的值可能发生了改变，也可能没有。但是你可以通过比较更新前后的值来忽略不必要的模板更新 (详细的钩子函数参数见下)。</p>
+</li>
+</ul>
+<p class="tip">我们会在<a href="./render-function.html#虚拟-DOM">稍后</a>讨论<a href="./render-function.html">渲染函数</a>时介绍更多 VNodes 的细节。</p>
+<ul>
+<li><p><code>componentUpdated</code>：指令所在组件的 VNode <strong>及其子 VNode</strong> 全部更新后调用。</p>
+</li>
+<li><p><code>unbind</code>：只调用一次，指令与元素解绑时调用。</p>
+</li>
+</ul>
+<p>接下来我们来看一下钩子函数的参数 (即 <code>el</code>、<code>binding</code>、<code>vnode</code> 和 <code>oldVnode</code>)。</p>
+<h2 id="钩子函数参数"><a class="headerlink" href="#钩子函数参数" title="钩子函数参数"></a>钩子函数参数</h2><p>指令钩子函数会被传入以下参数：</p>
+<ul>
+<li><code>el</code>：指令所绑定的元素，可以用来直接操作 DOM 。</li>
+<li><code>binding</code>：一个对象，包含以下属性：<ul>
+<li><code>name</code>：指令名，不包括 <code>v-</code> 前缀。</li>
+<li><code>value</code>：指令的绑定值，例如：<code>v-my-directive="1 + 1"</code> 中，绑定值为 <code>2</code>。</li>
+<li><code>oldValue</code>：指令绑定的前一个值，仅在 <code>update</code> 和 <code>componentUpdated</code> 钩子中可用。无论值是否改变都可用。</li>
+<li><code>expression</code>：字符串形式的指令表达式。例如 <code>v-my-directive="1 + 1"</code> 中，表达式为 <code>"1 + 1"</code>。</li>
+<li><code>arg</code>：传给指令的参数，可选。例如 <code>v-my-directive:foo</code> 中，参数为 <code>"foo"</code>。</li>
+<li><code>modifiers</code>：一个包含修饰符的对象。例如：<code>v-my-directive.foo.bar</code> 中，修饰符对象为 <code>{ foo: true, bar: true }</code>。</li>
+</ul>
+</li>
+<li><code>vnode</code>：Vue 编译生成的虚拟节点。移步 <a href="../api/#VNode-接口">VNode API</a> 来了解更多详情。</li>
+<li><code>oldVnode</code>：上一个虚拟节点，仅在 <code>update</code> 和 <code>componentUpdated</code> 钩子中可用。</li>
+</ul>
+<p class="tip">除了 <code>el</code> 之外，其它参数都应该是只读的，切勿进行修改。如果需要在钩子之间共享数据，建议通过元素的 <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLElement/dataset" rel="noopener" target="_blank"><code>dataset</code></a> 来进行。</p>
+<p>这是一个使用了这些属性的自定义钩子样例：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"hook-arguments-example"</span> <span class="hljs-attr">v-demo:foo.a.b</span>=<span class="hljs-string">"message"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js">Vue.directive(<span class="hljs-string">'demo'</span>, {
+  <span class="hljs-attr">bind</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">el, binding, vnode</span>) </span>{
+    <span class="hljs-keyword">var</span> s = <span class="hljs-built_in">JSON</span>.stringify
+    el.innerHTML =
+      <span class="hljs-string">'name: '</span>       + s(binding.name) + <span class="hljs-string">'&lt;br&gt;'</span> +
+      <span class="hljs-string">'value: '</span>      + s(binding.value) + <span class="hljs-string">'&lt;br&gt;'</span> +
+      <span class="hljs-string">'expression: '</span> + s(binding.expression) + <span class="hljs-string">'&lt;br&gt;'</span> +
+      <span class="hljs-string">'argument: '</span>   + s(binding.arg) + <span class="hljs-string">'&lt;br&gt;'</span> +
+      <span class="hljs-string">'modifiers: '</span>  + s(binding.modifiers) + <span class="hljs-string">'&lt;br&gt;'</span> +
+      <span class="hljs-string">'vnode keys: '</span> + <span class="hljs-built_in">Object</span>.keys(vnode).join(<span class="hljs-string">', '</span>)
+  }
+})
+
+<span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#hook-arguments-example'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">message</span>: <span class="hljs-string">'hello!'</span>
+  }
+})</code></pre>
+<div class="demo" id="hook-arguments-example" v-demo:foo.a.b="message"></div>
+<script>
+Vue.directive('demo', {
+  bind: function (el, binding, vnode) {
+    var s = JSON.stringify
+    el.innerHTML =
+      'name: '       + s(binding.name) + '<br>' +
+      'value: '      + s(binding.value) + '<br>' +
+      'expression: ' + s(binding.expression) + '<br>' +
+      'argument: '   + s(binding.arg) + '<br>' +
+      'modifiers: '  + s(binding.modifiers) + '<br>' +
+      'vnode keys: ' + Object.keys(vnode).join(', ')
+  }
+})
+new Vue({
+  el: '#hook-arguments-example',
+  data: {
+    message: 'hello!'
+  }
+})
+</script>
+<h2 id="函数简写"><a class="headerlink" href="#函数简写" title="函数简写"></a>函数简写</h2><p>在很多时候，你可能想在 <code>bind</code> 和 <code>update</code> 时触发相同行为，而不关心其它的钩子。比如这样写:</p>
+<pre><code class="hljs js">Vue.directive(<span class="hljs-string">'color-swatch'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">el, binding</span>) </span>{
+  el.style.backgroundColor = binding.value
+})</code></pre>
+<h2 id="对象字面量"><a class="headerlink" href="#对象字面量" title="对象字面量"></a>对象字面量</h2><p>如果指令需要多个值，可以传入一个 JavaScript 对象字面量。记住，指令函数能够接受所有合法的 JavaScript 表达式。</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-demo</span>=<span class="hljs-string">"{ color: 'white', text: 'hello!' }"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js">Vue.directive(<span class="hljs-string">'demo'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">el, binding</span>) </span>{
+  <span class="hljs-built_in">console</span>.log(binding.value.color) <span class="hljs-comment">// =&gt; "white"</span>
+  <span class="hljs-built_in">console</span>.log(binding.value.text)  <span class="hljs-comment">// =&gt; "hello!"</span>
+})</code></pre>
+<div class="guide-links">
+<span>← <a href="mixins.html">混入</a></span>
+<span style="float: right;"><a href="render-function.html">渲染函数 &amp; JSX</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srccustom-directive.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

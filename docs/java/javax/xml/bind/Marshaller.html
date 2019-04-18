@@ -1,0 +1,1221 @@
+<div class="header">
+<div class="subTitle">
+     javax.xml.bind 
+   </div>
+<h2 class="title" title="Interface Marshaller">Interface Marshaller</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+        所有已知实现类：
+       </dt>
+<dd>
+<span><a href="../../../javax/xml/bind/helpers/AbstractMarshallerImpl.html" title="javax.xml.bind.helpers中的类">AbstractMarshallerImpl</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">Marshaller</span></pre>
+<div class="block">
+<p> <span><tt>Marshaller</tt>类负责管理将Java内容树序列化为XML数据的过程。</span> <span>它提供了基本的编组方法：</span> </p>
+<p> <span><i>假设以下所有代码片段的设置代码：</i></span> </p>
+<blockquote>
+<span><pre>
+       JAXBContext jc = JAXBContext.newInstance( "com.acme.foo" );
+       Unmarshaller u = jc.createUnmarshaller();
+       Object element = u.unmarshal( new File( "foo.xml" ) );
+       Marshaller m = jc.createMarshaller();
+    </pre></span>
+</blockquote>
+<p> <span>编组文件：</span> </p>
+<blockquote>
+<span><pre>
+       OutputStream os = new FileOutputStream( "nosferatu.xml" );
+       m.marshal( element, os );
+    </pre></span>
+</blockquote>
+<p> <span>编组到SAX ContentHandler：</span> </p>
+<blockquote>
+<span><pre>
+       // assume MyContentHandler instanceof ContentHandler
+       m.marshal( element, new MyContentHandler() );
+    </pre></span>
+</blockquote>
+<p> <span>编组到DOM节点：</span> </p>
+<blockquote>
+<span><pre>
+       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+       dbf.setNamespaceAware(true);
+       DocumentBuilder db = dbf.newDocumentBuilder();
+       Document doc = db.newDocument();
+
+       m.marshal( element, doc );
+    </pre></span>
+</blockquote>
+<p> <span>编组到java.io.OutputStream：</span> </p>
+<blockquote>
+<span><pre>
+       m.marshal( element, System.out );
+    </pre></span>
+</blockquote>
+<p> <span>编组到java.io.Writer：</span> </p>
+<blockquote>
+<span><pre>
+       m.marshal( element, new PrintWriter( System.out ) );
+    </pre></span>
+</blockquote>
+<p> <span>编组到javax.xml.transform.SAXResult：</span> </p>
+<blockquote>
+<span><pre>
+       // assume MyContentHandler instanceof ContentHandler
+       SAXResult result = new SAXResult( new MyContentHandler() );
+
+       m.marshal( element, result );
+    </pre></span>
+</blockquote>
+<p> <span>编组到javax.xml.transform.DOMResult：</span> </p>
+<blockquote>
+<span><pre>
+       DOMResult result = new DOMResult();
+
+       m.marshal( element, result );
+    </pre></span>
+</blockquote>
+<p> <span>编组到javax.xml.transform.StreamResult：</span> </p>
+<blockquote>
+<span><pre>
+       StreamResult result = new StreamResult( System.out );
+
+       m.marshal( element, result );
+    </pre></span>
+</blockquote>
+<p> <span>编组到javax.xml.stream.XMLStreamWriter：</span> </p>
+<blockquote>
+<span><pre>
+       XMLStreamWriter xmlStreamWriter =
+           XMLOutputFactory.newInstance().createXMLStreamWriter( ... );
+
+       m.marshal( element, xmlStreamWriter );
+    </pre></span>
+</blockquote>
+<p> <span>编组到javax.xml.stream.XMLEventWriter：</span> </p>
+<blockquote>
+<span><pre>
+       XMLEventWriter xmlEventWriter =
+           XMLOutputFactory.newInstance().createXMLEventWriter( ... );
+
+       m.marshal( element, xmlEventWriter );
+    </pre></span>
+</blockquote>
+<p> <span><a name="elementMarshalling"></a> <b>编组基于JAXB元素的内容树</b></span> <br/></p>
+<blockquote>
+<span>The first parameter of the overloaded <tt>Marshaller.marshal(java.lang.Object, ...)</tt> methods must be a JAXB element as computed by <a href="../../../javax/xml/bind/JAXBIntrospector.html#isElement-java.lang.Object-"><code>JAXBIntrospector.isElement(java.lang.Object)</code></a>; otherwise, a <tt>Marshaller.marshal</tt> method must throw a <a href="../../../javax/xml/bind/MarshalException.html" title="class in javax.xml.bind"><code>MarshalException</code></a>. There exist two mechanisms to enable marshalling an instance that is not a JAXB element. One method is to wrap the instance as a value of a <a href="../../../javax/xml/bind/JAXBElement.html" title="class in javax.xml.bind"><code>JAXBElement</code></a>, and pass the wrapper element as the first parameter to a <tt>Marshaller.marshal</tt> method. For java to schema binding, it is also possible to simply annotate the instance's class with @ <a href="../../../javax/xml/bind/annotation/XmlRootElement.html" title="annotation in javax.xml.bind.annotation"><code>XmlRootElement</code></a>.</span>
+</blockquote>
+<p> <span><b>编码</b></span> <br/></p>
+<blockquote>
+<span>By default, the Marshaller will use UTF-8 encoding when generating XML data to a <tt>java.io.OutputStream</tt>, or a <tt>java.io.Writer</tt>. Use the <a href="../../../javax/xml/bind/Marshaller.html#setProperty-java.lang.String-java.lang.Object-"><code>setProperty</code></a> API to change the output encoding used during these marshal operations. Client applications are expected to supply a valid character encoding name as defined in the <a href="http://www.w3.org/TR/2000/REC-xml-20001006#charencoding">W3C XML 1.0 Recommendation</a> and supported by your Java Platform.</span>
+</blockquote>
+<p> <span><b>验证和成型</b></span> <br/></p>
+<blockquote>
+<span><p> Client applications are not required to validate the Java content tree prior to calling any of the marshal API's. Furthermore, there is no requirement that the Java content tree be valid with respect to its original schema in order to marshal it back into XML data. Different JAXB Providers will support marshalling invalid Java content trees at varying levels, however all JAXB Providers must be able to marshal a valid content tree back to XML data. A JAXB Provider must throw a <tt>MarshalException</tt> when it is unable to complete the marshal operation due to invalid content. Some JAXB Providers will fully allow marshalling invalid content, others will fail on the first validation error. </p> <p> Even when schema validation is not explictly enabled for the marshal operation, it is possible that certain types of validation events will be detected during the operation. Validation events will be reported to the registered event handler. If the client application has not registered an event handler prior to invoking one of the marshal API's, then events will be delivered to a default event handler which will terminate the marshal operation after encountering the first error or fatal error. Note that for JAXB 2.0 and later versions, <a href="../../../javax/xml/bind/helpers/DefaultValidationEventHandler.html" title="class in javax.xml.bind.helpers"><code>DefaultValidationEventHandler</code></a> is no longer used. </p></span>
+</blockquote>
+<p> <span><a name="supportedProps"></a> <b>支持的属性</b></span> <br/></p>
+<blockquote>
+<span><p> All JAXB Providers are required to support the following set of properties. Some providers may support additional properties. </p>
+<dl>
+<dt>
+<tt>jaxb.encoding</tt> - value must be a java.lang.String 
+          </dt>
+<dd>
+            The output encoding to use when marshalling the XML data. The Marshaller will use "UTF-8" by default if this property is not specified. 
+          </dd>
+<dt>
+<tt>jaxb.formatted.output</tt> - value must be a java.lang.Boolean 
+          </dt>
+<dd>
+            This property controls whether or not the Marshaller will format the resulting XML data with line breaks and indentation. A true value for this property indicates human readable indented xml data, while a false value indicates unformatted xml data. The Marshaller will default to false (unformatted) if this property is not specified. 
+          </dd>
+<dt>
+<tt>jaxb.schemaLocation</tt> - value must be a java.lang.String 
+          </dt>
+<dd>
+            This property allows the client application to specify an xsi:schemaLocation attribute in the generated XML data. The format of the schemaLocation attribute value is discussed in an easy to understand, non-normative form in 
+           <a href="http://www.w3.org/TR/xmlschema-0/#schemaLocation">Section 5.6 of the W3C XML Schema Part 0: Primer</a> and specified in 
+           <a href="http://www.w3.org/TR/xmlschema-1/#Instance_Document_Constructions"> Section 2.6 of the W3C XML Schema Part 1: Structures</a>. 
+          </dd>
+<dt>
+<tt>jaxb.noNamespaceSchemaLocation</tt> - value must be a java.lang.String 
+          </dt>
+<dd>
+            This property allows the client application to specify an xsi:noNamespaceSchemaLocation attribute in the generated XML data. The format of the schemaLocation attribute value is discussed in an easy to understand, non-normative form in 
+           <a href="http://www.w3.org/TR/xmlschema-0/#schemaLocation">Section 5.6 of the W3C XML Schema Part 0: Primer</a> and specified in 
+           <a href="http://www.w3.org/TR/xmlschema-1/#Instance_Document_Constructions"> Section 2.6 of the W3C XML Schema Part 1: Structures</a>. 
+          </dd>
+<dt>
+<tt>jaxb.fragment</tt> - value must be a java.lang.Boolean 
+          </dt>
+<dd>
+            This property determines whether or not document level events will be generated by the Marshaller. If the property is not specified, the default is 
+           <tt>false</tt>. This property has different implications depending on which marshal api you are using - when this property is set to true: 
+           <br/>
+<ul>
+<li><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-org.xml.sax.ContentHandler-"><code>marshal(Object,ContentHandler)</code></a> - the Marshaller won't invoke <a href="../../../org/xml/sax/ContentHandler.html#startDocument--"><code>ContentHandler.startDocument()</code></a> and <a href="../../../org/xml/sax/ContentHandler.html#endDocument--"><code>ContentHandler.endDocument()</code></a>.</li>
+<li><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-org.w3c.dom.Node-"><code>marshal(Object,Node)</code></a> - the property has no effect on this API.</li>
+<li><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-java.io.OutputStream-"><code>marshal(Object,OutputStream)</code></a> - the Marshaller won't generate an xml declaration.</li>
+<li><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-java.io.Writer-"><code>marshal(Object,Writer)</code></a> - the Marshaller won't generate an xml declaration.</li>
+<li><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-javax.xml.transform.Result-"><code>marshal(Object,Result)</code></a> - depends on the kind of Result object, see semantics for Node, ContentHandler, and Stream APIs</li>
+<li><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-javax.xml.stream.XMLEventWriter-"><code>marshal(Object,XMLEventWriter)</code></a> - the Marshaller will not generate <a href="../../../javax/xml/stream/XMLStreamConstants.html#START_DOCUMENT"><code>XMLStreamConstants.START_DOCUMENT</code></a> and <a href="../../../javax/xml/stream/XMLStreamConstants.html#END_DOCUMENT"><code>XMLStreamConstants.END_DOCUMENT</code></a> events.</li>
+<li><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-javax.xml.stream.XMLStreamWriter-"><code>marshal(Object,XMLStreamWriter)</code></a> - the Marshaller will not generate <a href="../../../javax/xml/stream/XMLStreamConstants.html#START_DOCUMENT"><code>XMLStreamConstants.START_DOCUMENT</code></a> and <a href="../../../javax/xml/stream/XMLStreamConstants.html#END_DOCUMENT"><code>XMLStreamConstants.END_DOCUMENT</code></a> events.</li>
+</ul>
+</dd>
+</dl></span>
+</blockquote>
+<p> <span><a name="marshalEventCallback"></a> <b>元帅事件回调</b></span> <br/></p>
+<blockquote>
+<span>"The <a href="../../../javax/xml/bind/Marshaller.html" title="interface in javax.xml.bind"><code>Marshaller</code></a> provides two styles of callback mechanisms that allow application specific processing during key points in the unmarshalling process. In 'class defined' event callbacks, application specific code placed in JAXB mapped classes is triggered during marshalling. 'External listeners' allow for centralized processing of marshal events in one callback method rather than by type event callbacks. <p> Class defined event callback methods allow any JAXB mapped class to specify its own specific callback methods by defining methods with the following method signatures: </p>
+<blockquote>
+<pre>
+   // Invoked by Marshaller after it has created an instance of this object.
+   boolean beforeMarshal(Marshaller);
+
+   // Invoked by Marshaller after it has marshalled all properties of this object.
+   void afterMarshal(Marshaller);
+ </pre>
+</blockquote> The class defined event callback methods should be used when the callback method requires access to non-public methods and/or fields of the class. <p> The external listener callback mechanism enables the registration of a <a href="../../../javax/xml/bind/Marshaller.Listener.html" title="class in javax.xml.bind"><code>Marshaller.Listener</code></a> instance with a <a href="../../../javax/xml/bind/Marshaller.html#setListener-javax.xml.bind.Marshaller.Listener-"><code>setListener(Listener)</code></a>. The external listener receives all callback events, allowing for more centralized processing than per class defined callback methods. </p> <p> The 'class defined' and external listener event callback methods are independent of each other, both can be called for one event. The invocation ordering when both listener callback methods exist is defined in <a href="../../../javax/xml/bind/Marshaller.Listener.html#beforeMarshal-java.lang.Object-"><code>Marshaller.Listener.beforeMarshal(Object)</code></a> and <a href="../../../javax/xml/bind/Marshaller.Listener.html#afterMarshal-java.lang.Object-"><code>Marshaller.Listener.afterMarshal(Object)</code></a>. </p> <p> An event callback method throwing an exception terminates the current marshal process. </p></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         JAXB1.0 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/xml/bind/JAXBContext.html" title="javax.xml.bind中的类"><code>JAXBContext</code></a> ， <a href="../../../javax/xml/bind/Validator.html" title="javax.xml.bind中的接口"><code>Validator</code></a> ， <a href="../../../javax/xml/bind/Unmarshaller.html" title="javax.xml.bind中的接口"><code>Unmarshaller</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Interface and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.Listener.html" title="class in javax.xml.bind">Marshaller.Listener</a></span></code>
+<div class="block">
+<p></p>
+<span>使用<code>Marshaller</code>注册此类的实现的<a href="../../../javax/xml/bind/Marshaller.html" title="javax.xml.bind中的接口">实例</a> ，以外部监听元帅事件。</span>
+</div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#JAXB_ENCODING">JAXB_ENCODING</a></span></code>
+<div class="block">
+              用于在编组的XML数据中指定输出编码的属性的名称。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#JAXB_FORMATTED_OUTPUT">JAXB_FORMATTED_OUTPUT</a></span></code>
+<div class="block">
+              用于指定编组的XML数据是否使用换行符和缩进格式化的属性的名称。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#JAXB_FRAGMENT">JAXB_FRAGMENT</a></span></code>
+<div class="block">
+              用于指定编组器是否生成文档级事件（即调用startDocument或endDocument）的属性的名称。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#JAXB_NO_NAMESPACE_SCHEMA_LOCATION">JAXB_NO_NAMESPACE_SCHEMA_LOCATION</a></span></code>
+<div class="block">
+              用于指定要排列在编组XML输出中的xsi：noNamespaceSchemaLocation属性值的属性名称。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#JAXB_SCHEMA_LOCATION">JAXB_SCHEMA_LOCATION</a></span></code>
+<div class="block">
+              用于指定要排列在编组XML输出中的xsi：schemaLocation属性值的属性名称。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>&lt;A extends <a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="class in javax.xml.bind.annotation.adapters">XmlAdapter</a>&gt;<br/>A</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#getAdapter-java.lang.Class-">getAdapter</a></span>(<a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;A&gt; type)</code>
+<div class="block">
+              获取与指定类型相关联的适配器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../javax/xml/bind/attachment/AttachmentMarshaller.html" title="class in javax.xml.bind.attachment">AttachmentMarshaller</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#getAttachmentMarshaller--">getAttachmentMarshaller</a></span>()</code> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../../javax/xml/bind/ValidationEventHandler.html" title="interface in javax.xml.bind">ValidationEventHandler</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#getEventHandler--">getEventHandler</a></span>()</code>
+<div class="block">
+              返回当前事件处理程序或默认事件处理程序（如果尚未设置）。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../javax/xml/bind/Marshaller.Listener.html" title="class in javax.xml.bind">Marshaller.Listener</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#getListener--">getListener</a></span>()</code>
+<div class="block">
+<span>返回<a href="../../../javax/xml/bind/Marshaller.Listener.html" title="javax.xml.bind中的类"><code>Marshaller.Listener</code></a>注册此<a href="../../../javax/xml/bind/Marshaller.html" title="javax.xml.bind中的接口"><code>Marshaller</code></a> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../org/w3c/dom/Node.html" title="interface in org.w3c.dom">Node</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#getNode-java.lang.Object-">getNode</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> contentTree)</code>
+<div class="block">
+              获取内容树的DOM树视图（可选）。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#getProperty-java.lang.String-">getProperty</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              获取Marshaller的底层实现中的 
+             <tt>特定属性</tt> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../javax/xml/validation/Schema.html" title="class in javax.xml.validation">Schema</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#getSchema--">getSchema</a></span>()</code>
+<div class="block">
+<span>获取用于执行组织时间验证的JAXP 1.3 <a href="../../../javax/xml/validation/Schema.html" title="javax.xml.validation中的类"><code>Schema</code></a>对象。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-org.xml.sax.ContentHandler-">marshal</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement, <a href="../../../org/xml/sax/ContentHandler.html" title="interface in org.xml.sax">ContentHandler</a> handler)</code>
+<div class="block">
+              将根据 
+             <tt>jaxbElement</tt>的内容树 
+             <tt>组织</tt>成SAX2事件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-java.io.File-">marshal</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement, <a href="../../../java/io/File.html" title="class in java.io">File</a> output)</code>
+<div class="block">
+              将根源于 
+             <tt>jaxbElement</tt>的内容树 
+             <tt>组织</tt>成一个文件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-org.w3c.dom.Node-">marshal</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement, <a href="../../../org/w3c/dom/Node.html" title="interface in org.w3c.dom">Node</a> node)</code>
+<div class="block">
+              将根源于 
+             <tt>jaxbElement</tt>的内容树 
+             <tt>组织</tt>到一个DOM树中。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-java.io.OutputStream-">marshal</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement, <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os)</code>
+<div class="block">
+              将根据 
+             <tt>jaxbElement</tt>的内容树 
+             <tt>组装</tt>成输出流。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-javax.xml.transform.Result-">marshal</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement, <a href="../../../javax/xml/transform/Result.html" title="interface in javax.xml.transform">Result</a> result)</code>
+<div class="block">
+              将根据jaxbElement的内容树 
+             <tt>组织</tt>到指定的 
+             <tt>javax.xml.transform.Result中</tt> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-java.io.Writer-">marshal</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement, <a href="../../../java/io/Writer.html" title="class in java.io">Writer</a> writer)</code>
+<div class="block">
+              将根据 
+             <tt>jaxbElement</tt>的内容树 
+             <tt>组织</tt>成一个作家。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-javax.xml.stream.XMLEventWriter-">marshal</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement, <a href="../../../javax/xml/stream/XMLEventWriter.html" title="interface in javax.xml.stream">XMLEventWriter</a> writer)</code>
+<div class="block">
+<span>将根据<tt>jaxbElement</tt>的内容树<tt>组织</tt>成一个<a href="../../../javax/xml/stream/XMLEventWriter.html" title="javax.xml.stream中的接口"><code>XMLEventWriter</code></a> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-javax.xml.stream.XMLStreamWriter-">marshal</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement, <a href="../../../javax/xml/stream/XMLStreamWriter.html" title="interface in javax.xml.stream">XMLStreamWriter</a> writer)</code>
+<div class="block">
+<span>将根据<tt>jaxbElement</tt>的内容树<tt>组织</tt>成一个<a href="../../../javax/xml/stream/XMLStreamWriter.html" title="javax.xml.stream中的接口"><code>XMLStreamWriter</code></a> 。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>&lt;A extends <a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="class in javax.xml.bind.annotation.adapters">XmlAdapter</a>&gt;<br/>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#setAdapter-java.lang.Class-A-">setAdapter</a></span>(<a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;A&gt; type, A adapter)</code>
+<div class="block">
+<span>相关联的配置实例<a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="javax.xml.bind.annotation.adapters中的类"><code>XmlAdapter</code></a>这个编组。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#setAdapter-javax.xml.bind.annotation.adapters.XmlAdapter-">setAdapter</a></span>(<a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="class in javax.xml.bind.annotation.adapters">XmlAdapter</a> adapter)</code>
+<div class="block">
+<span>相关联的配置实例<a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="javax.xml.bind.annotation.adapters中的类"><code>XmlAdapter</code></a>这个编组。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#setAttachmentMarshaller-javax.xml.bind.attachment.AttachmentMarshaller-">setAttachmentMarshaller</a></span>(<a href="../../../javax/xml/bind/attachment/AttachmentMarshaller.html" title="class in javax.xml.bind.attachment">AttachmentMarshaller</a> am)</code>
+<div class="block">
+              关联使XML文档中的二进制数据能够以XML二进制优化的附件传输的上下文。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#setEventHandler-javax.xml.bind.ValidationEventHandler-">setEventHandler</a></span>(<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="interface in javax.xml.bind">ValidationEventHandler</a> handler)</code>
+<div class="block">
+              允许应用程序注册验证事件处理程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#setListener-javax.xml.bind.Marshaller.Listener-">setListener</a></span>(<a href="../../../javax/xml/bind/Marshaller.Listener.html" title="class in javax.xml.bind">Marshaller.Listener</a> listener)</code>
+<div class="block">
+<span>注册元帅事件回调<a href="../../../javax/xml/bind/Marshaller.Listener.html" title="javax.xml.bind中的类"><code>Marshaller.Listener</code></a>与这<a href="../../../javax/xml/bind/Marshaller.html" title="javax.xml.bind中的接口"><code>Marshaller</code></a> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#setProperty-java.lang.String-java.lang.Object-">setProperty</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> value)</code>
+<div class="block">
+              在底层实现中设置特定的属性 
+             <tt>Marshaller</tt> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/xml/bind/Marshaller.html#setSchema-javax.xml.validation.Schema-">setSchema</a></span>(<a href="../../../javax/xml/validation/Schema.html" title="class in javax.xml.validation">Schema</a> schema)</code>
+<div class="block">
+<span>指定应用于验证后续<a href="../../../javax/xml/validation/Schema.html" title="javax.xml.validation中的类">元组</a>操作的JAXP 1.3 <a href="../../../javax/xml/validation/Schema.html" title="javax.xml.validation中的类"><code>Schema</code></a>对象。</span>
+</div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="JAXB_ENCODING">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>JAXB_ENCODING</h4> <pre>static final <a href="../../../java/lang/String.html" title="class in java.lang">String</a> JAXB_ENCODING</pre>
+<div class="block">
+            用于在编组的XML数据中指定输出编码的属性的名称。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#javax.xml.bind.Marshaller.JAXB_ENCODING">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="JAXB_FORMATTED_OUTPUT">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>JAXB_FORMATTED_OUTPUT</h4> <pre>static final <a href="../../../java/lang/String.html" title="class in java.lang">String</a> JAXB_FORMATTED_OUTPUT</pre>
+<div class="block">
+            用于指定编组的XML数据是否使用换行符和缩进格式化的属性的名称。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="JAXB_SCHEMA_LOCATION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>JAXB_SCHEMA_LOCATION</h4> <pre>static final <a href="../../../java/lang/String.html" title="class in java.lang">String</a> JAXB_SCHEMA_LOCATION</pre>
+<div class="block">
+            用于指定要排列在编组XML输出中的xsi：schemaLocation属性值的属性名称。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#javax.xml.bind.Marshaller.JAXB_SCHEMA_LOCATION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="JAXB_NO_NAMESPACE_SCHEMA_LOCATION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>JAXB_NO_NAMESPACE_SCHEMA_LOCATION</h4> <pre>static final <a href="../../../java/lang/String.html" title="class in java.lang">String</a> JAXB_NO_NAMESPACE_SCHEMA_LOCATION</pre>
+<div class="block">
+            用于指定要排列在编组XML输出中的xsi：noNamespaceSchemaLocation属性值的属性名称。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#javax.xml.bind.Marshaller.JAXB_NO_NAMESPACE_SCHEMA_LOCATION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="JAXB_FRAGMENT">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>JAXB_FRAGMENT</h4> <pre>static final <a href="../../../java/lang/String.html" title="class in java.lang">String</a> JAXB_FRAGMENT</pre>
+<div class="block">
+            用于指定编组器是否生成文档级事件（即调用startDocument或endDocument）的属性的名称。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#javax.xml.bind.Marshaller.JAXB_FRAGMENT">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="marshal-java.lang.Object-javax.xml.transform.Result-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>marshal</h4> <pre>void marshal(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement,
+             <a href="../../../javax/xml/transform/Result.html" title="interface in javax.xml.transform">Result</a> result)
+      throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+<span>将根据jaxbElement的内容树<tt>组织</tt>到指定的<tt>javax.xml.transform.Result中</tt> 。</span>
+<p> <span>所有JAXB提供者必须至少支持<a href="../../../javax/xml/transform/dom/DOMResult.html" title="javax.xml.transform.dom中的类"><code>DOMResult</code></a> ， <a href="../../../javax/xml/transform/sax/SAXResult.html" title="javax.xml.transform.sax中的类"><code>SAXResult</code></a>和<a href="../../../javax/xml/transform/stream/StreamResult.html" title="javax.xml.transform.stream中的类"><code>StreamResult</code></a> 。</span> <span>它也可以支持<tt>Result的</tt>其他派生类。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>jaxbElement</code> - 要编组的内容树的根。 
+           </dd>
+<dd>
+<code>result</code> - 将会将XML发送到此结果 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果编组期间出现意外问题。 
+           </dd>
+<dd>
+<span><code><a href="../../../javax/xml/bind/MarshalException.html" title="class in javax.xml.bind">MarshalException</a></code> - 如果<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="javax.xml.bind中的接口"><code>ValidationEventHandler</code></a>从其<tt>handleEvent</tt>方法返回false，或者<tt>Marshaller</tt>无法<tt>组织obj</tt> （或任何可从<tt>obj可访问的</tt>对象）。</span>
+<span>见<a href="#elementMarshalling">Marshalling a JAXB element</a> 。</span>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任何方法参数为空 
+           </dd>
+</dl> </li>
+</ul> <a name="marshal-java.lang.Object-java.io.OutputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>marshal</h4> <pre>void marshal(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement,
+             <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os)
+      throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+            将根据 
+           <tt>jaxbElement</tt>的内容树 
+           <tt>组装</tt>成输出流。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>jaxbElement</code> - 要编组的内容树的根。 
+           </dd>
+<dd>
+<code>os</code> - XML将被添加到此流。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果编组期间出现意外问题。 
+           </dd>
+<dd>
+<span><code><a href="../../../javax/xml/bind/MarshalException.html" title="class in javax.xml.bind">MarshalException</a></code> - 如果<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="javax.xml.bind中的接口"><code>ValidationEventHandler</code></a>从其<tt>handleEvent</tt>方法返回false，或者<tt>Marshaller</tt>无法<tt>组织obj</tt> （或任何可从<tt>obj访问的</tt>对象）。</span>
+<span>见<a href="#elementMarshalling">Marshalling a JAXB element</a> 。</span>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任何方法参数为空 
+           </dd>
+</dl> </li>
+</ul> <a name="marshal-java.lang.Object-java.io.File-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>marshal</h4> <pre>void marshal(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement,
+             <a href="../../../java/io/File.html" title="class in java.io">File</a> output)
+      throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+            将根据 
+           <tt>jaxbElement</tt>的内容树 
+           <tt>组织</tt>成一个文件。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>jaxbElement</code> - 要编组的内容树的根。 
+           </dd>
+<dd>
+<span><code>output</code> - 要写入的文件。</span>
+<span>如果这个文件已经存在，它将被覆盖。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果在编组过程中发生意外问题。 
+           </dd>
+<dd>
+<span><code><a href="../../../javax/xml/bind/MarshalException.html" title="class in javax.xml.bind">MarshalException</a></code> - 如果<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="javax.xml.bind中的接口"><code>ValidationEventHandler</code></a>从其<tt>handleEvent</tt>方法返回false，或者<tt>Marshaller</tt>无法<tt>组合obj</tt> （或任何可从<tt>obj可访问的</tt>对象）。</span>
+<span>见<a href="#elementMarshalling">Marshalling a JAXB element</a> 。</span>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任何方法参数为空 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB2.1 
+           </dd>
+</dl> </li>
+</ul> <a name="marshal-java.lang.Object-java.io.Writer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>marshal</h4> <pre>void marshal(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement,
+             <a href="../../../java/io/Writer.html" title="class in java.io">Writer</a> writer)
+      throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+            将根据 
+           <tt>jaxbElement</tt>的内容树 
+           <tt>组织</tt>成一个作家。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>jaxbElement</code> - 要编组的内容树的根。 
+           </dd>
+<dd>
+<code>writer</code> - XML将被发送到这个作者。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果编组期间出现意外问题。 
+           </dd>
+<dd>
+<span><code><a href="../../../javax/xml/bind/MarshalException.html" title="class in javax.xml.bind">MarshalException</a></code> - 如果<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="javax.xml.bind中的接口"><code>ValidationEventHandler</code></a>从其<tt>handleEvent</tt>方法返回false，或者<tt>Marshaller</tt>无法<tt>组织obj</tt> （或任何可从<tt>obj访问的</tt>对象）。</span>
+<span>见<a href="#elementMarshalling">Marshalling a JAXB element</a> 。</span>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任何方法参数为空 
+           </dd>
+</dl> </li>
+</ul> <a name="marshal-java.lang.Object-org.xml.sax.ContentHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>marshal</h4> <pre>void marshal(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement,
+             <a href="../../../org/xml/sax/ContentHandler.html" title="interface in org.xml.sax">ContentHandler</a> handler)
+      throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+            将根据 
+           <tt>jaxbElement</tt>的内容树 
+           <tt>组织</tt>到SAX2事件中。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>jaxbElement</code> - 要编组的内容树的根。 
+           </dd>
+<dd>
+<code>handler</code> - XML将作为SAX2事件发送到此处理程序。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果在编组过程中发生意外问题。 
+           </dd>
+<dd>
+<span><code><a href="../../../javax/xml/bind/MarshalException.html" title="class in javax.xml.bind">MarshalException</a></code> - 如果<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="javax.xml.bind中的接口"><code>ValidationEventHandler</code></a>从其<tt>handleEvent</tt>方法返回false，或者<tt>Marshaller</tt>无法<tt>组织obj</tt> （或任何可从<tt>obj可访问的</tt>对象）。</span>
+<span>见<a href="#elementMarshalling">Marshalling a JAXB element</a> 。</span>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任何方法参数为空 
+           </dd>
+</dl> </li>
+</ul> <a name="marshal-java.lang.Object-org.w3c.dom.Node-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>marshal</h4> <pre>void marshal(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement,
+             <a href="../../../org/w3c/dom/Node.html" title="interface in org.w3c.dom">Node</a> node)
+      throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+            将根据 
+           <tt>jaxbElement</tt>的内容树 
+           <tt>组织</tt>到DOM树中。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>jaxbElement</code> - 要编组的内容树。 
+           </dd>
+<dd>
+<span><code>node</code> - 将作为此节点的子节点添加DOM节点。</span>
+<span>此参数必须是一个可接受子（节点<a href="../../../org/w3c/dom/Document.html" title="界面在org.w3c.dom"><code>Document</code></a> ， <a href="../../../org/w3c/dom/DocumentFragment.html" title="界面在org.w3c.dom"><code>DocumentFragment</code></a> ，或<a href="../../../org/w3c/dom/Element.html" title="界面在org.w3c.dom"><code>Element</code></a> ）</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果编组期间出现意外问题。 
+           </dd>
+<dd>
+<span><code><a href="../../../javax/xml/bind/MarshalException.html" title="class in javax.xml.bind">MarshalException</a></code> - 如果<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="javax.xml.bind中的接口"><code>ValidationEventHandler</code></a>从其<tt>handleEvent</tt>方法返回false，或者<tt>Marshaller</tt>无法<tt>组织jaxbElement</tt> （或任何可从<tt>jaxbElement可访问的</tt>对象）。</span>
+<span>见<a href="#elementMarshalling">Marshalling a JAXB element</a> 。</span>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任何方法参数为空 
+           </dd>
+</dl> </li>
+</ul> <a name="marshal-java.lang.Object-javax.xml.stream.XMLStreamWriter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>marshal</h4> <pre>void marshal(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement,
+             <a href="../../../javax/xml/stream/XMLStreamWriter.html" title="interface in javax.xml.stream">XMLStreamWriter</a> writer)
+      throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+<span>将根源于<tt>jaxbElement</tt>的内容树<tt>组织</tt>成一个<a href="../../../javax/xml/stream/XMLStreamWriter.html" title="javax.xml.stream中的接口"><code>XMLStreamWriter</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>jaxbElement</code> - 要编组的内容树。 
+           </dd>
+<dd>
+<code>writer</code> - XML将被发送到这个作者。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果在编组过程中发生意外问题。 
+           </dd>
+<dd>
+<span><code><a href="../../../javax/xml/bind/MarshalException.html" title="class in javax.xml.bind">MarshalException</a></code> - 如果<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="javax.xml.bind中的接口"><code>ValidationEventHandler</code></a>从其<tt>handleEvent</tt>方法返回false，或者<tt>Marshaller</tt>无法<tt>组合obj</tt> （或任何可从<tt>obj访问的</tt>对象）。</span>
+<span>参见<a href="#elementMarshalling">Marshalling a JAXB element</a> 。</span>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任何方法参数为空 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB 2.0 
+           </dd>
+</dl> </li>
+</ul> <a name="marshal-java.lang.Object-javax.xml.stream.XMLEventWriter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>marshal</h4> <pre>void marshal(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> jaxbElement,
+             <a href="../../../javax/xml/stream/XMLEventWriter.html" title="interface in javax.xml.stream">XMLEventWriter</a> writer)
+      throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+<span>将根源于<tt>jaxbElement</tt>的内容树<tt>组织</tt>成一个<a href="../../../javax/xml/stream/XMLEventWriter.html" title="javax.xml.stream中的接口"><code>XMLEventWriter</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>jaxbElement</code> - 根据要编组的jaxbElement的内容树。 
+           </dd>
+<dd>
+<code>writer</code> - XML将被发送给作者。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果在编组过程中出现意外问题。 
+           </dd>
+<dd>
+<span><code><a href="../../../javax/xml/bind/MarshalException.html" title="class in javax.xml.bind">MarshalException</a></code> - 如果<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="javax.xml.bind中的接口"><code>ValidationEventHandler</code></a>从其<tt>handleEvent</tt>方法返回false，或者<tt>Marshaller</tt>无法<tt>组织obj</tt> （或任何可从<tt>obj可访问的</tt>对象）。</span>
+<span>见<a href="#elementMarshalling">Marshalling a JAXB element</a> 。</span>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任何方法参数为空 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB 2.0 
+           </dd>
+</dl> </li>
+</ul> <a name="getNode-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNode</h4> <pre><a href="../../../org/w3c/dom/Node.html" title="interface in org.w3c.dom">Node</a> getNode(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> contentTree)
+      throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+<span>获取内容树的DOM树视图（可选）。</span>
+<span>如果返回的DOM树被更新，这些更改也可以在内容树中显示。</span>
+<span>使用<a href="../../../javax/xml/bind/Marshaller.html#marshal-java.lang.Object-org.w3c.dom.Node-"><code>marshal(Object, org.w3c.dom.Node)</code></a>强制内容树的深层复制到DOM表示。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>contentTree</code> - - JAXB XML内容的Java表示 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             contentTree的DOM树视图 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果JAXB提供程序实现不支持内容树的DOM视图 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任何方法参数为空 
+           </dd>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果发生意外问题 
+           </dd>
+</dl> </li>
+</ul> <a name="setProperty-java.lang.String-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setProperty</h4> <pre>void setProperty(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                 <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> value)
+          throws <a href="../../../javax/xml/bind/PropertyException.html" title="class in javax.xml.bind">PropertyException</a></pre>
+<div class="block">
+<span>在底层实现中设置特定的属性<tt>Marshaller</tt> 。</span>
+<span>此方法只能用于设置上述标准JAXB定义属性之一或提供者特定属性。</span>
+<span>尝试设置未定义的属性将导致抛出PropertyException。</span>
+<span>见<a href="#supportedProps">Supported Properties</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要设置的属性的名称。</span>
+<span>可以使用常量字段或用户提供的字符串指定此值。</span>
+</dd>
+<dd>
+<code>value</code> - 要设置的属性的值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/PropertyException.html" title="class in javax.xml.bind">PropertyException</a></code> - 处理给定属性或值时出错 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果name参数为空 
+           </dd>
+</dl> </li>
+</ul> <a name="getProperty-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getProperty</h4> <pre><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> getProperty(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)
+            throws <a href="../../../javax/xml/bind/PropertyException.html" title="class in javax.xml.bind">PropertyException</a></pre>
+<div class="block">
+<span>获取基础实现中的特定属性<tt>Marshaller</tt> 。</span>
+<span>此方法只能用于获取上述标准JAXB定义的属性之一或提供者特定属性。</span>
+<span>尝试获取未定义的属性将导致抛出PropertyException。</span>
+<span>见<a href="#supportedProps">Supported Properties</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要检索的属性的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             请求的属性的值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/PropertyException.html" title="class in javax.xml.bind">PropertyException</a></code> - 检索给定属性或值属性名称时出现错误 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果name参数为null 
+           </dd>
+</dl> </li>
+</ul> <a name="setEventHandler-javax.xml.bind.ValidationEventHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setEventHandler</h4> <pre>void setEventHandler(<a href="../../../javax/xml/bind/ValidationEventHandler.html" title="interface in javax.xml.bind">ValidationEventHandler</a> handler)
+              throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+<span>允许应用程序注册验证事件处理程序。</span>
+<p> <span>如果在任何元帅API的调用期间遇到任何验证错误，JAXB提供者将调用验证事件处理程序。</span> <span>如果客户端应用程序在调用其中一个元数据方法之前没有注册验证事件处理程序，则验证事件将由默认事件处理程序处理，该事件处理程序将在遇到第一个错误或致命错误后终止元组操作。</span> </p>
+<p> <span>使用null参数调用此方法将导致Marshaller恢复为默认的默认事件处理程序。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>handler</code> - 验证事件处理程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果在设置事件处理程序时遇到错误 
+           </dd>
+</dl> </li>
+</ul> <a name="getEventHandler--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getEventHandler</h4> <pre><a href="../../../javax/xml/bind/ValidationEventHandler.html" title="interface in javax.xml.bind">ValidationEventHandler</a> getEventHandler()
+                                throws <a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></pre>
+<div class="block">
+            返回当前事件处理程序或默认事件处理程序（如果尚未设置）。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前的ValidationEventHandler或默认事件处理程序（如果尚未设置） 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/xml/bind/JAXBException.html" title="class in javax.xml.bind">JAXBException</a></code> - 如果在获取当前事件处理程序时遇到错误 
+           </dd>
+</dl> </li>
+</ul> <a name="setAdapter-javax.xml.bind.annotation.adapters.XmlAdapter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setAdapter</h4> <pre>void setAdapter(<a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="class in javax.xml.bind.annotation.adapters">XmlAdapter</a> adapter)</pre>
+<div class="block">
+<span>相关联的配置实例<a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="javax.xml.bind.annotation.adapters中的类"><code>XmlAdapter</code></a>这个编组。</span>
+<p> <span>这是调用<code>setAdapter(adapter.getClass(),adapter);</code>的方便方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果适配器参数为空。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果 
+            <code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code>调用JAXB 1.0实现。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB 2.0 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/xml/bind/Marshaller.html#setAdapter-java.lang.Class-A-"><code>setAdapter(Class,XmlAdapter)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setAdapter-java.lang.Class-javax.xml.bind.annotation.adapters.XmlAdapter-">
+<!-- --> </a><a name="setAdapter-java.lang.Class-A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setAdapter</h4> <pre>&lt;A extends <a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="class in javax.xml.bind.annotation.adapters">XmlAdapter</a>&gt; void setAdapter(<a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;A&gt; type,
+                                       A adapter)</pre>
+<div class="block">
+<span>相关联的配置实例<a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="javax.xml.bind.annotation.adapters中的类"><code>XmlAdapter</code></a>这个编组。</span>
+<p> <span>每编组内部维护一个<a href="../../../java/util/Map.html" title="java.util中的接口"><code>Map</code></a> &lt; <a href="../../../java/lang/Class.html" title="java.lang中的类"><code>类</code></a> ， <a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="javax.xml.bind.annotation.adapters中的类"><code>XmlAdapter</code></a> &gt;，它使用用于编组类，它们的字段/方法的注解为<a href="../../../javax/xml/bind/annotation/adapters/XmlJavaTypeAdapter.html" title="javax.xml.bind.annotation.adapters中的注释"><code>XmlJavaTypeAdapter</code></a> 。</span> </p>
+<p> <span>此方法允许应用程序使用的一个配置实例<a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="javax.xml.bind.annotation.adapters中的类"><code>XmlAdapter</code></a> 。</span> <span>当没有给出适配器的实例时，编组者将通过调用其默认构造函数来创建一个。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>type</code> - 适配器的类型。</span>
+<span>当<a href="../../../javax/xml/bind/annotation/adapters/XmlJavaTypeAdapter.html#value--"><code>XmlJavaTypeAdapter.value()</code></a>引用此类型时，将使用指定的实例。</span>
+</dd>
+<dd>
+<span><code>adapter</code> - 要使用的适配器的实例。</span>
+<span>如果为空，它将取消注册此类型的当前适配器集。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果type参数为null。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果 
+            <code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code>调用JAXB 1.0实现。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB 2.0 
+           </dd>
+</dl> </li>
+</ul> <a name="getAdapter-java.lang.Class-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAdapter</h4> <pre>&lt;A extends <a href="../../../javax/xml/bind/annotation/adapters/XmlAdapter.html" title="class in javax.xml.bind.annotation.adapters">XmlAdapter</a>&gt; A getAdapter(<a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;A&gt; type)</pre>
+<div class="block">
+<span>获取与指定类型相关联的适配器。</span>
+<span>这是<a href="../../../javax/xml/bind/Marshaller.html#setAdapter-javax.xml.bind.annotation.adapters.XmlAdapter-"><code>setAdapter(javax.xml.bind.annotation.adapters.XmlAdapter)</code></a>方法的反向操作。</span>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果type参数为null。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果 
+            <code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code>调用JAXB 1.0实现。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB 2.0 
+           </dd>
+</dl> </li>
+</ul> <a name="setAttachmentMarshaller-javax.xml.bind.attachment.AttachmentMarshaller-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setAttachmentMarshaller</h4> <pre>void setAttachmentMarshaller(<a href="../../../javax/xml/bind/attachment/AttachmentMarshaller.html" title="class in javax.xml.bind.attachment">AttachmentMarshaller</a> am)</pre>
+<div class="block">
+<p> <span>关联使XML文档中的二进制数据能够以XML二进制优化的附件传输的上下文。</span> <span>附件由XML文档内容模型通过存储在xml文档中的content-id URI（cid）引用引用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果在组织操作期间尝试同时调用此方法。 
+           </dd>
+</dl> </li>
+</ul> <a name="getAttachmentMarshaller--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAttachmentMarshaller</h4> <pre><a href="../../../javax/xml/bind/attachment/AttachmentMarshaller.html" title="class in javax.xml.bind.attachment">AttachmentMarshaller</a> getAttachmentMarshaller()</pre> </li>
+</ul> <a name="setSchema-javax.xml.validation.Schema-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setSchema</h4> <pre>void setSchema(<a href="../../../javax/xml/validation/Schema.html" title="class in javax.xml.validation">Schema</a> schema)</pre>
+<div class="block">
+<span>指定应用于验证后续<a href="../../../javax/xml/validation/Schema.html" title="javax.xml.validation中的类">元组</a>操作的JAXP 1.3 <a href="../../../javax/xml/validation/Schema.html" title="javax.xml.validation中的类"><code>Schema</code></a>对象。</span>
+<span>将null传递给此方法将禁用验证。</span>
+<p> <span>该方法允许调用者在编组的XML中验证编组的XML。</span> </p>
+<p> <span>最初此属性设置为<tt>null</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>schema</code> - 用于验证 
+            <code>schema</code>模式对象或null以禁用验证 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果在引用JAXB 1.0映射类的JAXBContext创建的Marshaller上调用此方法，则可能会抛出 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB2.0 
+           </dd>
+</dl> </li>
+</ul> <a name="getSchema--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSchema</h4> <pre><a href="../../../javax/xml/validation/Schema.html" title="class in javax.xml.validation">Schema</a> getSchema()</pre>
+<div class="block">
+<span>获取用于执行组织时间验证的JAXP 1.3 <a href="../../../javax/xml/validation/Schema.html" title="javax.xml.validation中的类"><code>Schema</code></a>对象。</span>
+<span>如果在编组器中没有设置Schema，则该方法将返回null，表示将不执行组织时间验证。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             用于执行组织时间验证的Schema对象，如果不存在则使用null。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果在引用JAXB 1.0映射类的JAXBContext创建的Marshaller上调用此方法，则可能会抛出 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB2.0 
+           </dd>
+</dl> </li>
+</ul> <a name="setListener-javax.xml.bind.Marshaller.Listener-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setListener</h4> <pre>void setListener(<a href="../../../javax/xml/bind/Marshaller.Listener.html" title="class in javax.xml.bind">Marshaller.Listener</a> listener)</pre>
+<div class="block">
+<p> <span>注册元帅事件回调<a href="../../../javax/xml/bind/Marshaller.Listener.html" title="javax.xml.bind中的类"><code>Marshaller.Listener</code></a>与这<a href="../../../javax/xml/bind/Marshaller.html" title="javax.xml.bind中的接口"><code>Marshaller</code></a> 。</span> </p>
+<p> <span>每个Marshaller只有一个监听器。</span> <span>设置侦听器将替换以前设置的侦听器。</span> <span>可以通过将侦听器设置为<tt>null</tt>来取消注册当前侦听器。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>listener</code> -实现一个类的实例<a href="../../../javax/xml/bind/Marshaller.Listener.html" title="javax.xml.bind中的类"><code>Marshaller.Listener</code></a></span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB2.0 
+           </dd>
+</dl> </li>
+</ul> <a name="getListener--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getListener</h4> <pre><a href="../../../javax/xml/bind/Marshaller.Listener.html" title="class in javax.xml.bind">Marshaller.Listener</a> getListener()</pre>
+<div class="block">
+<p> <span>返回<a href="../../../javax/xml/bind/Marshaller.Listener.html" title="javax.xml.bind中的类"><code>Marshaller.Listener</code></a>注册了这个<a href="../../../javax/xml/bind/Marshaller.html" title="javax.xml.bind中的接口"><code>Marshaller</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>注册了<a href="../../../javax/xml/bind/Marshaller.Listener.html" title="javax.xml.bind中的类"><code>Marshaller.Listener</code></a>或<code>null</code>如果没有监听器注册此Marshaller。</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             JAXB2.0 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

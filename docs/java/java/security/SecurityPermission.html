@@ -1,0 +1,185 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.security 
+   </div>
+<h2 class="title" title="Class SecurityPermission">Class SecurityPermission</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../java/security/Permission.html" title="class in java.security">java.security.Permission</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../java/security/BasicPermission.html" title="class in java.security">java.security.BasicPermission</a></li>
+<li>
+<ul class="inheritance">
+<li>java.security.SecurityPermission</li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../java/security/Guard.html" title="java.security中的接口">Guard</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">SecurityPermission</span>
+extends <a href="../../java/security/BasicPermission.html" title="class in java.security">BasicPermission</a></pre>
+<div class="block">
+<span>此类用于安全权限。</span>
+<span>SecurityPermission包含一个名称（也称为“目标名称”），但没有操作列表;</span>
+<span>你有指定的权限，或者你没有。</span>
+<p> <span>目标名称是安全配置参数的名称（见下文）。</span> <span>目前，SecurityPermission对象用于保护对策略，安全性，提供者，签名者和身份对象的访问。</span> </p>
+<p> <span>下表列出了所有可能的SecurityPermission目标名称，每个都提供了许可允许的描述，以及授予代码许可的风险的讨论。</span> </p>
+<span>  Permission Target Name What the Permission Allows Risks of Allowing this Permission   createAccessControlContext Creation of an AccessControlContext This allows someone to instantiate an AccessControlContext with a <code>DomainCombiner</code>. Extreme care must be taken when granting this permission. Malicious code could create a DomainCombiner that augments the set of permissions granted to code, and even grant the code <a href="../../java/security/AllPermission.html" title="class in java.security"><code>AllPermission</code></a>.   getDomainCombiner Retrieval of an AccessControlContext's DomainCombiner This allows someone to retrieve an AccessControlContext's <code>DomainCombiner</code>. Since DomainCombiners may contain sensitive information, this could potentially lead to a privacy leak.   getPolicy Retrieval of the system-wide security policy (specifically, of the currently-installed Policy object) This allows someone to query the policy via the <code>getPermissions</code> call, which discloses which permissions would be granted to a given CodeSource. While revealing the policy does not compromise the security of the system, it does provide malicious code with additional information which it may use to better aim an attack. It is wise not to divulge more information than necessary.   setPolicy Setting of the system-wide security policy (specifically, the Policy object) Granting this permission is extremely dangerous, as malicious code may grant itself all the necessary permissions it needs to successfully mount an attack on the system.   createPolicy.{policy type} Getting an instance of a Policy implementation from a provider Granting this permission enables code to obtain a Policy object. Malicious code may query the Policy object to determine what permissions have been granted to code other than itself.    getProperty.{key} Retrieval of the security property with the specified key Depending on the particular key for which access has been granted, the code may have access to the list of security providers, as well as the location of the system-wide and user security policies. while revealing this information does not compromise the security of the system, it does provide malicious code with additional information which it may use to better aim an attack.    setProperty.{key} Setting of the security property with the specified key This could include setting a security provider or defining the location of the system-wide security policy. Malicious code that has permission to set a new security provider may set a rogue provider that steals confidential information such as cryptographic private keys. In addition, malicious code with permission to set the location of the system-wide security policy may point it to a security policy that grants the attacker all the necessary permissions it requires to successfully mount an attack on the system.    insertProvider Addition of a new provider This would allow somebody to introduce a possibly malicious provider (e.g., one that discloses the private keys passed to it) as the highest-priority provider. This would be possible because the Security object (which manages the installed providers) currently does not check the integrity or authenticity of a provider before attaching it. The "insertProvider" permission subsumes the "insertProvider.{provider name}" permission (see the section below for more information).    removeProvider.{provider name} Removal of the specified provider This may change the behavior or disable execution of other parts of the program. If a provider subsequently requested by the program has been removed, execution may fail. Also, if the removed provider is not explicitly requested by the rest of the program, but it would normally be the provider chosen when a cryptography service is requested (due to its previous order in the list of providers), a different provider will be chosen instead, or no suitable provider will be found, thereby resulting in program failure.   clearProviderProperties.{provider name} "Clearing" of a Provider so that it no longer contains the properties used to look up services implemented by the provider This disables the lookup of services implemented by the provider. This may thus change the behavior or disable execution of other parts of the program that would normally utilize the Provider, as described under the "removeProvider.{provider name}" permission.   putProviderProperty.{provider name} Setting of properties for the specified Provider The provider properties each specify the name and location of a particular service implemented by the provider. By granting this permission, you let code replace the service specification with another one, thereby specifying a different implementation.   removeProviderProperty.{provider name} Removal of properties from the specified Provider This disables the lookup of services implemented by the provider. They are no longer accessible due to removal of the properties specifying their names and locations. This may change the behavior or disable execution of other parts of the program that would normally utilize the Provider, as described under the "removeProvider.{provider name}" permission.  </span>
+<table border="1" cellpadding="5" summary="target name,what the permission allows, and associated risks">
+</table>
+<p> <span>以下权限已经被新版的权限取代或与已过时的类相关： <a href="../../java/security/Identity.html" title="java.security中的类"><code>Identity</code></a> ， <a href="../../java/security/IdentityScope.html" title="java.security中的类"><code>IdentityScope</code></a> ， <a href="../../java/security/Signer.html" title="java.security中的类"><code>Signer</code></a> 。</span> <span>不鼓励使用它们。</span> <span>有关详细信息，请参阅适用的课程。</span> </p>
+<span>  Permission Target Name What the Permission Allows Risks of Allowing this Permission   insertProvider.{provider name} Addition of a new provider, with the specified name Use of this permission is discouraged from further use because it is possible to circumvent the name restrictions by overriding the <a href="../../java/security/Provider.html#getName--"><code>Provider.getName()</code></a> method. Also, there is an equivalent level of risk associated with granting code permission to insert a provider with a specific name, or any name it chooses. Users should use the "insertProvider" permission instead. <p>This would allow somebody to introduce a possibly malicious provider (e.g., one that discloses the private keys passed to it) as the highest-priority provider. This would be possible because the Security object (which manages the installed providers) currently does not check the integrity or authenticity of a provider before attaching it.</p>   setSystemScope Setting of the system identity scope This would allow an attacker to configure the system identity scope with certificates that should not be trusted, thereby granting applet or application code signed with those certificates privileges that would have been denied by the system's original identity scope.   setIdentityPublicKey Setting of the public key for an Identity If the identity is marked as "trusted", this allows an attacker to introduce a different public key (e.g., its own) that is not trusted by the system's identity scope, thereby granting applet or application code signed with that public key privileges that would have been denied otherwise.   setIdentityInfo Setting of a general information string for an Identity This allows attackers to set the general description for an identity. This may trick applications into using a different identity than intended or may prevent applications from finding a particular identity.   addIdentityCertificate Addition of a certificate for an Identity This allows attackers to set a certificate for an identity's public key. This is dangerous because it affects the trust relationship across the system. This public key suddenly becomes trusted to a wider audience than it otherwise would be.   removeIdentityCertificate Removal of a certificate for an Identity This allows attackers to remove a certificate for an identity's public key. This is dangerous because it affects the trust relationship across the system. This public key suddenly becomes considered less trustworthy than it otherwise would be.   printIdentity Viewing the name of a principal and optionally the scope in which it is used, and whether or not it is considered "trusted" in that scope The scope that is printed out may be a filename, in which case it may convey local system information. For example, here's a sample printout of an identity named "carol", who is marked not trusted in the user's identity database:<br/> carol[/home/luehe/identitydb.obj][not trusted]   getSignerPrivateKey Retrieval of a Signer's private key It is very dangerous to allow access to a private key; private keys are supposed to be kept secret. Otherwise, code can use the private key to sign various files and claim the signature came from the Signer.   setSignerKeyPair Setting of the key pair (public key and private key) for a Signer This would allow an attacker to replace somebody else's (the "target's") keypair with a possibly weaker keypair (e.g., a keypair of a smaller keysize). This also would allow the attacker to listen in on encrypted communication between the target and its peers. The target's peers might wrap an encryption session key under the target's "new" public key, which would allow the attacker (who possesses the corresponding private key) to unwrap the session key and decipher the communication data encrypted under that session key.  </span>
+<table border="1" cellpadding="5" summary="target name,what the permission allows, and associated risks">
+</table>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/security/BasicPermission.html" title="java.security中的类"><code>BasicPermission</code></a> ， <a href="../../java/security/Permission.html" title="java.security中的类"><code>Permission</code></a> ， <a href="../../java/security/Permissions.html" title="java.security中的类"><code>Permissions</code></a> ， <a href="../../java/security/PermissionCollection.html" title="java.security中的类"><code>PermissionCollection</code></a> ， <a href="../../java/lang/SecurityManager.html" title="java.lang中的类"><code>SecurityManager</code></a> ， <a href="../../serialized-form.html#java.security.SecurityPermission">Serialized Form</a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/security/SecurityPermission.html#SecurityPermission-java.lang.String-">SecurityPermission</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              创建一个新的具有指定名称的SecurityPermission。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/security/SecurityPermission.html#SecurityPermission-java.lang.String-java.lang.String-">SecurityPermission</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../java/lang/String.html" title="class in java.lang">String</a> actions)</code>
+<div class="block">
+              创建一个新的具有指定名称的SecurityPermission对象。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.security.BasicPermission">
+<!-- --> </a> <h3>Methods inherited from class java.security.<a href="../../java/security/BasicPermission.html" title="class in java.security">BasicPermission</a></h3> <code><a href="../../java/security/BasicPermission.html#equals-java.lang.Object-">equals</a>, <a href="../../java/security/BasicPermission.html#getActions--">getActions</a>, <a href="../../java/security/BasicPermission.html#hashCode--">hashCode</a>, <a href="../../java/security/BasicPermission.html#implies-java.security.Permission-">implies</a>, <a href="../../java/security/BasicPermission.html#newPermissionCollection--">newPermissionCollection</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.security.Permission">
+<!-- --> </a> <h3>Methods inherited from class java.security.<a href="../../java/security/Permission.html" title="class in java.security">Permission</a></h3> <code><a href="../../java/security/Permission.html#checkGuard-java.lang.Object-">checkGuard</a>, <a href="../../java/security/Permission.html#getName--">getName</a>, <a href="../../java/security/Permission.html#toString--">toString</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="SecurityPermission-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>SecurityPermission</h4> <pre>public SecurityPermission(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name)</pre>
+<div class="block">
+<span>创建一个新的具有指定名称的SecurityPermission。</span>
+<span>该名称是SecurityPermission的符号名称。</span>
+<span>名称后面可能会出现星号，后跟“。”，或本身表示通配符。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 
+            <code>name</code>的名称 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>name</code>是 
+            <code>null</code> 。 
+           </dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>name</code>为空。 
+           </dd>
+</dl> </li>
+</ul> <a name="SecurityPermission-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>SecurityPermission</h4> <pre>public SecurityPermission(<a href="../../java/lang/String.html" title="class in java.lang">String</a> name,
+                          <a href="../../java/lang/String.html" title="class in java.lang">String</a> actions)</pre>
+<div class="block">
+<span>创建一个新的具有指定名称的SecurityPermission对象。</span>
+<span>该名称是SecurityPermission的符号名称，并且操作String当前未使用，应为null。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 
+            <code>name</code>的名称 
+           </dd>
+<dd>
+<code>actions</code> - 应为null。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>name</code>是 
+            <code>null</code> 。 
+           </dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>name</code>为空。 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

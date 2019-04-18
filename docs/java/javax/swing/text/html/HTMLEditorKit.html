@@ -1,0 +1,1234 @@
+<div class="header">
+<div class="subTitle">
+     javax.swing.text.html 
+   </div>
+<h2 class="title" title="Class HTMLEditorKit">Class HTMLEditorKit</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../../javax/swing/text/EditorKit.html" title="class in javax.swing.text">javax.swing.text.EditorKit</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../../javax/swing/text/DefaultEditorKit.html" title="class in javax.swing.text">javax.swing.text.DefaultEditorKit</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">javax.swing.text.StyledEditorKit</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.swing.text.html.HTMLEditorKit</li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../../../java/lang/Cloneable.html" title="java.lang中的接口">Cloneable</a> ， <a href="../../../../javax/accessibility/Accessible.html" title="javax.accessibility中的接口">Accessible</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">HTMLEditorKit</span>
+extends <a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a>
+implements <a href="../../../../javax/accessibility/Accessible.html" title="interface in javax.accessibility">Accessible</a></pre>
+<div class="block">
+<span>Swing JEditorPane文本组件通过称为EditorKit的插件机制来支持不同类型的内容。</span>
+<span>由于HTML是非常受欢迎的内容格式，默认情况下提供了一些支持。</span>
+<span>该类提供了默认支持，该类支持HTML版本3.2（具有一些扩展），并且正在向版本4.0迁移。</span>
+<span>&lt;applet&gt;标记不受支持，但对&lt;object&gt;标签提供了一些支持。</span>
+<p> <span>HTML EditorKit提供了几个目标，这些对HTML进行建模的方式有影响。</span> <span>这些都以实质的方式影响了其设计。</span> </p>
+<dl>
+<dt>
+<span>支持编辑</span>
+</dt>
+<dd>
+<span>JEditorPane的插件似乎可以提供编辑支持，但这个事实有几个设计考虑。</span>
+<span>有大量的HTML文档不符合HTML规范。</span>
+<span>如果要编辑它们，则必须将其归一化为正确的形式。</span>
+<span>此外，用户不希望被呈现过多的结构编辑，因此使用传统文本编辑手势优先于使用完全按照HTML文档中定义的HTML结构。</span>
+<p> <span>HTML的建模由<code>HTMLDocument</code>课程<code>HTMLDocument</code> 。</span> <span>其文档描述了HTML如何建模的细节。</span> <span>编辑支持充分利用文本包。</span> </p>
+</dd>
+<dt>
+<span>可扩展/可扩展</span>
+</dt>
+<dd>
+<span>为了最大化这个套件的有用性，我们已经做了大量的工作，使其可扩展。</span>
+<span>这些是一些功能。</span>
+<ol>
+<li> <span>解析器可更换。</span> <span>默认解析器是基于DTD的热Java解析器。</span> <span>可以使用不同的DTD，或者可以使用完全不同的解析器。</span> <span>要更改解析器，请重新实现getParser方法。</span> <span>默认的解析器在第一次被请求时被动态加载，所以如果使用另外一个解析器，类文件将永远不被加载。</span> <span>默认解析器位于此包下面的一个名为parser的单独包中。</span> </li>
+<li> <span>解析器驱动由HTMLDocument提供的ParserCallback。</span> <span>要更改回调，子类HTMLDocument并重新实现createDefaultDocument方法以返回生成不同读取器的文档。</span> <span>读者控制文档的结构。</span> <span>虽然文档默认提供HTML支持，但是没有任何东西阻止支持导致替代元素结构的非HTML标签。</span> </li>
+<li> <span>模型的默认视图作为View实现的层次结构提供，因此可以通过提供新的View实现来轻松地自定义特定元素的显示方式或添加新类型元素的功能。</span> <span>默认的视图由<code>HTMLFactory</code>类提供。</span> <span>这可以通过子类化或替换HTMLFactory并重新实现getViewFactory方法来返回替代工厂来轻松更改。</span> </li>
+<li> <span>View实现主要从CSS属性中删除，这些属性保留在视图中。</span> <span>这使得有可能在同一模型上映射出多个视图，这些视图显着不同。</span> <span>这对打印尤其有用。</span> <span>对于大多数HTML属性，HTML属性将转换为CSS属性进行显示。</span> <span>这有助于使View实现更通用</span> </li>
+</ol>
+</dd>
+<dt>
+<span>异步加载</span>
+</dt>
+<dd>
+<span>较大的文档涉及大量解析，需要一些时间才能加载。</span>
+<span>默认情况下，此套件会生成将使用<code>JEditorPane.setPage</code>加载异步加载的<code>JEditorPane.setPage</code> 。</span>
+<span>这由文档上的属性控制。</span>
+<span>方法<a href="../../../../javax/swing/text/html/HTMLEditorKit.html#createDefaultDocument--"><code>createDefaultDocument</code></a>可以被覆盖以改变这一点。</span>
+<span>工作的批量由<code>HTMLDocument.HTMLReader</code>课程完成。</span>
+<span>实际工作由文本包中的<code>DefaultStyledDocument</code>和<code>AbstractDocument</code>类完成。</span>
+</dd>
+<dt>
+<span>从目前的LAF定制</span>
+</dt>
+<dd>
+<span>HTML提供了一组众所周知的功能，而没有精确地指定显示特征。</span>
+<span>Swing有一个主题机制，它的外观和感觉实现。</span>
+<span>将显示特征提供给HTML视图是理想的外观和感觉。</span>
+<span>例如，视力差的用户将需要高对比度并且比典型的字体更大。</span>
+<p> <span>对此的支持由<code>StyleSheet</code>课程提供。</span> <span>在EditorKit上设置StyleSheet属性会严重影响HTML的呈现。</span> </p>
+</dd>
+<dt>
+<span>没有损失</span>
+</dt>
+<dd>
+<span>EditorKit可以读取和保存文档。</span>
+<span>如果两次操作之间没有数据丢失，通常情况下用户最乐意。</span>
+<span>HTMLEditorKit的政策将是存储未被识别或不一定可见的东西，以便随后写出。</span>
+<span>因此，HTML文档的模型应包含读取文档时发现的所有信息。</span>
+<span>这在某些方面受到支持编辑的需要（即不正确的文档有时必须被归一化）。</span>
+<span>指导原则是信息不应该丢失，但有些可能被合成以产生更正确的模型，或者可以重新排列。</span>
+</dd>
+</dl>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.HTMLFactory.html" title="class in javax.swing.text.html">HTMLEditorKit.HTMLFactory</a></span></code>
+<div class="block">
+              为HTML创建视图的工厂。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.HTMLTextAction.html" title="class in javax.swing.text.html">HTMLEditorKit.HTMLTextAction</a></span></code>
+<div class="block">
+              一个抽象的Action提供了一些方便的方法，可能有助于将HTML插入到现有文档中。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.InsertHTMLTextAction.html" title="class in javax.swing.text.html">HTMLEditorKit.InsertHTMLTextAction</a></span></code>
+<div class="block">
+              InsertHTMLTextAction可用于将HTML的任意字符串插入到现有的HTML文档中。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.LinkController.html" title="class in javax.swing.text.html">HTMLEditorKit.LinkController</a></span></code>
+<div class="block">
+              在适当的时候，类可以观看关联的组件并在其上触发超链接事件。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.Parser.html" title="class in javax.swing.text.html">HTMLEditorKit.Parser</a></span></code>
+<div class="block">
+              接口由解析器支持。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.ParserCallback.html" title="class in javax.swing.text.html">HTMLEditorKit.ParserCallback</a></span></code>
+<div class="block">
+              解析的结果驱动这些回调方法。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.javax.swing.text.StyledEditorKit">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class javax.swing.text.<a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></h3> <code><a href="../../../../javax/swing/text/StyledEditorKit.AlignmentAction.html" title="class in javax.swing.text">StyledEditorKit.AlignmentAction</a>, <a href="../../../../javax/swing/text/StyledEditorKit.BoldAction.html" title="class in javax.swing.text">StyledEditorKit.BoldAction</a>, <a href="../../../../javax/swing/text/StyledEditorKit.FontFamilyAction.html" title="class in javax.swing.text">StyledEditorKit.FontFamilyAction</a>, <a href="../../../../javax/swing/text/StyledEditorKit.FontSizeAction.html" title="class in javax.swing.text">StyledEditorKit.FontSizeAction</a>, <a href="../../../../javax/swing/text/StyledEditorKit.ForegroundAction.html" title="class in javax.swing.text">StyledEditorKit.ForegroundAction</a>, <a href="../../../../javax/swing/text/StyledEditorKit.ItalicAction.html" title="class in javax.swing.text">StyledEditorKit.ItalicAction</a>, <a href="../../../../javax/swing/text/StyledEditorKit.StyledTextAction.html" title="class in javax.swing.text">StyledEditorKit.StyledTextAction</a>, <a href="../../../../javax/swing/text/StyledEditorKit.UnderlineAction.html" title="class in javax.swing.text">StyledEditorKit.UnderlineAction</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.javax.swing.text.DefaultEditorKit">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class javax.swing.text.<a href="../../../../javax/swing/text/DefaultEditorKit.html" title="class in javax.swing.text">DefaultEditorKit</a></h3> <code><a href="../../../../javax/swing/text/DefaultEditorKit.BeepAction.html" title="class in javax.swing.text">DefaultEditorKit.BeepAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.CopyAction.html" title="class in javax.swing.text">DefaultEditorKit.CopyAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.CutAction.html" title="class in javax.swing.text">DefaultEditorKit.CutAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.DefaultKeyTypedAction.html" title="class in javax.swing.text">DefaultEditorKit.DefaultKeyTypedAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.InsertBreakAction.html" title="class in javax.swing.text">DefaultEditorKit.InsertBreakAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.InsertContentAction.html" title="class in javax.swing.text">DefaultEditorKit.InsertContentAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.InsertTabAction.html" title="class in javax.swing.text">DefaultEditorKit.InsertTabAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.PasteAction.html" title="class in javax.swing.text">DefaultEditorKit.PasteAction</a></code></li>
+</ul> </li>
+</ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#BOLD_ACTION">BOLD_ACTION</a></span></code>
+<div class="block">
+              粗体动作标识符 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#COLOR_ACTION">COLOR_ACTION</a></span></code>
+<div class="block">
+              颜色选择操作标识符颜色作为参数传递 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#DEFAULT_CSS">DEFAULT_CSS</a></span></code>
+<div class="block">
+              默认级联样式表文件，用于设置标签视图。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#FONT_CHANGE_BIGGER">FONT_CHANGE_BIGGER</a></span></code>
+<div class="block">
+              字体大小增加到下一个值动作标识符 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#FONT_CHANGE_SMALLER">FONT_CHANGE_SMALLER</a></span></code>
+<div class="block">
+              字体大小减小到下一个值动作标识符 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#IMG_ALIGN_BOTTOM">IMG_ALIGN_BOTTOM</a></span></code>
+<div class="block">
+              将图像对齐在底部。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#IMG_ALIGN_MIDDLE">IMG_ALIGN_MIDDLE</a></span></code>
+<div class="block">
+              在中间对齐图像。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#IMG_ALIGN_TOP">IMG_ALIGN_TOP</a></span></code>
+<div class="block">
+              将图像对齐在顶部。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#IMG_BORDER">IMG_BORDER</a></span></code>
+<div class="block">
+              在边框对齐图像。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#ITALIC_ACTION">ITALIC_ACTION</a></span></code>
+<div class="block">
+              斜体动作标识符 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#LOGICAL_STYLE_ACTION">LOGICAL_STYLE_ACTION</a></span></code>
+<div class="block">
+              逻辑样式选择动作标识符逻辑样式作为参数传入 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#PARA_INDENT_LEFT">PARA_INDENT_LEFT</a></span></code>
+<div class="block">
+              段落为缩进动作标识符 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#PARA_INDENT_RIGHT">PARA_INDENT_RIGHT</a></span></code>
+<div class="block">
+              段落正确的缩进动作标识符 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.javax.swing.text.DefaultEditorKit">
+<!-- --> </a> <h3>Fields inherited from class javax.swing.text.<a href="../../../../javax/swing/text/DefaultEditorKit.html" title="class in javax.swing.text">DefaultEditorKit</a></h3> <code><a href="../../../../javax/swing/text/DefaultEditorKit.html#backwardAction">backwardAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#beepAction">beepAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#beginAction">beginAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#beginLineAction">beginLineAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#beginParagraphAction">beginParagraphAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#beginWordAction">beginWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#copyAction">copyAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#cutAction">cutAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#defaultKeyTypedAction">defaultKeyTypedAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#deleteNextCharAction">deleteNextCharAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#deleteNextWordAction">deleteNextWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#deletePrevCharAction">deletePrevCharAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#deletePrevWordAction">deletePrevWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#downAction">downAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#endAction">endAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#endLineAction">endLineAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#EndOfLineStringProperty">EndOfLineStringProperty</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#endParagraphAction">endParagraphAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#endWordAction">endWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#forwardAction">forwardAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#insertBreakAction">insertBreakAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#insertContentAction">insertContentAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#insertTabAction">insertTabAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#nextWordAction">nextWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#pageDownAction">pageDownAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#pageUpAction">pageUpAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#pasteAction">pasteAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#previousWordAction">previousWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#readOnlyAction">readOnlyAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectAllAction">selectAllAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionBackwardAction">selectionBackwardAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionBeginAction">selectionBeginAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionBeginLineAction">selectionBeginLineAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionBeginParagraphAction">selectionBeginParagraphAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionBeginWordAction">selectionBeginWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionDownAction">selectionDownAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionEndAction">selectionEndAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionEndLineAction">selectionEndLineAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionEndParagraphAction">selectionEndParagraphAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionEndWordAction">selectionEndWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionForwardAction">selectionForwardAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionNextWordAction">selectionNextWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionPreviousWordAction">selectionPreviousWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectionUpAction">selectionUpAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectLineAction">selectLineAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectParagraphAction">selectParagraphAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#selectWordAction">selectWordAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#upAction">upAction</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#writableAction">writableAction</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#HTMLEditorKit--">HTMLEditorKit</a></span>()</code>
+<div class="block">
+              构造一个HTMLEditorKit，创建一个StyleContext，并加载样式表。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#clone--">clone</a></span>()</code>
+<div class="block">
+              创建一个编辑工具包的副本。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/Document.html" title="interface in javax.swing.text">Document</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#createDefaultDocument--">createDefaultDocument</a></span>()</code>
+<div class="block">
+              创建适用于此类型编辑器的未初始化文本存储模型。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#createInputAttributes-javax.swing.text.Element-javax.swing.text.MutableAttributeSet-">createInputAttributes</a></span>(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> element, <a href="../../../../javax/swing/text/MutableAttributeSet.html" title="interface in javax.swing.text">MutableAttributeSet</a> set)</code>
+<div class="block">
+              将 
+             <code>element</code>的AttributeSet中的键/值复制到 
+             <code>set</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#deinstall-javax.swing.JEditorPane-">deinstall</a></span>(<a href="../../../../javax/swing/JEditorPane.html" title="class in javax.swing">JEditorPane</a> c)</code>
+<div class="block">
+              当该套件从JEditorPane中删除时调用。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../../javax/accessibility/AccessibleContext.html" title="class in javax.accessibility">AccessibleContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#getAccessibleContext--">getAccessibleContext</a></span>()</code>
+<div class="block">
+              返回与此编辑器工具包关联的AccessibleContext 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../../../javax/swing/Action.html" title="interface in javax.swing">Action</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#getActions--">getActions</a></span>()</code>
+<div class="block">
+              获取编辑器命令列表。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#getContentType--">getContentType</a></span>()</code>
+<div class="block">
+              获取此套件代表支持的数据的MIME类型。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../../java/awt/Cursor.html" title="class in java.awt">Cursor</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#getDefaultCursor--">getDefaultCursor</a></span>()</code>
+<div class="block">
+              返回默认游标。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/MutableAttributeSet.html" title="interface in javax.swing.text">MutableAttributeSet</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#getInputAttributes--">getInputAttributes</a></span>()</code>
+<div class="block">
+              获取用于样式编辑操作的输入属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../../java/awt/Cursor.html" title="class in java.awt">Cursor</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#getLinkCursor--">getLinkCursor</a></span>()</code>
+<div class="block">
+              返回光标以超链接使用。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>protected <a href="../../../../javax/swing/text/html/HTMLEditorKit.Parser.html" title="class in javax.swing.text.html">HTMLEditorKit.Parser</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#getParser--">getParser</a></span>()</code>
+<div class="block">
+              获取解析器以用于读取HTML流。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#getStyleSheet--">getStyleSheet</a></span>()</code>
+<div class="block">
+              获取当前用于呈现HTML元素的一组样式。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../../../javax/swing/text/ViewFactory.html" title="interface in javax.swing.text">ViewFactory</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#getViewFactory--">getViewFactory</a></span>()</code>
+<div class="block">
+              获取适合产生由该套件生产的任何型号的视图的工厂。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#insertHTML-javax.swing.text.html.HTMLDocument-int-java.lang.String-int-int-javax.swing.text.html.HTML.Tag-">insertHTML</a></span>(<a href="../../../../javax/swing/text/html/HTMLDocument.html" title="class in javax.swing.text.html">HTMLDocument</a> doc, int offset, <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> html, int popDepth, int pushDepth, <a href="../../../../javax/swing/text/html/HTML.Tag.html" title="class in javax.swing.text.html">HTML.Tag</a> insertTag)</code>
+<div class="block">
+              将HTML插入到现有文档中。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#install-javax.swing.JEditorPane-">install</a></span>(<a href="../../../../javax/swing/JEditorPane.html" title="class in javax.swing">JEditorPane</a> c)</code>
+<div class="block">
+              当该套件安装到JEditorPane中时调用。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#isAutoFormSubmission--">isAutoFormSubmission</a></span>()</code>
+<div class="block">
+              指示是自动处理html表单提交还是仅 
+             <code>FormSubmitEvent</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#read-java.io.Reader-javax.swing.text.Document-int-">read</a></span>(<a href="../../../../java/io/Reader.html" title="class in java.io">Reader</a> in, <a href="../../../../javax/swing/text/Document.html" title="interface in javax.swing.text">Document</a> doc, int pos)</code>
+<div class="block">
+              从给定的流插入内容。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#setAutoFormSubmission-boolean-">setAutoFormSubmission</a></span>(boolean isAuto)</code>
+<div class="block">
+              指定是否自动处理html表单提交或仅 
+             <code>FormSubmitEvent</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#setDefaultCursor-java.awt.Cursor-">setDefaultCursor</a></span>(<a href="../../../../java/awt/Cursor.html" title="class in java.awt">Cursor</a> cursor)</code>
+<div class="block">
+              设置默认光标。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#setLinkCursor-java.awt.Cursor-">setLinkCursor</a></span>(<a href="../../../../java/awt/Cursor.html" title="class in java.awt">Cursor</a> cursor)</code>
+<div class="block">
+              将光标设置为使用链接。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#setStyleSheet-javax.swing.text.html.StyleSheet-">setStyleSheet</a></span>(<a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a> s)</code>
+<div class="block">
+              设置用于渲染各种HTML元素的样式集。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#write-java.io.Writer-javax.swing.text.Document-int-int-">write</a></span>(<a href="../../../../java/io/Writer.html" title="class in java.io">Writer</a> out, <a href="../../../../javax/swing/text/Document.html" title="interface in javax.swing.text">Document</a> doc, int pos, int len)</code>
+<div class="block">
+              将内容从文档以适合此类内容处理程序的格式写入给定流。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.text.StyledEditorKit">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.text.<a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></h3> <code><a href="../../../../javax/swing/text/StyledEditorKit.html#getCharacterAttributeRun--">getCharacterAttributeRun</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.text.DefaultEditorKit">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.text.<a href="../../../../javax/swing/text/DefaultEditorKit.html" title="class in javax.swing.text">DefaultEditorKit</a></h3> <code><a href="../../../../javax/swing/text/DefaultEditorKit.html#createCaret--">createCaret</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#read-java.io.InputStream-javax.swing.text.Document-int-">read</a>, <a href="../../../../javax/swing/text/DefaultEditorKit.html#write-java.io.OutputStream-javax.swing.text.Document-int-int-">write</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="DEFAULT_CSS">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>DEFAULT_CSS</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> DEFAULT_CSS</pre>
+<div class="block">
+            默认级联样式表文件，用于设置标签视图。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.DEFAULT_CSS">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="BOLD_ACTION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>BOLD_ACTION</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> BOLD_ACTION</pre>
+<div class="block">
+            粗体动作标识符 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.BOLD_ACTION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ITALIC_ACTION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ITALIC_ACTION</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> ITALIC_ACTION</pre>
+<div class="block">
+            斜体动作标识符 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.ITALIC_ACTION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="PARA_INDENT_LEFT">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>PARA_INDENT_LEFT</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> PARA_INDENT_LEFT</pre>
+<div class="block">
+            段落为缩进动作标识符 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.PARA_INDENT_LEFT">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="PARA_INDENT_RIGHT">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>PARA_INDENT_RIGHT</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> PARA_INDENT_RIGHT</pre>
+<div class="block">
+            段落正确的缩进动作标识符 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.PARA_INDENT_RIGHT">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="FONT_CHANGE_BIGGER">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>FONT_CHANGE_BIGGER</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> FONT_CHANGE_BIGGER</pre>
+<div class="block">
+            字体大小增加到下一个值动作标识符 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.FONT_CHANGE_BIGGER">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="FONT_CHANGE_SMALLER">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>FONT_CHANGE_SMALLER</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> FONT_CHANGE_SMALLER</pre>
+<div class="block">
+            字体大小减小到下一个值动作标识符 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.FONT_CHANGE_SMALLER">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="COLOR_ACTION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>COLOR_ACTION</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> COLOR_ACTION</pre>
+<div class="block">
+            颜色选择操作标识符颜色作为参数传递 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.COLOR_ACTION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="LOGICAL_STYLE_ACTION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>LOGICAL_STYLE_ACTION</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> LOGICAL_STYLE_ACTION</pre>
+<div class="block">
+            逻辑样式选择动作标识符逻辑样式作为参数传入 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.LOGICAL_STYLE_ACTION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="IMG_ALIGN_TOP">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>IMG_ALIGN_TOP</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> IMG_ALIGN_TOP</pre>
+<div class="block">
+            将图像对齐在顶部。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.IMG_ALIGN_TOP">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="IMG_ALIGN_MIDDLE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>IMG_ALIGN_MIDDLE</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> IMG_ALIGN_MIDDLE</pre>
+<div class="block">
+            在中间对齐图像。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.IMG_ALIGN_MIDDLE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="IMG_ALIGN_BOTTOM">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>IMG_ALIGN_BOTTOM</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> IMG_ALIGN_BOTTOM</pre>
+<div class="block">
+            将图像对齐在底部。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.IMG_ALIGN_BOTTOM">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="IMG_BORDER">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>IMG_BORDER</h4> <pre>public static final <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> IMG_BORDER</pre>
+<div class="block">
+            在边框对齐图像。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../constant-values.html#javax.swing.text.html.HTMLEditorKit.IMG_BORDER">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="HTMLEditorKit--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>HTMLEditorKit</h4> <pre>public HTMLEditorKit()</pre>
+<div class="block">
+            构造一个HTMLEditorKit，创建一个StyleContext，并加载样式表。 
+          </div> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getContentType--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getContentType</h4> <pre>public <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> getContentType()</pre>
+<div class="block">
+<span>获取此套件代表支持的数据的MIME类型。</span>
+<span>此套件支持类型<code>text/html</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/DefaultEditorKit.html#getContentType--">getContentType</a></code>在 
+            <code><a href="../../../../javax/swing/text/DefaultEditorKit.html" title="class in javax.swing.text">DefaultEditorKit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             方式 
+           </dd>
+</dl> </li>
+</ul> <a name="getViewFactory--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getViewFactory</h4> <pre>public <a href="../../../../javax/swing/text/ViewFactory.html" title="interface in javax.swing.text">ViewFactory</a> getViewFactory()</pre>
+<div class="block">
+            获取适合产生由该套件生产的任何型号的视图的工厂。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/StyledEditorKit.html#getViewFactory--">getViewFactory</a></code>在 
+            <code><a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             工厂 
+           </dd>
+</dl> </li>
+</ul> <a name="createDefaultDocument--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createDefaultDocument</h4> <pre>public <a href="../../../../javax/swing/text/Document.html" title="interface in javax.swing.text">Document</a> createDefaultDocument()</pre>
+<div class="block">
+            创建适用于此类型编辑器的未初始化文本存储模型。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/StyledEditorKit.html#createDefaultDocument--">createDefaultDocument</a></code>在 
+            <code><a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该模型 
+           </dd>
+</dl> </li>
+</ul> <a name="read-java.io.Reader-javax.swing.text.Document-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public void read(<a href="../../../../java/io/Reader.html" title="class in java.io">Reader</a> in,
+                 <a href="../../../../javax/swing/text/Document.html" title="interface in javax.swing.text">Document</a> doc,
+                 int pos)
+          throws <a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                 <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></pre>
+<div class="block">
+<span>从给定的流插入内容。</span>
+<span>如果<code>doc</code>是<code>doc</code>的一个实例，这将读取HTML 3.2文本。</span>
+<span>将HTML插入非空文档必须位于主体元素内，如果不插入到正文中，将抛出异常。</span>
+<span>当插入非空文档时，身体之外的所有标签（头，标题）将被删除。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/DefaultEditorKit.html#read-java.io.Reader-javax.swing.text.Document-int-">read</a></code>在 
+            <code><a href="../../../../javax/swing/text/DefaultEditorKit.html" title="class in javax.swing.text">DefaultEditorKit</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>in</code> - 要读取的流 
+           </dd>
+<dd>
+<code>doc</code> - 插入的目的地 
+           </dd>
+<dd>
+<code>pos</code> - 放置内容的文档中的位置 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 在任何I / O错误 
+           </dd>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code> - 如果pos表示文档中的无效位置 
+           </dd>
+<dd>
+<code><a href="../../../../java/lang/RuntimeException.html" title="class in java.lang">RuntimeException</a></code> - （最终将是一个BadLocationException）如果pos无效 
+           </dd>
+</dl> </li>
+</ul> <a name="insertHTML-javax.swing.text.html.HTMLDocument-int-java.lang.String-int-int-javax.swing.text.html.HTML.Tag-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>insertHTML</h4> <pre>public void insertHTML(<a href="../../../../javax/swing/text/html/HTMLDocument.html" title="class in javax.swing.text.html">HTMLDocument</a> doc,
+                       int offset,
+                       <a href="../../../../java/lang/String.html" title="class in java.lang">String</a> html,
+                       int popDepth,
+                       int pushDepth,
+                       <a href="../../../../javax/swing/text/html/HTML.Tag.html" title="class in javax.swing.text.html">HTML.Tag</a> insertTag)
+                throws <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a>,
+                       <a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            将HTML插入到现有文档中。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>doc</code> - 要插入的文件 
+           </dd>
+<dd>
+<code>offset</code> - 插入HTML的偏移量 
+           </dd>
+<dd>
+<code>popDepth</code> - 插入之前要生成的ElementSpec.EndTagTypes的数量 
+           </dd>
+<dd>
+<code>pushDepth</code> - 
+            <code>pushDepth</code>的数量，其方向为ElementSpec.JoinNextDirection，应该在插入之前生成，但在生成结束标签之后 
+           </dd>
+<dd>
+<code>insertTag</code> - 开始插入文档的第一个标签 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/RuntimeException.html" title="class in java.lang">RuntimeException</a></code> - （最终将是一个BadLocationException）如果pos无效 
+           </dd>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code>
+</dd>
+<dd>
+<code><a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></code>
+</dd>
+</dl> </li>
+</ul> <a name="write-java.io.Writer-javax.swing.text.Document-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public void write(<a href="../../../../java/io/Writer.html" title="class in java.io">Writer</a> out,
+                  <a href="../../../../javax/swing/text/Document.html" title="interface in javax.swing.text">Document</a> doc,
+                  int pos,
+                  int len)
+           throws <a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a>,
+                  <a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></pre>
+<div class="block">
+            将内容从文档以适合此类内容处理程序的格式写入给定流。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/DefaultEditorKit.html#write-java.io.Writer-javax.swing.text.Document-int-int-">write</a></code>在 
+            <code><a href="../../../../javax/swing/text/DefaultEditorKit.html" title="class in javax.swing.text">DefaultEditorKit</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>out</code> - 要写入的流 
+           </dd>
+<dd>
+<code>doc</code> - 写的来源 
+           </dd>
+<dd>
+<code>pos</code> - 文档中获取内容的位置 
+           </dd>
+<dd>
+<code>len</code> - 写出的金额 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 在任何I / O错误 
+           </dd>
+<dd>
+<code><a href="../../../../javax/swing/text/BadLocationException.html" title="class in javax.swing.text">BadLocationException</a></code> - 如果pos表示文档中的无效位置 
+           </dd>
+</dl> </li>
+</ul> <a name="install-javax.swing.JEditorPane-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>install</h4> <pre>public void install(<a href="../../../../javax/swing/JEditorPane.html" title="class in javax.swing">JEditorPane</a> c)</pre>
+<div class="block">
+            当该套件安装到JEditorPane中时调用。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/StyledEditorKit.html#install-javax.swing.JEditorPane-">install</a></code>在 
+            <code><a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>c</code> - JEditorPane 
+           </dd>
+</dl> </li>
+</ul> <a name="deinstall-javax.swing.JEditorPane-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>deinstall</h4> <pre>public void deinstall(<a href="../../../../javax/swing/JEditorPane.html" title="class in javax.swing">JEditorPane</a> c)</pre>
+<div class="block">
+<span>当该套件从JEditorPane中删除时调用。</span>
+<span>这用于取消注册附加的任何监听器。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/StyledEditorKit.html#deinstall-javax.swing.JEditorPane-">deinstall</a></code>在 
+            <code><a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></code>类 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>c</code> - JEditorPane 
+           </dd>
+</dl> </li>
+</ul> <a name="setStyleSheet-javax.swing.text.html.StyleSheet-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setStyleSheet</h4> <pre>public void setStyleSheet(<a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a> s)</pre>
+<div class="block">
+<span>设置用于渲染各种HTML元素的样式集。</span>
+<span>这些样式是根据CSS规范指定的。</span>
+<span>套件生成的每个文件都将具有可以将文档特定样式添加到的工作表的副本。</span>
+<span>默认情况下，指定的StyleSheet由所有HTMLEditorKit实例共享。</span>
+<span>如果需要，应该重新实现这一点，以提供更精细的粒度。</span>
+</div> </li>
+</ul> <a name="getStyleSheet--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getStyleSheet</h4> <pre>public <a href="../../../../javax/swing/text/html/StyleSheet.html" title="class in javax.swing.text.html">StyleSheet</a> getStyleSheet()</pre>
+<div class="block">
+<span>获取当前用于呈现HTML元素的一组样式。</span>
+<span>默认情况下，DEFAULT_CSS指定的资源将被加载，并由所有HTMLEditorKit实例共享。</span>
+</div> </li>
+</ul> <a name="getActions--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getActions</h4> <pre>public <a href="../../../../javax/swing/Action.html" title="interface in javax.swing">Action</a>[] getActions()</pre>
+<div class="block">
+<span>获取编辑器命令列表。</span>
+<span>这是超级类支持的命令的列表，这些命令由对本地定义的样式操作定义的命令集合进行了扩充。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/StyledEditorKit.html#getActions--">getActions</a></code>在 
+            <code><a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             命令列表 
+           </dd>
+</dl> </li>
+</ul> <a name="createInputAttributes-javax.swing.text.Element-javax.swing.text.MutableAttributeSet-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createInputAttributes</h4> <pre>protected void createInputAttributes(<a href="../../../../javax/swing/text/Element.html" title="interface in javax.swing.text">Element</a> element,
+                                     <a href="../../../../javax/swing/text/MutableAttributeSet.html" title="interface in javax.swing.text">MutableAttributeSet</a> set)</pre>
+<div class="block">
+<span>将<code>element</code>的AttributeSet中的键/值复制到<code>set</code> 。</span>
+<span>这不会复制组件，图标或元素名称属性。</span>
+<span>子类可能希望改进什么是什么和什么不复制在这里。</span>
+<span>但请确保先删除set中的所有<code>set</code> 。</span>
+<p> <span>随时插入符号在不同位置移动即可。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/StyledEditorKit.html#createInputAttributes-javax.swing.text.Element-javax.swing.text.MutableAttributeSet-">createInputAttributes</a></code>在 
+            <code><a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></code>
+</dd>
+</dl> </li>
+</ul> <a name="getInputAttributes--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getInputAttributes</h4> <pre>public <a href="../../../../javax/swing/text/MutableAttributeSet.html" title="interface in javax.swing.text">MutableAttributeSet</a> getInputAttributes()</pre>
+<div class="block">
+            获取用于样式编辑操作的输入属性。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/StyledEditorKit.html#getInputAttributes--">getInputAttributes</a></code>在 
+            <code><a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             属性集 
+           </dd>
+</dl> </li>
+</ul> <a name="setDefaultCursor-java.awt.Cursor-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setDefaultCursor</h4> <pre>public void setDefaultCursor(<a href="../../../../java/awt/Cursor.html" title="class in java.awt">Cursor</a> cursor)</pre>
+<div class="block">
+            设置默认光标。 
+          </div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="getDefaultCursor--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDefaultCursor</h4> <pre>public <a href="../../../../java/awt/Cursor.html" title="class in java.awt">Cursor</a> getDefaultCursor()</pre>
+<div class="block">
+            返回默认游标。 
+          </div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="setLinkCursor-java.awt.Cursor-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setLinkCursor</h4> <pre>public void setLinkCursor(<a href="../../../../java/awt/Cursor.html" title="class in java.awt">Cursor</a> cursor)</pre>
+<div class="block">
+            将光标设置为使用链接。 
+          </div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="getLinkCursor--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLinkCursor</h4> <pre>public <a href="../../../../java/awt/Cursor.html" title="class in java.awt">Cursor</a> getLinkCursor()</pre>
+<div class="block">
+            返回光标以超链接使用。 
+          </div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+</dl> </li>
+</ul> <a name="isAutoFormSubmission--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isAutoFormSubmission</h4> <pre>public boolean isAutoFormSubmission()</pre>
+<div class="block">
+            指示是否自动处理html表单提交或仅 
+           <code>FormSubmitEvent</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果html表单提交被自动处理，则为true，否则为false。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../../javax/swing/text/html/HTMLEditorKit.html#setAutoFormSubmission-boolean-"><code>setAutoFormSubmission(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setAutoFormSubmission-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setAutoFormSubmission</h4> <pre>public void setAutoFormSubmission(boolean isAuto)</pre>
+<div class="block">
+<span>指定是否自动处理html表单提交或仅<code>FormSubmitEvent</code> 。</span>
+<span>默认设置为true。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../javax/swing/text/html/HTMLEditorKit.html#isAutoFormSubmission--"><code>isAutoFormSubmission()</code></a> ， <a href="../../../../javax/swing/text/html/FormSubmitEvent.html" title="javax.swing.text.html中的类"><code>FormSubmitEvent</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="clone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>clone</h4> <pre>public <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> clone()</pre>
+<div class="block">
+            创建一个编辑工具包的副本。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/swing/text/StyledEditorKit.html#clone--">clone</a></code>在 
+            <code><a href="../../../../javax/swing/text/StyledEditorKit.html" title="class in javax.swing.text">StyledEditorKit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             副本 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../../java/lang/Cloneable.html" title="java.lang中的接口"><code>Cloneable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getParser--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getParser</h4> <pre>protected <a href="../../../../javax/swing/text/html/HTMLEditorKit.Parser.html" title="class in javax.swing.text.html">HTMLEditorKit.Parser</a> getParser()</pre>
+<div class="block">
+<span>获取解析器以用于读取HTML流。</span>
+<span>这可以被重新实现以提供不同的解析器。</span>
+<span>默认实现是动态加载的，以避免在不使用默认解析器时加载默认解析器的开销。</span>
+<span>默认解析器是使用HTML 3.2 DTD的HotJava解析器。</span>
+</div> </li>
+</ul> <a name="getAccessibleContext--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getAccessibleContext</h4> <pre>public <a href="../../../../javax/accessibility/AccessibleContext.html" title="class in javax.accessibility">AccessibleContext</a> getAccessibleContext()</pre>
+<div class="block">
+            返回与此编辑器工具包关联的AccessibleContext 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../../javax/accessibility/Accessible.html#getAccessibleContext--">getAccessibleContext</a></code>在接口 
+            <code><a href="../../../../javax/accessibility/Accessible.html" title="interface in javax.accessibility">Accessible</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与此编辑器工具包相关联的AccessibleContext 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

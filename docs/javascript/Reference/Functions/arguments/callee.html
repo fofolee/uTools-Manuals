@@ -1,0 +1,172 @@
+<article id="wikiArticle">
+<div></div>
+<p><code><strong>arguments.callee </strong></code>属性包含当前正在执行的函数。</p>
+<h2 id="Description" name="Description">描述</h2>
+<p><strong><code>callee</code></strong> 是 <code>arguments</code> 对象的一个属性。它可以用于引用该函数的函数体内当前正在执行的函数。这在函数的名称是未知时很有用，例如在没有名称的函数表达式 (也称为“匿名函数”)内。</p>
+<div class="warning"><strong>警告：</strong>在<a href="/en-US/docs/JavaScript/Reference/Functions_and_function_scope/Strict_mode" title="/en-US/docs/JavaScript/Reference/Functions_and_function_scope/Strict_mode">严格模式</a>下，第5版 ECMAScript (<strong>ES5</strong>) 禁止使用 <code>a<strong>rguments.callee()</strong>。当一个函数必须调用自身的时候, 避免使用 <strong>arguments.callee(), </strong></code>通过<code>要么</code>给函数表达式一个名字<font face="Consolas, Liberation Mono, Courier, monospace">,</font>要么使用一个函数声明.</div>
+<h2 id="为什么_arguments.callee_从ES5严格模式中删除了？">为什么 arguments.callee 从ES5严格模式中删除了？</h2>
+<p>(改编自 <a class="external" href="http://stackoverflow.com/a/235760/578288" rel="noopener" title="http://stackoverflow.com/a/235760/578288">a Stack Overflow answer by olliej</a>)</p>
+<p>早期版本的 JavaScript不允许使用命名函数表达式，出于这样的原因, 你不能创建一个递归函数表达式。</p>
+<p>例如，下边这个语法就是行的通的：</p>
+<pre class="brush: js">function factorial (n) {
+    return !(n &gt; 1) ? 1 : factorial(n - 1) * n;
+}
+
+[1,2,3,4,5].map(factorial);</pre>
+<p>但是:</p>
+<pre class="brush: js">[1,2,3,4,5].map(function (n) {
+    return !(n &gt; 1) ? 1 : /* what goes here? */ (n - 1) * n;
+});</pre>
+<p>这个不行。为了解决这个问题， <code>arguments.callee</code> 添加进来了。然后你可以这么做</p>
+<pre class="brush: js">[1,2,3,4,5].map(function (n) {
+    return !(n &gt; 1) ? 1 : arguments.callee(n - 1) * n;
+});</pre>
+<p>然而，这实际上是一个非常糟糕的解决方案，因为这 (以及其它的 <code>arguments</code>, <code>callee</code>, 和 <code>caller</code> 问题) 使得在通常的情况（你可以通过调试一些个别例子去实现它，但即使最好的代码是最理想的，你也没必要去检查调试它）不可能实现内联和尾递归。另外一个主要原因是递归调用会获取到一个不同的 <code>this</code> 值，例如：</p>
+<pre class="brush: js">var global = this;
+
+var sillyFunction = function (recursed) {
+    if (!recursed) { return arguments.callee(true); }
+    if (this !== global) {
+        alert("This is: " + this);
+    } else {
+        alert("This is the global");
+    }
+}
+
+sillyFunction();</pre>
+<p>ECMAScript 3 通过允许命名函数表达式解决这些问题。例如：</p>
+<pre class="brush: js">[1,2,3,4,5].map(function factorial (n) {
+    return !(n &gt; 1) ? 1 : factorial(n-1)*n;
+});</pre>
+<p>这有很多好处：</p>
+<ul>
+<li>该函数可以像代码内部的任何其他函数一样被调用</li>
+<li>它不会在外部作用域中创建一个变量 (<a class="external" href="http://kangax.github.io/nfe/#example_1_function_expression_identifier_leaks_into_an_enclosing_scope" rel="noopener">除了 IE 8 及以下</a>)</li>
+<li>它具有比访问arguments对象更好的性能</li>
+</ul>
+<p>另外一个被废弃的特性是 <code>arguments.callee.caller</code>，具体点说则是 <code>Function.caller。为什么</code>? 额，在任何一个时间点，你能在堆栈中找到任何函数的最深层的调用者，也正如我在上面提到的，在调用堆栈有一个单一重大影响：不可能做大量的优化，或者有更多更多的困难。比如，如果你不能保证一个函数 f 不会调用一个未知函数，它就绝不可能是内联函数 f。基本上这意味着内联代码中积累了大量防卫代码：</p>
+<pre class="brush: js">function f (a, b, c, d, e) { return a ? b * c : d * e; }</pre>
+<p>如果 JavaScript 解释器不能保证所有提供的参数数量在被调用的时候都存在，那么它需要在行内代码插入检查，或者不能内联这个函数。现在在这个特殊例子里一个智能的解释器应该能重排检查而更优，并检查任何将不用到的值。然而在许多的情况里那是不可能的，也因此它不能够内联。 </p>
+<h2 id="Example.3A_Using_arguments.callee_in_an_anonymous_recursive_function" name="Example.3A_Using_arguments.callee_in_an_anonymous_recursive_function">例子</h2>
+<h3 id="Example.3A_Using_arguments.callee_in_an_anonymous_recursive_function" name="Example.3A_Using_arguments.callee_in_an_anonymous_recursive_function">在匿名递归函数中使用 <code>arguments.callee</code></h3>
+<p>递归函数必须能够引用它本身。很典型的，函数通过自己的名字调用自己。然而，匿名函数 (通过 <a href="/en-US/docs/JavaScript/Reference/Operators/function" title="JavaScript/Reference/Operators/Special/function">函数表达式</a> 或者 <code><a href="/en-US/docs/JavaScript/Reference/Global_Objects/Function" title="JavaScript/Reference/Global_Objects/Function">函数构造器 </a>创建</code>) 没有名称。因此如果没有可访问的变量指向该函数，唯一能引用它的方式就是通过 <code>arguments.callee</code>。</p>
+<p>下面的例子定义了一个函数，按流程，定义并返回了一个阶乘函数。该例并不是很实用，并且几乎都能够用 <a href="/en-US/docs/JavaScript/Reference/Operators/function" style="line-height: 1.5;" title="JavaScript/Reference/Operators/Special/function">命名函数表达式</a> <span style="line-height: 1.5;">实现同样结果的例子, and there are nearly no cases where the same result cannot be achieved with </span><span style="line-height: 1.5;">.</span></p>
+<pre class="brush: js">function create() {
+   return function(n) {
+      if (n &lt;= 1)
+         return 1;
+      return n * arguments.callee(n - 1);
+   };
+}
+
+var result = create()(5); // returns 120 (5 * 4 * 3 * 2 * 1)
+</pre>
+<h3 id="没有替代方案的_arguments.callee">没有替代方案的 arguments.callee</h3>
+<p><span style="font-family: courier new,andale mono,monospace; line-height: 1.5;">当你必须要使用Function构造函数时，</span>下面的例子是没有可以替代 <span style="font-family: courier new,andale mono,monospace; line-height: 1.5;"><code>arguments.callee</code> 的方案的，因此</span><span style="line-height: 1.5;">弃用它时会产生一个BUG (参看 <a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=725398" rel="noopener" title="Deprecation of arguments.callee: how to deal with the case of instances of Function constructor?">bug 725398</a>):</span></p>
+<pre class="brush: js">function createPerson (sIdentity) {
+    var oPerson = new Function("alert(arguments.callee.identity);");
+    oPerson.identity = sIdentity;
+    return oPerson;
+}
+
+var john = createPerson("John Smith");
+
+john();</pre>
+<p>译者注：利用命名函数表达式也可以实现上述例子的同样效果</p>
+<pre class="brush: js">function createPerson (identity) {
+    function Person() {
+        console.log(Person.identity);
+    }
+    Person.identity = identity;
+    return Person;
+}
+var john = createPerson("John Smith");
+
+john(); //John Smith
+</pre>
+<h2 id="Specifications">Specifications</h2>
+<table class=" standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%201st%20edition,%20June%201997.pdf" hreflang="en" lang="en" rel="noopener" title="ECMAScript 1st Edition (ECMA-262)">ECMAScript 1st Edition (ECMA-262)</a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition. Implemented in JavaScript 1.2</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-10.6" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">Arguments Object</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-arguments-exotic-objects" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Arguments Exotic Objects</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> <br/>
+     </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-arguments-exotic-objects" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Arguments Exotic Objects</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器支持">浏览器支持</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>callee</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+<h2 id="也可以看看">也可以看看</h2>
+<ul>
+<li><a href="Reference/Function" title="此页面仍未被本地化, 期待您的翻译!"><code>Function</code></a></li>
+</ul>
+<p> </p>
+</article>

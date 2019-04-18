@@ -1,0 +1,231 @@
+<article id="wikiArticle">
+<div> <div class="prevnext" style="text-align: right;">
+<p><a href="Guide/Iterators_and_Generators" style="float: left;">« 上一页</a><br/></p>
+</div></div>
+<p class="summary">从ECMAScript 2015 开始，JavaScript 获得对<a href="Reference/Global_Objects/Proxy" title="Proxy 对象用于定义基本操作的自定义行为（如属性查找，赋值，枚举，函数调用等）。"><code>Proxy</code></a>和 <a href="Reference/Global_Objects/Reflect" title="Reflect 是一个内置的对象，它提供拦截 JavaScript 操作的方法。这些方法与处理器对象的方法相同。Reflect不是一个函数对象，因此它是不可构造的。"><code>Reflect</code></a>对象的支持，允许你拦截并定义基本语言操作的自定义行为（例如，属性查找，赋值，枚举，函数调用等）。借助这两个对象，你可以在 JavaScript 元级别进行编程。</p>
+<h2 id="代理">代理</h2>
+<p>在ECMAScript 6中引入<a href="Reference/Global_Objects/Proxy" title="Proxy 对象用于定义基本操作的自定义行为（如属性查找，赋值，枚举，函数调用等）。"><code>Proxy</code></a>对象可以拦截某些操作并实现自定义行为。 例如获取一个对象上的属性：</p>
+<pre class="brush: js">let handler = {
+  get: function(target, name){
+    return name in target ? target[name] : 42;
+}};
+
+let p = new Proxy({}, handler);
+p.a = 1;
+
+console.log(p.a, p.b); // 1, 42
+</pre>
+<p><code>Proxy</code>对象定义了一个目标（这里是一个空对象）和一个实现了<code>get</code>陷阱的 handle 对象。这里，代理的对象在获取未定义的属性时不会返回<code>undefined</code>，而是返回 42。</p>
+<p>更多例子参见<a href="Reference/Global_Objects/Proxy" title="Proxy 对象用于定义基本操作的自定义行为（如属性查找，赋值，枚举，函数调用等）。"><code>Proxy</code></a>页面 。</p>
+<h3 id="术语">术语</h3>
+<p>在讨论代理的功能时使用以下术语。</p>
+<dl>
+<dt><a href="Reference/Global_Objects/Proxy/handler" title="处理器对象用来自定义代理对象的各种可代理操作。">handler</a></dt>
+<dd>包含陷阱的占位符对象。</dd>
+<dt>traps</dt>
+<dd>提供属性访问的方法。这类似于操作系统中陷阱的概念。</dd>
+<dt>target</dt>
+<dd>代理虚拟化的对象。它通常用作代理的存储后端。根据目标验证关于对象不可扩展性或不可配置属性的不变量（保持不变的语义）。</dd>
+<dt>invariants</dt>
+<dd>实现自定义操作时保持不变的语义称为不变量。如果你违反处理程序的不变量，则会抛出一个<a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>。</dd>
+</dl>
+<h2 id="句柄和陷阱">句柄和陷阱</h2>
+<p>以下表格中总结了<code>Proxy</code>对象可用的陷阱。详细的解释和例子请看<a href="Reference/Global_Objects/Proxy/handler">参考页</a>。</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th>Handler / trap</th>
+<th>Interceptions</th>
+<th>Invariants</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/getPrototypeOf" title="handler.getPrototypeOf() 是一个代理方法，当读取代理对象的原型时，该方法就会被调用。"><code>handler.getPrototypeOf()</code></a></td>
+<td><a href="Reference/Global_Objects/Object/getPrototypeOf" title="Object.getPrototypeOf() 方法返回指定对象的原型（内部[[Prototype]]属性的值）。"><code>Object.getPrototypeOf()</code></a><br/>
+<a href="Reference/Global_Objects/Reflect/getPrototypeOf" title="静态方法 Reflect.getPrototypeOf() 与 Object.getPrototypeOf() 方法是一样的。都是返回指定对象的原型（即，内部的 [[Prototype]] 属性的值）。"><code>Reflect.getPrototypeOf()</code></a><br/>
+<a href="Reference/Global_Objects/Object/proto" title="使用__proto__是有争议的，也不鼓励使用它。因为它从来没有被包括在EcmaScript语言规范中，但是现代浏览器都实现了它。__proto__属性已在ECMAScript 6语言规范中标准化，用于确保Web浏览器的兼容性，因此它未来将被支持。它已被不推荐使用, 现在更推荐使用Object.getPrototypeOf/Reflect.getPrototypeOf 和Object.setPrototypeOf/Reflect.setPrototypeOf（尽管如此，设置对象的[[Prototype]]是一个缓慢的操作，如果性能是一个问题，应该避免）。"><code>__proto__</code></a><br/>
+<a href="Reference/Global_Objects/Object/isPrototypeOf" title="isPrototypeOf() 方法用于测试一个对象是否存在于另一个对象的原型链上。"><code>Object.prototype.isPrototypeOf()</code></a><br/>
+<a href="Reference/Operators/instanceof" title="instanceof运算符用于测试构造函数的prototype属性是否出现在对象的原型链中的任何位置"><code>instanceof</code></a></td>
+<td>
+<ul>
+<li><code>getPrototypeO</code>方法一定返回一个对象或<code>null</code>.</li>
+<li>如果 <code>target</code> 不可扩展，<code>Object.getPrototypeOf(proxy)</code> 必须返回和 <code>Object.getPrototypeOf(target)</code>一样的值。</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/setPrototypeOf" title="handler.setPrototypeOf() 方法主要用来拦截 Object.setPrototypeOf()."><code>handler.setPrototypeOf()</code></a></td>
+<td><a href="Reference/Global_Objects/Object/setPrototypeOf" title="如果对象的[[Prototype]]被修改成不可扩展(通过 Object.isExtensible()查看)，就会抛出 TypeError异常。如果prototype参数不是一个对象或者null(例如，数字，字符串，boolean，或者 undefined)，则什么都不做。否则，该方法将obj的[[Prototype]]修改为新的值。"><code>Object.setPrototypeOf()</code></a><br/>
+<a href="Reference/Global_Objects/Reflect/setPrototypeOf" title="静态方法 Reflect.setPrototypeOf() 与 Object.setPrototypeOf() 方法是一致的。它将指定对象的原型 （即，内部的[[Prototype]] 属性）设置为另一个对象或为 null。"><code>Reflect.setPrototypeOf()</code></a></td>
+<td>如果 <code>target</code> 不可扩展，<code>prototype</code> 参数必须与<code>Object.getPrototypeOf(target)</code>的值相同。</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/isExtensible" title="下列参数将会被传递给 isExtensible方法。 this 绑定在 handler 对象上。"><code>handler.isExtensible()</code></a></td>
+<td><a href="Reference/Global_Objects/Object/isExtensible" title="Object.isExtensible() 方法判断一个对象是否是可扩展的（是否可以在它上面添加新的属性）。"><code>Object.isExtensible()</code></a><br/>
+<a href="Reference/Global_Objects/Reflect/isExtensible" title="静态方法 Reflect.isExtensible() 判断一个对象是否可扩展 （即是否能够添加新的属性）。与它 Object.isExtensible() 方法相似，但有一些不同，详情可见 differences。"><code>Reflect.isExtensible()</code></a></td>
+<td><code>Object.isExtensible(proxy)</code> 必须返回和<code>Object.isExtensible(target)</code>一样的值。</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/preventExtensions" title="handler.preventExtensions() 方法用于设置对"><code>handler.preventExtensions()</code></a></td>
+<td><a href="Reference/Global_Objects/Object/preventExtensions" title="Object.preventExtensions()方法让一个对象变的不可扩展，也就是永远不能再添加新的属性。"><code>Object.preventExtensions()</code></a><br/>
+<a href="Reference/Global_Objects/Reflect/preventExtensions" title="静态方法 Reflect.preventExtensions() 方法阻止新属性添加到对象 例如：防止将来对对象的扩展被添加到对象中)。该方法与 Object.preventExtensions()相似，但有一些不同点。详情可见 differences。"><code>Reflect.preventExtensions()</code></a></td>
+<td> 如果<code>Object.isExtensible(proxy)</code> 值为 <code>false，Object.preventExtensions(proxy)</code> 只返回<code>true。</code></td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/getOwnPropertyDescriptor" title="handler.getOwnPropertyDescriptor() 方法是 Object.getOwnPropertyDescriptor()  的陷阱。"><code>handler.getOwnPropertyDescriptor()</code></a></td>
+<td><a href="Reference/Global_Objects/Object/getOwnPropertyDescriptor" title="Object.getOwnPropertyDescriptor() 方法返回指定对象上一个自有属性对应的属性描述符。（自有属性指的是直接赋予该对象的属性，不需要从原型链上进行查找的属性）"><code>Object.getOwnPropertyDescriptor()</code></a><br/>
+<a href="Reference/Global_Objects/Reflect/getOwnPropertyDescriptor" title="静态方法 Reflect.getOwnPropertyDescriptor() 与 Object.getOwnPropertyDescriptor() 方法相似。如果在对象中存在，则返回给定的属性的属性描述符。否则返回 undefined。"><code>Reflect.getOwnPropertyDescriptor()</code></a></td>
+<td>
+<ul>
+<li><code>getOwnPropertyDescripton</code> 只能返回对象或者<code>undefined</code>.</li>
+<li>A property cannot be reported as non-existent, if it exists as a non-configurable own property of the target object.</li>
+<li>A property cannot be reported as non-existent, if it exists as an own property of the target object and the target object is not extensible.</li>
+<li>A property cannot be reported as existent, if it does not exists as an own property of the target object and the target object is not extensible.</li>
+<li>A property cannot be reported as non-configurable, if it does not exists as an own property of the target object or if it exists as a configurable own property of the target object.</li>
+<li>The result of <code>Object.getOwnPropertyDescriptor(target)</code> can be applied to the target object using <code>Object.defineProperty</code> and will not throw an exception.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/defineProperty" title="handler.defineProperty() 用于拦截对对象的 Object.defineProperty() 操作。"><code>handler.defineProperty()</code></a></td>
+<td><a href="Reference/Global_Objects/Object/defineProperty" title="Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。"><code>Object.defineProperty()</code></a><br/>
+<a href="Reference/Global_Objects/Reflect/defineProperty" title="静态方法 Reflect.defineProperty() 基本等同于 Object.defineProperty() 方法，唯一不同是返回 Boolean 值。"><code>Reflect.defineProperty()</code></a></td>
+<td>
+<ul>
+<li>A property cannot be added, if the target object is not extensible.</li>
+<li>A property cannot be added as or modified to be non-configurable, if it does not exists as a non-configurable own property of the target object.</li>
+<li>A property may not be non-configurable, if a corresponding configurable property of the target object exists.</li>
+<li>If a property has a corresponding target object property then <code>Object.defineProperty(target, prop, descriptor)</code> will not throw an exception.</li>
+<li>In strict mode, a <code>false</code> return value from the <code>defineProperty</code> handler will throw a <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> exception.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/has" title="handler.has() 方法可以看作是针对 in 操作的钩子."><code>handler.has()</code></a></td>
+<td>Property query: <code>foo in proxy</code><br/>
+    Inherited property query: <code>foo in Object.create(proxy)</code><br/>
+<a href="Reference/Global_Objects/Reflect/has" title="静态方法 Reflect.has() 作用与 in 操作符 相同。"><code>Reflect.has()</code></a></td>
+<td>
+<ul>
+<li>A property cannot be reported as non-existent, if it exists as a non-configurable own property of the target object.</li>
+<li>A property cannot be reported as non-existent, if it exists as an own property of the target object and the target object is not extensible.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/get" title="handler.get() 方法用于拦截对象的读取属性操作。"><code>handler.get()</code></a></td>
+<td>Property access: <code>proxy[foo]</code>and <code>proxy.bar</code><br/>
+    Inherited property access: <code>Object.create(proxy)[foo]</code><br/>
+<a href="Reference/Global_Objects/Reflect/get" title="Reflect.get() 方法的工作方式，就像从 object (target[propertyKey]) 中获取属性，但它是作为一个函数执行的。"><code>Reflect.get()</code></a></td>
+<td>
+<ul>
+<li>The value reported for a property must be the same as the value of the corresponding target object property if the target object property is a non-writable, non-configurable data property.</li>
+<li>The value reported for a property must be undefined if the corresponding target object property is non-configurable accessor property that has undefined as its [[Get]] attribute.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/set" title="handler.set() 方法用于拦截设置属性值的操作"><code>handler.set()</code></a></td>
+<td>Property assignment: <code>proxy[foo] = bar</code> and <code>proxy.foo = bar</code><br/>
+    Inherited property assignment: <code>Object.create(proxy)[foo] = bar</code><br/>
+<a href="Reference/Global_Objects/Reflect/set" title="静态方法 Reflect.set() 工作方式就像在一个对象上设置一个属性。"><code>Reflect.set()</code></a></td>
+<td>
+<ul>
+<li>Cannot change the value of a property to be different from the value of the corresponding target object property if the corresponding target object property is a non-writable, non-configurable data property.</li>
+<li>Cannot set the value of a property if the corresponding target object property is a non-configurable accessor property that has <code>undefined</code> as its [[Set]] attribute.</li>
+<li>In strict mode, a <code>false</code> return value from the <code>set</code> handler will throw a <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> exception.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/deleteProperty" title="handler.deleteProperty() 方法用于拦截对对象属性的 delete 操作。"><code>handler.deleteProperty()</code></a></td>
+<td>Property deletion: <code>delete proxy[foo]</code> and <code>delete proxy.foo</code><br/>
+<a href="Reference/Global_Objects/Reflect/deleteProperty" title="静态方法 Reflect.deleteProperty() 允许用于删除属性。它很像 delete operator ，但它是一个函数。"><code>Reflect.deleteProperty()</code></a></td>
+<td>A property cannot be deleted, if it exists as a non-configurable own property of the target object.</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/enumerate" title="代理方法handler.enumerate()决定了被代理对象在for...in中的行为。不过这个方法已经在ES2016标准中被移除了。"><code>handler.enumerate()</code></a></td>
+<td>Property enumeration / for...in: <code>for (var name in proxy) {...}</code><br/>
+<a href="Reference/Global_Objects/Reflect/enumerate" title="目标对象自身和继承的可迭代属性的一个迭代器。"><code>Reflect.enumerate()</code></a></td>
+<td>The <code>enumerate</code> method must return an object.</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/ownKeys" title="handler.ownKeys() 方法用于拦截 Reflect.ownKeys()."><code>handler.ownKeys()</code></a></td>
+<td><a href="Reference/Global_Objects/Object/getOwnPropertyNames" title="Object.getOwnPropertyNames()方法返回一个由指定对象的所有自身属性的属性名（包括不可枚举属性但不包括Symbol值作为名称的属性）组成的数组。"><code>Object.getOwnPropertyNames()</code></a><br/>
+<a href="Reference/Global_Objects/Object/getOwnPropertySymbols" title="Object.getOwnPropertySymbols() 方法返回一个给定对象自身的所有 Symbol 属性的数组。"><code>Object.getOwnPropertySymbols()</code></a><br/>
+<a href="Reference/Global_Objects/Object/keys" title="Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致 。"><code>Object.keys()</code></a><br/>
+<a href="Reference/Global_Objects/Reflect/ownKeys" title="静态方法 Reflect.ownKeys() 返回一个由目标对象自身的属性键组成的数组。"><code>Reflect.ownKeys()</code></a></td>
+<td>
+<ul>
+<li>The result of <code>ownKeys</code> is a List.</li>
+<li>The Type of each result List element is either <a href="Reference/String" title="此页面仍未被本地化, 期待您的翻译!"><code>String</code></a> or <a href="Reference/Global_Objects/Symbol" title='Symbol()函数会返回symbol类型的值，该类型具有静态属性和静态方法。它的静态属性会暴露几个内建的成员对象；它的静态方法会暴露全局的symbol注册，且类似于内建对象类，但作为构造函数来说它并不完整，因为它不支持语法："new Symbol()"。'><code>Symbol</code></a>.</li>
+<li>The result List must contain the keys of all non-configurable own properties of the target object.</li>
+<li>If the target object is not extensible, then the result List must contain all the keys of the own properties of the target object and no other values.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/apply" title="handler.apply() 方法用于拦截函数的调用。"><code>handler.apply()</code></a></td>
+<td><code>proxy(..args)</code><br/>
+<a href="Reference/Global_Objects/Function/apply" title="apply() 方法调用一个具有给定this值的函数，以及作为一个数组（或类似数组对象）提供的参数。"><code>Function.prototype.apply()</code></a> and <a href="Reference/Global_Objects/Function/call" title="call() 方法调用一个函数, 其具有一个指定的this值和分别地提供的参数(参数的列表)。"><code>Function.prototype.call()</code></a><br/>
+<a href="Reference/Global_Objects/Reflect/apply" title="静态方法 Reflect.apply() 通过指定的参数列表发起对目标(target)函数的调用。"><code>Reflect.apply()</code></a></td>
+<td>There are no invariants for the <code>handler.apply</code> method.</td>
+</tr>
+<tr>
+<td><a href="Reference/Global_Objects/Proxy/handler/construct" title="handler.construct() 方法用于拦截new 操作符. 为了使new操作符在生成的Proxy对象上生效，用于初始化代理的目标对象自身必须具有[[Construct]]内部方法（即 new target 必须是有效的）。"><code>handler.construct()</code></a></td>
+<td><code>new proxy(...args)</code><br/>
+<a href="Reference/Global_Objects/Reflect/construct" title="Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args)."><code>Reflect.construct()</code></a></td>
+<td>结果一定是一个<code>Object</code>。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="撤销_Proxy">撤销 <code>Proxy</code></h2>
+<p><a href="Reference/Global_Objects/Proxy/revocable" title="Proxy.revocable() 方法可以用来创建一个可撤销的代理对象。"><code>Proxy.revocable()</code></a>方法被用来创建可撤销的<code>Proxy</code>对象。这意味着代理可以通过<code>revoke</code>函数来撤销并且关闭代理。此后，代理上的任意的操作都会导致<a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>。</p>
+<pre class="brush: js">var revocable = Proxy.revocable({}, {
+  get: function(target, name) {
+    return "[[" + name + "]]";
+  }
+});
+var proxy = revocable.proxy;
+console.log(proxy.foo); // "[[foo]]"
+
+revocable.revoke();
+
+console.log(proxy.foo); // TypeError is thrown
+proxy.foo = 1           // TypeError again
+delete proxy.foo;       // still TypeError
+typeof proxy            // "object", typeof doesn't trigger any trap</pre>
+<h2 id="反射">反射</h2>
+<p><a href="Reference/Global_Objects/Reflect" title="Reflect 是一个内置的对象，它提供拦截 JavaScript 操作的方法。这些方法与处理器对象的方法相同。Reflect不是一个函数对象，因此它是不可构造的。"><code>Reflect</code></a> 是一个内置对象，它提供了可拦截JavaScript操作的方法。该方法和<a href="Reference/Global_Objects/Proxy/handler" title="处理器对象用来自定义代理对象的各种可代理操作。">代理句柄</a>类似，但<code>Reflect</code>方法并不是一个函数对象。</p>
+<p><code>Reflect</code>有助于将默认操作从处理程序转发到目标。</p>
+<p>以<a href="Reference/Global_Objects/Reflect/has" title="静态方法 Reflect.has() 作用与 in 操作符 相同。"><code>Reflect.has()</code></a>为例，你可以将<a href="/en-US/docs/Web/JavaScript/Reference/Operators/in"><code>in</code>运算符</a>作为函数：</p>
+<pre class="brush: js">Reflect.has(Object, "assign"); // true
+</pre>
+<h3 id="更好的apply_函数">更好的<code>apply</code> 函数</h3>
+<p>在ES5中，你通常使用 <a href="Reference/Global_Objects/Function/apply" title="apply() 方法调用一个具有给定this值的函数，以及作为一个数组（或类似数组对象）提供的参数。"><code>Function.prototype.apply()</code></a> 方法调用一个具有给定<code>this</code>值和<code>arguments</code>数组（或<a href="https://developer.mozilla.orgGuide/Indexed_collections#Working_with_array-like_objects">类数组对象</a>） 的函数。</p>
+<pre class="brush: js">Function.prototype.apply.call(Math.floor, undefined, [1.75]);</pre>
+<p>使用<a href="Reference/Global_Objects/Reflect/apply" title="静态方法 Reflect.apply() 通过指定的参数列表发起对目标(target)函数的调用。"><code>Reflect.apply</code></a>，这变得不那么冗长和容易理解：</p>
+<pre class="brush: js">Reflect.apply(Math.floor, undefined, [1.75]); 
+// 1;
+
+Reflect.apply(String.fromCharCode, undefined, [104, 101, 108, 108, 111]);
+// "hello"
+
+Reflect.apply(RegExp.prototype.exec, /ab/, ['confabulation']).index;
+// 4
+
+Reflect.apply(''.charAt, 'ponies', [3]);
+// "i"</pre>
+<h3 id="检查属性定义是否成功">检查属性定义是否成功</h3>
+<p>使用<a href="Reference/Global_Objects/Object/defineProperty" title="Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。"><code>Object.defineProperty</code></a>，如果成功返回一个对象，否则抛出一个 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>，你将使用 <a href="Reference/Statements/try...catch" title="try...catch语句将能引发错误的代码放在try块中，并且对应一个响应，然后有异常被抛出。"><code>try...catch</code></a> 块来捕获定义属性时发生的任何错误。因为<a href="Reference/Global_Objects/Reflect/defineProperty" title="静态方法 Reflect.defineProperty() 基本等同于 Object.defineProperty() 方法，唯一不同是返回 Boolean 值。"><code>Reflect.defineProperty</code></a>返回一个布尔值表示的成功状态，你可以在这里使用<a href="Reference/Statements/if...else" title="当指定条件为真，if 语句会执行一段语句。如果条件为假，则执行另一段语句。"><code>if...else</code></a> 块：</p>
+<pre class="brush: js">if (Reflect.defineProperty(target, property, attributes)) {
+  // success
+} else {
+  // failure
+}
+</pre>
+<p></p><div class="prevnext" style="text-align: right;">
+<p><a href="Guide/Iterators_and_Generators" style="float: left;">« 上一页</a><br/></p>
+</div><p></p>
+</article>

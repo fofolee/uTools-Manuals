@@ -1,0 +1,235 @@
+<div class="content guide with-sidebar components-dynamic-async-guide">
+<h1>动态组件 &amp; 异步组件</h1>
+<blockquote>
+<p>该页面假设你已经阅读过了<a href="components.html">组件基础</a>。如果你还对组件不太了解，推荐你先阅读它。</p>
+</blockquote>
+<h2 id="在动态组件上使用-keep-alive"><a class="headerlink" href="#在动态组件上使用-keep-alive" title="在动态组件上使用 keep-alive"></a>在动态组件上使用 <code>keep-alive</code></h2><p>我们之前曾经在一个多标签的界面中使用 <code>is</code> 特性来切换不同的组件：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">component</span> <span class="hljs-attr">v-bind:is</span>=<span class="hljs-string">"currentTabComponent"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component</span>&gt;</span></code></pre>
+<p>当在这些组件之间切换的时候，你有时会想保持这些组件的状态，以避免反复重渲染导致的性能问题。例如我们来展开说一说这个多标签界面：</p>
+<div class="demo" id="dynamic-component-demo">
+<button v-bind:class="['dynamic-component-demo-tab-button', { 'dynamic-component-demo-active': currentTab === tab }]" v-bind:key="tab" v-for="tab in tabs" v-on:click="currentTab = tab">{{ tab }}</button>
+<component class="dynamic-component-demo-tab" v-bind:is="currentTabComponent"></component>
+</div>
+<script>
+Vue.component('tab-posts', {
+  data: function () {
+    return {
+      posts: [
+        {
+          id: 1,
+          title: 'Cat Ipsum',
+          content: '<p>Dont wait for the storm to pass, dance in the rain kick up litter decide to want nothing to do with my owner today demand to be let outside at once, and expect owner to wait for me as i think about it cat cat moo moo lick ears lick paws so make meme, make cute face but lick the other cats. Kitty poochy chase imaginary bugs, but stand in front of the computer screen. Sweet beast cat dog hate mouse eat string barf pillow no baths hate everything stare at guinea pigs. My left donut is missing, as is my right loved it, hated it, loved it, hated it scoot butt on the rug cat not kitten around</p>'
+        },
+        {
+          id: 2,
+          title: 'Hipster Ipsum',
+          content: '<p>Bushwick blue bottle scenester helvetica ugh, meh four loko. Put a bird on it lumbersexual franzen shabby chic, street art knausgaard trust fund shaman scenester live-edge mixtape taxidermy viral yuccie succulents. Keytar poke bicycle rights, crucifix street art neutra air plant PBR&B hoodie plaid venmo. Tilde swag art party fanny pack vinyl letterpress venmo jean shorts offal mumblecore. Vice blog gentrify mlkshk tattooed occupy snackwave, hoodie craft beer next level migas 8-bit chartreuse. Trust fund food truck drinking vinegar gochujang.</p>'
+        },
+        {
+          id: 3,
+          title: 'Cupcake Ipsum',
+          content: '<p>Icing dessert soufflé lollipop chocolate bar sweet tart cake chupa chups. Soufflé marzipan jelly beans croissant toffee marzipan cupcake icing fruitcake. Muffin cake pudding soufflé wafer jelly bear claw sesame snaps marshmallow. Marzipan soufflé croissant lemon drops gingerbread sugar plum lemon drops apple pie gummies. Sweet roll donut oat cake toffee cake. Liquorice candy macaroon toffee cookie marzipan.</p>'
+        }
+      ],
+      selectedPost: null
+    }
+  },
+  template: '\
+    <div class="dynamic-component-demo-posts-tab">\
+      <ul class="dynamic-component-demo-posts-sidebar">\
+        <li\
+          v-for="post in posts"\
+          v-bind:key="post.id"\
+          v-bind:class="{ \'dynamic-component-demo-active\': post === selectedPost }"\
+          v-on:click="selectedPost = post"\
+        >\
+          {{ post.title }}\
+        </li>\
+      </ul>\
+      <div class="dynamic-component-demo-post-container">\
+        <div \
+          v-if="selectedPost"\
+          class="dynamic-component-demo-post"\
+        >\
+          <h3>{{ selectedPost.title }}</h3>\
+          <div v-html="selectedPost.content"></div>\
+        </div>\
+        <strong v-else>\
+          Click on a blog title to the left to view it.\
+        </strong>\
+      </div>\
+    </div>\
+  '
+})
+Vue.component('tab-archive', {
+  template: '<div>Archive component</div>'
+})
+new Vue({
+  el: '#dynamic-component-demo',
+  data: {
+    currentTab: 'Posts',
+    tabs: ['Posts', 'Archive']
+  },
+  computed: {
+    currentTabComponent: function () {
+      return 'tab-' + this.currentTab.toLowerCase()
+    }
+  }
+})
+</script>
+<style>
+.dynamic-component-demo-tab-button {
+  padding: 6px 10px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background: #f0f0f0;
+  margin-bottom: -1px;
+  margin-right: -1px;
+}
+.dynamic-component-demo-tab-button:hover {
+  background: #e0e0e0;
+}
+.dynamic-component-demo-tab-button.dynamic-component-demo-active {
+  background: #e0e0e0;
+}
+.dynamic-component-demo-tab {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+.dynamic-component-demo-posts-tab {
+  display: flex;
+}
+.dynamic-component-demo-posts-sidebar {
+  max-width: 40vw;
+  margin: 0 !important;
+  padding: 0 10px 0 0 !important;
+  list-style-type: none;
+  border-right: 1px solid #ccc;
+}
+.dynamic-component-demo-posts-sidebar li {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+}
+.dynamic-component-demo-posts-sidebar li:hover {
+  background: #eee;
+}
+.dynamic-component-demo-posts-sidebar li.dynamic-component-demo-active {
+  background: lightblue;
+}
+.dynamic-component-demo-post-container {
+  padding-left: 10px;
+}
+.dynamic-component-demo-post > :first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+</style>
+<p>你会注意到，如果你选择了一篇文章，切换到 <em>Archive</em> 标签，然后再切换回 <em>Posts</em>，是不会继续展示你之前选择的文章的。这是因为你每次切换新标签的时候，Vue 都创建了一个新的 <code>currentTabComponent</code> 实例。</p>
+<p>重新创建动态组件的行为通常是非常有用的，但是在这个案例中，我们更希望那些标签的组件实例能够被在它们第一次被创建的时候缓存下来。为了解决这个问题，我们可以用一个 <code>&lt;keep-alive&gt;</code> 元素将其动态组件包裹起来。</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 失活的组件将会被缓存！--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">keep-alive</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">component</span> <span class="hljs-attr">v-bind:is</span>=<span class="hljs-string">"currentTabComponent"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">keep-alive</span>&gt;</span></code></pre>
+<p>来看看修改后的结果：</p>
+<div class="demo" id="dynamic-component-keep-alive-demo">
+<button v-bind:class="['dynamic-component-demo-tab-button', { 'dynamic-component-demo-active': currentTab === tab }]" v-bind:key="tab" v-for="tab in tabs" v-on:click="currentTab = tab">{{ tab }}</button>
+<keep-alive>
+<component class="dynamic-component-demo-tab" v-bind:is="currentTabComponent"></component>
+</keep-alive>
+</div>
+<script>
+new Vue({
+  el: '#dynamic-component-keep-alive-demo',
+  data: {
+    currentTab: 'Posts',
+    tabs: ['Posts', 'Archive']
+  },
+  computed: {
+    currentTabComponent: function () {
+      return 'tab-' + this.currentTab.toLowerCase()
+    }
+  }
+})
+</script>
+<p>现在这个 <em>Posts</em> 标签保持了它的状态 (被选中的文章) 甚至当它未被渲染时也是如此。你可以在<a href="https://jsfiddle.net/chrisvfritz/Lp20op9o/" rel="noopener" target="_blank">这个 fiddle</a> 查阅到完整的代码。</p>
+<p class="tip">注意这个 <code>&lt;keep-alive&gt;</code> 要求被切换到的组件都有自己的名字，不论是通过组件的 <code>name</code> 选项还是局部/全局注册。</p>
+<p>你可以在 <a href="../api/#keep-alive">API 参考文档</a> 查阅更多关于 <code>&lt;keep-alive&gt;</code> 的细节。</p>
+<h2 id="异步组件"><a class="headerlink" href="#异步组件" title="异步组件"></a>异步组件</h2><p>在大型应用中，我们可能需要将应用分割成小一些的代码块，并且只在需要的时候才从服务器加载一个模块。为了简化，Vue 允许你以一个工厂函数的方式定义你的组件，这个工厂函数会异步解析你的组件定义。Vue 只有在这个组件需要被渲染的时候才会触发该工厂函数，且会把结果缓存起来供未来重渲染。例如：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'async-example'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">resolve, reject</span>) </span>{
+  setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-comment">// 向 `resolve` 回调传递组件定义</span>
+    resolve({
+      <span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;div&gt;I am async!&lt;/div&gt;'</span>
+    })
+  }, <span class="hljs-number">1000</span>)
+})</code></pre>
+<p>如你所见，这个工厂函数会收到一个 <code>resolve</code> 回调，这个回调函数会在你从服务器得到组件定义的时候被调用。你也可以调用 <code>reject(reason)</code> 来表示加载失败。这里的 <code>setTimeout</code> 是为了演示用的，如何获取组件取决于你自己。一个推荐的做法是将异步组件和 <a href="https://webpack.js.org/guides/code-splitting/" rel="noopener" target="_blank">webpack 的 code-splitting 功能</a>一起配合使用：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'async-webpack-example'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">resolve</span>) </span>{
+  <span class="hljs-comment">// 这个特殊的 `require` 语法将会告诉 webpack</span>
+  <span class="hljs-comment">// 自动将你的构建代码切割成多个包，这些包</span>
+  <span class="hljs-comment">// 会通过 Ajax 请求加载</span>
+  <span class="hljs-built_in">require</span>([<span class="hljs-string">'./my-async-component'</span>], resolve)
+})</code></pre>
+<p>你也可以在工厂函数中返回一个 <code>Promise</code>，所以把 webpack 2 和 ES2015 语法加在一起，我们可以写成这样：</p>
+<pre><code class="hljs js">Vue.component(
+  <span class="hljs-string">'async-webpack-example'</span>,
+  <span class="hljs-comment">// 这个 `import` 函数会返回一个 `Promise` 对象。</span>
+  () =&gt; <span class="hljs-keyword">import</span>(<span class="hljs-string">'./my-async-component'</span>)
+)</code></pre>
+<p>当使用<a href="components-registration.html#局部注册">局部注册</a>的时候，你也可以直接提供一个返回 <code>Promise</code> 的函数：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-comment">// ...</span>
+  components: {
+    <span class="hljs-string">'my-component'</span>: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> <span class="hljs-keyword">import</span>(<span class="hljs-string">'./my-async-component'</span>)
+  }
+})</code></pre>
+<p class="tip">如果你是一个 <strong>Browserify</strong> 用户同时喜欢使用异步组件，很不幸这个工具的作者<a href="https://github.com/substack/node-browserify/issues/58#issuecomment-21978224" rel="noopener" target="_blank">明确表示</a>异步加载“并不会被 Browserify 支持”，至少官方不会。Browserify 社区已经找到了<a href="https://github.com/vuejs/vuejs.org/issues/620" rel="noopener" target="_blank">一些变通方案</a>，这些方案可能会对已存在的复杂应用有帮助。对于其它的场景，我们推荐直接使用 webpack，以拥有内置的头等异步支持。</p>
+<h3 id="处理加载状态"><a class="headerlink" href="#处理加载状态" title="处理加载状态"></a>处理加载状态</h3><blockquote>
+<p>2.3.0+ 新增</p>
+</blockquote>
+<p>这里的异步组件工厂函数也可以返回一个如下格式的对象：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> AsyncComponent = <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> ({
+  <span class="hljs-comment">// 需要加载的组件 (应该是一个 `Promise` 对象)</span>
+  component: <span class="hljs-keyword">import</span>(<span class="hljs-string">'./MyComponent.vue'</span>),
+  <span class="hljs-comment">// 异步组件加载时使用的组件</span>
+  loading: LoadingComponent,
+  <span class="hljs-comment">// 加载失败时使用的组件</span>
+  error: ErrorComponent,
+  <span class="hljs-comment">// 展示加载时组件的延时时间。默认值是 200 (毫秒)</span>
+  delay: <span class="hljs-number">200</span>,
+  <span class="hljs-comment">// 如果提供了超时时间且组件加载也超时了，</span>
+  <span class="hljs-comment">// 则使用加载失败时使用的组件。默认值是：`Infinity`</span>
+  timeout: <span class="hljs-number">3000</span>
+})</code></pre>
+<blockquote>
+<p>注意如果你希望在 <a href="https://github.com/vuejs/vue-router" rel="noopener" target="_blank">Vue Router</a> 的路由组件中使用上述语法的话，你必须使用 Vue Router 2.4.0+ 版本。</p>
+</blockquote>
+<div class="guide-links">
+<span>← <a href="components-slots.html">插槽</a></span>
+<span style="float: right;"><a href="components-edge-cases.html">处理边界情况</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srccomponents-dynamic-async.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

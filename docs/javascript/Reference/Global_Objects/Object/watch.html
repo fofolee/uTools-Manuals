@@ -1,0 +1,164 @@
+<article id="wikiArticle">
+<p></p><p></p>
+<div class="warning">
+<p><strong>警告:</strong> 通常来讲,你应该尽量避免使用 <code>watch()</code>和  <a href="Reference/Global_Objects/Object/unwatch" title="unwatch() 删除一个 watch() 设置的 watchpoint."><code>unwatch()</code></a> 这两个方法。因为只有 Gecko 实现了这两个方法，并且它们主要是为了在调试方便。另外，使用 watchpoint 对性能有严重的负面影响，在全局对象（如 window）上使用时尤其如此。你可以使用 <a href="/zh-cn/JavaScript/Guide/Working_with_Objects#Defining_getters_and_setters" title="https://developer.mozilla.org/zh-cn/Core_JavaScript_1.5_Guide/Working_with_Objects#Defining_getters_and_setters">setters and getters</a> 或者 proxy 代替。参见 <a href="#Compatibility">Compatibility</a> 了解详情。</p>
+</div>
+<p><code><strong>watch() </strong></code>方法会监视属性是否被赋值并在赋值时运行相关函数。</p>
+<h2 id="Summary" name="Summary">语法</h2>
+<pre class="syntaxbox"><em>obj</em>.watch(<em>prop</em>, <em>handler</em>)</pre>
+<h3 id="Parameters" name="Parameters">参数</h3>
+<dl>
+<dt><code>prop</code></dt>
+<dd>想要监视值是否发生变化的指定对象的某个属性的属性名称</dd>
+</dl>
+<dl>
+<dt><code>handler</code></dt>
+<dd>当指定的属性发生变化时执行的回调函数</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p><a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a>.</p>
+<h2 id="Description" name="Description">描述</h2>
+<p>Watches for assignment to a property named <code>prop</code> in this object, calling <code>handler(prop, oldval, newval)</code> whenever <code>prop</code> is set and storing the return value in that property. A watchpoint can filter (or nullify) the value assignment, by returning a modified <code>newval</code> (or by returning <code>oldval</code>).</p>
+<p>If you delete a property for which a watchpoint has been set, that watchpoint does not disappear. If you later recreate the property, the watchpoint is still in effect.</p>
+<p>To remove a watchpoint, use the <code><a href="/zh-cn/JavaScript/Reference/Global_Objects/Object/unwatch" title="zh-cn/JavaScript/Reference/Global_Objects/Object/unwatch">unwatch()</a></code> method. By default, the <code>watch</code> method is inherited by every object descended from <code>Object</code>.</p>
+<p>The JavaScript debugger has functionality similar to that provided by this method, as well as other debugging options. For information on the debugger, see <a href="/zh-cn/Venkman" title="zh-cn/Venkman">Venkman</a>.</p>
+<p>In Firefox, <code>handler</code> is only called from assignments in script, not from native code. For example, <code>window.watch('location', myHandler)</code> will not call <code>myHandler</code> if the user clicks a link to an anchor within the current document. However, <code>window.location += '#myAnchor'</code> will call <code>myHandler</code>.</p>
+<div class="note"><strong>注意:</strong> Calling <code>watch()</code> on an object for a specific property overrides and previous handler attached for that property.</div>
+<h2 id="Examples" name="Examples">例子</h2>
+<h3 id="Example:_Using_watch_and_unwatch" name="Example:_Using_watch_and_unwatch">使用 <code>watch</code> 和 <code>unwatch</code></h3>
+<pre class="brush: js">var o = {p:1};
+o.watch("p",
+  function (id, oldval, newval) {
+    console.log("o." + id + "由" + oldval + " 变为 " + newval);
+    return newval;
+  });
+
+o.p = 2;
+o.p = 3;
+delete o.p;
+o.p = 4;
+
+o.unwatch('p');
+o.p = 5;
+</pre>
+<p>上面的代码显示结果如下:</p>
+<pre class="eval">o.p 由 1 变为 2
+o.p 由 2 变为 3
+o.p 由 undefined 变为 4
+</pre>
+<h3 id="Example:_Using_watch_to_validate_an_object.27s_properties" name="Example:_Using_watch_to_validate_an_object.27s_properties">使用 <code>watch</code> 来验证一个对象的属性</h3>
+<p>你可以使用 <code>watch</code> 来检测一个对象的属性赋值是否是合法的.下例演示了如何确保每个人始终具有一个合法的名字和0 到 200之间的年龄.</p>
+<pre class="brush: js">Person = function(name,age) {
+  this.watch("age", Person.prototype._isValidAssignment);
+  this.watch("name", Person.prototype._isValidAssignment);
+  this.name = name;
+  this.age = age;
+}
+
+Person.prototype.toString = function() {
+  return this.name + ", " + this.age;
+};
+
+Person.prototype._isValidAssignment = function(id, oldval, newval) {
+  if (id === "name" &amp;&amp; (!newval || newval.length &gt; 30)) {
+    throw new RangeError("不合法的名字 " + this);
+  }
+  if (id === "age"  &amp;&amp; (newval &lt; 0 || newval &gt; 200)) {
+    throw new RangeError("不合法的年龄 " + this);
+  }
+  return newval;
+}
+
+will = new Person("Will", 29);
+print(will);   // Will, 29
+
+try {
+  will.name = "";
+} catch (e) {
+  //print(e);
+  console.log(e);
+}
+
+try {
+  will.age = -4;
+} catch (e) {
+  console.log(e);
+}
+</pre>
+<p>上面的代码显示结果如下:</p>
+<pre class="eval">Will, 29
+RangeError: 不合法的名字 Will, 29
+RangeError: 不合法的年龄 Will, 29
+</pre>
+<h2 id="Specifications">Specifications</h2>
+<p>Not part of any specifications. Implemented in JavaScript 1.2.</p>
+<h2 id="Browser_compatibility">Browser compatibility</h2>
+<div><div class="blockIndicator warning"><strong><a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">We're converting our compatibility data into a machine-readable JSON format</a></strong>.
+            This compatibility table still uses the old format,
+            because we haven't yet converted the data it contains.
+            <strong><a class="new" href="/zh-CN/docs/MDN/Contribute/Structures/Compatibility_tables" rel="nofollow">Find out how you can help!</a></strong></div>
+<div class="htab">
+<a id="AutoCompatibilityTable" name="AutoCompatibilityTable"></a>
+<ul>
+<li class="selected"><a>Desktop</a></li>
+<li><a>Mobile</a></li>
+</ul>
+</div></div>
+<div id="compat-desktop">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>Feature</th>
+<th>Chrome</th>
+<th>Firefox (Gecko)</th>
+<th>Internet Explorer</th>
+<th>Opera</th>
+<th>Safari</th>
+</tr>
+<tr>
+<td>Basic support</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="compat-mobile">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>Feature</th>
+<th>Android</th>
+<th>Chrome for Android</th>
+<th>Firefox Mobile (Gecko)</th>
+<th>IE Mobile</th>
+<th>Opera Mobile</th>
+<th>Safari Mobile</th>
+</tr>
+<tr>
+<td>Basic support</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="兼容性提示">兼容性提示</h2>
+<ul>
+<li>This <a class="external" href="https://gist.github.com/384583" rel="noopener">Polyfill</a> offers <code>watch</code> to all ES5 compatible browsers.</li>
+<li>Using a <a href="Reference/Global_Objects/Proxy" title="Proxy 对象用于定义基本操作的自定义行为（如属性查找，赋值，枚举，函数调用等）。"><code>Proxy</code></a> enables you do even deeper changes to how property assignments work.</li>
+<li>Calling <code>watch()</code> on the <a href="/zh-CN/docs/Web/API/Document" title="Document接口表示任何在浏览器中已经加载好的网页，并作为一个入口去操作网页内容（也就是DOM tree）。DOM tree包括像 &lt;body&gt; 、&lt;table&gt;这样的还有其他的元素。它提供了全局操作document的功能，像获取网页的URL和在document里创建一个新的元素。"><code>Document</code></a> object throws a <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> since Firefox 23 (<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=903332" rel="noopener" title="FIXED: document.watch() results in &quot;TypeError: can't watch non-native objects of class Proxy&quot;">bug 903332</a>). This regression has been fixed with Firefox 27.</li>
+</ul>
+<h2 id="See_Also" name="See_Also">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Object/unwatch" title="unwatch() 删除一个 watch() 设置的 watchpoint."><code>Object.unwatch()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/observe" title="Object.observe() 方法用于异步地监视一个对象的修改。当对象属性被修改时，方法的回调函数会提供一个有序的修改流。然而，这个接口已经被废弃并从各浏览器中移除。你可以使用更通用的 Proxy 对象替代。"><code>Object.observe()</code></a> <span class="icon-only-inline" title="This is an obsolete API and is no longer guaranteed to work."><i class="icon-trash"> </i></span></li>
+</ul>
+</article>

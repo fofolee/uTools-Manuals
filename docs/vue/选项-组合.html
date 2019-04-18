@@ -1,0 +1,162 @@
+<h2 id="选项-组合"><a href="#选项-组合" class="headerlink" title="选项 / 组合" data-scroll="">选项 / 组合</a></h2><h3 id="parent"><a href="#parent" class="headerlink" title="parent" data-scroll="">parent</a></h3><ul>
+<li><p><strong>类型</strong>：<code>Vue instance</code></p>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p>指定已创建的实例之父实例，在两者之间建立父子关系。子实例可以用 <code>this.$parent</code> 访问父实例，子实例被推入父实例的 <code>$children</code> 数组中。</p>
+<p class="tip">节制地使用 <code>$parent</code> 和 <code>$children</code> - 它们的主要目的是作为访问组件的应急方法。更推荐用 props 和 events 实现父子组件通信</p>
+
+</li>
+</ul>
+<h3 id="mixins"><a href="#mixins" class="headerlink" title="mixins" data-scroll="">mixins</a></h3><ul>
+<li><p><strong>类型</strong>：<code>Array&lt;Object&gt;</code></p>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p><code>mixins</code> 选项接受一个混入对象的数组。这些混入实例对象可以像正常的实例对象一样包含选项，他们将在 <code>Vue.extend()</code> 里最终选择使用相同的选项合并逻辑合并。举例：如果你的混入包含一个钩子而创建组件本身也有一个，两个函数将被调用。</p>
+<p>Mixin 钩子按照传入顺序依次调用，并在调用组件自身的钩子之前被调用。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> mixin = {
+  <span class="hljs-attr">created</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{ <span class="hljs-built_in">console</span>.log(<span class="hljs-number">1</span>) }
+}
+<span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">created</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{ <span class="hljs-built_in">console</span>.log(<span class="hljs-number">2</span>) },
+  <span class="hljs-attr">mixins</span>: [mixin]
+})
+<span class="hljs-comment">// =&gt; 1</span>
+<span class="hljs-comment">// =&gt; 2</span></code></pre>
+</li>
+<li><p><strong>参考</strong>：<a href="guide/mixins.html">混入</a></p>
+</li>
+</ul>
+<h3 id="extends"><a href="#extends" class="headerlink" title="extends" data-scroll="">extends</a></h3><ul>
+<li><p><strong>类型</strong>：<code>Object | Function</code></p>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p>允许声明扩展另一个组件(可以是一个简单的选项对象或构造函数)，而无需使用 <code>Vue.extend</code>。这主要是为了便于扩展单文件组件。</p>
+<p>这和 <code>mixins</code> 类似。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> CompA = { ... }
+
+<span class="hljs-comment">// 在没有调用 `Vue.extend` 时候继承 CompA</span>
+<span class="hljs-keyword">var</span> CompB = {
+  <span class="hljs-attr">extends</span>: CompA,
+  ...
+}</code></pre>
+</li>
+</ul>
+<h3 id="provide-inject"><a href="#provide-inject" class="headerlink" title="provide / inject" data-scroll="">provide / inject</a></h3><blockquote>
+<p>2.2.0 新增</p>
+</blockquote>
+<ul>
+<li><p><strong>类型</strong>：</p>
+<ul>
+<li><strong>provide</strong>：<code>Object | () =&gt; Object</code></li>
+<li><strong>inject</strong>：<code>Array&lt;string&gt; | { [key: string]: string | Symbol | Object }</code></li>
+</ul>
+</li>
+<li><p><strong>详细</strong>：</p>
+<p class="tip"><code>provide</code> 和 <code>inject</code> 主要为高阶插件/组件库提供用例。并不推荐直接用于应用程序代码中。</p>
+
+<p>这对选项需要一起使用，以允许一个祖先组件向其所有子孙后代注入一个依赖，不论组件层次有多深，并在起上下游关系成立的时间里始终生效。如果你熟悉 React，这与 React 的上下文特性很相似。</p>
+<p><code>provide</code> 选项应该是一个对象或返回一个对象的函数。该对象包含可注入其子孙的属性。在该对象中你可以使用 ES2015 Symbols 作为 key，但是只在原生支持 <code>Symbol</code> 和 <code>Reflect.ownKeys</code> 的环境下可工作。</p>
+<p><code>inject</code> 选项应该是：</p>
+<ul>
+<li>一个字符串数组，或</li>
+<li>一个对象，对象的 key 是本地的绑定名，value 是：<ul>
+<li>在可用的注入内容中搜索用的 key (字符串或 Symbol)，或</li>
+<li>一个对象，该对象的：<ul>
+<li><code>from</code> 属性是在可用的注入内容中搜索用的 key (字符串或 Symbol)</li>
+<li><code>default</code> 属性是降级情况下使用的 value</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>提示：<code>provide</code> 和 <code>inject</code> 绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的属性还是可响应的。</p>
+</blockquote>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 父级组件提供 'foo'</span>
+<span class="hljs-keyword">var</span> Provider = {
+  <span class="hljs-attr">provide</span>: {
+    <span class="hljs-attr">foo</span>: <span class="hljs-string">'bar'</span>
+  },
+  <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-comment">// 子组件注入 'foo'</span>
+<span class="hljs-keyword">var</span> Child = {
+  <span class="hljs-attr">inject</span>: [<span class="hljs-string">'foo'</span>],
+  created () {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">this</span>.foo) <span class="hljs-comment">// =&gt; "bar"</span>
+  }
+  <span class="hljs-comment">// ...</span>
+}</code></pre>
+<p>利用 ES2015 Symbols、函数 <code>provide</code> 和对象 <code>inject</code>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> s = <span class="hljs-built_in">Symbol</span>()
+
+<span class="hljs-keyword">const</span> Provider = {
+  provide () {
+    <span class="hljs-keyword">return</span> {
+      [s]: <span class="hljs-string">'foo'</span>
+    }
+  }
+}
+
+<span class="hljs-keyword">const</span> Child = {
+  <span class="hljs-attr">inject</span>: { s },
+  <span class="hljs-comment">// ...</span>
+}</code></pre>
+<blockquote>
+<p>接下来 2 个例子只工作在 Vue 2.2.1 或更高版本。低于这个版本时，注入的值会在 <code>props</code> 和 <code>data</code> 初始化之后得到。</p>
+</blockquote>
+<p>使用一个注入的值作为一个属性的默认值：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> Child = {
+  <span class="hljs-attr">inject</span>: [<span class="hljs-string">'foo'</span>],
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">bar</span>: {
+      <span class="hljs-keyword">default</span> () {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.foo
+      }
+    }
+  }
+}</code></pre>
+<p>使用一个注入的值作为数据入口：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> Child = {
+  <span class="hljs-attr">inject</span>: [<span class="hljs-string">'foo'</span>],
+  data () {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">bar</span>: <span class="hljs-keyword">this</span>.foo
+    }
+  }
+}</code></pre>
+<blockquote>
+<p>在 2.5.0+ 的注入可以通过设置默认值使其变成可选项：</p>
+</blockquote>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> Child = {
+  <span class="hljs-attr">inject</span>: {
+    <span class="hljs-attr">foo</span>: { <span class="hljs-attr">default</span>: <span class="hljs-string">'foo'</span> }
+  }
+}</code></pre>
+<p>如果它需要从一个不同名字的属性注入，则使用 <code>from</code> 来表示其源属性：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> Child = {
+  <span class="hljs-attr">inject</span>: {
+    <span class="hljs-attr">foo</span>: {
+      <span class="hljs-attr">from</span>: <span class="hljs-string">'bar'</span>,
+      <span class="hljs-attr">default</span>: <span class="hljs-string">'foo'</span>
+    }
+  }
+}</code></pre>
+<p>与 prop 的默认值类似，你需要对非原始值使用一个工厂方法：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> Child = {
+  <span class="hljs-attr">inject</span>: {
+    <span class="hljs-attr">foo</span>: {
+      <span class="hljs-attr">from</span>: <span class="hljs-string">'bar'</span>,
+      <span class="hljs-attr">default</span>: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>]
+    }
+  }
+}</code></pre>
+</li>
+</ul>

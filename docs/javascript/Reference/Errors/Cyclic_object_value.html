@@ -1,0 +1,43 @@
+<article id="wikiArticle">
+<div></div>
+<h2 id="提示信息">提示信息</h2>
+<pre class="syntaxbox">TypeError: cyclic object value (Firefox)
+TypeError: Converting circular structure to JSON (Chrome)
+</pre>
+<h2 id="错误类型">错误类型</h2>
+<p><a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a></p>
+<h2 id="哪里出错了？">哪里出错了？</h2>
+<p>当调用 <a href="Reference/Global_Objects/JSON/stringify" title="JSON.stringify() 方法是将一个JavaScript值(对象或者数组)转换为一个 JSON字符串，如果指定了replacer是一个函数，则可以替换值，或者如果指定了replacer是一个数组，可选的仅包括指定的属性。"><code>JSON.stringify()</code></a> 方法时，循环对象引用结构不能被转换为字符串。</p>
+<h2 id="示例">示例</h2>
+<p>在如下循环结构中：</p>
+<pre class="brush: js">var a = {};
+var b = {}; 
+a.child = b;
+b.child = a;
+</pre>
+<p><a href="Reference/Global_Objects/JSON/stringify" title="JSON.stringify() 方法是将一个JavaScript值(对象或者数组)转换为一个 JSON字符串，如果指定了replacer是一个函数，则可以替换值，或者如果指定了replacer是一个数组，可选的仅包括指定的属性。"><code>JSON.stringify()</code></a> 将会报错</p>
+<pre class="brush: js example-bad">JSON.stringify(a);
+// TypeError: cyclic object value
+</pre>
+<p>在将数据转换成字符串之前需要检查是否有循环对象引用的存在。例如可以指定一个充当替换器的函数作为 <a href="Reference/Global_Objects/JSON/stringify" title="JSON.stringify() 方法是将一个JavaScript值(对象或者数组)转换为一个 JSON字符串，如果指定了replacer是一个函数，则可以替换值，或者如果指定了replacer是一个数组，可选的仅包括指定的属性。"><code>JSON.stringify()</code></a> 方法的第二个参数。</p>
+<pre class="brush: js example-good">seen = []; 
+
+var replacer = function(key, value) {
+  if (value != null &amp;&amp; typeof value == "object") {
+    if (seen.indexOf(value) &gt;= 0) {
+      return;
+    }
+    seen.push(value);
+  }
+  return value;
+};
+
+JSON.stringify(a, replacer); 
+// "{"child":{}}"</pre>
+<p>或者也可以使用现成的类库或者工具函数。例如 Douglas Crockford 为此开发的 <a class="external" href="https://github.com/douglascrockford/JSON-js/blob/master/cycle.js" rel="noopener">cycle.js</a> 。</p>
+<h2 id="相关内容">相关内容</h2>
+<ul>
+<li><a href="Reference/Global_Objects/JSON/stringify" title="JSON.stringify() 方法是将一个JavaScript值(对象或者数组)转换为一个 JSON字符串，如果指定了replacer是一个函数，则可以替换值，或者如果指定了replacer是一个数组，可选的仅包括指定的属性。"><code>JSON.stringify</code></a></li>
+<li><a class="external" href="https://github.com/douglascrockford/JSON-js/blob/master/cycle.js" rel="noopener">cycle.js</a> –  Introduces two functions, <code>JSON.decycle</code> and<code> JSON.retrocycle</code>, which make it possible to encode cyclical structures and dags in JSON, and to then recover them.</li>
+</ul>
+</article>

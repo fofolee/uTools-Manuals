@@ -1,0 +1,613 @@
+<div class="header">
+<div class="subTitle">
+     java.awt.font 
+   </div>
+<h2 class="title" title="Class LineBreakMeasurer">Class LineBreakMeasurer</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.awt.font.LineBreakMeasurer</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">LineBreakMeasurer</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span><code>LineBreakMeasurer</code>类允许将样式文本分解成适合特定视觉进步的线（或段）。</span>
+<span>这对于希望显示适合特定宽度的文本段（称为<b>包装宽度）</b>的客户端是有用的。</span>
+<p> <span><code>LineBreakMeasurer</code>用样式文本的迭代器构造。</span> <span>迭代器的范围应该是文本中的一个段落。</span> <span><code>LineBreakMeasurer</code>在文本中维持下一个文本段开始的位置。</span> <span>最初，这个位置是文本的开始。</span> <span>根据双向格式规则，段落被分配一个整体方向（从左到右或从右到左）。</span> <span>从段落获得的所有分段具有与段落相同的方向。</span> </p>
+<p> <span>通过调用方法<code>nextLayout</code>获得文本段，该方法返回一个表示适合包装宽度的文本的<a href="../../../java/awt/font/TextLayout.html" title="java.awt.font中的类"><code>TextLayout</code></a> 。</span> <span><code>nextLayout</code>方法将当前位置移动到从<code>nextLayout</code>返回的布局的<code>nextLayout</code> 。</span> </p>
+<p> <span><code>LineBreakMeasurer</code>实现了最常用的破解策略：适合包装宽度的每个单词都放在行上。</span> <span>如果第一个字不适合，那么适合包装宽度的所有字符都放在行上。</span> <span>每条线上至少放置一个字符。</span> </p>
+<p> <span>由<code>TextLayout</code>返回的<code>LineBreakMeasurer</code>标签视为0宽度的空格。</span> <span>希望获取制表符分隔区段进行定位的客户端应使用nextLayout的超负荷，该过载在<code>nextLayout</code>中受到限制。</span> <span>限制偏移应该是标签后的第一个字符。</span> <span>从此方法返回的<code>TextLayout</code>对象以提供的极限（或之前，如果当前位置和限制之间的文本将完全不适合包装宽度）结束。</span> </p>
+<p> <span>布局制表符分隔文本的客户在第一个细分受众群放在一行之后，需要略有不同的破产政策。</span> <span>不要在剩余空间中拟合部分单词，而应将下一行中不完整的单词放在剩余空间中。</span> <span>政策的这种变化可以要求在超负荷<code>nextLayout</code> ，这需要<code>boolean</code>参数。</span> <span>如果该参数为<code>true</code> ， <code>nextLayout</code>返回<code>null</code>如果第一个字不会在给定的空间适合。</span> <span>请参阅下面的选项卡示例。</span> </p>
+<p> <span>一般来说，如果用于构建LineBreakMeasurer的<code>LineBreakMeasurer</code>发生变化， <code>LineBreakMeasurer</code>必须构建新的LineBreakMeasurer以反映变化。</span> <span>（旧的<code>LineBreakMeasurer</code>继续正常工作，但不会意识到文字的更改。）然而，如果文字更改是插入或删除单个字符，现有的<code>LineBreakMeasurer</code>可以通过调用<code>insertChar</code>或更新<code>deleteChar</code> 。</span> <span>更新现有的<code>LineBreakMeasurer</code>比创建新的更快。</span> <span>基于用户输入修改文本的客户端应该利用这些方法。</span> </p>
+<p> <span><strong>示例</strong> ：</span> </p>
+<p> <span>在组件中渲染段落</span> </p>
+<blockquote>
+<span><pre><code>
+ public void paint(Graphics graphics) {
+
+     Point2D pen = new Point2D(10, 20);
+     Graphics2D g2d = (Graphics2D)graphics;
+     FontRenderContext frc = g2d.getFontRenderContext();
+
+     // let styledText be an AttributedCharacterIterator containing at least
+     // one character
+
+     LineBreakMeasurer measurer = new LineBreakMeasurer(styledText, frc);
+     float wrappingWidth = getSize().width - 15;
+
+     while (measurer.getPosition() &lt; fStyledText.length()) {
+
+         TextLayout layout = measurer.nextLayout(wrappingWidth);
+
+         pen.y += (layout.getAscent());
+         float dx = layout.isLeftToRight() ?
+             0 : (wrappingWidth - layout.getAdvance());
+
+         layout.draw(graphics, pen.x + dx, pen.y);
+         pen.y += layout.getDescent() + layout.getLeading();
+     }
+ }
+ </code></pre></span>
+</blockquote>
+<p> <span>用标签渲染文本。</span> <span>为简单起见，假定整个文本方向是从左到右</span> </p>
+<blockquote>
+<span><pre><code>
+ public void paint(Graphics graphics) {
+
+     float leftMargin = 10, rightMargin = 310;
+     float[] tabStops = { 100, 250 };
+
+     // assume styledText is an AttributedCharacterIterator, and the number
+     // of tabs in styledText is tabCount
+
+     int[] tabLocations = new int[tabCount+1];
+
+     int i = 0;
+     for (char c = styledText.first(); c != styledText.DONE; c = styledText.next()) {
+         if (c == '\t') {
+             tabLocations[i++] = styledText.getIndex();
+         }
+     }
+     tabLocations[tabCount] = styledText.getEndIndex() - 1;
+
+     // Now tabLocations has an entry for every tab's offset in
+     // the text.  For convenience, the last entry is tabLocations
+     // is the offset of the last character in the text.
+
+     LineBreakMeasurer measurer = new LineBreakMeasurer(styledText);
+     int currentTab = 0;
+     float verticalPos = 20;
+
+     while (measurer.getPosition() &lt; styledText.getEndIndex()) {
+
+         // Lay out and draw each line.  All segments on a line
+         // must be computed before any drawing can occur, since
+         // we must know the largest ascent on the line.
+         // TextLayouts are computed and stored in a Vector;
+         // their horizontal positions are stored in a parallel
+         // Vector.
+
+         // lineContainsText is true after first segment is drawn
+         boolean lineContainsText = false;
+         boolean lineComplete = false;
+         float maxAscent = 0, maxDescent = 0;
+         float horizontalPos = leftMargin;
+         Vector layouts = new Vector(1);
+         Vector penPositions = new Vector(1);
+
+         while (!lineComplete) {
+             float wrappingWidth = rightMargin - horizontalPos;
+             TextLayout layout =
+                     measurer.nextLayout(wrappingWidth,
+                                         tabLocations[currentTab]+1,
+                                         lineContainsText);
+
+             // layout can be null if lineContainsText is true
+             if (layout != null) {
+                 layouts.addElement(layout);
+                 penPositions.addElement(new Float(horizontalPos));
+                 horizontalPos += layout.getAdvance();
+                 maxAscent = Math.max(maxAscent, layout.getAscent());
+                 maxDescent = Math.max(maxDescent,
+                     layout.getDescent() + layout.getLeading());
+             } else {
+                 lineComplete = true;
+             }
+
+             lineContainsText = true;
+
+             if (measurer.getPosition() == tabLocations[currentTab]+1) {
+                 currentTab++;
+             }
+
+             if (measurer.getPosition() == styledText.getEndIndex())
+                 lineComplete = true;
+             else if (horizontalPos &gt;= tabStops[tabStops.length-1])
+                 lineComplete = true;
+
+             if (!lineComplete) {
+                 // move to next tab stop
+                 int j;
+                 for (j=0; horizontalPos &gt;= tabStops[j]; j++) {}
+                 horizontalPos = tabStops[j];
+             }
+         }
+
+         verticalPos += maxAscent;
+
+         Enumeration layoutEnum = layouts.elements();
+         Enumeration positionEnum = penPositions.elements();
+
+         // now iterate through layouts and draw them
+         while (layoutEnum.hasMoreElements()) {
+             TextLayout nextLayout = (TextLayout) layoutEnum.nextElement();
+             Float nextPosition = (Float) positionEnum.nextElement();
+             nextLayout.draw(graphics, nextPosition.floatValue(), verticalPos);
+         }
+
+         verticalPos += maxDescent;
+     }
+ }
+ </code></pre></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/awt/font/TextLayout.html" title="java.awt.font中的类"><code>TextLayout</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#LineBreakMeasurer-java.text.AttributedCharacterIterator-java.text.BreakIterator-java.awt.font.FontRenderContext-">LineBreakMeasurer</a></span>(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> text, <a href="../../../java/text/BreakIterator.html" title="class in java.text">BreakIterator</a> breakIter, <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</code>
+<div class="block">
+              为指定的文本构造一个 
+             <code>LineBreakMeasurer</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#LineBreakMeasurer-java.text.AttributedCharacterIterator-java.awt.font.FontRenderContext-">LineBreakMeasurer</a></span>(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> text, <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</code>
+<div class="block">
+              为指定的文本构造一个 
+             <code>LineBreakMeasurer</code> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#deleteChar-java.text.AttributedCharacterIterator-int-">deleteChar</a></span>(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> newParagraph, int deletePos)</code>
+<div class="block">
+              从文本中删除单个 
+             <code>LineBreakMeasurer</code>后更新此 
+             <code>LineBreakMeasurer</code> ，并将当前位置设置为段落的开头。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#getPosition--">getPosition</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>LineBreakMeasurer</code>的当前位置。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#insertChar-java.text.AttributedCharacterIterator-int-">insertChar</a></span>(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> newParagraph, int insertPos)</code>
+<div class="block">
+              将单个字符插入文本后，更新此 
+             <code>LineBreakMeasurer</code> ，并将当前位置设置为段落的开头。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextLayout.html" title="class in java.awt.font">TextLayout</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#nextLayout-float-">nextLayout</a></span>(float wrappingWidth)</code>
+<div class="block">
+              返回下一个布局，并更新当前位置。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextLayout.html" title="class in java.awt.font">TextLayout</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#nextLayout-float-int-boolean-">nextLayout</a></span>(float wrappingWidth, int offsetLimit, boolean requireNextWord)</code>
+<div class="block">
+              返回下一个布局，并更新当前位置。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#nextOffset-float-">nextOffset</a></span>(float wrappingWidth)</code>
+<div class="block">
+              返回下一个布局末尾的位置。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#nextOffset-float-int-boolean-">nextOffset</a></span>(float wrappingWidth, int offsetLimit, boolean requireNextWord)</code>
+<div class="block">
+              返回下一个布局末尾的位置。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/LineBreakMeasurer.html#setPosition-int-">setPosition</a></span>(int newPosition)</code>
+<div class="block">
+              设置此 
+             <code>LineBreakMeasurer</code>的当前位置。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="LineBreakMeasurer-java.text.AttributedCharacterIterator-java.awt.font.FontRenderContext-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>LineBreakMeasurer</h4> <pre>public LineBreakMeasurer(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> text,
+                         <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</pre>
+<div class="block">
+            为指定的文本构造一个 
+           <code>LineBreakMeasurer</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>text</code> -应用此文本<code>LineBreakMeasurer</code>产生<code>TextLayout</code>对象;</span>
+<span>该文本必须至少包含一个字符;</span>
+<span>如果通过<code>iter</code>的文本发生变化，则对此<code>LineBreakMeasurer</code>实例的进一步调用未定义（除了在某些情况下，当<code>insertChar</code>调用insertChar或<code>deleteChar</code>时，请参见下文）</span>
+</dd>
+<dd>
+<span><code>frc</code> - 包含有关正确测量文本所需的图形设备信息;</span>
+<span>文本测量可能会因设备分辨率和抗锯齿等属性而略有不同。</span>
+<span>此参数不指定<code>LineBreakMeasurer</code>与用户空间之间的<code>LineBreakMeasurer</code></span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/LineBreakMeasurer.html#insertChar-java.text.AttributedCharacterIterator-int-"><code>insertChar(java.text.AttributedCharacterIterator, int)</code></a> ， 
+            <a href="../../../java/awt/font/LineBreakMeasurer.html#deleteChar-java.text.AttributedCharacterIterator-int-"><code>deleteChar(java.text.AttributedCharacterIterator, int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="LineBreakMeasurer-java.text.AttributedCharacterIterator-java.text.BreakIterator-java.awt.font.FontRenderContext-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>LineBreakMeasurer</h4> <pre>public LineBreakMeasurer(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> text,
+                         <a href="../../../java/text/BreakIterator.html" title="class in java.text">BreakIterator</a> breakIter,
+                         <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</pre>
+<div class="block">
+            为指定的文本构造一个 
+           <code>LineBreakMeasurer</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>text</code> - 这个<code>LineBreakMeasurer</code>生成<code>TextLayout</code>对象的文本;</span>
+<span>该文本必须至少包含一个字符;</span>
+<span>如果通过<code>iter</code>的文本发生变化，则对此<code>LineBreakMeasurer</code>实例的进一步调用未定义（除了在某些情况下，当<code>insertChar</code>调用insertChar或<code>deleteChar</code>时，请参见下文）</span>
+</dd>
+<dd>
+<span><code>breakIter</code> - 定义换行符的<a href="../../../java/text/BreakIterator.html" title="java.text中的类"><code>BreakIterator</code></a></span>
+</dd>
+<dd>
+<span><code>frc</code> - 包含有关正确测量文本所需的图形设备信息;</span>
+<span>文本测量可能会因设备分辨率和抗锯齿等属性而略有不同。</span>
+<span>该参数不指定<code>LineBreakMeasurer</code>与用户空间之间的<code>LineBreakMeasurer</code></span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 文本是否少于一个字符 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/LineBreakMeasurer.html#insertChar-java.text.AttributedCharacterIterator-int-"><code>insertChar(java.text.AttributedCharacterIterator, int)</code></a> ， 
+            <a href="../../../java/awt/font/LineBreakMeasurer.html#deleteChar-java.text.AttributedCharacterIterator-int-"><code>deleteChar(java.text.AttributedCharacterIterator, int)</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="nextOffset-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>nextOffset</h4> <pre>public int nextOffset(float wrappingWidth)</pre>
+<div class="block">
+<span>返回下一个布局末尾的位置。</span>
+<span>不更新此<code>LineBreakMeasurer</code>的当前位置。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>wrappingWidth</code> - 下一个布局文本允许的最大可见行进 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在文字中的偏移代表了下一个 
+            <code>TextLayout</code>的限制。 
+           </dd>
+</dl> </li>
+</ul> <a name="nextOffset-float-int-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>nextOffset</h4> <pre>public int nextOffset(float wrappingWidth,
+                      int offsetLimit,
+                      boolean requireNextWord)</pre>
+<div class="block">
+<span>返回下一个布局末尾的位置。</span>
+<span>不更新此<code>LineBreakMeasurer</code>的当前位置。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>wrappingWidth</code> - 下一个布局文本允许的最大可见提前 
+           </dd>
+<dd>
+<span><code>offsetLimit</code> - 下一个布局中不能包含的第一个字符，即使限制后的文本也适合包装宽度;</span>
+<span><code>offsetLimit</code>必须大于当前位置</span>
+</dd>
+<dd>
+<span><code>requireNextWord</code> - 如果<code>true</code> ，如果整个下一个字不符合<code>wrappingWidth</code> ，则返回的当前位置;</span>
+<span>如果<code>false</code> ，返回的偏移量至少比当前位置大一个</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在文字中的偏移量代表下一个 
+            <code>TextLayout</code>的限制 
+           </dd>
+</dl> </li>
+</ul> <a name="nextLayout-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>nextLayout</h4> <pre>public <a href="../../../java/awt/font/TextLayout.html" title="class in java.awt.font">TextLayout</a> nextLayout(float wrappingWidth)</pre>
+<div class="block">
+            返回下一个布局，并更新当前位置。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>wrappingWidth</code> - 下一个布局文本允许的最大可见提前 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>TextLayout</code> ，从当前位置开始，代表下一行拟合 
+            <code>wrappingWidth</code>
+</dd>
+</dl> </li>
+</ul> <a name="nextLayout-float-int-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>nextLayout</h4> <pre>public <a href="../../../java/awt/font/TextLayout.html" title="class in java.awt.font">TextLayout</a> nextLayout(float wrappingWidth,
+                             int offsetLimit,
+                             boolean requireNextWord)</pre>
+<div class="block">
+            返回下一个布局，并更新当前位置。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>wrappingWidth</code> - 下一个布局文本允许的最大可见提前 
+           </dd>
+<dd>
+<span><code>offsetLimit</code> - 下一个布局中无法包含的第一个字符，即使限制后的文本也适合包装宽度;</span>
+<span><code>offsetLimit</code>必须大于当前位置</span>
+</dd>
+<dd>
+<span><code>requireNextWord</code> - 如果是<code>true</code> ，如果当前位置的整个字不适合包装宽度，则返回<code>null</code> 。</span>
+<span>如果<code>false</code> ，返回一个有效的布局，至少包含当前位置的字符</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<code>TextLayout</code> ，从当前位置开始，表示下一行拟合在<code>wrappingWidth</code>内。</span>
+<span>如果当前位置在此<code>LineBreakMeasurer</code>使用的文本的<code>LineBreakMeasurer</code> ，则返回<code>null</code></span>
+</dd>
+</dl> </li>
+</ul> <a name="getPosition--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPosition</h4> <pre>public int getPosition()</pre>
+<div class="block">
+            返回此 
+           <code>LineBreakMeasurer</code>的当前位置。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个 
+            <code>LineBreakMeasurer</code>的当前位置 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/LineBreakMeasurer.html#setPosition-int-"><code>setPosition(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setPosition-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setPosition</h4> <pre>public void setPosition(int newPosition)</pre>
+<div class="block">
+            设置此 
+           <code>LineBreakMeasurer</code>的当前位置。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newPosition</code> - 这个<code>LineBreakMeasurer</code>的当前位置;</span>
+<span>该位置应在用于构建此<code>LineBreakMeasurer</code>的文本内（或最近传递给<code>insertChar</code>或<code>deleteChar</code></span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/LineBreakMeasurer.html#getPosition--"><code>getPosition()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="insertChar-java.text.AttributedCharacterIterator-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>insertChar</h4> <pre>public void insertChar(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> newParagraph,
+                       int insertPos)</pre>
+<div class="block">
+            在将单个字符插入到文本中后，更新此 
+           <code>LineBreakMeasurer</code> ，并将当前位置设置为段落的开头。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newParagraph</code> - 插入后的文字 
+           </dd>
+<dd>
+<code>insertPos</code> - 插入字符的文本中的位置 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IndexOutOfBoundsException.html" title="class in java.lang">IndexOutOfBoundsException</a></code> -如果 
+            <code>insertPos</code>小于开始 
+            <code>newParagraph</code> ，或者大于或等于的端 
+            <code>newParagraph</code>
+</dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>newParagraph</code>是 
+            <code>null</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/LineBreakMeasurer.html#deleteChar-java.text.AttributedCharacterIterator-int-"><code>deleteChar(java.text.AttributedCharacterIterator, int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="deleteChar-java.text.AttributedCharacterIterator-int-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>deleteChar</h4> <pre>public void deleteChar(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> newParagraph,
+                       int deletePos)</pre>
+<div class="block">
+            从文本中删除单个 
+           <code>LineBreakMeasurer</code>后，更新此 
+           <code>LineBreakMeasurer</code> ，并将当前位置设置为段落的开头。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newParagraph</code> - 删除后的文字 
+           </dd>
+<dd>
+<code>deletePos</code> - 字符被删除的文本中的位置 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IndexOutOfBoundsException.html" title="class in java.lang">IndexOutOfBoundsException</a></code> -如果 
+            <code>deletePos</code>小于开始 
+            <code>newParagraph</code>或大于的端 
+            <code>newParagraph</code>
+</dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>newParagraph</code>是 
+            <code>null</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/LineBreakMeasurer.html#insertChar-java.text.AttributedCharacterIterator-int-"><code>insertChar(java.text.AttributedCharacterIterator, int)</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

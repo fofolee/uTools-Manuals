@@ -1,0 +1,149 @@
+<div class="content guide with-sidebar mixins-guide">
+<h1>混入</h1>
+<h2 id="基础"><a class="headerlink" href="#基础" title="基础"></a>基础</h2><p>混入 (mixin) 提供了一种非常灵活的方式，来分发 Vue 组件中的可复用功能。一个混入对象可以包含任意组件选项。当组件使用混入对象时，所有混入对象的选项将被“混合”进入该组件本身的选项。</p>
+<p>例子：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 定义一个混入对象</span>
+<span class="hljs-keyword">var</span> myMixin = {
+  <span class="hljs-attr">created</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">this</span>.hello()
+  },
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-attr">hello</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'hello from mixin!'</span>)
+    }
+  }
+}
+
+<span class="hljs-comment">// 定义一个使用混入对象的组件</span>
+<span class="hljs-keyword">var</span> Component = Vue.extend({
+  <span class="hljs-attr">mixins</span>: [myMixin]
+})
+
+<span class="hljs-keyword">var</span> component = <span class="hljs-keyword">new</span> Component() <span class="hljs-comment">// =&gt; "hello from mixin!"</span></code></pre>
+<h2 id="选项合并"><a class="headerlink" href="#选项合并" title="选项合并"></a>选项合并</h2><p>当组件和混入对象含有同名选项时，这些选项将以恰当的方式进行“合并”。</p>
+<p>比如，数据对象在内部会进行递归合并，并在发生冲突时以组件数据优先。</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> mixin = {
+  <span class="hljs-attr">data</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">message</span>: <span class="hljs-string">'hello'</span>,
+      <span class="hljs-attr">foo</span>: <span class="hljs-string">'abc'</span>
+    }
+  }
+}
+
+<span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">mixins</span>: [mixin],
+  <span class="hljs-attr">data</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">message</span>: <span class="hljs-string">'goodbye'</span>,
+      <span class="hljs-attr">bar</span>: <span class="hljs-string">'def'</span>
+    }
+  },
+  <span class="hljs-attr">created</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">this</span>.$data)
+    <span class="hljs-comment">// =&gt; { message: "goodbye", foo: "abc", bar: "def" }</span>
+  }
+})</code></pre>
+<p>同名钩子函数将合并为一个数组，因此都将被调用。另外，混入对象的钩子将在组件自身钩子<strong>之前</strong>调用。</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> mixin = {
+  <span class="hljs-attr">created</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'混入对象的钩子被调用'</span>)
+  }
+}
+
+<span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">mixins</span>: [mixin],
+  <span class="hljs-attr">created</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'组件钩子被调用'</span>)
+  }
+})
+
+<span class="hljs-comment">// =&gt; "混入对象的钩子被调用"</span>
+<span class="hljs-comment">// =&gt; "组件钩子被调用"</span></code></pre>
+<p>值为对象的选项，例如 <code>methods</code>、<code>components</code> 和 <code>directives</code>，将被合并为同一个对象。两个对象键名冲突时，取组件对象的键值对。</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> mixin = {
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-attr">foo</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'foo'</span>)
+    },
+    <span class="hljs-attr">conflicting</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'from mixin'</span>)
+    }
+  }
+}
+
+<span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">mixins</span>: [mixin],
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-attr">bar</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'bar'</span>)
+    },
+    <span class="hljs-attr">conflicting</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'from self'</span>)
+    }
+  }
+})
+
+vm.foo() <span class="hljs-comment">// =&gt; "foo"</span>
+vm.bar() <span class="hljs-comment">// =&gt; "bar"</span>
+vm.conflicting() <span class="hljs-comment">// =&gt; "from self"</span></code></pre>
+<p>注意：<code>Vue.extend()</code> 也使用同样的策略进行合并。</p>
+<h2 id="全局混入"><a class="headerlink" href="#全局混入" title="全局混入"></a>全局混入</h2><p>混入也可以进行全局注册。使用时格外小心！一旦使用全局混入，它将影响<strong>每一个</strong>之后创建的 Vue 实例。使用恰当时，这可以用来为自定义选项注入处理逻辑。</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 为自定义的选项 'myOption' 注入一个处理器。</span>
+Vue.mixin({
+  <span class="hljs-attr">created</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">var</span> myOption = <span class="hljs-keyword">this</span>.$options.myOption
+    <span class="hljs-keyword">if</span> (myOption) {
+      <span class="hljs-built_in">console</span>.log(myOption)
+    }
+  }
+})
+
+<span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">myOption</span>: <span class="hljs-string">'hello!'</span>
+})
+<span class="hljs-comment">// =&gt; "hello!"</span></code></pre>
+<p class="tip">请谨慎使用全局混入，因为它会影响每个单独创建的 Vue 实例 (包括第三方组件)。大多数情况下，只应当应用于自定义选项，就像上面示例一样。推荐将其作为<a href="plugins.html">插件</a>发布，以避免重复应用混入。</p>
+<h2 id="自定义选项合并策略"><a class="headerlink" href="#自定义选项合并策略" title="自定义选项合并策略"></a>自定义选项合并策略</h2><p>自定义选项将使用默认策略，即简单地覆盖已有值。如果想让自定义选项以自定义逻辑合并，可以向 <code>Vue.config.optionMergeStrategies</code> 添加一个函数：</p>
+<pre><code class="hljs js">Vue.config.optionMergeStrategies.myOption = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">toVal, fromVal</span>) </span>{
+  <span class="hljs-comment">// 返回合并后的值</span>
+}</code></pre>
+<p>对于多数值为对象的选项，可以使用与 <code>methods</code> 相同的合并策略：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> strategies = Vue.config.optionMergeStrategies
+strategies.myOption = strategies.methods</code></pre>
+<p>可以在 <a href="https://github.com/vuejs/vuex" rel="noopener" target="_blank">Vuex</a> 1.x 的混入策略里找到一个更高级的例子：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> merge = Vue.config.optionMergeStrategies.computed
+Vue.config.optionMergeStrategies.vuex = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">toVal, fromVal</span>) </span>{
+  <span class="hljs-keyword">if</span> (!toVal) <span class="hljs-keyword">return</span> fromVal
+  <span class="hljs-keyword">if</span> (!fromVal) <span class="hljs-keyword">return</span> toVal
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">getters</span>: merge(toVal.getters, fromVal.getters),
+    <span class="hljs-attr">state</span>: merge(toVal.state, fromVal.state),
+    <span class="hljs-attr">actions</span>: merge(toVal.actions, fromVal.actions)
+  }
+}</code></pre>
+<div class="guide-links">
+<span>← <a href="transitioning-state.html">状态过渡</a></span>
+<span style="float: right;"><a href="custom-directive.html">自定义指令</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srcmixins.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

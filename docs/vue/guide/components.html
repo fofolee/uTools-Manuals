@@ -1,0 +1,425 @@
+<div class="content guide with-sidebar components-guide">
+<h1>组件基础</h1>
+<h2 id="基本示例"><a class="headerlink" href="#基本示例" title="基本示例"></a>基本示例</h2><p>这里有一个 Vue 组件的示例：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 定义一个名为 button-counter 的新组件</span>
+Vue.component(<span class="hljs-string">'button-counter'</span>, {
+  <span class="hljs-attr">data</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">count</span>: <span class="hljs-number">0</span>
+    }
+  },
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;button v-on:click="count++"&gt;You clicked me {{ count }} times.&lt;/button&gt;'</span>
+})</code></pre>
+<p>组件是可复用的 Vue 实例，且带有一个名字：在这个例子中是 <code>&lt;button-counter&gt;</code>。我们可以在一个通过 <code>new Vue</code> 创建的 Vue 根实例中，把这个组件作为自定义元素来使用：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"components-demo"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button-counter</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">button-counter</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({ <span class="hljs-attr">el</span>: <span class="hljs-string">'#components-demo'</span> })</code></pre>
+<div class="demo" id="components-demo">
+<button-counter></button-counter>
+</div>
+<script>
+Vue.component('button-counter', {
+  data: function () {
+    return {
+      count: 0
+    }
+  },
+  template: '<button v-on:click="count += 1">You clicked me {{ count }} times.</button>'
+})
+new Vue({ el: '#components-demo' })
+</script>
+<p>因为组件是可复用的 Vue 实例，所以它们与 <code>new Vue</code> 接收相同的选项，例如 <code>data</code>、<code>computed</code>、<code>watch</code>、<code>methods</code> 以及生命周期钩子等。仅有的例外是像 <code>el</code> 这样根实例特有的选项。</p>
+<h2 id="组件的复用"><a class="headerlink" href="#组件的复用" title="组件的复用"></a>组件的复用</h2><p>你可以将组件进行任意次数的复用：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"components-demo"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button-counter</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">button-counter</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button-counter</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">button-counter</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button-counter</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">button-counter</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<div class="demo" id="components-demo2">
+<button-counter></button-counter>
+<button-counter></button-counter>
+<button-counter></button-counter>
+</div>
+<script>
+new Vue({ el: '#components-demo2' })
+</script>
+<p>注意当点击按钮时，每个组件都会各自独立维护它的 <code>count</code>。因为你每用一次组件，就会有一个它的新<strong>实例</strong>被创建。</p>
+<h3 id="data-必须是一个函数"><a class="headerlink" href="#data-必须是一个函数" title="data 必须是一个函数"></a><code>data</code> 必须是一个函数</h3><p>当我们定义这个 <code>&lt;button-counter&gt;</code> 组件时，你可能会发现它的 <code>data</code> 并不是像这样直接提供一个对象：</p>
+<pre><code class="hljs js">data: {
+  <span class="hljs-attr">count</span>: <span class="hljs-number">0</span>
+}</code></pre>
+<p>取而代之的是，<strong>一个组件的 <code>data</code> 选项必须是一个函数</strong>，因此每个实例可以维护一份被返回对象的独立的拷贝：</p>
+<pre><code class="hljs js">data: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">count</span>: <span class="hljs-number">0</span>
+  }
+}</code></pre>
+<p>如果 Vue 没有这条规则，点击一个按钮就可能会像如下代码一样影响到<em>其它所有实例</em>：</p>
+<div class="demo" id="components-demo3">
+<button-counter2></button-counter2>
+<button-counter2></button-counter2>
+<button-counter2></button-counter2>
+</div>
+<script>
+var buttonCounter2Data = {
+  count: 0
+}
+Vue.component('button-counter2', {
+  data: function () {
+    return buttonCounter2Data
+  },
+  template: '<button v-on:click="count++">You clicked me {{ count }} times.</button>'
+})
+new Vue({ el: '#components-demo3' })
+</script>
+<h2 id="组件的组织"><a class="headerlink" href="#组件的组织" title="组件的组织"></a>组件的组织</h2><p>通常一个应用会以一棵嵌套的组件树的形式来组织：</p>
+<p><img src="https://cn.vuejs.org/images/components.png"/></p>
+<p>例如，你可能会有页头、侧边栏、内容区等组件，每个组件又包含了其它的像导航链接、博文之类的组件。</p>
+<p>为了能在模板中使用，这些组件必须先注册以便 Vue 能够识别。这里有两种组件的注册类型：<strong>全局注册</strong>和<strong>局部注册</strong>。至此，我们的组件都只是通过 <code>Vue.component</code> 全局注册的：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'my-component-name'</span>, {
+  <span class="hljs-comment">// ... options ...</span>
+})</code></pre>
+<p>全局注册的组件可以用在其被注册之后的任何 (通过 <code>new Vue</code>) 新创建的 Vue 根实例，也包括其组件树中的所有子组件的模板中。</p>
+<p>到目前为止，关于组件注册你需要了解的就这些了，如果你阅读完本页内容并掌握了它的内容，我们会推荐你再回来把<a href="components-registration.html">组件注册</a>读完。</p>
+<h2 id="通过-Prop-向子组件传递数据"><a class="headerlink" href="#通过-Prop-向子组件传递数据" title="通过 Prop 向子组件传递数据"></a>通过 Prop 向子组件传递数据</h2><p>早些时候，我们提到了创建一个博文组件的事情。问题是如果你不能向这个组件传递某一篇博文的标题或内容之类的我们想展示的数据的话，它是没有办法使用的。这也正是 prop 的由来。</p>
+<p>Prop 是你可以在组件上注册的一些自定义特性。当一个值传递给一个 prop 特性的时候，它就变成了那个组件实例的一个属性。为了给博文组件传递一个标题，我们可以用一个 <code>props</code> 选项将其包含在该组件可接受的 prop 列表中：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'blog-post'</span>, {
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'title'</span>],
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;h3&gt;{{ title }}&lt;/h3&gt;'</span>
+})</code></pre>
+<p>一个组件默认可以拥有任意数量的 prop，任何值都可以传递给任何 prop。在上述模板中，你会发现我们能够在组件实例中访问这个值，就像访问 <code>data</code> 中的值一样。</p>
+<p>一个 prop 被注册之后，你就可以像这样把数据作为一个自定义特性传递进来：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">title</span>=<span class="hljs-string">"My journey with Vue"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">title</span>=<span class="hljs-string">"Blogging with Vue"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">title</span>=<span class="hljs-string">"Why Vue is so fun"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<div class="demo" id="blog-post-demo">
+<blog-post1 title="My journey with Vue"></blog-post1>
+<blog-post1 title="Blogging with Vue"></blog-post1>
+<blog-post1 title="Why Vue is so fun"></blog-post1>
+</div>
+<script>
+Vue.component('blog-post1', {
+  props: ['title'],
+  template: '<h3>{{ title }}</h3>'
+})
+new Vue({ el: '#blog-post-demo' })
+</script>
+<p>然而在一个典型的应用中，你可能在 <code>data</code> 里有一个博文的数组：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#blog-post-demo'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">posts</span>: [
+      { <span class="hljs-attr">id</span>: <span class="hljs-number">1</span>, <span class="hljs-attr">title</span>: <span class="hljs-string">'My journey with Vue'</span> },
+      { <span class="hljs-attr">id</span>: <span class="hljs-number">2</span>, <span class="hljs-attr">title</span>: <span class="hljs-string">'Blogging with Vue'</span> },
+      { <span class="hljs-attr">id</span>: <span class="hljs-number">3</span>, <span class="hljs-attr">title</span>: <span class="hljs-string">'Why Vue is so fun'</span> }
+    ]
+  }
+})</code></pre>
+<p>并想要为每篇博文渲染一个组件：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+  <span class="hljs-attr">v-for</span>=<span class="hljs-string">"post in posts"</span>
+  <span class="hljs-attr">v-bind:key</span>=<span class="hljs-string">"post.id"</span>
+  <span class="hljs-attr">v-bind:title</span>=<span class="hljs-string">"post.title"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<p>如上所示，你会发现我们可以使用 <code>v-bind</code> 来动态传递 prop。这在你一开始不清楚要渲染的具体内容，比如<a href="https://jsfiddle.net/chrisvfritz/sbLgr0ad" rel="noopener" target="_blank">从一个 API 获取博文列表</a>的时候，是非常有用的。</p>
+<p>到目前为止，关于 prop 你需要了解的大概就这些了，如果你阅读完本页内容并掌握了它的内容，我们会推荐你再回来把 <a href="components-props.html">prop</a> 读完。</p>
+<h2 id="单个根元素"><a class="headerlink" href="#单个根元素" title="单个根元素"></a>单个根元素</h2><p>当构建一个 <code>&lt;blog-post&gt;</code> 组件时，你的模板最终会包含的东西远不止一个标题：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">h3</span>&gt;</span>{{ title }}<span class="hljs-tag">&lt;/<span class="hljs-name">h3</span>&gt;</span></code></pre>
+<p>最最起码，你会包含这篇博文的正文：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">h3</span>&gt;</span>{{ title }}<span class="hljs-tag">&lt;/<span class="hljs-name">h3</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-html</span>=<span class="hljs-string">"content"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>然而如果你在模板中尝试这样写，Vue 会显示一个错误，并解释道 <strong>every component must have a single root element (每个组件必须只有一个根元素)</strong>。你可以将模板的内容包裹在一个父元素内，来修复这个问题，例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"blog-post"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h3</span>&gt;</span>{{ title }}<span class="hljs-tag">&lt;/<span class="hljs-name">h3</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-html</span>=<span class="hljs-string">"content"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>看起来当组件变得越来越复杂的时候，我们的博文不只需要标题和内容，还需要发布日期、评论等等。为每个相关的信息定义一个 prop 会变得很麻烦：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+  <span class="hljs-attr">v-for</span>=<span class="hljs-string">"post in posts"</span>
+  <span class="hljs-attr">v-bind:key</span>=<span class="hljs-string">"post.id"</span>
+  <span class="hljs-attr">v-bind:title</span>=<span class="hljs-string">"post.title"</span>
+  <span class="hljs-attr">v-bind:content</span>=<span class="hljs-string">"post.content"</span>
+  <span class="hljs-attr">v-bind:publishedAt</span>=<span class="hljs-string">"post.publishedAt"</span>
+  <span class="hljs-attr">v-bind:comments</span>=<span class="hljs-string">"post.comments"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<p>所以是时候重构一下这个 <code>&lt;blog-post&gt;</code> 组件了，让它变成接受一个单独的 <code>post</code> prop：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+  <span class="hljs-attr">v-for</span>=<span class="hljs-string">"post in posts"</span>
+  <span class="hljs-attr">v-bind:key</span>=<span class="hljs-string">"post.id"</span>
+  <span class="hljs-attr">v-bind:post</span>=<span class="hljs-string">"post"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'blog-post'</span>, {
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'post'</span>],
+  <span class="hljs-attr">template</span>: <span class="hljs-string">`
+    &lt;div class="blog-post"&gt;
+      &lt;h3&gt;{{ post.title }}&lt;/h3&gt;
+      &lt;div v-html="post.content"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  `</span>
+})</code></pre>
+<p class="tip">上述的这个和一些接下来的示例使用了 JavaScript 的<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Template_literals" rel="noopener" target="_blank">模板字符串</a>来让多行的模板更易读。它们在 IE 下并没有被支持，所以如果你需要在不 (经过 Babel 或 TypeScript 之类的工具) 编译的情况下支持 IE，请使用<a href="https://css-tricks.com/snippets/javascript/multiline-string-variables-in-javascript/" rel="noopener" target="_blank">折行转义字符</a>取而代之。</p>
+<p>现在，不论何时为 <code>post</code> 对象添加一个新的属性，它都会自动地在 <code>&lt;blog-post&gt;</code> 内可用。</p>
+<h2 id="监听子组件事件"><a class="headerlink" href="#监听子组件事件" title="监听子组件事件"></a>监听子组件事件</h2><p>在我们开发 <code>&lt;blog-post&gt;</code> 组件时，它的一些功能可能要求我们和父级组件进行沟通。例如我们可能会引入一个可访问性的功能来放大博文的字号，同时让页面的其它部分保持默认的字号。</p>
+<p>在其父组件中，我们可以通过添加一个 <code>postFontSize</code> 数据属性来支持这个功能：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#blog-posts-events-demo'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">posts</span>: [<span class="hljs-comment">/* ... */</span>],
+    <span class="hljs-attr">postFontSize</span>: <span class="hljs-number">1</span>
+  }
+})</code></pre>
+<p>它可以在模板中用来控制所有博文的字号：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"blog-posts-events-demo"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">:style</span>=<span class="hljs-string">"{ fontSize: postFontSize + 'em' }"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+      <span class="hljs-attr">v-for</span>=<span class="hljs-string">"post in posts"</span>
+      <span class="hljs-attr">v-bind:key</span>=<span class="hljs-string">"post.id"</span>
+      <span class="hljs-attr">v-bind:post</span>=<span class="hljs-string">"post"</span>
+    &gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>现在我们在每篇博文正文之前添加一个按钮来放大字号：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'blog-post'</span>, {
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'post'</span>],
+  <span class="hljs-attr">template</span>: <span class="hljs-string">`
+    &lt;div class="blog-post"&gt;
+      &lt;h3&gt;{{ post.title }}&lt;/h3&gt;
+      &lt;button&gt;
+        Enlarge text
+      &lt;/button&gt;
+      &lt;div v-html="post.content"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  `</span>
+})</code></pre>
+<p>问题是这个按钮不会做任何事：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">button</span>&gt;</span>
+  Enlarge text
+<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+<p>当点击这个按钮时，我们需要告诉父级组件放大所有博文的文本。幸好 Vue 实例提供了一个自定义事件的系统来解决这个问题。父级组件可以像处理 native DOM 事件一样通过 <code>v-on</code> 监听子组件实例的任意事件：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+  <span class="hljs-attr">...</span>
+  <span class="hljs-attr">v-on:enlarge-text</span>=<span class="hljs-string">"postFontSize += 0.1"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<p>同时子组件可以通过调用内建的 <a href="../api/#vm-emit"><strong><code>$emit</code></strong> 方法</a> 并传入事件名称来触发一个事件：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">v-on:click</span>=<span class="hljs-string">"$emit('enlarge-text')"</span>&gt;</span>
+  Enlarge text
+<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+<p>有了这个 <code>v-on:enlarge-text="postFontSize += 0.1"</code> 监听器，父级组件就会接收该事件并更新 <code>postFontSize</code> 的值。</p>
+<div class="demo" id="blog-posts-events-demo">
+<div :style="{ fontSize: postFontSize + 'em' }">
+<blog-post v-bind:key="post.id" v-bind:post="post" v-for="post in posts" v-on:enlarge-text="postFontSize += 0.1"></blog-post>
+</div>
+</div>
+<script>
+Vue.component('blog-post', {
+  props: ['post'],
+  template: '\
+    <div class="blog-post">\
+      <h3>{{ post.title }}</h3>\
+      <button v-on:click="$emit(\'enlarge-text\')">\
+        Enlarge text\
+      </button>\
+      <div v-html="post.content"></div>\
+    </div>\
+  '
+})
+new Vue({
+  el: '#blog-posts-events-demo',
+  data: {
+    posts: [
+      { id: 1, title: 'My journey with Vue', content: '...content...' },
+      { id: 2, title: 'Blogging with Vue', content: '...content...' },
+      { id: 3, title: 'Why Vue is so fun', content: '...content...' }
+    ],
+    postFontSize: 1
+  }
+})
+</script>
+<h3 id="使用事件抛出一个值"><a class="headerlink" href="#使用事件抛出一个值" title="使用事件抛出一个值"></a>使用事件抛出一个值</h3><p>有的时候用一个事件来抛出一个特定的值是非常有用的。例如我们可能想让 <code>&lt;blog-post&gt;</code> 组件决定它的文本要放大多少。这时可以使用 <code>$emit</code> 的第二个参数来提供这个值：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">v-on:click</span>=<span class="hljs-string">"$emit('enlarge-text', 0.1)"</span>&gt;</span>
+  Enlarge text
+<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+<p>然后当在父级组件监听这个事件的时候，我们可以通过 <code>$event</code> 访问到被抛出的这个值：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+  <span class="hljs-attr">...</span>
+  <span class="hljs-attr">v-on:enlarge-text</span>=<span class="hljs-string">"postFontSize += $event"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<p>或者，如果这个事件处理函数是一个方法：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+  <span class="hljs-attr">...</span>
+  <span class="hljs-attr">v-on:enlarge-text</span>=<span class="hljs-string">"onEnlargeText"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<p>那么这个值将会作为第一个参数传入这个方法：</p>
+<pre><code class="hljs js">methods: {
+  <span class="hljs-attr">onEnlargeText</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">enlargeAmount</span>) </span>{
+    <span class="hljs-keyword">this</span>.postFontSize += enlargeAmount
+  }
+}</code></pre>
+<h3 id="在组件上使用-v-model"><a class="headerlink" href="#在组件上使用-v-model" title="在组件上使用 v-model"></a>在组件上使用 <code>v-model</code></h3><p>自定义事件也可以用于创建支持 <code>v-model</code> 的自定义输入组件。记住：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"searchText"</span>&gt;</span></code></pre>
+<p>等价于：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span>
+  <span class="hljs-attr">v-bind:value</span>=<span class="hljs-string">"searchText"</span>
+  <span class="hljs-attr">v-on:input</span>=<span class="hljs-string">"searchText = $event.target.value"</span>
+&gt;</span></code></pre>
+<p>当用在组件上时，<code>v-model</code> 则会这样：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">custom-input</span>
+  <span class="hljs-attr">v-bind:value</span>=<span class="hljs-string">"searchText"</span>
+  <span class="hljs-attr">v-on:input</span>=<span class="hljs-string">"searchText = $event"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">custom-input</span>&gt;</span></code></pre>
+<p>为了让它正常工作，这个组件内的 <code>&lt;input&gt;</code> 必须：</p>
+<ul>
+<li>将其 <code>value</code> 特性绑定到一个名叫 <code>value</code> 的 prop 上</li>
+<li>在其 <code>input</code> 事件被触发时，将新的值通过自定义的 <code>input</code> 事件抛出</li>
+</ul>
+<p>写成代码之后是这样的：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'custom-input'</span>, {
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'value'</span>],
+  <span class="hljs-attr">template</span>: <span class="hljs-string">`
+    &lt;input
+      v-bind:value="value"
+      v-on:input="$emit('input', $event.target.value)"
+    &gt;
+  `</span>
+})</code></pre>
+<p>现在 <code>v-model</code> 就应该可以在这个组件上完美地工作起来了：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">custom-input</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"searchText"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">custom-input</span>&gt;</span></code></pre>
+<p>到目前为止，关于组件自定义事件你需要了解的大概就这些了，如果你阅读完本页内容并掌握了它的内容，我们会推荐你再回来把<a href="components-custom-events.html">自定义事件</a>读完。</p>
+<h2 id="通过插槽分发内容"><a class="headerlink" href="#通过插槽分发内容" title="通过插槽分发内容"></a>通过插槽分发内容</h2><p>和 HTML 元素一样，我们经常需要向一个组件传递内容，像这样：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">alert-box</span>&gt;</span>
+  Something bad happened.
+<span class="hljs-tag">&lt;/<span class="hljs-name">alert-box</span>&gt;</span></code></pre>
+<p>可能会渲染出这样的东西：</p>
+<div class="demo" id="slots-demo">
+<alert-box>
+    Something bad happened.
+  </alert-box>
+</div>
+<script>
+Vue.component('alert-box', {
+  template: '\
+    <div class="demo-alert-box">\
+      <strong>Error!</strong>\
+      <slot></slot>\
+    </div>\
+  '
+})
+new Vue({ el: '#slots-demo' })
+</script>
+<style>
+.demo-alert-box {
+  padding: 10px 20px;
+  background: #f3beb8;
+  border: 1px solid #f09898;
+}
+</style>
+<p>幸好，Vue 自定义的 <code>&lt;slot&gt;</code> 元素让这变得非常简单：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'alert-box'</span>, {
+  <span class="hljs-attr">template</span>: <span class="hljs-string">`
+    &lt;div class="demo-alert-box"&gt;
+      &lt;strong&gt;Error!&lt;/strong&gt;
+      &lt;slot&gt;&lt;/slot&gt;
+    &lt;/div&gt;
+  `</span>
+})</code></pre>
+<p>如你所见，我们只要在需要的地方加入插槽就行了——就这么简单！</p>
+<p>到目前为止，关于插槽你需要了解的大概就这些了，如果你阅读完本页内容并掌握了它的内容，我们会推荐你再回来把<a href="components-slots.html">插槽</a>读完。</p>
+<h2 id="动态组件"><a class="headerlink" href="#动态组件" title="动态组件"></a>动态组件</h2><p>有的时候，在不同组件之间进行动态切换是非常有用的，比如在一个多标签的界面里：</p>
+<div class="demo" id="dynamic-component-demo">
+<button class="dynamic-component-demo-tab-button" v-bind:class="{ 'dynamic-component-demo-tab-button-active': tab === currentTab }" v-bind:key="tab" v-for="tab in tabs" v-on:click="currentTab = tab">
+    {{ tab }}
+  </button>
+<component class="dynamic-component-demo-tab" v-bind:is="currentTabComponent"></component>
+</div>
+<script>
+Vue.component('tab-home', { template: '<div>Home component</div>' })
+Vue.component('tab-posts', { template: '<div>Posts component</div>' })
+Vue.component('tab-archive', { template: '<div>Archive component</div>' })
+new Vue({
+  el: '#dynamic-component-demo',
+  data: {
+    currentTab: 'Home',
+    tabs: ['Home', 'Posts', 'Archive']
+  },
+  computed: {
+    currentTabComponent: function () {
+      return 'tab-' + this.currentTab.toLowerCase()
+    }
+  }
+})
+</script>
+<style>
+.dynamic-component-demo-tab-button {
+  padding: 6px 10px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background: #f0f0f0;
+  margin-bottom: -1px;
+  margin-right: -1px;
+}
+.dynamic-component-demo-tab-button:hover {
+  background: #e0e0e0;
+}
+.dynamic-component-demo-tab-button-active {
+  background: #e0e0e0;
+}
+.dynamic-component-demo-tab {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+</style>
+<p>上述内容可以通过 Vue 的 <code>&lt;component&gt;</code> 元素加一个特殊的 <code>is</code> 特性来实现：</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 组件会在 `currentTabComponent` 改变时改变 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">component</span> <span class="hljs-attr">v-bind:is</span>=<span class="hljs-string">"currentTabComponent"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component</span>&gt;</span></code></pre>
+<p>在上述示例中，<code>currentTabComponent</code> 可以包括</p>
+<ul>
+<li>已注册组件的名字，或</li>
+<li>一个组件的选项对象</li>
+</ul>
+<p>你可以在<a href="https://jsfiddle.net/chrisvfritz/o3nycadu/" rel="noopener" target="_blank">这里</a>查阅并体验完整的代码，或在<a href="https://jsfiddle.net/chrisvfritz/b2qj69o1/" rel="noopener" target="_blank">这个版本</a>了解绑定组件选项对象，而不是已注册组件名的示例。</p>
+<p>到目前为止，关于动态组件你需要了解的大概就这些了，如果你阅读完本页内容并掌握了它的内容，我们会推荐你再回来把<a href="components-dynamic-async.html">动态和异步组件</a>读完。</p>
+<h2 id="解析-DOM-模板时的注意事项"><a class="headerlink" href="#解析-DOM-模板时的注意事项" title="解析 DOM 模板时的注意事项"></a>解析 DOM 模板时的注意事项</h2><p>有些 HTML 元素，诸如 <code>&lt;ul&gt;</code>、<code>&lt;ol&gt;</code>、<code>&lt;table&gt;</code> 和 <code>&lt;select&gt;</code>，对于哪些元素可以出现在其内部是有严格限制的。而有些元素，诸如 <code>&lt;li&gt;</code>、<code>&lt;tr&gt;</code> 和 <code>&lt;option&gt;</code>，只能出现在其它某些特定的元素内部。</p>
+<p>这会导致我们使用这些有约束条件的元素时遇到一些问题。例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">table</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">blog-post-row</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post-row</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">table</span>&gt;</span></code></pre>
+<p>这个自定义组件 <code>&lt;blog-post-row&gt;</code> 会被作为无效的内容提升到外部，并导致最终渲染结果出错。幸好这个特殊的 <code>is</code> 特性给了我们一个变通的办法：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">table</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">tr</span> <span class="hljs-attr">is</span>=<span class="hljs-string">"blog-post-row"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">tr</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">table</span>&gt;</span></code></pre>
+<p>需要注意的是<strong>如果我们从以下来源使用模板的话，这条限制是<em>不存在</em>的</strong>：</p>
+<ul>
+<li>字符串 (例如：<code>template: '...'</code>)</li>
+<li><a href="single-file-components.html">单文件组件 (<code>.vue</code>)</a></li>
+<li><a href="components-edge-cases.html#X-Templates"><code>&lt;script type="text/x-template"&gt;</code></a></li>
+</ul>
+<p>到这里，你需要了解的解析 DOM 模板时的注意事项——实际上也是 Vue 的全部<em>必要内容</em>，大概就是这些了。恭喜你！接下来还有很多东西要去学习，不过首先，我们推荐你先休息一下，试用一下 Vue，自己随意做些好玩的东西。</p>
+<p>如果你感觉已经掌握了这些知识，我们推荐你再回来把完整的组件指南，包括侧边栏中组件深入章节的所有页面读完。</p>
+<div class="guide-links">
+<span>← <a href="forms.html">表单输入绑定</a></span>
+<span style="float: right;"><a href="components-registration.html">组件注册</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srccomponents.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

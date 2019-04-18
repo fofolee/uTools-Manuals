@@ -1,0 +1,300 @@
+<article id="wikiArticle">
+<p></p><p></p>
+<p><strong>函数默认参数</strong>允许在没有值或<code>undefined</code>被传入时使用默认形参。</p>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/functions-default.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="语法" name="语法">语法</h2>
+<pre class="syntaxbox">function [<em>name</em>]([<em>param1</em>[ = defaultValue1 ][, ..., <em>paramN</em>[ = defaultValueN ]]]) { 
+<em>    statements</em> 
+}
+</pre>
+<h2 id="描述" name="描述">描述</h2>
+<p>JavaScript 中函数的参数默认是<code><a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a></code>。然而，在某些情况下可能需要设置一个不同的默认值。这是默认参数可以帮助的地方。</p>
+<p>以前，一般设置默认参数的方法是在函数体测试参数是否为<code>undefined</code>，如果是的话就设置为默认的值。</p>
+<p>下面的例子中，如果在调用<code>multiply</code>时，参数<code>b</code>的值没有提供，那么它的值就为<code>undefined</code>。如果直接执行<code>a * b</code>，函数会返回 <code>NaN</code>。</p>
+<pre class="brush: js">function multiply(a, b) {
+  return a * b;
+}
+
+multiply(5, 2); // 10
+multiply(5);    // NaN !
+
+</pre>
+<p>为了防止这种情况，第二行代码解决了这个问题，其中如果只使用一个参数调用<code>multiply</code>，则<code>b</code>设置为<code>1</code>：</p>
+<pre class="brush: js">function multiply(a, b) {
+  b = (typeof b !== 'undefined') ?  b : 1;
+  return a * b;
+}
+
+multiply(5, 2); // 10
+multiply(5);    // 5</pre>
+<p>有了默认参数，我们不需要再在函数体内做不必要的检查。现在你可以在函数头将<code>b</code>的默认值置为<code>1</code>：</p>
+<pre class="brush: js">function multiply(a, b = 1) {
+  return a * b;
+}
+
+multiply(5, 2); // 10
+multiply(5);    // 5</pre>
+<h2 id="示例" name="示例">示例</h2>
+<h3 id="传入_undefined_vs_其他假值">传入 <code>undefined</code> vs 其他假值</h3>
+<p>在第二次调用中，即使第一个参数在调用时显式设置为<code>undefined</code>（虽然不是<code>null</code>或其他<a href="/zh-CN/docs/Glossary/Falsy">falsy</a>值），但是<code>num</code>参数的值是默认值。</p>
+<pre class="brush: js">function test(num = 1) {
+  console.log(typeof num);
+}
+
+test();          // 'number' (num is set to 1)
+test(undefined); // 'number' (num is set to 1 too)
+
+// test with other falsy values:
+test('');        // 'string' (num is set to '')
+test(null);      // 'object' (num is set to null)</pre>
+<h3 id="调用时解析">调用时解析</h3>
+<p>在函数被调用时，参数默认值会被解析，所以不像Python中的例子，每次函数调用时都会创建一个新的参数对象。</p>
+<pre class="brush: js">function append(value, array = []) {
+  array.push(value);
+  return array;
+}
+
+append(1); //[1]
+append(2); //[2], not [1, 2]</pre>
+<p>这个规则对于函数和变量也是适用的。</p>
+<pre class="brush: js">function callSomething(thing = something()) {
+ return thing;
+}
+
+let numberOfTimesCalled = 0;
+function something() {
+  numberOfTimesCalled += 1;
+  return numberOfTimesCalled;
+}
+
+callSomething(); // 1
+callSomething(); // 2</pre>
+<h3 id="默认参数可用于后面的默认参数">默认参数可用于后面的默认参数</h3>
+<p>已经遇到的参数可用于以后的默认参数：</p>
+<pre class="brush: js">function greet(name, greeting, message = greeting + ' ' + name) {
+    return [name, greeting, message];
+}
+
+greet('David', 'Hi');  // ["David", "Hi", "Hi David"]
+greet('David', 'Hi', 'Happy Birthday!');  // ["David", "Hi", "Happy Birthday!"]
+</pre>
+<p>以下这个例子近似模拟了一些比较简单的情况，并说明了特殊情况是怎么被处理的。</p>
+<pre class="brush: js">function go() {
+  return ':P';
+}
+
+function withDefaults(a, b = 5, c = b, d = go(), e = this, 
+                      f = arguments, g = this.value) {
+  return [a, b, c, d, e, f, g];
+}
+
+function withoutDefaults(a, b, c, d, e, f, g) {
+  switch (arguments.length) {
+    case 0:
+      a;
+    case 1:
+      b = 5;
+    case 2:
+      c = b;
+    case 3:
+      d = go();
+    case 4:
+      e = this;
+    case 5:
+      f = arguments;
+    case 6:
+      g = this.value;
+    default:
+  }
+  return [a, b, c, d, e, f, g];
+}
+
+withDefaults.call({value: '=^_^='});
+// [undefined, 5, 5, ":P", {value:"=^_^="}, arguments, "=^_^="]
+
+
+withoutDefaults.call({value: '=^_^='});
+// [undefined, 5, 5, ":P", {value:"=^_^="}, arguments, "=^_^="]</pre>
+<h3 id="函数嵌套定义">函数嵌套定义</h3>
+<p>在 Gecko 33 (Firefox 33 / Thunderbird 33 / SeaMonkey 2.30) 中引入。在函数体内的函数声明不能引用内部的默认参数，并且会在 SpiderMonkey 抛出一个<a href="Reference/Global_Objects/ReferenceError" title="ReferenceError（引用错误） 对象代表当一个不存在的变量被引用时发生的错误。"><code>ReferenceError</code></a>（现在是 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>），参见 <a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1022967" rel="noopener" title="FIXED: Separate environment for default parameter and function body if default parameter contains expression">bug 1022967</a>。默认参数总是会被首先执行，而在函数体内部的函数声明会在之后生效。</p>
+<pre class="brush: js">// Doesn't work! Throws ReferenceError.
+function f(a = go()) {
+  function go() { return ':P'; }
+}</pre>
+<h3 id="位于默认参数之后非默认参数">位于默认参数之后非默认参数</h3>
+<p>在Gecko 26 (Firefox 26 / Thunderbird 26 / SeaMonkey 2.23 / Firefox OS 1.2)之前，以下代码会造成<a href="Reference/Global_Objects/SyntaxError" title="SyntaxError 对象代表尝试解析语法上不合法的代码的错误。"><code>SyntaxError</code></a>错误。这已经在<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1022967" rel="noopener" title="FIXED: Separate environment for default parameter and function body if default parameter contains expression">bug 1022967</a>中修复，并在以后的版本中按预期方式工作。参数仍然设置为从左到右，覆盖默认参数，即使后面的参数没有默认值。</p>
+<pre class="brush: js">function f(x = 1, y) { 
+  return [x, y]; 
+}
+
+f(); // [1, undefined]
+f(2); // [2, undefined]</pre>
+<h3 id="有默认值的解构参数">有默认值的解构参数</h3>
+<p>你可以通过<a href="Reference/Operators/Destructuring_assignment">解构赋值</a>为参数赋值：</p>
+<pre class="brush: js">function f([x, y] = [1, 2], {z: z} = {z: 3}) { 
+  return x + y + z; 
+}
+
+f(); // 6</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-function-definitions" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Function Definitions</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-function-definitions" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Function Definitions</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容" name="浏览器兼容">浏览器兼容</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row">Default parameters</th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              14</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              15</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              14</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              15</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0.0</td></tr><tr><th scope="row">Parameters without defaults after default parameters</th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              14</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              26</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              14</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              26</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              36</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr><tr><th scope="row">Destructured parameter with default value assignment</th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-unknown bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              41</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-unknown bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-unknown bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              49</td><td class="bc-supports-unknown bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              41</td><td class="bc-supports-unknown bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-unknown bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><span class="bc-supports-unknown bc-supports">
+<abbr class="bc-level bc-level-unknown only-icon" title="Compatibility unknown">
+<span>Compatibility unknown</span>
+                  
+                </abbr></span></dt><dd>Compatibility unknown</dd></dl></section></div><p></p>
+<h2 id="相关链接" name="相关链接">相关链接</h2>
+<ul>
+<li><a class="external external-icon" href="http://wiki.ecmascript.org/doku.php?id=harmony:parameter_default_values" rel="external noopener" title="http://wiki.ecmascript.org/doku.php?id=harmony:parameter_default_values">Original proposal at ecmascript.org</a></li>
+</ul>
+<p> </p>
+</article>

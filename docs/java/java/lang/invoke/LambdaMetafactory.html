@@ -1,0 +1,386 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.lang.invoke 
+   </div>
+<h2 class="title" title="Class LambdaMetafactory">Class LambdaMetafactory</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.lang.invoke.LambdaMetafactory</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public class <span class="typeNameLabel">LambdaMetafactory</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<p> <span>方法来促进，通过代表团实现一个或多个接口所提供的简单的“函数对象”的创建<a href="../../../java/lang/invoke/MethodHandle.html" title="class java.lang.invoke"><code>MethodHandle</code></a> ，可能适应类型和参数局部评价。</span> <span>这些方法通常用作<code>invokedynamic</code>调用站点的<em>引导方法</em> ，以支持Java编程语言的<em>lambda表达式</em>和<em>方法引用表达式</em>功能。</span> </p>
+<p> <span>对提供的<code>MethodHandle</code>指定行为的间接访问按顺序进行三个阶段：</span> </p>
+<ul>
+<li> <span>当调用此类中的方法时，会发生<em>链接</em> 。</span> <span>它们将要实现的接口（通常是<em>功能接口</em> ，具有单个抽象方法的接口），从要实现的接口的方法的名称和签名，描述该方法的所需实现行为的方法句柄，以及可能还有其他的元数据，并产生一个<a href="../../../java/lang/invoke/CallSite.html" title="class java.lang.invoke"><code>CallSite</code></a> ，其目标可以用于创建合适的功能对象。</span> <span>链接可能涉及动态加载实现目标接口的新类。</span> <span><code>CallSite</code>可以被认为是功能对象的“工厂”，因此这些连接方法被称为“元件”。</span> </li>
+<li> <span>当调用<code>CallSite</code>的目标时，通常通过<code>invokedynamic</code>调用站点生成一个函数对象，就会发生<em>捕获</em> 。</span> <span>对于单个工厂<code>CallSite</code>可能会发生多次。</span> <span>Capture可能涉及分配一个新的函数对象，或者可能返回一个现有的函数对象。</span> <span>行为<code>MethodHandle</code>可能具有超出指定接口方法的附加参数;</span> <span>这些被称为<em>捕获的参数</em> ，它们必须作为<code>CallSite</code>目标的参数提供，并且可能早于行为<code>MethodHandle</code> 。</span> <span>在联动期间确定捕获的参数及其类型的数量。</span> </li>
+<li> <span>当实现的接口方法的功能对象调用发生<em>调用</em> 。</span> <span>对于单个函数对象可能会发生多次。</span> <span>行为<code>MethodHandle</code>引用的方法使用捕获的参数和调用时提供的任何其他参数调用，就像<a href="../../../java/lang/invoke/MethodHandle.html#invoke-java.lang.Object...-"><code>MethodHandle.invoke(Object...)</code>一样</a> 。</span> </li>
+</ul>
+<p> <span>限制在调用时允许的输入或结果集有时是有用的。</span> <span>例如，当通用接口<code>Predicate&lt;T&gt;</code>被参数化为<code>Predicate&lt;String&gt;</code>时，输入必须是<code>String</code> ，即使实现方法允许任何<code>Object</code> 。</span> <span>在链接时，额外的<a href="../../../java/lang/invoke/MethodType.html" title="class java.lang.invoke"><code>MethodType</code></a>参数描述了“实例化”方法类型;</span> <span>在调用时，根据这个<code>MethodType</code>检查参数和最终结果。</span> </p>
+<p> <span>该类提供两种形式的联动方法：使用优化协议的标准版本（ <a href="../../../java/lang/invoke/LambdaMetafactory.html#metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-"><code>metafactory(MethodHandles.Lookup, String, MethodType, MethodType, MethodHandle, MethodType)</code></a> ）和备用版本<a href="../../../java/lang/invoke/LambdaMetafactory.html#altMetafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.Object...-"><code>altMetafactory(MethodHandles.Lookup, String, MethodType, Object...)</code></a> ）。</span> <span>备用版本是标准版本的泛化，通过标志和附加参数提供对生成的函数对象的行为的附加控制。</span> <span>备用版本增加了管理功能对象的以下属性的功能：</span> </p>
+<ul>
+<li> <span><em>桥接。</em></span> <span>实现方法签名的多个变体有时是有用的，包括参数或返回类型适配。</span> <span>当方法的多个不同VM签名在逻辑上被认为是语言相同的方法时，会发生这种情况。</span> <span>该标志<code>FLAG_BRIDGES</code>表示的附加列表<code>MethodType</code>旨意提供，其中的每一个将被生成的函数对象来实现。</span> <span>这些方法将共享相同的名称和实例化的类型。</span> </li>
+<li> <span><em>多个接口</em></span> <span>如果需要，功能对象可以实现多个接口。</span> <span>（这些附加的接口通常没有方法标记接口）的标志<code>FLAG_MARKERS</code>表示将被提供的额外的接口的列表，其中的每一个应当由所得到的函数对象来实现。</span> </li>
+<li> <span><em>可序列化</em></span> <span>生成的函数对象通常不支持序列化。</span> <span>如果需要，可以使用<code>FLAG_SERIALIZABLE</code>来表示功能对象应该可串行化。</span> <span>可串行化的函数对象将使用SerializedLambda类的<code>SerializedLambda</code> ，它们需要捕获类的额外帮助（ <a href="../../../java/lang/invoke/MethodHandles.Lookup.html" title="class java.lang.invoke"><code>MethodHandles.Lookup</code></a>参数<code>caller</code>的类）;</span> <span>详见<a href="../../../java/lang/invoke/SerializedLambda.html" title="class java.lang.invoke"><code>SerializedLambda</code></a> 。</span> </li>
+</ul>
+<p> <span>假设链接参数如下：</span> </p>
+<ul>
+<li> <span><code>invokedType</code> （描述<code>CallSite</code>签名）具有类型（D1..Dk）和返回类型Rd的K个参数;</span> </li>
+<li> <span><code>samMethodType</code> （描述实现的方法类型）具有N个参数，类型（U1..Un）和返回类型Ru;</span> </li>
+<li> <span><code>implMethod</code> （ <code>MethodHandle</code>实现的MethodHandle具有M个参数，类型（A1..Am）和返回类型Ra（如果该方法描述一个实例方法，此方法句柄的方法类型已经包含与接收器对应的额外的第一个参数） ;</span> </li>
+<li> <span><code>instantiatedMethodType</code> （允许调用限制）具有N个参数，类型（T1..Tn）和返回类型Rt。</span> </li>
+</ul>
+<p> <span>那么以下链接不变量必须保持：</span> </p>
+<ul>
+<li> <span>Rd是一个接口</span> </li>
+<li> <span><code>implMethod</code>是一个<em>直接的方法句柄</em></span> </li>
+<li> <span><code>samMethodType</code>和<code>instantiatedMethodType</code>具有相同的<code>instantiatedMethodType</code> N，对于i = 1..N，Ti和Ui是相同类型，或Ti和Ui都是参考类型，Ti是Ui的亚型</span> </li>
+<li> <span>Rt和Ru是相同的类型，或者两者都是引用类型，Rt是Ru的子类型</span> </li>
+<li> <span>K + N = M</span> </li>
+<li> <span>对于i = 1..K，Di = Ai</span> </li>
+<li> <span>对于i = 1..N，Ti适用于Aj，其中j = i + k</span> </li>
+<li> <span>返回类型Rt为void，或者返回类型Ra不为空，并且适用于Rt</span> </li>
+</ul>
+<p> <span>此外，在捕获时间，如果<code>implMethod</code>对应于一个实例方法，并且有任何捕获参数（ <code>K &gt; 0</code> ），那么第一个捕获参数（对应于接收者）必须是非空值。</span> </p>
+<p> <span>Q类型被认为适应于S，如下所示：</span> </p>
+<span>  Q S Link-time checks Invocation-time checks   Primitive Primitive Q can be converted to S via a primitive widening conversion None   Primitive Reference S is a supertype of the Wrapper(Q) Cast from Wrapper(Q) to S   Reference Primitive for parameter types: Q is a primitive wrapper and Primitive(Q) can be widened to S <br/>for return types: If Q is a primitive wrapper, check that Primitive(Q) can be widened to S If Q is not a primitive wrapper, cast Q to the base Wrapper(S); for example Number for numeric types   Reference Reference for parameter types: S is a supertype of Q <br/>for return types: none Cast from Q to S  </span>
+<table summary="adaptable types">
+</table>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">API Note:</span>
+</dt>
+<dd>
+<span>这些链接方法旨在支持Java语言中的<em>lambda表达式</em>和<em>方法引用的评估</em> 。</span>
+<span>对于源代码中的每个lambda表达式或方法引用，都有一个目标类型，它是一个功能界面。</span>
+<span>评估lambda表达式会产生其目标类型的对象。</span>
+<span>推荐的lambda表达式的机制是将lambda体拖放到一个方法中，调用一个invokedynamic调用站点，该静态参数列表描述了功能接口和desugared实现方法的唯一方法，并返回一个对象（lambda对象），实现目标类型。</span>
+<span>（对于方法引用，实现方法只是引用的方法;不需要desugaring）。</span>
+<p> <span>实现方法的参数列表和接口方法的参数列表可能有多种不同。</span> <span>实现方法可能有其他参数来适应lambda表达式捕获的参数;</span> <span>还可能会因允许的参数调整而产生差异，如铸造，拳击，拆箱和原始拓宽。</span> <span>（Varargs修改不由metafactories处理;这些调整将被调用者处理。）</span> </p>
+<p> <span>Invokedynamic调用站点有两个参数列表：静态参数列表和动态参数列表。</span> <span>静态参数列表存储在常量池中;</span> <span>动态参数在捕获时被推送到操作数堆栈上。</span> <span>引导方法可以访问整个静态参数列表（在这种情况下，包括描述实现方法，目标接口和目标接口方法的信息），以及描述数字和静态类型的方法签名（但不是值）的动态参数和调用动态站点的静态返回类型。</span> </p>
+</dd>
+<dt>
+<span class="simpleTagLabel">Implementation Note:</span>
+</dt>
+<dd>
+<span>使用方法句柄描述实现方法。</span>
+<span>理论上可以使用任何方法句柄。</span>
+<span>目前支持的是直接方法处理，表示虚拟，接口，构造函数和静态方法的调用。</span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/LambdaMetafactory.html#FLAG_BRIDGES">FLAG_BRIDGES</a></span></code>
+<div class="block">
+              指示lambda对象的备用元素的标志需要额外的桥接方法 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/LambdaMetafactory.html#FLAG_MARKERS">FLAG_MARKERS</a></span></code>
+<div class="block">
+              指示lambda对象的替代元素的标志实现除Serializable之外的其他标记接口 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/LambdaMetafactory.html#FLAG_SERIALIZABLE">FLAG_SERIALIZABLE</a></span></code>
+<div class="block">
+              指示lambda对象的替代元素的标志必须是可序列化的 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/LambdaMetafactory.html#LambdaMetafactory--">LambdaMetafactory</a></span>()</code> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>static <a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">CallSite</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/LambdaMetafactory.html#altMetafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.Object...-">altMetafactory</a></span>(<a href="../../../java/lang/invoke/MethodHandles.Lookup.html" title="class in java.lang.invoke">MethodHandles.Lookup</a> caller, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> invokedName, <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> invokedType, <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>... args)</code>
+<div class="block">
+<span>通过委派给所提供的<a href="../../../java/lang/invoke/MethodHandle.html" title="class java.lang.invoke"><code>MethodHandle</code></a> ，在适当的类型适应和参数的部分评估之后，便于创建简单的“功能对象”，实现一个或多个接口。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">CallSite</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/LambdaMetafactory.html#metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-">metafactory</a></span>(<a href="../../../java/lang/invoke/MethodHandles.Lookup.html" title="class in java.lang.invoke">MethodHandles.Lookup</a> caller, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> invokedName, <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> invokedType, <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> samMethodType, <a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a> implMethod, <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> instantiatedMethodType)</code>
+<div class="block">
+<span>通过委派给提供的<a href="../../../java/lang/invoke/MethodHandle.html" title="class java.lang.invoke"><code>MethodHandle</code></a> ，在适当的类型适应和参数的部分评估后，便于创建实现一个或多个接口的简单“功能对象”。</span>
+</div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="FLAG_SERIALIZABLE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>FLAG_SERIALIZABLE</h4> <pre>public static final int FLAG_SERIALIZABLE</pre>
+<div class="block">
+            指示lambda对象的替代元素的标志必须是可序列化的 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.LambdaMetafactory.FLAG_SERIALIZABLE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="FLAG_MARKERS">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>FLAG_MARKERS</h4> <pre>public static final int FLAG_MARKERS</pre>
+<div class="block">
+            指示lambda对象的替代元素的标志实现除Serializable之外的其他标记接口 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.LambdaMetafactory.FLAG_MARKERS">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="FLAG_BRIDGES">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>FLAG_BRIDGES</h4> <pre>public static final int FLAG_BRIDGES</pre>
+<div class="block">
+            指示lambda对象的备用元素的标志需要额外的桥接方法 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.LambdaMetafactory.FLAG_BRIDGES">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="LambdaMetafactory--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>LambdaMetafactory</h4> <pre>public LambdaMetafactory()</pre> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>metafactory</h4> <pre>public static <a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">CallSite</a> metafactory(<a href="../../../java/lang/invoke/MethodHandles.Lookup.html" title="class in java.lang.invoke">MethodHandles.Lookup</a> caller,
+                                   <a href="../../../java/lang/String.html" title="class in java.lang">String</a> invokedName,
+                                   <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> invokedType,
+                                   <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> samMethodType,
+                                   <a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a> implMethod,
+                                   <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> instantiatedMethodType)
+                            throws <a href="../../../java/lang/invoke/LambdaConversionException.html" title="class in java.lang.invoke">LambdaConversionException</a></pre>
+<div class="block">
+<span>有利于通过委派实现一个或多个接口所提供的简单的“函数对象”的创建<a href="../../../java/lang/invoke/MethodHandle.html" title="class java.lang.invoke"><code>MethodHandle</code></a> ，经过适当的适应型和参数部分的评价。</span>
+<span>通常用作<code>invokedynamic</code>调用站点的<em>引导方法</em> ，以支持Java编程语言的<em>lambda表达式</em>和<em>方法引用表达式</em>功能。</span>
+<p> <span>这是标准的流线型meta factory;</span> <span>额外的灵活性由<a href="../../../java/lang/invoke/LambdaMetafactory.html#altMetafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.Object...-"><code>altMetafactory(MethodHandles.Lookup, String, MethodType, Object...)</code></a>提供。</span> <span>提供这种方法的一般描述<a href="../../../java/lang/invoke/LambdaMetafactory.html" title="class java.lang.invoke"><code>above</code></a> 。</span> </p>
+<p> <span>当调用从此方法返回的<code>CallSite</code>的目标时，生成的函数对象是实现由invokedType的返回类型命名的接口的类的<code>invokedType</code> ，声明一个名称由<code>invokedName</code>给出的<code>invokedName</code> ，由samMethodType给出的<code>samMethodType</code> 。</span> <span>它也可以从覆盖其他方法<code>Object</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>caller</code> - 表示具有调用者的辅助权限的查找上下文。</span>
+<span>当与<code>invokedynamic</code>一起使用时，VM由VM自动堆叠。</span>
+</dd>
+<dd>
+<span><code>invokedName</code> - 要实现的方法的名称。</span>
+<span>当与<code>invokedynamic</code>一起使用时，它由<code>NameAndType</code>的<code>InvokeDynamic</code>提供，并由VM自动堆叠。</span>
+</dd>
+<dd>
+<span><code>invokedType</code> - <code>invokedType</code>的预期<code>CallSite</code> 。</span>
+<span>参数类型表示捕获变量的类型;</span>
+<span>返回类型是要实现的接口。</span>
+<span>当与<code>invokedynamic</code>一起使用时，它由<code>NameAndType</code>结构的<code>InvokeDynamic</code>提供，并由VM自动堆叠。</span>
+<span>在实现方法是实例方法且该签名具有任何参数的情况下，调用签名中的第一个参数必须对应于接收方。</span>
+</dd>
+<dd>
+<code>samMethodType</code> - 由函数对象执行的方法的签名和返回类型。 
+           </dd>
+<dd>
+<code>implMethod</code> - 一个直接方法句柄，用于描述在调用时应该被调用的实现方法（在参数类型，返回类型以及调用参数前面带有捕获参数的适当适配）。 
+           </dd>
+<dd>
+<span><code>instantiatedMethodType</code> - 在调用时动态执行的签名和返回类型。</span>
+<span>这可能与<code>samMethodType</code>相同，或者可能是它的专业化。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个CallSite，其目标可以用于执行捕获，生成由invokedType命名的 
+            <code>invokedType</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<span><code><a href="../../../java/lang/invoke/LambdaConversionException.html" title="class in java.lang.invoke">LambdaConversionException</a></code> - 如果违反了所描述的任何链接不变量<a href="../../../java/lang/invoke/LambdaMetafactory.html" title="class java.lang.invoke"><code>above</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="altMetafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.Object...-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>altMetafactory</h4> <pre>public static <a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">CallSite</a> altMetafactory(<a href="../../../java/lang/invoke/MethodHandles.Lookup.html" title="class in java.lang.invoke">MethodHandles.Lookup</a> caller,
+                                      <a href="../../../java/lang/String.html" title="class in java.lang">String</a> invokedName,
+                                      <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> invokedType,
+                                      <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>... args)
+                               throws <a href="../../../java/lang/invoke/LambdaConversionException.html" title="class in java.lang.invoke">LambdaConversionException</a></pre>
+<div class="block">
+<span>有利于通过委派实现一个或多个接口所提供的简单的“函数对象”的创建<a href="../../../java/lang/invoke/MethodHandle.html" title="class java.lang.invoke"><code>MethodHandle</code></a> ，经过适当的适应型和参数部分的评价。</span>
+<span>通常用作<code>invokedynamic</code>调用站点的<em>引导方法</em> ，以支持Java编程语言的<em>lambda表达式</em>和<em>方法引用表达式</em>功能。</span>
+<p> <span>这是一般的，更灵活的meta factory;</span> <span>简化的版本由<a href="../../../java/lang/invoke/LambdaMetafactory.html#altMetafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.Object...-"><code>altMetafactory(MethodHandles.Lookup, String, MethodType, Object...)</code></a>提供。</span> <span>此方法的行为的一般描述提供<a href="../../../java/lang/invoke/LambdaMetafactory.html" title="class java.lang.invoke"><code>above</code></a> 。</span> </p>
+<p> <span>该方法的参数列表中包括三个固定的参数，对应于由VM自举方法在一个自动堆叠在参数<code>invokedynamic</code>调用，和<code>Object[]</code>包含额外参数的参数。</span> <span>该方法的声明参数列表是：</span> </p>
+<pre>  <span><code> CallSite altMetafactory(MethodHandles.Lookup caller, String invokedName, MethodType invokedType, Object... args) </code></span> </pre>
+<p> <span>但它的行为就好像参数列表如下所示：</span> </p>
+<pre>  <span><code> CallSite altMetafactory(MethodHandles.Lookup caller, String invokedName, MethodType invokedType, MethodType samMethodType, MethodHandle implMethod, MethodType instantiatedMethodType, int flags, int markerInterfaceCount, // IF flags has MARKERS set Class... markerInterfaces, // IF flags has MARKERS set int bridgeCount, // IF flags has BRIDGES set MethodType... bridges // IF flags has BRIDGES set ) </code></span> </pre>
+<p> <span>出现在参数列表参数<a href="../../../java/lang/invoke/LambdaMetafactory.html#metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-"><code>metafactory(MethodHandles.Lookup, String, MethodType, MethodType, MethodHandle, MethodType)</code></a>具有相同规格的这种方法。</span> <span>附加论据解释如下：</span> </p>
+<ul>
+<li> <span><code>flags</code>表示附加选项;</span> <span>这是所需标志的按位OR。</span> <span>定义的标志为<a href="../../../java/lang/invoke/LambdaMetafactory.html#FLAG_BRIDGES"><code>FLAG_BRIDGES</code></a> ， <a href="../../../java/lang/invoke/LambdaMetafactory.html#FLAG_MARKERS"><code>FLAG_MARKERS</code></a>和<a href="../../../java/lang/invoke/LambdaMetafactory.html#FLAG_SERIALIZABLE"><code>FLAG_SERIALIZABLE</code></a> 。</span> </li>
+<li> <span><code>markerInterfaceCount</code>是函数对象应该实现的附加接口的数量，当且仅当设置了<code>FLAG_MARKERS</code>标志时才会出现。</span> </li>
+<li> <span><code>markerInterfaces</code>是要实现的附加接口的可变长度列表，其长度等于<code>markerInterfaceCount</code> ，并且当且仅当设置了<code>FLAG_MARKERS</code>标志时才存在。</span> </li>
+<li> <span><code>bridgeCount</code>是函数对象应该实现的附加方法签名的数量，当且仅当设置了<code>FLAG_BRIDGES</code>标志时才会出现。</span> </li>
+<li> <span><code>bridges</code>是要实现的附加方法签名的可变长度列表，其长度等于<code>bridgeCount</code> ，并且当且仅当设置了<code>FLAG_BRIDGES</code>标志时才存在。</span> </li>
+</ul>
+<p> <span>每个由<code>markerInterfaces</code>命名的<code>markerInterfaces</code>受到与Rd相同的<code>Rd</code> ，返回类型为<code>invokedType</code> ，如<code>above</code> <a href="../../../java/lang/invoke/LambdaMetafactory.html" title="class java.lang.invoke">所述</a> 。</span> <span>每个<code>MethodType</code>由名为<code>bridges</code>受到相同的限制<code>samMethodType</code> ，如所描述的<a href="../../../java/lang/invoke/LambdaMetafactory.html" title="class java.lang.invoke"><code>above</code></a> 。</span> </p>
+<p> <span>当在flags中设置<code>flags</code>时，函数对象将实现<code>Serializable</code> ，并且具有<code>writeReplace</code>方法返回适当的<a href="../../../java/lang/invoke/SerializedLambda.html" title="class java.lang.invoke"><code>SerializedLambda</code></a> 。</span> <span><code>caller</code>类必须具有相应的<code>$deserializeLambda$</code>方法，如<code>SerializedLambda</code> <a href="../../../java/lang/invoke/SerializedLambda.html" title="class java.lang.invoke">所述</a> 。</span> </p>
+<p> <span>当调用从此方法返回的<code>CallSite</code>的目标时，生成的函数对象是具有以下属性的类的实例：</span> </p>
+<ul>
+<li> <span>该类实现了由返回类型invokedType命名的<code>invokedType</code>和由<code>markerInterfaces</code>命名的任何<code>markerInterfaces</code></span> </li>
+<li> <span>这个类声明与指定的名称的方法<code>invokedName</code> ，并给出签名<code>samMethodType</code>给出的和额外的签名<code>bridges</code></span> </li>
+<li> <span>该类可以覆盖<code>Object</code>中的方法，并且可以实现与序列化相关的方法。</span> </li>
+</ul>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>caller</code> - 表示具有调用方访问权限的查找上下文。</span>
+<span>当与<code>invokedynamic</code>一起使用时，VM将自动堆叠。</span>
+</dd>
+<dd>
+<span><code>invokedName</code> - 要实现的方法的名称。</span>
+<span>当与<code>invokedynamic</code>一起使用时，由<code>NameAndType</code>的<code>InvokeDynamic</code>提供，并由VM自动堆叠。</span>
+</dd>
+<dd>
+<span><code>invokedType</code> - <code>invokedType</code>的预期<code>CallSite</code> 。</span>
+<span>参数类型表示捕获变量的类型;</span>
+<span>返回类型是要实现的接口。</span>
+<span>当与<code>invokedynamic</code>一起使用时，由<code>NameAndType</code>的<code>InvokeDynamic</code>提供，并由VM自动堆叠。</span>
+<span>在实现方法是实例方法且该签名具有任何参数的情况下，调用签名中的第一个参数必须对应于接收方。</span>
+</dd>
+<dd>
+<code>args</code> -一个 
+            <code>Object[]</code>含有所需参数数组 
+            <code>samMethodType</code> ， 
+            <code>implMethod</code> ， 
+            <code>instantiatedMethodType</code> ， 
+            <code>flags</code> ，和任何任选的参数，如所描述 
+            <a href="../../../java/lang/invoke/LambdaMetafactory.html#altMetafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.Object...-"><code>altMetafactory(MethodHandles.Lookup, String, MethodType, Object...)</code></a>以上} 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个CallSite，其目标可以用于执行捕获，生成由invokedType命名的 
+            <code>invokedType</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<span><code><a href="../../../java/lang/invoke/LambdaConversionException.html" title="class in java.lang.invoke">LambdaConversionException</a></code> -如果有任何的联系不变量描述<a href="../../../java/lang/invoke/LambdaMetafactory.html" title="class java.lang.invoke"><code>above</code></a>受到侵犯</span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

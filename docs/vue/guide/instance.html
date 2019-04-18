@@ -1,0 +1,120 @@
+<div class="content guide with-sidebar instance-guide">
+<h1>Vue 实例</h1>
+<h2 id="创建一个-Vue-实例"><a class="headerlink" href="#创建一个-Vue-实例" title="创建一个 Vue 实例"></a>创建一个 Vue 实例</h2><p>每个 Vue 应用都是通过用 <code>Vue</code> 函数创建一个新的 <strong>Vue 实例</strong>开始的：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-comment">// 选项</span>
+})</code></pre>
+<p>虽然没有完全遵循 <a href="https://zh.wikipedia.org/wiki/MVVM" rel="noopener" target="_blank">MVVM 模型</a>，但是 Vue 的设计也受到了它的启发。因此在文档中经常会使用 <code>vm</code> (ViewModel 的缩写) 这个变量名表示 Vue 实例。</p>
+<p>当创建一个 Vue 实例时，你可以传入一个<strong>选项对象</strong>。这篇教程主要描述的就是如何使用这些选项来创建你想要的行为。作为参考，你也可以在 <a href="../api/#选项-数据">API 文档</a> 中浏览完整的选项列表。</p>
+<p>一个 Vue 应用由一个通过 <code>new Vue</code> 创建的<strong>根 Vue 实例</strong>，以及可选的嵌套的、可复用的组件树组成。举个例子，一个 todo 应用的组件树可以是这样的：</p>
+<pre><code class="hljs undefined">根实例
+└─ TodoList
+   ├─ TodoItem
+   │  ├─ DeleteTodoButton
+   │  └─ EditTodoButton
+   └─ TodoListFooter
+      ├─ ClearTodosButton
+      └─ TodoListStatistics</code></pre>
+<p>我们会在稍后的<a href="components.html">组件系统</a>章节具体展开。不过现在，你只需要明白所有的 Vue 组件都是 Vue 实例，并且接受相同的选项对象 (一些根实例特有的选项除外)。</p>
+<h2 id="数据与方法"><a class="headerlink" href="#数据与方法" title="数据与方法"></a>数据与方法</h2><p>当一个 Vue 实例被创建时，它将 <code>data</code> 对象中的所有的属性加入到 Vue 的<strong>响应式系统</strong>中。当这些属性的值发生改变时，视图将会产生“响应”，即匹配更新为新的值。</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 我们的数据对象</span>
+<span class="hljs-keyword">var</span> data = { <span class="hljs-attr">a</span>: <span class="hljs-number">1</span> }
+
+<span class="hljs-comment">// 该对象被加入到一个 Vue 实例中</span>
+<span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">data</span>: data
+})
+
+<span class="hljs-comment">// 获得这个实例上的属性</span>
+<span class="hljs-comment">// 返回源数据中对应的字段</span>
+vm.a == data.a <span class="hljs-comment">// =&gt; true</span>
+
+<span class="hljs-comment">// 设置属性也会影响到原始数据</span>
+vm.a = <span class="hljs-number">2</span>
+data.a <span class="hljs-comment">// =&gt; 2</span>
+
+<span class="hljs-comment">// ……反之亦然</span>
+data.a = <span class="hljs-number">3</span>
+vm.a <span class="hljs-comment">// =&gt; 3</span></code></pre>
+<p>当这些数据改变时，视图会进行重渲染。值得注意的是只有当实例被创建时 <code>data</code> 中存在的属性才是<strong>响应式</strong>的。也就是说如果你添加一个新的属性，比如：</p>
+<pre><code class="hljs js">vm.b = <span class="hljs-string">'hi'</span></code></pre>
+<p>那么对 <code>b</code> 的改动将不会触发任何视图的更新。如果你知道你会在晚些时候需要一个属性，但是一开始它为空或不存在，那么你仅需要设置一些初始值。比如：</p>
+<pre><code class="hljs js">data: {
+  <span class="hljs-attr">newTodoText</span>: <span class="hljs-string">''</span>,
+  <span class="hljs-attr">visitCount</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">hideCompletedTodos</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">todos</span>: [],
+  <span class="hljs-attr">error</span>: <span class="hljs-literal">null</span>
+}</code></pre>
+<p>这里唯一的例外是使用 <code>Object.freeze()</code>，这会阻止修改现有的属性，也意味着响应系统无法再<em>追踪</em>变化。</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> obj = {
+  <span class="hljs-attr">foo</span>: <span class="hljs-string">'bar'</span>
+}
+
+<span class="hljs-built_in">Object</span>.freeze(obj)
+
+<span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#app'</span>,
+  <span class="hljs-attr">data</span>: obj
+})</code></pre>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"app"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>{{ foo }}<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- 这里的 `foo` 不会更新！ --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">v-on:click</span>=<span class="hljs-string">"foo = 'baz'"</span>&gt;</span>Change it<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>除了数据属性，Vue 实例还暴露了一些有用的实例属性与方法。它们都有前缀 <code>$</code>，以便与用户定义的属性区分开来。例如：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> data = { <span class="hljs-attr">a</span>: <span class="hljs-number">1</span> }
+<span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#example'</span>,
+  <span class="hljs-attr">data</span>: data
+})
+
+vm.$data === data <span class="hljs-comment">// =&gt; true</span>
+vm.$el === <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'example'</span>) <span class="hljs-comment">// =&gt; true</span>
+
+<span class="hljs-comment">// $watch 是一个实例方法</span>
+vm.$watch(<span class="hljs-string">'a'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">newValue, oldValue</span>) </span>{
+  <span class="hljs-comment">// 这个回调将在 `vm.a` 改变后调用</span>
+})</code></pre>
+<p>以后你可以在 <a href="../api/#实例属性">API 参考</a>中查阅到完整的实例属性和方法的列表。</p>
+<h2 id="实例生命周期钩子"><a class="headerlink" href="#实例生命周期钩子" title="实例生命周期钩子"></a>实例生命周期钩子</h2><p>每个 Vue 实例在被创建时都要经过一系列的初始化过程——例如，需要设置数据监听、编译模板、将实例挂载到 DOM 并在数据变化时更新 DOM 等。同时在这个过程中也会运行一些叫做<strong>生命周期钩子</strong>的函数，这给了用户在不同阶段添加自己的代码的机会。</p>
+<p>比如 <a href="../api/#created"><code>created</code></a> 钩子可以用来在一个实例被创建之后执行代码：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">a</span>: <span class="hljs-number">1</span>
+  },
+  <span class="hljs-attr">created</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-comment">// `this` 指向 vm 实例</span>
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'a is: '</span> + <span class="hljs-keyword">this</span>.a)
+  }
+})
+<span class="hljs-comment">// =&gt; "a is: 1"</span></code></pre>
+<p>也有一些其它的钩子，在实例生命周期的不同阶段被调用，如 <a href="../api/#mounted"><code>mounted</code></a>、<a href="../api/#updated"><code>updated</code></a> 和 <a href="../api/#destroyed"><code>destroyed</code></a>。生命周期钩子的 <code>this</code> 上下文指向调用它的 Vue 实例。</p>
+<p class="tip">不要在选项属性或回调上使用<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_functions" rel="noopener" target="_blank">箭头函数</a>，比如 <code>created: () =&gt; console.log(this.a)</code> 或 <code>vm.$watch('a', newValue =&gt; this.myMethod())</code>。因为箭头函数并没有 <code>this</code>，<code>this</code> 会作为变量一直向上级词法作用域查找，直至找到位置，经常导致 <code>Uncaught TypeError: Cannot read property of undefined</code> 或 <code>Uncaught TypeError: this.myMethod is not a function</code> 之类的错误。</p>
+<h2 id="生命周期图示"><a class="headerlink" href="#生命周期图示" title="生命周期图示"></a>生命周期图示</h2><p>下图展示了实例的生命周期。你不需要立马弄明白所有的东西，不过随着你的不断学习和使用，它的参考价值会越来越高。</p>
+<p><img src="https://cn.vuejs.org/images/lifecycle.png"/></p>
+<div class="guide-links">
+<span>← <a href="index.html">介绍</a></span>
+<span style="float: right;"><a href="syntax.html">模板语法</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srcinstance.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

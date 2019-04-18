@@ -1,0 +1,741 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     java.lang.management 
+   </div>
+<h2 class="title" title="Interface MemoryPoolMXBean">Interface MemoryPoolMXBean</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Superinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/lang/management/PlatformManagedObject.html" title="java.lang.management中的接口">PlatformManagedObject</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">MemoryPoolMXBean</span>
+extends <a href="../../../java/lang/management/PlatformManagedObject.html" title="interface in java.lang.management">PlatformManagedObject</a></pre>
+<div class="block">
+<span>内存池的管理界面。</span>
+<span>内存池代表由Java虚拟机管理的内存资源，由一个或多个<a href="../../../java/lang/management/MemoryManagerMXBean.html" title="java.lang.management中的接口"><code>memory managers</code></a>管理。</span>
+<p> <span>Java虚拟机具有此接口的实现类的一个或多个实例。</span> <span>实现此接口的实例是一个<a href="ManagementFactory.html#MXBean">MXBean</a>可以通过调用来获得<a href="../../../java/lang/management/ManagementFactory.html#getMemoryPoolMXBeans--"><code>ManagementFactory.getMemoryPoolMXBeans()</code></a>方法或从<a href="../../../java/lang/management/ManagementFactory.html#getPlatformMBeanServer--"><code>platform <tt>MBeanServer</tt></code></a>方法。</span> </p>
+<p> <span>该<tt>ObjectName</tt>用于唯一地识别的MXBean内存池的<tt>MBeanServer</tt>内是：</span> </p>
+<blockquote>
+<span><a href="../../../java/lang/management/ManagementFactory.html#MEMORY_POOL_MXBEAN_DOMAIN_TYPE"><code><tt>java.lang:type=MemoryPool</tt></code></a> <tt>,name=</tt> <i>pool's name</i></span>
+</blockquote>
+<span>可以通过调用<a href="../../../java/lang/management/PlatformManagedObject.html#getObjectName--"><code>PlatformManagedObject.getObjectName()</code></a>方法获得。</span>
+<h3> <span>内存类型</span> </h3>
+<p> <span>Java虚拟机具有用于对象分配的堆，并且还维护方法区域和Java虚拟机执行的非堆内存。</span> <span>Java虚拟机可以有一个或多个内存池。</span> <span>每个内存池代表以下类型之一的内存区域：</span> </p>
+<ul>
+<li> <span><a href="../../../java/lang/management/MemoryType.html#HEAP"><code>heap</code></a></span> </li>
+<li> <span><a href="../../../java/lang/management/MemoryType.html#NON_HEAP"><code>non-heap</code></a></span> </li>
+</ul>
+<h3> <span>内存使用监控</span> </h3>
+<span>内存池具有以下属性：</span>
+<ul>
+<li> <span><a href="#Usage">Memory usage</a></span> </li>
+<li> <span><a href="#PeakUsage">Peak memory usage</a></span> </li>
+<li> <span><a href="#UsageThreshold">Usage Threshold</a></span> </li>
+<li> <span><a href="#CollectionThreshold">Collection Usage Threshold</a> （仅由一些<em>垃圾回收的</em>内存池支持）</span> </li>
+</ul>
+<h3> <span><a name="Usage">1. Memory Usage</a></span> </h3>
+<span><a href="../../../java/lang/management/MemoryPoolMXBean.html#getUsage--"><code>getUsage()</code></a>方法提供了内存池当前使用情况的估计。</span>
+<span>对于垃圾回收的内存池，使用的内存量包括池中所有对象占用的内存，包括可<em>访问</em>和<em>不可访问的</em>对象。</span>
+<p> <span>一般来说，这种方法是一个轻量级的操作来获得大致的内存使用。</span> <span>对于一些内存池，例如，当对象不是连续打包时，该方法可能是一个昂贵的操作，需要一些计算来确定当前的内存使用情况。</span> <span>在这种情况下，实施应该记录。</span> </p>
+<h3> <span><a name="PeakUsage">2. Peak Memory Usage</a></span> </h3>
+<span>虚拟机启动或峰值重置后，Java虚拟机维护内存池的高峰内存使用情况。</span>
+<span>峰值内存使用由<a href="../../../java/lang/management/MemoryPoolMXBean.html#getPeakUsage--"><code>getPeakUsage()</code></a>方法返回，并通过调用<a href="../../../java/lang/management/MemoryPoolMXBean.html#resetPeakUsage--"><code>resetPeakUsage()</code></a>方法重置。</span>
+<h3> <span><a name="UsageThreshold">3. Usage Threshold</a></span> </h3>
+<span>每个内存池都有一个可管理的属性，称为<i>使用阈</i>值，具有由Java虚拟机提供的默认值。</span>
+<span>默认值取决于平台。</span>
+<span>可以通过<a href="../../../java/lang/management/MemoryPoolMXBean.html#setUsageThreshold-long-"><code>setUsageThreshold</code></a>方法设置使用<a href="../../../java/lang/management/MemoryPoolMXBean.html#setUsageThreshold-long-">阈</a>值。</span>
+<span>如果阈值设置为正值，则在该内存池中启用使用阈值交叉检查。</span>
+<span>如果使用阈值设置为零，则禁用此内存池上的使用阈值交叉检查。</span>
+<span><a href="../../../java/lang/management/MemoryPoolMXBean.html#isUsageThresholdSupported--"><code>isUsageThresholdSupported()</code></a>方法可用于确定是否支持此功能。</span>
+<p> <span>Java虚拟机在其最佳适当时间（通常在垃圾收集时间）的基础上执行基于内存池的使用阈值交叉检查。</span> <span>每个内存池维护一个<a href="../../../java/lang/management/MemoryPoolMXBean.html#getUsageThresholdCount--"><code>usage threshold count</code></a> ，每当Java虚拟机检测到内存池使用率正在超过阈值时，它将会增加。</span> </p>
+<p> <span>这种可管理的使用阈值属性设计用于以低开销监视内存使用的增长趋势。</span> <span>某些内存池的使用阈值可能不合适。</span> <span>例如，一代代垃圾回收器是许多Java虚拟机实现中使用的常见的垃圾收集算法，它根据年龄管理两代或多代隔离对象。</span> <span>大多数的对象分配在<em>最年轻的一代</em> （比如一个托儿所记忆库）中。</span> <span>托儿所内存池被设计为填充并收集托儿所内存池将释放其大部分内存空间，因为它预计主要包含短命的对象，并且大部分在垃圾收集时无法访问。</span> <span>在这种情况下，更适合于苗圃内存池不支持使用阈值。</span> <span>另外，如果一个内存池中的对象分配成本非常低（例如，只是原子指针交换），则Java虚拟机可能不支持该内存池的使用阈值，因为将使用率与阈值高于对象分配的成本。</span> </p>
+<p> <span>可以使用<a href="#Polling">polling</a>或<a href="#ThresholdNotification">threshold notification</a>机制来<a href="#Polling">监控</a>系统的内存使用情况。</span> </p>
+<ol type="a">
+<li> <span><a name="Polling"><b>Polling</b></a></span> <p> <span>应用程序可以通过调用所述连续监视其内存使用<a href="../../../java/lang/management/MemoryPoolMXBean.html#getUsage--"><code>getUsage()</code></a>所有内存池法或<a href="../../../java/lang/management/MemoryPoolMXBean.html#isUsageThresholdExceeded--"><code>isUsageThresholdExceeded()</code></a>对于支持使用量阈值的那些存储器池的方法。</span> <span>以下是具有专用于任务分发和处理的线程的示例代码。</span> <span>在每隔一段时间，它将根据其内存使用情况确定是否应该接收和处理新任务。</span> <span>如果内存使用量超过其使用阈值，它会将所有未完成的任务重新分配给其他虚拟机，并停止接收新任务，直到内存使用率低于其使用阈值。</span> </p><pre>  <span>// Assume the usage threshold is supported for this pool.
+       // Set the threshold to myThreshold above which no new tasks
+       // should be taken.
+       pool.setUsageThreshold(myThreshold);
+       ....
+
+       boolean lowMemory = false;
+       while (true) {
+          if (pool.isUsageThresholdExceeded()) {
+              // potential low memory, so redistribute tasks to other VMs
+              lowMemory = true;
+              redistributeTasks();
+              // stop receiving new tasks
+              stopReceivingTasks();
+          } else {
+              if (lowMemory) {
+                  // resume receiving tasks
+                  lowMemory = false;
+                  resumeReceivingTasks();
+              }
+              // processing outstanding task
+              ...
+          }
+          // sleep for sometime
+          try {
+              Thread.sleep(sometime);
+          } catch (InterruptedException e) {
+              ...
+          }
+       }</span> </pre>
+<hr/> <span>上述示例不区分从两次迭代之间的存储器使用率保持高于阈值的情况下，存储器使用量暂时降低到使用阈值以下的情况。</span> <span><a href="../../../java/lang/management/MemoryPoolMXBean.html#getUsageThresholdCount--"><code>getUsageThresholdCount()</code></a>方法返回的使用阈值计数可用于确定两次轮询之间的内存使用情况是否已经低于阈值。</span> <p> <span>下面显示另一个例子，如果内存池处于低内存下并且在动作处理时间内忽略内存使用情况的变化，则需要采取一些措施。</span> </p><pre>  <span>// Assume the usage threshold is supported for this pool.
+       // Set the threshold to myThreshold which determines if
+       // the application will take some action under low memory condition.
+       pool.setUsageThreshold(myThreshold);
+
+       int prevCrossingCount = 0;
+       while (true) {
+           // A busy loop to detect when the memory usage
+           // has exceeded the threshold.
+           while (!pool.isUsageThresholdExceeded() ||
+                  pool.getUsageThresholdCount() == prevCrossingCount) {
+               try {
+                   Thread.sleep(sometime)
+               } catch (InterruptException e) {
+                   ....
+               }
+           }
+
+           // Do some processing such as check for memory usage
+           // and issue a warning
+           ....
+
+           // Gets the current threshold count. The busy loop will then
+           // ignore any crossing of threshold happens during the processing.
+           prevCrossingCount = pool.getUsageThresholdCount();
+       }</span> </pre>
+<hr/></li>
+<li> <span><a name="ThresholdNotification"><b>Usage Threshold Notifications</b></a></span> <p> <span><code>MemoryMXBean</code>将发出使用阈值<a href="../../../java/lang/management/MemoryMXBean.html" title="java.lang.management中的接口">通知</a> 。</span> <span>当Java虚拟机检测到内存池的内存使用量达到或超过使用阈值时，虚拟机将触发<tt>MemoryMXBean</tt>发出<a href="../../../java/lang/management/MemoryNotificationInfo.html#MEMORY_THRESHOLD_EXCEEDED"><code>usage threshold exceeded notification</code></a> 。</span> <span>超出使用阈值超过通知将不会生成，直到使用率已经低于阈值，然后再次超过它。</span> </p><p> <span>下面是一个实现与上述第一个例子相同逻辑的示例代码，但使用使用阈值通知机制来检测低内存条件而不是轮询。</span> <span>在该示例代码中，在接收到通知时，通知侦听器通知另一线程以执行实际动作，例如重新分配未完成的任务，停止接收任务或恢复接收任务。</span> <span><tt>handleNotification</tt>方法应设计为执行极少量的工作，并且无延迟地返回，以避免导致后续通知的延迟。</span> <span>耗时的操作应该由单独的线程执行。</span> <span>通知侦听器可以由多个线程同时调用;</span> <span>所以侦听器执行的任务应该被正确同步。</span> </p><pre>  <span>class MyListener implements javax.management.NotificationListener {
+            public void handleNotification(Notification notification, Object handback)  {
+                String notifType = notification.getType();
+                if (notifType.equals(MemoryNotificationInfo.MEMORY_THRESHOLD_EXCEEDED)) {
+                    // potential low memory, notify another thread
+                    // to redistribute outstanding tasks to other VMs
+                    // and stop receiving new tasks.
+                    lowMemory = true;
+                    notifyAnotherThread(lowMemory);
+                }
+            }
+       }
+
+       // Register MyListener with MemoryMXBean
+       MemoryMXBean mbean = ManagementFactory.getMemoryMXBean();
+       NotificationEmitter emitter = (NotificationEmitter) mbean;
+       MyListener listener = new MyListener();
+       emitter.addNotificationListener(listener, null, null);
+
+       // Assume this pool supports a usage threshold.
+       // Set the threshold to myThreshold above which no new tasks
+       // should be taken.
+       pool.setUsageThreshold(myThreshold);
+
+       // Usage threshold detection is enabled and notification will be
+       // handled by MyListener.  Continue for other processing.
+       ....</span> </pre>
+<hr/><p> <span>这是毫无时<tt>MemoryMXBean</tt>会发出阈值通知当通知将交付的保证。</span> <span>当调用通知侦听器时，内存池的内存使用量可能会超过使用阈值多次。</span> <span><a href="../../../java/lang/management/MemoryNotificationInfo.html#getCount--"><code>MemoryNotificationInfo.getCount()</code></a>方法返回在构建通知时内存使用量超过使用阈值的次数。</span> <span>它可以与<a href="../../../java/lang/management/MemoryPoolMXBean.html#getUsageThresholdCount--"><code>getUsageThresholdCount()</code></a>方法返回的当前使用阈值进行比较，以确定是否发生了这种情况。</span> </p></li>
+</ol>
+<h3> <span><a name="CollectionThreshold">4. Collection Usage Threshold</a></span> </h3>
+<span>集合使用阈值是一个可管理的属性，仅适用于某些垃圾回收的内存池。</span>
+<span>在Java虚拟机通过在垃圾回收时间内循环使用内存池中的未使用对象，已经花费了回收内存空间的努力时，收集的停堆内存池中的某些字节数仍将被使用。</span>
+<span>回收使用量阈值允许的值，以用于这个号码，使得如果超过了阈值，一个字节被设置<a href="../../../java/lang/management/MemoryNotificationInfo.html#MEMORY_THRESHOLD_EXCEEDED"><code>collection usage threshold exceeded notification</code></a>将由发射<a href="../../../java/lang/management/MemoryMXBean.html" title="java.lang.management中的接口"><code>MemoryMXBean</code></a> 。</span>
+<span>此外， <a href="../../../java/lang/management/MemoryPoolMXBean.html#getCollectionUsageThresholdCount--"><code>collection usage threshold count</code></a>将会增加。</span>
+<p> <span><a href="../../../java/lang/management/MemoryPoolMXBean.html#isCollectionUsageThresholdSupported--"><code>isCollectionUsageThresholdSupported()</code></a>方法可用于确定是否支持此功能。</span> </p>
+<p> <span>Java虚拟机基于内存池执行收集使用阈值检查。</span> <span>如果集合使用阈值设置为正值，则启用此检查。</span> <span>如果集合使用阈值设置为零，则此内存池将禁用此检查。</span> <span>默认值为零。</span> <span>Java虚拟机在垃圾收集时执行收集使用阈值检查。</span> </p>
+<p> <span>一些垃圾回收的内存池可能选择不支持收集使用阈值。</span> <span>例如，内存池仅由连续的并发垃圾回收器管理。</span> <span>对象可以通过一些线程在此内存池中分配，而未使用的对象同时由并发垃圾回收器进行回收。</span> <span>除非有明确的垃圾回收时间是检查内存使用的最佳时间，否则不应该支持收集使用率阈值。</span> </p>
+<p> <span>集合使用阈值用于在Java虚拟机花费回收内存空间后，监视内存使用情况。</span> <span>收集使用情况也可以通过上面针对usage threshold描述的轮询和阈值通知机制进行<a href="#UsageThreshold">监控</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.5 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/management/ManagementFactory.html#getPlatformMXBeans-java.lang.Class-"><code>ManagementFactory.getPlatformMXBeans(Class)</code></a> ， 
+        <a href="../../../javax/management/package-summary.html">JMX Specification.</a> ， 
+        <a href="package-summary.html#examples">Ways to Access MXBeans</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/lang/management/MemoryUsage.html" title="class in java.lang.management">MemoryUsage</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getCollectionUsage--">getCollectionUsage</a></span>()</code>
+<div class="block">
+              返回Java虚拟机最近花费在回收此内存池中未使用对象的努力后的内存使用情况。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getCollectionUsageThreshold--">getCollectionUsageThreshold</a></span>()</code>
+<div class="block">
+              以字节为单位返回此内存池的集合使用阈值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getCollectionUsageThresholdCount--">getCollectionUsageThresholdCount</a></span>()</code>
+<div class="block">
+              返回Java虚拟机检测到内存使用量达到或超过集合使用率阈值的次数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getMemoryManagerNames--">getMemoryManagerNames</a></span>()</code>
+<div class="block">
+              返回管理此内存池的内存管理器的名称。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getName--">getName</a></span>()</code>
+<div class="block">
+              返回表示此内存池的名称。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../../java/lang/management/MemoryUsage.html" title="class in java.lang.management">MemoryUsage</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getPeakUsage--">getPeakUsage</a></span>()</code>
+<div class="block">
+              从Java虚拟机启动或从峰值重置以来，返回此内存池的高峰内存使用情况。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../java/lang/management/MemoryType.html" title="enum in java.lang.management">MemoryType</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getType--">getType</a></span>()</code>
+<div class="block">
+              返回此内存池的类型。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../java/lang/management/MemoryUsage.html" title="class in java.lang.management">MemoryUsage</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getUsage--">getUsage</a></span>()</code>
+<div class="block">
+              返回此内存池的内存使用情况的估计。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getUsageThreshold--">getUsageThreshold</a></span>()</code>
+<div class="block">
+              以字节为单位返回此内存池的使用阈值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#getUsageThresholdCount--">getUsageThresholdCount</a></span>()</code>
+<div class="block">
+              返回内存使用量超过使用率阈值的次数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#isCollectionUsageThresholdExceeded--">isCollectionUsageThresholdExceeded</a></span>()</code>
+<div class="block">
+              测试Java虚拟机所耗费的最新集合之后的内存池的内存使用情况是否已达到或超过其集合使用率阈值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#isCollectionUsageThresholdSupported--">isCollectionUsageThresholdSupported</a></span>()</code>
+<div class="block">
+              测试此内存池是否支持集合使用阈值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#isUsageThresholdExceeded--">isUsageThresholdExceeded</a></span>()</code>
+<div class="block">
+              测试此内存池的内存使用情况是否达到或超过其使用阈值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#isUsageThresholdSupported--">isUsageThresholdSupported</a></span>()</code>
+<div class="block">
+              测试此内存池是否支持使用阈值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#isValid--">isValid</a></span>()</code>
+<div class="block">
+              测试此内存池是否在Java虚拟机中有效。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#resetPeakUsage--">resetPeakUsage</a></span>()</code>
+<div class="block">
+              将此内存池的高峰内存使用率统计信息重置为当前内存使用情况。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#setCollectionUsageThreshold-long-">setCollectionUsageThreshold</a></span>(long threshold)</code>
+<div class="block">
+              将此内存池的集合使用 
+             <tt>阈</tt>值设置为给定的 
+             <tt>threshold</tt>值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/management/MemoryPoolMXBean.html#setUsageThreshold-long-">setUsageThreshold</a></span>(long threshold)</code>
+<div class="block">
+              如果此内存池支持使用阈值，则将此内存池的 
+             <tt>阈</tt>值设置为给定的 
+             <tt>threshold</tt>值。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.management.PlatformManagedObject">
+<!-- --> </a> <h3>Methods inherited from interface java.lang.management.<a href="../../../java/lang/management/PlatformManagedObject.html" title="interface in java.lang.management">PlatformManagedObject</a></h3> <code><a href="../../../java/lang/management/PlatformManagedObject.html#getObjectName--">getObjectName</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getName--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getName</h4> <pre><a href="../../../java/lang/String.html" title="class in java.lang">String</a> getName()</pre>
+<div class="block">
+            返回表示此内存池的名称。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个内存池的名称。 
+           </dd>
+</dl> </li>
+</ul> <a name="getType--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getType</h4> <pre><a href="../../../java/lang/management/MemoryType.html" title="enum in java.lang.management">MemoryType</a> getType()</pre>
+<div class="block">
+<span>返回此内存池的类型。</span>
+<p> <span><b>MBeanServer访问</b> ：</span> <br/> <span>的<tt>MemoryType</tt>映射类型为<tt>String</tt>和值是<tt>MemoryType</tt>的名称。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个内存池的类型。 
+           </dd>
+</dl> </li>
+</ul> <a name="getUsage--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getUsage</h4> <pre><a href="../../../java/lang/management/MemoryUsage.html" title="class in java.lang.management">MemoryUsage</a> getUsage()</pre>
+<div class="block">
+<span>返回此内存池的内存使用情况的估计。</span>
+<span>如果此内存池无效（即不再存在），此方法返回<tt>null</tt> 。</span>
+<p> <span>此方法请求Java虚拟机尽力估计此内存池的当前内存使用情况。</span> <span>对于一些内存池，该方法可能是一个昂贵的操作，需要一些计算来确定估计。</span> <span>在这种情况下，实施应该记录。</span> </p>
+<p> <span>该方法设计用于监控系统内存使用情况和检测低内存条件。</span> </p>
+<p> <span><b>MBeanServer访问</b> ：</span> <br/> <span><tt>MemoryUsage</tt>的映射类型是<tt>CompositeData</tt> ，其属性在<a href="../../../java/lang/management/MemoryUsage.html#from-javax.management.openmbean.CompositeData-"><code>MemoryUsage</code></a>中<a href="../../../java/lang/management/MemoryUsage.html#from-javax.management.openmbean.CompositeData-">指定</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<a href="../../../java/lang/management/MemoryUsage.html" title="java.lang.management中的类"><code>MemoryUsage</code></a>对象;</span>
+<span>或<tt>null</tt>如果此池无效。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getPeakUsage--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPeakUsage</h4> <pre><a href="../../../java/lang/management/MemoryUsage.html" title="class in java.lang.management">MemoryUsage</a> getPeakUsage()</pre>
+<div class="block">
+<span>从Java虚拟机启动或从峰值重置以来，返回此内存池的高峰内存使用情况。</span>
+<span>如果此内存池无效（即不再存在），此方法返回<tt>null</tt> 。</span>
+<p> <span><b>MBeanServer访问</b> ：</span> <br/> <span><tt>MemoryUsage</tt>的映射类型是<tt>CompositeData</tt> ，其属性在<a href="../../../java/lang/management/MemoryUsage.html#from-javax.management.openmbean.CompositeData-"><code>MemoryUsage</code></a>中<a href="../../../java/lang/management/MemoryUsage.html#from-javax.management.openmbean.CompositeData-">指定</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>表示高峰内存使用的<a href="../../../java/lang/management/MemoryUsage.html" title="java.lang.management中的类"><code>MemoryUsage</code></a>对象;</span>
+<span>或<tt>null</tt>如果此池无效。</span>
+</dd>
+</dl> </li>
+</ul> <a name="resetPeakUsage--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>resetPeakUsage</h4> <pre>void resetPeakUsage()</pre>
+<div class="block">
+            将此内存池的高峰内存使用率统计信息重置为当前内存使用情况。 
+          </div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且调用者没有ManagementPermission（“控制”）。 
+           </dd>
+</dl> </li>
+</ul> <a name="isValid--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isValid</h4> <pre>boolean isValid()</pre>
+<div class="block">
+<span>测试此内存池是否在Java虚拟机中有效。</span>
+<span>一旦Java虚拟机将其从内存系统中删除，内存池将变为无效。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><tt>true</tt>如果内存池在正在运行的Java虚拟机中有效;</span>
+<span><tt>false</tt>否则。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getMemoryManagerNames--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMemoryManagerNames</h4> <pre><a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] getMemoryManagerNames()</pre>
+<div class="block">
+<span>返回管理此内存池的内存管理器的名称。</span>
+<span>每个内存池将由至少一个内存管理器管理。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一组 
+            <tt>String</tt>对象，每个都是管理此内存池的内存管理器的名称。 
+           </dd>
+</dl> </li>
+</ul> <a name="getUsageThreshold--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getUsageThreshold</h4> <pre>long getUsageThreshold()</pre>
+<div class="block">
+<span>以字节为单位返回此内存池的使用阈值。</span>
+<span>每个内存池具有平台相关的默认阈值。</span>
+<span>可以通过<a href="../../../java/lang/management/MemoryPoolMXBean.html#setUsageThreshold-long-"><code>setUsageThreshold</code></a>方法更改当前使用<a href="../../../java/lang/management/MemoryPoolMXBean.html#setUsageThreshold-long-">阈</a>值。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该内存池的使用阈值以字节为单位。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果此内存池不支持使用阈值。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/management/MemoryPoolMXBean.html#isUsageThresholdSupported--"><code>isUsageThresholdSupported()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setUsageThreshold-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setUsageThreshold</h4> <pre>void setUsageThreshold(long threshold)</pre>
+<div class="block">
+<span>如果此内存池支持使用阈值，则将此内存池的<tt>阈</tt>值设置为给定的<tt>threshold</tt>值。</span>
+<span>如果阈值设置为正值，则在该内存池中启用使用阈值交叉检查。</span>
+<span>如果设置为零，则禁用使用阈值交叉检查。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>threshold</code> - 新的阈值（以字节为单位）。</span>
+<span>必须是非负数。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <tt>threshold</tt>为负数或大于此内存池的最大内存量（如果已定义）。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果此内存池不支持使用阈值。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在且呼叫者没有ManagementPermission（“控制”）。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/management/MemoryPoolMXBean.html#isUsageThresholdSupported--"><code>isUsageThresholdSupported()</code></a> ， 
+            <a href="#UsageThreshold">Usage threshold</a>
+</dd>
+</dl> </li>
+</ul> <a name="isUsageThresholdExceeded--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isUsageThresholdExceeded</h4> <pre>boolean isUsageThresholdExceeded()</pre>
+<div class="block">
+            测试此内存池的内存使用情况是否达到或超过其使用阈值。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><tt>true</tt>如果该内存池的内存使用量达到或超过阈值;</span>
+<span><tt>false</tt>否则。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果此内存池不支持使用阈值。 
+           </dd>
+</dl> </li>
+</ul> <a name="getUsageThresholdCount--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getUsageThresholdCount</h4> <pre>long getUsageThresholdCount()</pre>
+<div class="block">
+            返回内存使用量超过使用率阈值的次数。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             内存使用量超过其使用阈值的次数。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果此内存池不支持使用阈值。 
+           </dd>
+</dl> </li>
+</ul> <a name="isUsageThresholdSupported--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isUsageThresholdSupported</h4> <pre>boolean isUsageThresholdSupported()</pre>
+<div class="block">
+            测试此内存池是否支持使用阈值。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><tt>true</tt>如果此内存池支持使用阈值;</span>
+<span><tt>false</tt>否则。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getCollectionUsageThreshold--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCollectionUsageThreshold</h4> <pre>long getCollectionUsageThreshold()</pre>
+<div class="block">
+<span>以字节为单位返回此内存池的集合使用阈值。</span>
+<span>默认值为零。</span>
+<span>可以通过<a href="../../../java/lang/management/MemoryPoolMXBean.html#setCollectionUsageThreshold-long-"><code>setCollectionUsageThreshold</code></a>方法更改收集使用<a href="../../../java/lang/management/MemoryPoolMXBean.html#setCollectionUsageThreshold-long-">阈</a>值。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此内存池的收集使用阈值（以字节为单位）。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果此内存池不支持集合使用阈值。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/management/MemoryPoolMXBean.html#isCollectionUsageThresholdSupported--"><code>isCollectionUsageThresholdSupported()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setCollectionUsageThreshold-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setCollectionUsageThreshold</h4> <pre>void setCollectionUsageThreshold(long threshold)</pre>
+<div class="block">
+<span>将此内存池的集合使用<tt>阈</tt>值设置为给定的<tt>threshold</tt>值。</span>
+<span>当此阈值设置为正值时，Java虚拟机将在其在回收此内存池中未使用的对象的努力之后，在其最佳适当时间内检查内存使用情况。</span>
+<p> <span>如果阈值设置为正值，则在此内存池中启用集合使用阈值交叉检查。</span> <span>如果设置为零，则禁用集合使用阈值交叉检查。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>threshold</code> - 新的集合使用阈值（以字节为单位）。</span>
+<span>必须是非负数。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <tt>threshold</tt>为负数或大于此内存池的最大内存量（如果已定义）。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果此内存池不支持集合使用阈值。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且调用者没有ManagementPermission（“控制”）。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/management/MemoryPoolMXBean.html#isCollectionUsageThresholdSupported--"><code>isCollectionUsageThresholdSupported()</code></a> ， 
+            <a href="#CollectionThreshold">Collection usage threshold</a>
+</dd>
+</dl> </li>
+</ul> <a name="isCollectionUsageThresholdExceeded--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isCollectionUsageThresholdExceeded</h4> <pre>boolean isCollectionUsageThresholdExceeded()</pre>
+<div class="block">
+<span>测试Java虚拟机所耗费的最新集合之后的内存池的内存使用情况是否已达到或超过其集合使用率阈值。</span>
+<span>该方法不要求Java虚拟机执行除正常自动内存管理之外的任何垃圾收集。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><tt>true</tt>如果此内存池的内存使用量达到或超过最近集合中的集合使用阈值;</span>
+<span><tt>false</tt>否则。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果此内存池不支持使用阈值。 
+           </dd>
+</dl> </li>
+</ul> <a name="getCollectionUsageThresholdCount--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCollectionUsageThresholdCount</h4> <pre>long getCollectionUsageThresholdCount()</pre>
+<div class="block">
+            返回Java虚拟机检测到内存使用量达到或超过集合使用率阈值的次数。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             内存使用量达到或超过集合使用率阈值的次数。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果此内存池不支持集合使用阈值。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/management/MemoryPoolMXBean.html#isCollectionUsageThresholdSupported--"><code>isCollectionUsageThresholdSupported()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getCollectionUsage--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCollectionUsage</h4> <pre><a href="../../../java/lang/management/MemoryUsage.html" title="class in java.lang.management">MemoryUsage</a> getCollectionUsage()</pre>
+<div class="block">
+<span>返回Java虚拟机最近花费在回收此内存池中未使用对象的努力后的内存使用情况。</span>
+<span>该方法不要求Java虚拟机执行除正常自动内存管理之外的任何垃圾收集。</span>
+<span>如果Java虚拟机不支持此方法，此方法返回<tt>null</tt> 。</span>
+<p> <span><b>MBeanServer访问</b> ：</span> <br/> <span><tt>MemoryUsage</tt>的映射类型是<tt>CompositeData</tt> ，其属性在<a href="../../../java/lang/management/MemoryUsage.html#from-javax.management.openmbean.CompositeData-"><code>MemoryUsage</code></a>中<a href="../../../java/lang/management/MemoryUsage.html#from-javax.management.openmbean.CompositeData-">指定</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<a href="../../../java/lang/management/MemoryUsage.html" title="java.lang.management中的类"><code>MemoryUsage</code></a>表示Java虚拟机最近花费在回收未使用对象之后努力的内存池的内存使用情况;</span>
+<span><tt>null</tt>如果不支持此方法。</span>
+</dd>
+</dl> </li>
+</ul> <a name="isCollectionUsageThresholdSupported--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>isCollectionUsageThresholdSupported</h4> <pre>boolean isCollectionUsageThresholdSupported()</pre>
+<div class="block">
+            测试此内存池是否支持集合使用阈值。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><tt>true</tt>如果此内存池支持集合使用阈值;</span>
+<span><tt>false</tt>否则。</span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

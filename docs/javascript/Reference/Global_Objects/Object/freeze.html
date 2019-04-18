@@ -1,0 +1,209 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong><code>Object.freeze()</code></strong> 方法可以<strong>冻结</strong>一个对象。一个被冻结的对象再也不能被修改；冻结了一个对象则不能向这个对象添加新的属性，不能删除已有属性，不能修改该对象已有属性的可枚举性、可配置性、可写性，以及不能修改已有属性的值。此外，冻结一个对象后该对象的原型也不能被修改。<code>freeze()</code> 返回和传入的参数相同的对象。</p>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/object-freeze.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre class="syntaxbox"><code>Object.freeze(<em>obj</em>)</code></pre>
+<h3 id="Parameters" name="Parameters">参数</h3>
+<dl>
+<dt><code>obj</code></dt>
+<dd>要被冻结的对象。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>被冻结的对象。</p>
+<h2 id="Description" name="Description">描述</h2>
+<p>被冻结对象自身的所有属性都不可能以任何方式被修改。任何修改尝试都会失败，无论是静默地还是通过抛出<a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>异常（最常见但不仅限于<a href="Reference/Strict_mode" title="如果你想改变你的代码，让其工作在具有限制性JavaScript环境中，请参阅转换成严格模式。">strict mode</a>）。</p>
+<p>数据属性的值不可更改，访问器属性（有getter和setter）也同样（但由于是函数调用，给人的错觉是还是可以修改这个属性）。如果一个属性的值是个对象，则这个对象中的属性是可以修改的，除非它也是个冻结对象。数组作为一种对象，被冻结，其元素不能被修改。没有数组元素可以被添加或移除。</p>
+<p>这个方法返回传递的对象，而不是创建一个被冻结的副本。</p>
+<h2 id="Examples" name="Examples">例子</h2>
+<h3 id="冻结对象">冻结对象</h3>
+<pre class="brush: js">var obj = {
+  prop: function() {},
+  foo: 'bar'
+};
+
+// 新的属性会被添加, 已存在的属性可能
+// 会被修改或移除
+obj.foo = 'baz';
+obj.lumpy = 'woof';
+delete obj.prop;
+
+// 作为参数传递的对象与返回的对象都被冻结
+// 所以不必保存返回的对象（因为两个对象全等）
+var o = Object.freeze(obj);
+
+o === obj; // true
+Object.isFrozen(obj); // === true
+
+// 现在任何改变都会失效
+obj.foo = 'quux'; // 静默地不做任何事
+// 静默地不添加此属性
+obj.quaxxor = 'the friendly duck';
+
+// 在严格模式，如此行为将抛出 TypeErrors
+function fail(){
+  'use strict';
+  obj.foo = 'sparky'; // throws a TypeError
+  delete obj.quaxxor; // 返回true，因为quaxxor属性从来未被添加
+  obj.sparky = 'arf'; // throws a TypeError
+}
+
+fail();
+
+// 试图通过 Object.defineProperty 更改属性
+// 下面两个语句都会抛出 TypeError.
+Object.defineProperty(obj, 'ohai', { value: 17 });
+Object.defineProperty(obj, 'foo', { value: 'eit' });
+
+// 也不能更改原型
+// 下面两个语句都会抛出 TypeError.
+Object.setPrototypeOf(obj, { x: 20 })
+obj.__proto__ = { x: 20 }</pre>
+<h3 class="brush: js" id="冻结数组">冻结数组</h3>
+<pre class="brush: js">let a = [0];
+Object.freeze(a); // 现在数组不能被修改了.
+
+a[0]=1; // fails silently
+a.push(2); // fails silently
+
+// In strict mode such attempts will throw TypeErrors
+function fail() {
+  "use strict"
+  a[0] = 1;
+  a.push(2);
+}
+
+fail();</pre>
+<p>被冻结的对象是不可变的。但也不总是这样。下例展示了冻结对象不是常量对象（浅冻结）。</p>
+<pre class="brush: js">obj1 = {
+  internal: {}
+};
+
+Object.freeze(obj1);
+obj1.internal.a = 'aValue';
+
+obj1.internal.a // 'aValue'
+</pre>
+<p>对于一个常量对象，整个引用图（直接和间接引用其他对象）只能引用不可变的冻结对象。冻结的对象被认为是不可变的，因为整个对象中的整个对象状态（对其他对象的值和引用）是固定的。注意，字符串，数字和布尔总是不可变的，而函数和数组是对象。</p>
+<p>要使对象不可变，需要递归冻结每个类型为对象的属性（深冻结）。当你知道对象在引用图中不包含任何 <em><a class="external" href="https://en.wikipedia.org/wiki/Cycle_(graph_theory)" rel="noopener">环</a> </em>(循环引用)时，将根据你的设计逐个使用该模式，否则将触发无限循环。对 deepFreeze()  的增强将是具有接收路径（例如Array）参数的内部函数，以便当对象进入不变时，可以递归地调用 deepFreeze() 。你仍然有冻结不应冻结的对象的风险，例如[window]。</p>
+<pre class="brush: js">// 深冻结函数.
+function deepFreeze(obj) {
+
+  // 取回定义在obj上的属性名
+  var propNames = Object.getOwnPropertyNames(obj);
+
+  // 在冻结自身之前冻结属性
+  propNames.forEach(function(name) {
+    var prop = obj[name];
+
+    // 如果prop是个对象，冻结它
+    if (typeof prop == 'object' &amp;&amp; prop !== null)
+      deepFreeze(prop);
+  });
+
+  // 冻结自身(no-op if already frozen)
+  return Object.freeze(obj);
+}
+
+obj2 = {
+  internal: {}
+};
+
+deepFreeze(obj2);
+obj2.internal.a = 'anotherValue';
+obj2.internal.a; // undefined
+</pre>
+<h2 id="Notes">Notes</h2>
+<p>在ES5中，如果这个方法的参数不是一个对象（一个原始值），那么它会导致 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>。在ES2015中，非对象参数将被视为要被冻结的普通对象，并被简单地返回。</p>
+<pre class="brush: js">&gt; Object.freeze(1)
+TypeError: 1 is not an object // ES5 code
+
+&gt; Object.freeze(1)
+1                             // ES2015 code</pre>
+<h3 id="对比_Object.seal()">对比 <code>Object.seal()</code></h3>
+<p>用<code>Object.seal()</code>密封的对象可以改变它们现有的属性。使用<code>Object.freeze()</code> 冻结的对象中现有属性是不可变的。</p>
+<h2 id="规范" style="margin-bottom: 20px; line-height: 30px;">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-15.2.3.9" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">Object.freeze</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.<br/>
+    Implemented in JavaScript 1.8.5</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-object.freeze" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Object.freeze</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-object.freeze" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Object.freeze</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>freeze</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.1</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+<h2 id="See_also" name="See_also">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Object/isFrozen" title="Object.isFrozen()方法判断一个对象是否被冻结。"><code>Object.isFrozen</code></a></li>
+<li><a href="Reference/Global_Objects/Object/preventExtensions" title="Object.preventExtensions()方法让一个对象变的不可扩展，也就是永远不能再添加新的属性。"><code>Object.preventExtensions</code></a></li>
+<li><a href="Reference/Global_Objects/Object/isExtensible" title="Object.isExtensible() 方法判断一个对象是否是可扩展的（是否可以在它上面添加新的属性）。"><code>Object.isExtensible</code></a></li>
+<li><a href="Reference/Global_Objects/Object/seal" title="The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>Object.seal</code></a></li>
+<li><a href="Reference/Global_Objects/Object/isSealed" title="Object.isSealed() 方法判断一个对象是否被密封。"><code>Object.isSealed</code></a></li>
+</ul>
+</article>

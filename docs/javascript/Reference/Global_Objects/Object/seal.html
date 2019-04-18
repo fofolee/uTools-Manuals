@@ -1,0 +1,164 @@
+<article id="wikiArticle">
+<div></div>
+<div><code><strong>Object.seal()</strong></code>方法封闭一个对象，阻止添加新属性并将所有现有属性标记为不可配置。当前属性的值只要可写就可以改变。</div>
+<div> </div>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/object-prototype-seal.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre class="syntaxbox"><code>Object.seal(<em>obj</em>)</code></pre>
+<h3 id="Parameters" name="Parameters">参数</h3>
+<dl>
+<dt><code>obj</code></dt>
+<dd>将要被密封的对象。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>被密封的对象。</p>
+<h2 id="Description" name="Description">描述</h2>
+<p>通常，一个对象是<a href="Reference/Global_Objects/Object/isExtensible" title="Object.isExtensible() 方法判断一个对象是否是可扩展的（是否可以在它上面添加新的属性）。">可扩展的</a>（可以添加新的属性）。密封一个对象会让这个对象变的不能添加新属性，且所有已有属性会变的不可配置。属性不可配置的效果就是属性变的不可删除，以及一个数据属性不能被重新定义成为访问器属性，或者反之。但属性的值仍然可以修改。尝试删除一个密封对象的属性或者将某个密封对象的属性从数据属性转换成访问器属性，结果会静默失败或抛出<a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>（在<a href="Reference/Strict_mode" title="如果你想改变你的代码，让其工作在具有限制性JavaScript环境中，请参阅转换成严格模式。">严格模式</a> 中最常见的，但不唯一）。</p>
+<p>不会影响从原型链上继承的属性。但 <a href="Reference/Global_Objects/Object/proto" title="使用__proto__是有争议的，也不鼓励使用它。因为它从来没有被包括在EcmaScript语言规范中，但是现代浏览器都实现了它。__proto__属性已在ECMAScript 6语言规范中标准化，用于确保Web浏览器的兼容性，因此它未来将被支持。它已被不推荐使用, 现在更推荐使用Object.getPrototypeOf/Reflect.getPrototypeOf 和Object.setPrototypeOf/Reflect.setPrototypeOf（尽管如此，设置对象的[[Prototype]]是一个缓慢的操作，如果性能是一个问题，应该避免）。"><code>__proto__</code></a> ( <span title="This deprecated API should no longer be used, but will probably still work."><i class="icon-thumbs-down-alt"> </i></span> ) 属性的值也会不能修改。</p>
+<p>返回被密封对象的引用。</p>
+<h2 id="Examples" name="Examples">例子</h2>
+<pre class="brush: js">var obj = {
+  prop: function() {},
+  foo: 'bar'
+};
+
+// New properties may be added, existing properties
+// may be changed or removed.
+obj.foo = 'baz';
+obj.lumpy = 'woof';
+delete obj.prop;
+
+var o = Object.seal(obj);
+
+o === obj; // true
+Object.isSealed(obj); // === true
+
+// Changing property values on a sealed object
+// still works.
+obj.foo = 'quux';
+
+// But you can't convert data properties to accessors,
+// or vice versa.
+Object.defineProperty(obj, 'foo', {
+  get: function() { return 'g'; }
+}); // throws a TypeError
+
+// Now any changes, other than to property values,
+// will fail.
+obj.quaxxor = 'the friendly duck';
+// silently doesn't add the property
+delete obj.foo;
+// silently doesn't delete the property
+
+// ...and in strict mode such attempts
+// will throw TypeErrors.
+function fail() {
+  'use strict';
+  delete obj.foo; // throws a TypeError
+  obj.sparky = 'arf'; // throws a TypeError
+}
+fail();
+
+// Attempted additions through
+// Object.defineProperty will also throw.
+Object.defineProperty(obj, 'ohai', {
+  value: 17
+}); // throws a TypeError
+Object.defineProperty(obj, 'foo', {
+  value: 'eit'
+}); // changes existing property value</pre>
+<h2 id="注意">注意</h2>
+<p>在ES5中，如果这个方法的参数不是一个（原始）对象，那么它将导致<a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>。在ES2015中，非对象参数将被视为已被密封的普通对象，会直接返回它。</p>
+<pre class="brush: js">Object.seal(1);
+// TypeError: 1 is not an object (ES5 code)
+
+Object.seal(1);
+// 1                             (ES2015 code)</pre>
+<h3 id="对比_Object.freeze()">对比 <code>Object.freeze()</code></h3>
+<p>使用<code>Object.freeze()</code>冻结的对象中的现有属性是不可变的。用<code>Object.seal()</code>密封的对象可以改变其现有属性。</p>
+<h2 id="规范" style="margin-bottom: 20px; line-height: 30px;">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-15.2.3.8" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">Object.seal</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition. Implemented in JavaScript 1.8.5.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-object.seal" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Object.seal</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-object.seal" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Object.seal</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="Browser_compatibility" name="Browser_compatibility">浏览器兼容</h2>
+<div>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>seal</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.1</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+</div>
+<h2 id="See_also" name="See_also">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Object/isSealed" title="Object.isSealed() 方法判断一个对象是否被密封。"><code>Object.isSealed()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/preventExtensions" title="Object.preventExtensions()方法让一个对象变的不可扩展，也就是永远不能再添加新的属性。"><code>Object.preventExtensions()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/isExtensible" title="Object.isExtensible() 方法判断一个对象是否是可扩展的（是否可以在它上面添加新的属性）。"><code>Object.isExtensible()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/freeze" title="Object.freeze() 方法可以冻结一个对象。一个被冻结的对象再也不能被修改；冻结了一个对象则不能向这个对象添加新的属性，不能删除已有属性，不能修改该对象已有属性的可枚举性、可配置性、可写性，以及不能修改已有属性的值。此外，冻结一个对象后该对象的原型也不能被修改。freeze() 返回和传入的参数相同的对象。"><code>Object.freeze()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/isFrozen" title="Object.isFrozen()方法判断一个对象是否被冻结。"><code>Object.isFrozen()</code></a></li>
+</ul>
+</article>

@@ -1,0 +1,87 @@
+<h2 id="实例方法-生命周期"><a href="#实例方法-生命周期" class="headerlink" title="实例方法 / 生命周期" data-scroll="">实例方法 / 生命周期</a></h2><h3 id="vm-mount"><a href="#vm-mount" class="headerlink" title="vm.$mount( [elementOrSelector] )" data-scroll="">vm.$mount( [elementOrSelector] )</a></h3><ul>
+<li><p><strong>参数</strong>：</p>
+<ul>
+<li><code>{Element | string} [elementOrSelector]</code></li>
+<li><code>{boolean} [hydrating]</code></li>
+</ul>
+</li>
+<li><p><strong>返回值</strong>：<code>vm</code> - 实例自身</p>
+</li>
+<li><p><strong>用法</strong>：</p>
+<p>如果 Vue 实例在实例化时没有收到 el 选项，则它处于“未挂载”状态，没有关联的 DOM 元素。可以使用 <code>vm.$mount()</code> 手动地挂载一个未挂载的实例。</p>
+<p>如果没有提供 <code>elementOrSelector</code> 参数，模板将被渲染为文档之外的的元素，并且你必须使用原生 DOM API 把它插入文档中。</p>
+<p>这个方法返回实例自身，因而可以链式调用其它实例方法。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> MyComponent = Vue.extend({
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;div&gt;Hello!&lt;/div&gt;'</span>
+})
+
+<span class="hljs-comment">// 创建并挂载到 #app (会替换 #app)</span>
+<span class="hljs-keyword">new</span> MyComponent().$mount(<span class="hljs-string">'#app'</span>)
+
+<span class="hljs-comment">// 同上</span>
+<span class="hljs-keyword">new</span> MyComponent({ <span class="hljs-attr">el</span>: <span class="hljs-string">'#app'</span> })
+
+<span class="hljs-comment">// 或者，在文档之外渲染并且随后挂载</span>
+<span class="hljs-keyword">var</span> component = <span class="hljs-keyword">new</span> MyComponent().$mount()
+<span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'app'</span>).appendChild(component.$el)</code></pre>
+</li>
+<li><p><strong>参考</strong>：</p>
+<ul>
+<li><a href="guide/instance.html#生命周期图示">生命周期图示</a></li>
+<li><a href="guide/ssr.html">服务端渲染</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="vm-forceUpdate"><a href="#vm-forceUpdate" class="headerlink" title="vm.$forceUpdate()" data-scroll="">vm.$forceUpdate()</a></h3><ul>
+<li><p><strong>示例</strong>：</p>
+<p>迫使 Vue 实例重新渲染。注意它仅仅影响实例本身和插入插槽内容的子组件，而不是所有子组件。</p>
+</li>
+</ul>
+<h3 id="vm-nextTick"><a href="#vm-nextTick" class="headerlink" title="vm.$nextTick( [callback] )" data-scroll="">vm.$nextTick( [callback] )</a></h3><ul>
+<li><p><strong>参数</strong>：</p>
+<ul>
+<li><code>{Function} [callback]</code></li>
+</ul>
+</li>
+<li><p><strong>用法</strong>：</p>
+<p>将回调延迟到下次 DOM 更新循环之后执行。在修改数据之后立即使用它，然后等待 DOM 更新。它跟全局方法 <code>Vue.nextTick</code> 一样，不同的是回调的 <code>this</code> 自动绑定到调用它的实例上。</p>
+<blockquote>
+<p>2.1.0 起新增：如果没有提供回调且在支持 Promise 的环境中，则返回一个 Promise。请注意 Vue 不自带 Promise 的 polyfill，所以如果你的目标浏览器不是原生支持 Promise (IE：你们都看我干嘛)，你得自行 polyfill。</p>
+</blockquote>
+</li>
+<li><p><strong>示例</strong>：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-comment">// ...</span>
+  methods: {
+    <span class="hljs-comment">// ...</span>
+    example: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-comment">// 修改数据</span>
+      <span class="hljs-keyword">this</span>.message = <span class="hljs-string">'changed'</span>
+      <span class="hljs-comment">// DOM 还没有更新</span>
+      <span class="hljs-keyword">this</span>.$nextTick(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+        <span class="hljs-comment">// DOM 现在更新了</span>
+        <span class="hljs-comment">// `this` 绑定到当前实例</span>
+        <span class="hljs-keyword">this</span>.doSomethingElse()
+      })
+    }
+  }
+})</code></pre>
+</li>
+<li><p><strong>参考</strong></p>
+<ul>
+<li><a href="#Vue-nextTick">Vue.nextTick</a></li>
+<li><a href="guide/reactivity.html#异步更新队列">异步更新队列</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="vm-destroy"><a href="#vm-destroy" class="headerlink" title="vm.$destroy()" data-scroll="">vm.$destroy()</a></h3><ul>
+<li><p><strong>用法</strong>：</p>
+<p>完全销毁一个实例。清理它与其它实例的连接，解绑它的全部指令及事件监听器。</p>
+<p>触发 <code>beforeDestroy</code> 和 <code>destroyed</code> 的钩子。</p>
+<p class="tip">在大多数场景中你不应该调用这个方法。最好使用 <code>v-if</code> 和 <code>v-for</code> 指令以数据驱动的方式控制子组件的生命周期。</p>
+</li>
+<li><p><strong>参考</strong>：<a href="guide/instance.html#生命周期图示">生命周期图示</a></p>
+</li>
+</ul>

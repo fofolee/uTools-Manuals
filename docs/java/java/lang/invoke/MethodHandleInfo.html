@@ -1,0 +1,635 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.lang.invoke 
+   </div>
+<h2 class="title" title="Interface MethodHandleInfo">Interface MethodHandleInfo</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">MethodHandleInfo</span></pre>
+<div class="block">
+<span>通过将直接方法句柄破解成其宪法符号部分获得的象征性参考。</span>
+<span>要破解直接方法句柄，请致电<a href="../../../java/lang/invoke/MethodHandles.Lookup.html#revealDirect-java.lang.invoke.MethodHandle-"><code>Lookup.revealDirect</code></a> 。</span>
+<h1> <span><a name="directmh"></a>直接方法句柄</span> </h1>
+<span><em>直接方法句柄</em>表示一个方法，构造函数或字段，没有任何介入参数绑定或其他转换。</span>
+<span>直接方法句柄引用的方法，构造函数或字段称为其<em>基础成员</em> 。</span>
+<span>可以通过以下任何方式获得直接方法句柄：</span>
+<ul>
+<li> <span>通过执行<code>ldc</code>上的指令<code>CONSTANT_MethodHandle</code>恒定。</span> <span>（请参阅Java虚拟机规范，第4.4.8和5.4.3节。）</span> </li>
+<li> <span>通过调用<a href="MethodHandles.Lookup.html#lookups">Lookup Factory Methods之一</a> ，如<a href="../../../java/lang/invoke/MethodHandles.Lookup.html#findVirtual-java.lang.Class-java.lang.String-java.lang.invoke.MethodType-"><code>Lookup.findVirtual</code></a> ，将符号引用解析为方法句柄。</span> <span>符号引用由类，名称字符串和类型组成。</span> </li>
+<li> <span>通过调用工厂方法<a href="../../../java/lang/invoke/MethodHandles.Lookup.html#unreflect-java.lang.reflect.Method-"><code>Lookup.unreflect</code></a>或<a href="../../../java/lang/invoke/MethodHandles.Lookup.html#unreflectSpecial-java.lang.reflect.Method-java.lang.Class-"><code>Lookup.unreflectSpecial</code></a>将<a href="../../../java/lang/reflect/Method.html" title="class java.lang.reflect"><code>方法</code></a>转换为方法句柄。</span> </li>
+<li> <span>通过调用工厂方法<a href="../../../java/lang/invoke/MethodHandles.Lookup.html#unreflectConstructor-java.lang.reflect.Constructor-"><code>Lookup.unreflectConstructor</code></a>将<a href="../../../java/lang/reflect/Constructor.html" title="class java.lang.reflect"><code>Constructor</code></a>转换为方法句柄。</span> </li>
+<li> <span>通过调用工厂方法<a href="../../../java/lang/invoke/MethodHandles.Lookup.html#unreflectGetter-java.lang.reflect.Field-"><code>Lookup.unreflectGetter</code></a>或<a href="../../../java/lang/invoke/MethodHandles.Lookup.html#unreflectSetter-java.lang.reflect.Field-"><code>Lookup.unreflectSetter</code></a>将<a href="../../../java/lang/reflect/Field.html" title="class java.lang.reflect"><code>Field</code></a>转换为方法句柄。</span> </li>
+</ul>
+<h1> <span>开裂限制</span> </h1>
+<span>给定一个合适的<code>Lookup</code>对象，可以破解任何直接方法句柄来恢复底层方法，构造函数或字段的符号引用。</span>
+<span>破解必须通过与创建目标方法句柄的对象相当的<code>Lookup</code>对象完成，或者具有足够的访问权限来重新创建等价的方法句柄。</span>
+<p> <span>如果底层方法是<a href="MethodHandles.Lookup.html#callsens">caller sensitive</a> ，则直接方法句柄将被“绑定”到特定的调用者类，用于创建它的查找对象的<a href="../../../java/lang/invoke/MethodHandles.Lookup.html#lookupClass--">lookup class</a> 。</span> <span>即使底层方法是公开的（如<code>Class.forName</code> ），用不同的查找类破解此方法句柄也将失败。</span> </p>
+<p> <span>查找对象匹配的要求为程序提供了一个“快速失败”行为，否则可能会从意外的范围信任符号信息（或调用者绑定）的方法句柄的错误启发。</span> <span>使用<a href="../../../java/lang/invoke/MethodHandles.html#reflectAs-java.lang.Class-java.lang.invoke.MethodHandle-"><code>MethodHandles.reflectAs(java.lang.Class&lt;T&gt;, java.lang.invoke.MethodHandle)</code></a>来覆盖此限制。</span> </p>
+<h1> <span><a name="refkinds"></a>参考种类</span> </h1>
+<span><a href="MethodHandles.Lookup.html#lookups">Lookup Factory Methods</a>对应于方法，构造函数和字段的所有主要用例。</span>
+<span>这些用例可以使用小整数来区分如下：</span>
+<span>  reference kind descriptive name scope member behavior   <code>1</code> <code>REF_getField</code> <code>class</code> <code>FT f;</code> <code>(T) this.f;</code> <code>2</code> <code>REF_getStatic</code> <code>class</code> or <code>interface</code> <code>static</code><br/><code>FT f;</code> <code>(T) C.f;</code> <code>3</code> <code>REF_putField</code> <code>class</code> <code>FT f;</code> <code>this.f = x;</code> <code>4</code> <code>REF_putStatic</code> <code>class</code> <code>static</code><br/><code>FT f;</code> <code>C.f = arg;</code> <code>5</code> <code>REF_invokeVirtual</code> <code>class</code> <code>T m(A*);</code> <code>(T) this.m(arg*);</code> <code>6</code> <code>REF_invokeStatic</code> <code>class</code> or <code>interface</code> <code>static</code><br/><code>T m(A*);</code> <code>(T) C.m(arg*);</code> <code>7</code> <code>REF_invokeSpecial</code> <code>class</code> or <code>interface</code> <code>T m(A*);</code> <code>(T) super.m(arg*);</code> <code>8</code> <code>REF_newInvokeSpecial</code> <code>class</code> <code>C(A*);</code> <code>new C(arg*);</code> <code>9</code> <code>REF_invokeInterface</code> <code>interface</code> <code>T m(A*);</code> <code>(T) this.m(arg*);</code> </span>
+<table border="1" cellpadding="5" summary="reference kinds">
+</table>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.8 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#REF_getField">REF_getField</a></span></code>
+<div class="block">
+              一种直接方法句柄引用类，如在限定的 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#REF_getStatic">REF_getStatic</a></span></code>
+<div class="block">
+              一种直接方法句柄引用类，如在限定的 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#REF_invokeInterface">REF_invokeInterface</a></span></code>
+<div class="block">
+              一种直接方法句柄引用类，如在限定的 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#REF_invokeSpecial">REF_invokeSpecial</a></span></code>
+<div class="block">
+              一种直接方法句柄引用类，如在限定的 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#REF_invokeStatic">REF_invokeStatic</a></span></code>
+<div class="block">
+              一种直接方法句柄引用类，如在限定的 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#REF_invokeVirtual">REF_invokeVirtual</a></span></code>
+<div class="block">
+              一种直接方法句柄引用类，如在限定的 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#REF_newInvokeSpecial">REF_newInvokeSpecial</a></span></code>
+<div class="block">
+              一种直接方法句柄引用类，如在限定的 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#REF_putField">REF_putField</a></span></code>
+<div class="block">
+              一种直接方法句柄引用类，如在限定的 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#REF_putStatic">REF_putStatic</a></span></code>
+<div class="block">
+              一种直接方法句柄引用类，如在限定的 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t5"><span><a href="javascript:show(16);">Default Methods</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#getDeclaringClass--">getDeclaringClass</a></span>()</code>
+<div class="block">
+              返回定义了破解方法句柄的基础成员的类。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#getMethodType--">getMethodType</a></span>()</code>
+<div class="block">
+              返回破解的符号引用的标称类型，表示为方法类型。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#getModifiers--">getModifiers</a></span>()</code>
+<div class="block">
+              返回底层成员的访问修饰符。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#getName--">getName</a></span>()</code>
+<div class="block">
+              返回破解方法句柄的底层成员的名称。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#getReferenceKind--">getReferenceKind</a></span>()</code>
+<div class="block">
+              返回破解方法句柄的引用类型，这反过来确定方法句柄的底层成员是构造函数，方法还是字段。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>default boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#isVarArgs--">isVarArgs</a></span>()</code>
+<div class="block">
+              确定底层成员是变量arity方法还是构造函数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#referenceKindToString-int-">referenceKindToString</a></span>(int referenceKind)</code>
+<div class="block">
+              返回给定参考样的描述性名称，如定义 
+             <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>&lt;T extends <a href="../../../java/lang/reflect/Member.html" title="interface in java.lang.reflect">Member</a>&gt;<br/>T</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#reflectAs-java.lang.Class-java.lang.invoke.MethodHandles.Lookup-">reflectAs</a></span>(<a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;T&gt; expected, <a href="../../../java/lang/invoke/MethodHandles.Lookup.html" title="class in java.lang.invoke">MethodHandles.Lookup</a> lookup)</code>
+<div class="block">
+              将基础成员反映为方法，构造函数或字段对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MethodHandleInfo.html#toString-int-java.lang.Class-java.lang.String-java.lang.invoke.MethodType-">toString</a></span>(int kind, <a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; defc, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> type)</code>
+<div class="block">
+              返回一个字符串表示 
+             <code>MethodHandleInfo</code>给出的四个部分的符号引用的。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="REF_getField">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REF_getField</h4> <pre>static final int REF_getField</pre>
+<div class="block">
+            一种直接方法句柄引用类，如在限定的 
+           <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.MethodHandleInfo.REF_getField">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="REF_getStatic">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REF_getStatic</h4> <pre>static final int REF_getStatic</pre>
+<div class="block">
+            一种直接方法句柄引用类，如在限定的 
+           <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.MethodHandleInfo.REF_getStatic">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="REF_putField">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REF_putField</h4> <pre>static final int REF_putField</pre>
+<div class="block">
+            一种直接方法句柄引用类，如在限定的 
+           <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.MethodHandleInfo.REF_putField">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="REF_putStatic">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REF_putStatic</h4> <pre>static final int REF_putStatic</pre>
+<div class="block">
+            一种直接方法句柄引用类，如在限定的 
+           <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.MethodHandleInfo.REF_putStatic">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="REF_invokeVirtual">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REF_invokeVirtual</h4> <pre>static final int REF_invokeVirtual</pre>
+<div class="block">
+            一种直接方法句柄引用类，如在限定的 
+           <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.MethodHandleInfo.REF_invokeVirtual">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="REF_invokeStatic">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REF_invokeStatic</h4> <pre>static final int REF_invokeStatic</pre>
+<div class="block">
+            一种直接方法句柄引用类，如在限定的 
+           <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.MethodHandleInfo.REF_invokeStatic">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="REF_invokeSpecial">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REF_invokeSpecial</h4> <pre>static final int REF_invokeSpecial</pre>
+<div class="block">
+            一种直接方法句柄引用类，如在限定的 
+           <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.MethodHandleInfo.REF_invokeSpecial">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="REF_newInvokeSpecial">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REF_newInvokeSpecial</h4> <pre>static final int REF_newInvokeSpecial</pre>
+<div class="block">
+            一种直接方法句柄引用类，如在限定的 
+           <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.MethodHandleInfo.REF_newInvokeSpecial">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="REF_invokeInterface">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>REF_invokeInterface</h4> <pre>static final int REF_invokeInterface</pre>
+<div class="block">
+            一种直接方法句柄引用类，如在限定的 
+           <a href="MethodHandleInfo.html#refkinds">table above</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.lang.invoke.MethodHandleInfo.REF_invokeInterface">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getReferenceKind--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getReferenceKind</h4> <pre>int getReferenceKind()</pre>
+<div class="block">
+<span>返回破解方法句柄的引用类型，这反过来确定方法句柄的底层成员是构造函数，方法还是字段。</span>
+<span>有关<a href="MethodHandleInfo.html#refkinds">定义</a> ，请参阅table above。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             用于访问底层成员的引用类的整数代码 
+           </dd>
+</dl> </li>
+</ul> <a name="getDeclaringClass--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDeclaringClass</h4> <pre><a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; getDeclaringClass()</pre>
+<div class="block">
+            返回定义了破解方法句柄的基础成员的类。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             底层成员的声明类 
+           </dd>
+</dl> </li>
+</ul> <a name="getName--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getName</h4> <pre><a href="../../../java/lang/String.html" title="class in java.lang">String</a> getName()</pre>
+<div class="block">
+<span>返回破解方法句柄的底层成员的名称。</span>
+<span>这是<code>"&amp;lt;init&amp;gt;"</code>如果底层成员是一个构造函数，否则它是一个简单的方法名或字段名。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             底层成员的简单名称 
+           </dd>
+</dl> </li>
+</ul> <a name="getMethodType--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMethodType</h4> <pre><a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> getMethodType()</pre>
+<div class="block">
+<span>返回破解的符号引用的标称类型，表示为方法类型。</span>
+<span>如果引用是构造函数，则返回类型将为<code>void</code> 。</span>
+<span>如果是非静态方法，方法类型不会提到<code>this</code>参数。</span>
+<span>如果是一个字段，并且所请求的访问是读取该字段，那么方法类型将没有参数并返回字段类型。</span>
+<span>如果是一个字段，并且所请求的访问是写入该字段，则方法类型将具有字段类型的一个参数并返回<code>void</code> 。</span>
+<p> <span>请注意，原始直接方法句柄可能包括一个前导的<code>this</code>参数，或者（在<code>this</code>函数的情况下）将替换构造的类的<code>void</code>返回类型。</span> <span>标称类型不包括任何<code>this</code>参数，（在<code>this</code>函数的情况下）将返回<code>void</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             底层成员的类型，表示为方法类型 
+           </dd>
+</dl> </li>
+</ul> <a name="reflectAs-java.lang.Class-java.lang.invoke.MethodHandles.Lookup-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>reflectAs</h4> <pre>&lt;T extends <a href="../../../java/lang/reflect/Member.html" title="interface in java.lang.reflect">Member</a>&gt; T reflectAs(<a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;T&gt; expected,
+                               <a href="../../../java/lang/invoke/MethodHandles.Lookup.html" title="class in java.lang.invoke">MethodHandles.Lookup</a> lookup)</pre>
+<div class="block">
+<span>将基础成员反映为方法，构造函数或字段对象。</span>
+<span>如果基础构件是公开的，它被反射，好像被<code>getMethod</code> ， <code>getConstructor</code> ，或<code>getField</code> 。</span>
+<span>否则，它被反映为如果由<code>getDeclaredMethod</code> ， <code>getDeclaredConstructor</code> ，或<code>getDeclaredField</code> 。</span>
+<span>给定的查找对象必须可访问底层成员。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<span><code>T</code> - 所需类型的结果， <a href="../../../java/lang/reflect/Member.html" title="java.lang.reflect中的接口"><code>Member</code></a>或子类型</span>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>expected</code> - 表示所需结果类型 
+            <code>T</code>的类对象 
+           </dd>
+<dd>
+<code>lookup</code> - 创建此MethodHandleInfo或具有等效访问权限的查找对象 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             对方法，构造函数或字段对象的引用 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/ClassCastException.html" title="class in java.lang">ClassCastException</a></code> - 如果该成员不是预期类型 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任一参数是 
+            <code>null</code>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果基础成员不可访问给定的查找对象 
+           </dd>
+</dl> </li>
+</ul> <a name="getModifiers--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getModifiers</h4> <pre>int getModifiers()</pre>
+<div class="block">
+            返回底层成员的访问修饰符。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             基础成员的Java语言修饰符，如果成员无法访问，则为-1 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/reflect/Modifier.html" title="class java.lang.reflect"><code>Modifier</code></a> ， <a href="../../../java/lang/invoke/MethodHandleInfo.html#reflectAs-java.lang.Class-java.lang.invoke.MethodHandles.Lookup-"><code>reflectAs(java.lang.Class&lt;T&gt;, java.lang.invoke.MethodHandles.Lookup)</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="isVarArgs--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isVarArgs</h4> <pre>default boolean isVarArgs()</pre>
+<div class="block">
+<span>确定底层成员是变量arity方法还是构造函数。</span>
+<span>这些成员由方法句柄表示，它们是可变量收集器。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">实现要求：</span>
+</dt>
+<dd>
+<span>这产生的结果相当于：</span>
+<pre>  <span><code> getReferenceKind() &gt;= REF_invokeVirtual &amp;&amp; Modifier.isTransient(getModifiers()) </code></span> </pre>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>当且仅当底层成员被声明为可变的。 
+           </dd>
+</dl> </li>
+</ul> <a name="referenceKindToString-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>referenceKindToString</h4> <pre>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a> referenceKindToString(int referenceKind)</pre>
+<div class="block">
+<span>返回给定参考样的描述性名称，如定义<a href="MethodHandleInfo.html#refkinds">table above</a> 。</span>
+<span>常规的前缀“REF_”被省略。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>referenceKind</code> - 用于访问类成员的一种引用类型的整数代码 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个混合的字符串，如 
+            <code>"getField"</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数不是有效的 
+            <a href="MethodHandleInfo.html#refkinds">reference kind number</a>
+</dd>
+</dl> </li>
+</ul> <a name="toString-int-java.lang.Class-java.lang.String-java.lang.invoke.MethodType-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>static <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString(int kind,
+                       <a href="../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; defc,
+                       <a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                       <a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> type)</pre>
+<div class="block">
+<span>返回一个字符串表示<code>MethodHandleInfo</code>给出的四个部分的符号引用的。</span>
+<span>这被定义为是这样的形式的<code>"RK C.N:MT"</code> ，其中<code>RK</code>是<a href="../../../java/lang/invoke/MethodHandleInfo.html#referenceKindToString-int-">reference kind string</a>为<code>kind</code> ， <code>C</code>是<a href="../../../java/lang/Class.html#getName--">name</a>的<code>defc</code> <code>N</code>是<code>name</code>和<code>MT</code>是<code>type</code> 。</span>
+<span>这四个值可以从获得<a href="../../../java/lang/invoke/MethodHandleInfo.html#getReferenceKind--">reference kind</a> ， <a href="../../../java/lang/invoke/MethodHandleInfo.html#getDeclaringClass--">declaring class</a> ， <a href="../../../java/lang/invoke/MethodHandleInfo.html#getName--">member name</a>和<a href="../../../java/lang/invoke/MethodHandleInfo.html#getMethodType--">method type</a>一个的<code>MethodHandleInfo</code>对象。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">实现要求：</span>
+</dt>
+<dd>
+<span>这产生的结果相当于：</span>
+<pre>  <span><code> String.format("%s %s.%s:%s", referenceKindToString(kind), defc.getName(), name, type) </code></span> </pre>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>kind</code> - 
+            <a href="../../../java/lang/invoke/MethodHandleInfo.html#getReferenceKind--">reference kind</a>部分符号参考 
+           </dd>
+<dd>
+<code>defc</code> - 
+            <a href="../../../java/lang/invoke/MethodHandleInfo.html#getDeclaringClass--">declaring class</a>部分符号参考 
+           </dd>
+<dd>
+<code>name</code> - 
+            <a href="../../../java/lang/invoke/MethodHandleInfo.html#getName--">member name</a>部分符号参考 
+           </dd>
+<dd>
+<code>type</code> - 
+            <a href="../../../java/lang/invoke/MethodHandleInfo.html#getMethodType--">method type</a>部分符号参考 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个字符串形式 
+            <code>"RK C.N:MT"</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果第一个参数不是有效的 
+            <a href="MethodHandleInfo.html#refkinds">reference kind number</a>
+</dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - if any reference argument is 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

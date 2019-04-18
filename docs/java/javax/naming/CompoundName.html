@@ -1,0 +1,1081 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     javax.naming 
+   </div>
+<h2 class="title" title="Class CompoundName">Class CompoundName</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.naming.CompoundName</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../java/lang/Cloneable.html" title="java.lang中的接口">Cloneable</a> ， <a href="../../java/lang/Comparable.html" title="java.lang中的接口">Comparable</a> &lt; <a href="../../java/lang/Object.html" title="java.lang中的类">Object</a> &gt;， <a href="../../javax/naming/Name.html" title="javax.naming中的接口">Name</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">CompoundName</span>
+extends <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></pre>
+<div class="block">
+<span>该类表示复合名称 - 来自分层名称空间的名称。</span>
+<span>复合名称中的每个组件都是原子名称。</span>
+<p> <span>化合物名称的组成部分被编号。</span> <span>具有N个成分的化合物名称的索引范围从0到但不包括N.该范围可以写为[0，N]。</span> <span>最重要的组件是索引0.空的化合物名称没有组件。</span> </p>
+<h1> <span>复合名称语法</span> </h1>
+<span>使用一组属性指定复合名称的语法：</span>
+<dl>
+<dt>
+<span>jndi.syntax.direction</span>
+</dt>
+<dd>
+<span>解析方向（“right_to_left”，“left_to_right”，“flat”）。</span>
+<span>如果未指定，默认为“flat”，这意味着命名空间是平坦的，没有层次结构。</span>
+</dd>
+<dt>
+<span>jndi.syntax.separator</span>
+</dt>
+<dd>
+<span>原子名称组件之间的分隔符。</span>
+<span>除非方向是“平坦”，否则需要。</span>
+</dd>
+<dt>
+<span>jndi.syntax.ignorecase</span>
+</dt>
+<dd>
+<span>如果存在，则“true”表示在比较名称组件时忽略这种情况。</span>
+<span>如果其值不是“true”，或者如果属性不存在，则在比较名称组件时会考虑案例。</span>
+</dd>
+<dt>
+<span>jndi.syntax.escape</span>
+</dt>
+<dd>
+<span>如果存在，指定用于覆盖分隔符，转义和引号的转义字符串。</span>
+</dd>
+<dt>
+<span>jndi.syntax.beginquote</span>
+</dt>
+<dd>
+<span>如果存在，指定引用字符串的字符串定界开始。</span>
+</dd>
+<dt>
+<span>jndi.syntax.endquote</span>
+</dt>
+<dd>
+<span>字符串分隔字符串的结尾。</span>
+<span>如果存在，则指定定界引号字符串末尾的字符串。</span>
+<span>如果不存在，请使用syntax.beginquote作为结束报价。</span>
+</dd>
+<dt>
+<span>jndi.syntax.beginquote2</span>
+</dt>
+<dd>
+<span>开始/结束引号的另一组。</span>
+</dd>
+<dt>
+<span>jndi.syntax.endquote2</span>
+</dt>
+<dd>
+<span>开始/结束引号的另一组。</span>
+</dd>
+<dt>
+<span>jndi.syntax.trimblanks</span>
+</dt>
+<dd>
+<span>如果存在，“true”表示修饰名称组件中的任何前导和尾随空格以进行比较。</span>
+<span>如果它的值不是“true”，或者如果该属性不存在，则空格是显着的。</span>
+</dd>
+<dt>
+<span>jndi.syntax.separator.ava</span>
+</dt>
+<dd>
+<span>如果存在，指定在指定多个属性/值对时分隔属性值 - 断言的字符串。</span>
+<span>（例如“，”，年龄= 65岁，性别=男性）。</span>
+</dd>
+<dt>
+<span>jndi.syntax.separator.typeval</span>
+</dt>
+<dd>
+<span>如果存在，指定分隔符属于值的字符串（例如“=”在“age = 65”）</span>
+</dd>
+</dl>
+<span>这些属性根据以下规则进行解释：</span>
+<ol>
+<li> <span>在没有引号或转义的字符串中，分隔符的任何实例分隔了两个原子名称。</span> <span>每个原子名被称为<em>组件</em> 。</span> </li>
+<li> <span>一个分隔符，引用或转义如果在转义之后立即（在左侧）被转义。</span> </li>
+<li> <span>如果有两套报价，则特定的开始报价必须与其对应的报价相匹配。</span> </li>
+<li> <span>在组件之前的未转义的开始报价必须在组件末尾的非转义的结束引号进行匹配。</span> <span>这样引用的组件被称为<em>引用的组件</em> 。</span> <span>通过删除正面和末尾引用，并将中间字符视为普通字符进行解析，除非下面列出的涉及引用组件的规则适用。</span> </li>
+<li> <span>嵌入在非引用组件中的引用被视为普通字符串，不需要匹配。</span> </li>
+<li> <span>转义或出现在非转义引号之间的分隔符被视为普通字符串而不是分隔符。</span> </li>
+<li> <span>引用的组件中的转义字符串仅当后跟相应的结束引用字符串时才起到转义的作用。</span> <span>这可以用于将转义的报价嵌入到引用的组件中。</span> </li>
+<li> <span>转义的转义字符串不会被视为转义字符串。</span> </li>
+<li> <span>不在元字符串（引号或分隔符）之前并且不在组件末尾的转义字符串被视为普通字符串。</span> </li>
+<li> <span>前导分隔符（复合名称字符串以分隔符开头）表示前导空原子组件（由空字符串组成）。</span> <span>尾部分隔符（复合名称字符串以分隔符结尾）表示尾随的空原子分量。</span> <span>相邻的分隔符表示空原子分量。</span> </li>
+</ol>
+<p> <span>复合名称的字符串形式遵循上述语法。</span> <span>当化合物名称的组成部分变成其字符串表示形式时，应用上述保留的语法规则（例如，嵌入式分隔符被转义或引用），以便当相同的字符串被解析时，它将产生原始化合物的相同组件名称。</span> </p>
+<h1> <span>多线程访问</span> </h1>
+<span><tt>CompoundName</tt>实例与并发多线程访问不同步。</span>
+<span>尝试访问和修改<tt>CompoundName的</tt>多个线程应锁定该对象。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.3 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../serialized-form.html#javax.naming.CompoundName">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected javax.naming.NameImpl</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#impl">impl</a></span></code>
+<div class="block">
+              这个复合名称的实现。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected <a href="../../java/util/Properties.html" title="class in java.util">Properties</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#mySyntax">mySyntax</a></span></code>
+<div class="block">
+              此化合物名称的语法属性。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#CompoundName-java.util.Enumeration-java.util.Properties-">CompoundName</a></span>(<a href="../../java/util/Enumeration.html" title="interface in java.util">Enumeration</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt; comps, <a href="../../java/util/Properties.html" title="class in java.util">Properties</a> syntax)</code>
+<div class="block">
+              使用comps和syntax中指定的组件构造一个新的复合名称实例。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code> </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#CompoundName-java.lang.String-java.util.Properties-">CompoundName</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> n, <a href="../../java/util/Properties.html" title="class in java.util">Properties</a> syntax)</code>
+<div class="block">
+              通过使用提供的语法属性指定的语法解析字符串n来构造新的复合名称实例。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#add-int-java.lang.String-">add</a></span>(int posn, <a href="../../java/lang/String.html" title="class in java.lang">String</a> comp)</code>
+<div class="block">
+              在此化合物名称中的指定位置添加单个组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#add-java.lang.String-">add</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> comp)</code>
+<div class="block">
+              将单个组件添加到此化合物名称的末尾。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#addAll-int-javax.naming.Name-">addAll</a></span>(int posn, <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> n)</code>
+<div class="block">
+              在此复合名称中的指定位置添加化合物名称的组成部分。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#addAll-javax.naming.Name-">addAll</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> suffix)</code>
+<div class="block">
+              将复合名称的组件按顺序添加到该化合物名称的末尾。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#clone--">clone</a></span>()</code>
+<div class="block">
+              创建此复合名称的副本。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#compareTo-java.lang.Object-">compareTo</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              将此CompoundName与指定的对象进行比较以进行订购。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#endsWith-javax.naming.Name-">endsWith</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> n)</code>
+<div class="block">
+              确定复合名称是否是此化合物名称的后缀。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#equals-java.lang.Object-">equals</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              确定obj是否在语法上等于此化合物名称。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#get-int-">get</a></span>(int posn)</code>
+<div class="block">
+              检索此化合物名称的组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../java/util/Enumeration.html" title="interface in java.util">Enumeration</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#getAll--">getAll</a></span>()</code>
+<div class="block">
+              检索此复合名称的组件作为字符串的枚举。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#getPrefix-int-">getPrefix</a></span>(int posn)</code>
+<div class="block">
+              创建一个复合名称，其组成部分由此化合物名称中的组件的前缀组成。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#getSuffix-int-">getSuffix</a></span>(int posn)</code>
+<div class="block">
+              创建一个复合名称，其组成部分由此化合物名称中的组件的后缀组成。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              计算此化合物名称的哈希码。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#isEmpty--">isEmpty</a></span>()</code>
+<div class="block">
+              确定此化合物名称是否为空。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#remove-int-">remove</a></span>(int posn)</code>
+<div class="block">
+              从此化合物名称中删除组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#size--">size</a></span>()</code>
+<div class="block">
+              检索此化合物名称中的组件数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#startsWith-javax.naming.Name-">startsWith</a></span>(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> n)</code>
+<div class="block">
+              确定化合物名称是否是此化合物名称的前缀。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/naming/CompoundName.html#toString--">toString</a></span>()</code>
+<div class="block">
+              使用复合名称的语法规则生成此化合物名称的字符串表示形式。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="impl">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>impl</h4> <pre>protected transient javax.naming.NameImpl impl</pre>
+<div class="block">
+<span>这个复合名称的实现。</span>
+<span>该字段由构造函数初始化，不能为空。</span>
+<span>它应该被视为一个只读变量的子类。</span>
+</div> </li>
+</ul> <a name="mySyntax">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>mySyntax</h4> <pre>protected transient <a href="../../java/util/Properties.html" title="class in java.util">Properties</a> mySyntax</pre>
+<div class="block">
+<span>此化合物名称的语法属性。</span>
+<span>该字段由构造函数初始化，不能为空。</span>
+<span>它应该被视为一个只读变量的子类。</span>
+<span>对mySyntax的任何必要的更改都应该在构造函数中进行，而不是化合物名称被实例化之后。</span>
+</div> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="CompoundName-java.util.Enumeration-java.util.Properties-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>CompoundName</h4> <pre>protected CompoundName(<a href="../../java/util/Enumeration.html" title="interface in java.util">Enumeration</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt; comps,
+                       <a href="../../java/util/Properties.html" title="class in java.util">Properties</a> syntax)</pre>
+<div class="block">
+<span>使用comps和syntax中指定的组件构造一个新的复合名称实例。</span>
+<span>当被保护的方法被覆盖诸如clone（），getPrefix（），getSuffix（）之类的方法时，这个被保护的方法意图被CompoundName的子类使用。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>comps</code> - 要添加的组件的非空枚举。</span>
+<span>枚举的每个元素都是String类。</span>
+<span>枚举将用于提取其元素。</span>
+</dd>
+<dd>
+<span><code>syntax</code> - 指定此化合物名称的语法的非空属性。</span>
+<span>请参阅属性内容的类描述。</span>
+</dd>
+</dl> </li>
+</ul> <a name="CompoundName-java.lang.String-java.util.Properties-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>CompoundName</h4> <pre>public CompoundName(<a href="../../java/lang/String.html" title="class in java.lang">String</a> n,
+                    <a href="../../java/util/Properties.html" title="class in java.util">Properties</a> syntax)
+             throws <a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></pre>
+<div class="block">
+            通过使用提供的语法属性指定的语法解析字符串n来构造新的复合名称实例。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>n</code> - 要解析的非空字符串。 
+           </dd>
+<dd>
+<span><code>syntax</code> - 指定此复合名称语法的属性的非空列表。</span>
+<span>请参阅属性内容的类描述。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></code> -如果“N”违反由指定的语法 
+            <code>syntax</code> 。 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="toString--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>使用复合名称的语法规则生成此化合物名称的字符串表示形式。</span>
+<span>语法规则在类描述中描述。</span>
+<span>一个空的组件由一个空字符串表示。</span>
+<span>如此生成的字符串表示可以传递给具有相同语法属性的CompoundName构造函数，以创建新的等效化合物名称。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#toString--">toString</a></code>在类别 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此复合名称的非空字符串表示形式。 
+           </dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+<span>确定obj是否在语法上等于此化合物名称。</span>
+<span>如果obj为null或不是CompoundName，则返回false。</span>
+<span>如果一个中的每个组件与另一个中的相应组件“相等”，则两个组合名称相等。</span>
+<p> <span>平等也是根据这个化合物名称的语法来定义的。</span> <span>当比较两个组件相等时，CompoundName的默认实现使用语法属性jndi.syntax.ignorecase和jndi.syntax.trimblanks。</span> <span>如果忽略大小写，则具有相同字符序列但具有不同情况的两个字符串被认为是相等的。</span> <span>如果正在修剪空白，则为了比较的目的，忽略前导和尾随空格。</span> </p>
+<p> <span>两个组合名称必须具有相同数量的组件。</span> </p>
+<p> <span>实现注意：目前，两个复合名称的语法属性不相等。</span> <span>他们可能在未来。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在类别 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 可比较的空对象。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果obj等于此复合名称，则为true，否则为false。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/CompoundName.html#compareTo-java.lang.Object-"><code>compareTo(java.lang.Object obj)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+<span>计算此化合物名称的哈希码。</span>
+<span>哈希代码是该化合物名称的各个组分的“规范化”形式的哈希码的总和。</span>
+<span>在组合名称的语法计算其哈希码之前，每个组件都按照“规范化”。</span>
+<span>对于不区分大小写的名称，例如，名称的大写形式具有与其较低等同物相同的哈希码。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示此名称的哈希码的int。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="clone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>clone</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> clone()</pre>
+<div class="block">
+<span>创建此复合名称的副本。</span>
+<span>对该复合名称的组件的更改不会影响新副本，反之亦然。</span>
+<span>克隆和此复合名称共享相同的语法。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#clone--">clone</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#clone--">clone</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此复合名称的非空拷贝。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/Cloneable.html" title="java.lang中的接口"><code>Cloneable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="compareTo-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compareTo</h4> <pre>public int compareTo(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+<span>将此CompoundName与指定的对象进行比较以进行订购。</span>
+<span>返回一个负整数，零或正整数，因为该名称小于，等于或大于给定的对象。</span>
+<p> <span>如果obj为null或者不是CompoundName的实例，则抛出ClassCastException。</span> </p>
+<p> <span>请参阅equals（）表示两个复合名称相等的含义。</span> <span>如果两个复合名称相等，则返回0。</span> </p>
+<p> <span>复合名称的排序取决于复合名称的语法。</span> <span>默认情况下，它们遵循用于字符串比较的字典规则，其扩展名适用于复合名称中的所有组件，并且各个组件的比较受jndi.syntax.ignorecase和jndi.syntax.trimblanks属性的影响，与它们影响equals（）。</span> <span>如果此复合名称比词汇“词典”小，则返回一个负数。</span> <span>如果这个复合名称比词典“字典”大，则返回正数。</span> </p>
+<p> <span>实现注意：当检查顺序时，两个复合名称的语法属性不进行比较。</span> <span>他们可能在未来。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Comparable.html#compareTo-T-">compareTo</a></code>在界面 
+            <code><a href="../../java/lang/Comparable.html" title="interface in java.lang">Comparable</a>&lt;<a href="../../java/lang/Object.html" title="class in java.lang">Object</a>&gt;</code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#compareTo-java.lang.Object-">compareTo</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 要比较的非空对象。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             负整数，零或正整数，因为该名称小于，等于或大于给定的对象。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ClassCastException.html" title="class in java.lang">ClassCastException</a></code> - 如果obj不是CompoundName。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/naming/CompoundName.html#equals-java.lang.Object-"><code>equals(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="size--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>size</h4> <pre>public int size()</pre>
+<div class="block">
+            检索此化合物名称中的组件数。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#size--">size</a></code>在接口 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此化合物名称中的非负数组分。 
+           </dd>
+</dl> </li>
+</ul> <a name="isEmpty--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isEmpty</h4> <pre>public boolean isEmpty()</pre>
+<div class="block">
+<span>确定此化合物名称是否为空。</span>
+<span>如果复合名称具有零组件，则为空。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#isEmpty--">isEmpty</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果此复合名称为空，则为true，否则为false。 
+           </dd>
+</dl> </li>
+</ul> <a name="getAll--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAll</h4> <pre>public <a href="../../java/util/Enumeration.html" title="interface in java.util">Enumeration</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt; getAll()</pre>
+<div class="block">
+<span>检索此复合名称的组件作为字符串的枚举。</span>
+<span>在此枚举上更新此化合物名称的效果未定义。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#getAll--">getAll</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>此复合名称的组件的非空枚举。</span>
+<span>枚举的每个元素都是String类。</span>
+</dd>
+</dl> </li>
+</ul> <a name="get-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>get</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> get(int posn)</pre>
+<div class="block">
+            检索此化合物名称的组件。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#get-int-">get</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>posn</code> - 要检索的组件的基于0的索引。</span>
+<span>必须在[0，size（））范围内。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             索引posn的组件。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArrayIndexOutOfBoundsException.html" title="class in java.lang">ArrayIndexOutOfBoundsException</a></code> - 如果posn在指定范围之外。 
+           </dd>
+</dl> </li>
+</ul> <a name="getPrefix-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPrefix</h4> <pre>public <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> getPrefix(int posn)</pre>
+<div class="block">
+<span>创建一个复合名称，其组成部分由此化合物名称中的组件的前缀组成。</span>
+<span>结果和此复合名称具有相同的语法。</span>
+<span>此复合名称的后续更改不会影响返回的名称，反之亦然。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#getPrefix-int-">getPrefix</a></code>在接口 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>posn</code> - 要停止的组件的基于0的索引。</span>
+<span>必须在[0，size（）]范围内。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             由[0，posn]范围内的索引组成的复合名称。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArrayIndexOutOfBoundsException.html" title="class in java.lang">ArrayIndexOutOfBoundsException</a></code> - 如果posn在指定范围之外。 
+           </dd>
+</dl> </li>
+</ul> <a name="getSuffix-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSuffix</h4> <pre>public <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> getSuffix(int posn)</pre>
+<div class="block">
+<span>创建一个复合名称，其组成部分由此化合物名称中的组件的后缀组成。</span>
+<span>结果和此复合名称具有相同的语法。</span>
+<span>此复合名称的后续更改不会影响返回的名称。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#getSuffix-int-">getSuffix</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>posn</code> - 要启动的组件的基于0的索引。</span>
+<span>必须在[0，size（）]范围内。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>由[posn，size（））范围内的索引组成的复合名称。</span>
+<span>如果posn等于size（），则返回一个空的化合物名称。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArrayIndexOutOfBoundsException.html" title="class in java.lang">ArrayIndexOutOfBoundsException</a></code> - 如果posn在指定范围之外。 
+           </dd>
+</dl> </li>
+</ul> <a name="startsWith-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>startsWith</h4> <pre>public boolean startsWith(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> n)</pre>
+<div class="block">
+<span>确定化合物名称是否是此化合物名称的前缀。</span>
+<span>如果复合名称“n”等于getPrefix（n.size（）），则为前缀 - 换句话说，此复合名称以'n'开头。</span>
+<span>如果n为空，则返回false。</span>
+<p> <span>实现注意：当进行比较时，目前不使用n的语法属性。</span> <span>他们可能在未来。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#startsWith-javax.naming.Name-">startsWith</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>n</code> - 要检查的可能为null的复合名称。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果n是CompoundName并且是此复合名称的前缀，则为true，否则为false。 
+           </dd>
+</dl> </li>
+</ul> <a name="endsWith-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>endsWith</h4> <pre>public boolean endsWith(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> n)</pre>
+<div class="block">
+<span>确定复合名称是否是此化合物名称的后缀。</span>
+<span>复合名称'n'是后缀，如果它等于getSuffix（size（） - n.size（）） - 换句话说，该复合名称以“n”结尾。</span>
+<span>如果n为空，则返回false。</span>
+<p> <span>实现注意：当进行比较时，目前不使用n的语法属性。</span> <span>他们可能在未来。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#endsWith-javax.naming.Name-">endsWith</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>n</code> - 要检查的可能为null的复合名称。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果n是CompoundName并且是此化合物名称的后缀，则为true，否则为false。 
+           </dd>
+</dl> </li>
+</ul> <a name="addAll-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addAll</h4> <pre>public <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> addAll(<a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> suffix)
+            throws <a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></pre>
+<div class="block">
+<span>将复合名称的组件按顺序添加到该化合物名称的末尾。</span>
+<p> <span>实现注意：目前未使用或检查后缀的语法属性。</span> <span>他们可能在未来。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#addAll-javax.naming.Name-">addAll</a></code>在接口 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>suffix</code> - 要添加的非零组件。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>更新的CompoundName，而不是一个新的。</span>
+<span>不能为空。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></code> - 如果后缀不是复合名称，或者添加组件违反了此化合物名称的语法（例如超过组件数量）。 
+           </dd>
+</dl> </li>
+</ul> <a name="addAll-int-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addAll</h4> <pre>public <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> addAll(int posn,
+                   <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> n)
+            throws <a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></pre>
+<div class="block">
+<span>在此复合名称中的指定位置添加化合物名称的组成部分。</span>
+<span>在第一个新组件的索引之前或之后，此化合物名称的组件向上移动（远离索引0）以适应新组件。</span>
+<p> <span>实现注意：目前未使用或检查后缀的语法属性。</span> <span>他们可能在未来。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#addAll-int-javax.naming.Name-">addAll</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>n</code> - 要添加的非零组件。 
+           </dd>
+<dd>
+<span><code>posn</code> - 添加新组件的名称中的索引。</span>
+<span>必须在[0，size（）]范围内。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>更新的CompoundName，而不是一个新的。</span>
+<span>不能为空。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArrayIndexOutOfBoundsException.html" title="class in java.lang">ArrayIndexOutOfBoundsException</a></code> - 如果posn在指定范围之外。 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></code> - 如果n不是复合名称，或者添加组件违反了此化合物名称的语法（例如超过组件数量）。 
+           </dd>
+</dl> </li>
+</ul> <a name="add-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>add</h4> <pre>public <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> add(<a href="../../java/lang/String.html" title="class in java.lang">String</a> comp)
+         throws <a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></pre>
+<div class="block">
+            将单个组件添加到此化合物名称的末尾。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#add-java.lang.String-">add</a></code>在接口 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>comp</code> - 要添加的非空组件。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>更新的CompoundName，而不是一个新的。</span>
+<span>不能为空。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></code> - 如果在名称末尾添加comp将违反复合名称的语法。 
+           </dd>
+</dl> </li>
+</ul> <a name="add-int-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>add</h4> <pre>public <a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a> add(int posn,
+                <a href="../../java/lang/String.html" title="class in java.lang">String</a> comp)
+         throws <a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></pre>
+<div class="block">
+<span>在此化合物名称中的指定位置添加单个组件。</span>
+<span>新组件的索引之后或之后的此化合物名称的组件向上移动一（远离索引0）以适应新组件。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#add-int-java.lang.String-">add</a></code>在接口 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>comp</code> - 要添加的非零组件。 
+           </dd>
+<dd>
+<span><code>posn</code> - 添加新组件的索引。</span>
+<span>必须在[0，size（）]范围内。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>更新的CompoundName，而不是一个新的。</span>
+<span>不能为空。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArrayIndexOutOfBoundsException.html" title="class in java.lang">ArrayIndexOutOfBoundsException</a></code> - 如果posn在指定范围之外。 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></code> - 如果在指定位置添加comp将违反复合名称的语法。 
+           </dd>
+</dl> </li>
+</ul> <a name="remove-int-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>remove</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> remove(int posn)
+              throws <a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></pre>
+<div class="block">
+<span>从此化合物名称中删除组件。</span>
+<span>该位置'posn'处的该化合物名称的组分被除去，并且大于'posn'的索引的分量向下移动（朝向索引0）1。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/naming/Name.html#remove-int-">remove</a></code>在界面 
+            <code><a href="../../javax/naming/Name.html" title="interface in javax.naming">Name</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>posn</code> - 要删除的组件的索引。</span>
+<span>必须在[0，size（））范围内。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             删除组件（一个String）。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArrayIndexOutOfBoundsException.html" title="class in java.lang">ArrayIndexOutOfBoundsException</a></code> - 如果posn在指定范围之外（包括化合物名称为空的情况）。 
+           </dd>
+<dd>
+<code><a href="../../javax/naming/InvalidNameException.html" title="class in javax.naming">InvalidNameException</a></code> - 如果删除组件将违反化合物名称的语法。 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

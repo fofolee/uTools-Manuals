@@ -1,0 +1,156 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong><code>codePointAt()</code></strong> 方法返回 一个 Unicode 编码点值的非负整数。</p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox"><code><var>str</var>.codePointAt(<var>pos</var>)</code></pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>pos</code></dt>
+<dd>这个字符串中需要转码的元素的位置。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>返回值是在字符串中的给定索引的编码单元体现的数字，如果在索引处没找到元素则返回 <a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a> 。</p>
+<h2 id="描述">描述</h2>
+<p>如果在指定的位置没有元素则返回 <a href="Reference/Global_Objects/undefined" title="undefined是全局对象的一个属性。也就是说，它是全局作用域的一个变量。undefined的最初值就是原始数据类型undefined。"><code>undefined</code></a> 。如果在索引处开始没有UTF-16 代理对，将直接返回在那个索引处的编码单元。</p>
+<p>Surrogate Pair是UTF-16中用于扩展字符而使用的编码方式，是一种采用四个字节(两个UTF-16编码)来表示一个字符，称作代理对。</p>
+<h2 id="例子">例子</h2>
+<h3 id="使用_codePointAt()">使用 <code>codePointAt()</code></h3>
+<pre class="brush: js">'ABC'.codePointAt(1);          // 66
+'\uD800\uDC00'.codePointAt(0); // 65536
+
+'XYZ'.codePointAt(42); // undefined
+</pre>
+<h2 id="替补支持(Polyfill)">替补支持(Polyfill)</h2>
+<p>给原生不支持 ECMAScript 6 的浏览器使用<code>codePointAt()</code>方法的的一个字符串扩展方法。</p>
+<pre class="brush: js">/*! http://mths.be/codepointat v0.1.0 by @mathias */
+if (!String.prototype.codePointAt) {
+  (function() {
+    'use strict'; // 严格模式，needed to support `apply`/`call` with `undefined`/`null`
+    var codePointAt = function(position) {
+      if (this == null) {
+        throw TypeError();
+      }
+      var string = String(this);
+      var size = string.length;
+      // 变成整数
+      var index = position ? Number(position) : 0;
+      if (index != index) { // better `isNaN`
+        index = 0;
+      }
+      // 边界
+      if (index &lt; 0 || index &gt;= size) {
+        return undefined;
+      }
+      // 第一个编码单元
+      var first = string.charCodeAt(index);
+      var second;
+      if ( // 检查是否开始 surrogate pair
+        first &gt;= 0xD800 &amp;&amp; first &lt;= 0xDBFF &amp;&amp; // high surrogate
+        size &gt; index + 1 // 下一个编码单元
+      ) {
+        second = string.charCodeAt(index + 1);
+        if (second &gt;= 0xDC00 &amp;&amp; second &lt;= 0xDFFF) { // low surrogate
+          // http://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+          return (first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000;
+        }
+      }
+      return first;
+    };
+    if (Object.defineProperty) {
+      Object.defineProperty(String.prototype, 'codePointAt', {
+        'value': codePointAt,
+        'configurable': true,
+        'writable': true
+      });
+    } else {
+      String.prototype.codePointAt = codePointAt;
+    }
+  }());
+}
+</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-string.prototype.codepointat" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">String.prototype.codePointAt</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-string.prototype.codepointat" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">String.prototype.codePointAt</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div><div class="blockIndicator warning"><strong><a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">We're converting our compatibility data into a machine-readable JSON format</a></strong>.
+            This compatibility table still uses the old format,
+            because we haven't yet converted the data it contains.
+            <strong><a class="new" href="/zh-CN/docs/MDN/Contribute/Structures/Compatibility_tables" rel="nofollow">Find out how you can help!</a></strong></div>
+<div class="htab">
+<a id="AutoCompatibilityTable" name="AutoCompatibilityTable"></a>
+<ul>
+<li class="selected"><a>Desktop</a></li>
+<li><a>Mobile</a></li>
+</ul>
+</div></div>
+<div id="compat-desktop">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>特性</th>
+<th>Chrome</th>
+<th>Firefox (Gecko)</th>
+<th>Internet Explorer</th>
+<th>Opera</th>
+<th>Safari</th>
+</tr>
+<tr>
+<td>基本支持</td>
+<td>41</td>
+<td><a href="/en-US/Firefox/Releases/29" title="Released on 2014-04-29.">29</a> (29)</td>
+<td>11</td>
+<td>28</td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="compat-mobile">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>特性</th>
+<th>Android</th>
+<th>Chrome for Android</th>
+<th>Firefox Mobile (Gecko)</th>
+<th>IE Mobile</th>
+<th>Opera Mobile</th>
+<th>Safari Mobile</th>
+</tr>
+<tr>
+<td>基本支持</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td>29.0 (29)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/String/fromCodePoint" title="String.fromCodePoint() 静态方法返回使用指定的代码点序列创建的字符串。"><code>String.fromCodePoint()</code></a></li>
+<li><a href="Reference/Global_Objects/String/fromCharCode" title="静态 String.fromCharCode() 方法返回使用指定的Unicode值序列创建的字符串。"><code>String.fromCharCode()</code></a></li>
+<li><a href="Reference/Global_Objects/String/charCodeAt" title="charCodeAt() 方法返回0到65535之间的整数，表示给定索引处的UTF-16代码单元 (在 Unicode 编码单元表示一个单一的 UTF-16 编码单元的情况下，UTF-16 编码单元匹配 Unicode 编码单元。但在——例如 Unicode 编码单元 &gt; 0x10000 的这种——不能被一个 UTF-16 编码单元单独表示的情况下，只能匹配 Unicode 代理对的第一个编码单元) 。如果你想要整个代码点的值，使用 codePointAt()。"><code>String.prototype.charCodeAt()</code></a></li>
+<li><a href="Reference/Global_Objects/String/charAt" title="charAt() 方法从一个字符串中返回指定的字符。"><code>String.prototype.charAt()</code></a></li>
+</ul>
+</article>

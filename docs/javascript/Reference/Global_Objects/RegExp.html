@@ -1,0 +1,622 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong><code>RegExp</code></strong> 构造函数创建了一个正则表达式对象，用于将文本与一个模式匹配。</p>
+<p>有关正则表达式的介绍，请阅读 <a class="new" href="https://developer.mozilla.orgGuide/" rel="nofollow">JavaScript指南</a>中的<a href="https://developer.mozilla.orgGuide/Regular_Expressions">正则表达式章节</a>。</p>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/regexp-constructor.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<p>字面量, 构造函数和工厂符号都是可以的：</p>
+<pre class="syntaxbox">/<em>pattern</em>/<em>flags</em>
+<em>new </em>RegExp(<em>pattern</em> <em>[, flags]</em>)
+RegExp(<em>pattern</em> <em>[, flags]</em>)
+</pre>
+<h3 id="Parameters" name="Parameters">参数</h3>
+<dl>
+<dt><code>pattern</code></dt>
+<dd>正则表达式的文本。</dd>
+<dt><code>flags</code></dt>
+<dd>
+<p>如果指定，标志可以具有以下值的任意组合：</p>
+<dl>
+<dt><code>g</code></dt>
+<dd>全局匹配;找到所有匹配，而不是在第一个匹配后停止</dd>
+<dt><code>i</code></dt>
+<dd>忽略大小写</dd>
+<dt><code>m</code></dt>
+<dd>多行; 将开始和结束字符（^和$）视为在多行上工作（也就是，分别匹配每一行的开始和结束（由 \n 或 \r 分割），而不只是只匹配整个输入字符串的最开始和最末尾处。</dd>
+<dt>u</dt>
+<dd>Unicode; 将模式视为Unicode序列点的序列</dd>
+<dt><code>y</code></dt>
+<dd>粘性匹配; 仅匹配目标字符串中此正则表达式的lastIndex属性指示的索引(并且不尝试从任何后续的索引匹配)。</dd>
+</dl>
+</dd>
+</dl>
+<h2 id="Description" name="Description">描述</h2>
+<p>有两种方法来创建一个RegExp对象：一是字面量、二是构造函数。要指示字符串，字面量的参数不使用引号，而构造函数的参数使用引号。因此，以下表达式创建相同的正则表达式：</p>
+<pre class="brush: js" style="font-size: 14px;">/ab+c/i;
+new RegExp('ab+c', 'i');
+new RegExp(/ab+c/, 'i');</pre>
+<p>当表达式被赋值时，字面量形式提供正则表达式的编译（compilation）状态，当正则表达式保持为常量时使用字面量。例如当你在循环中使用字面量构造一个正则表达式时，正则表达式不会在每一次迭代中都被重新编译（recompiled）。</p>
+<p>而正则表达式对象的构造函数，如 <code>new RegExp('ab+c')</code> 提供了正则表达式运行时编译（runtime compilation）。如果你知道正则表达式模式将会改变，或者你事先不知道什么模式，而是从另一个来源获取，如用户输入，这些情况都可以使用构造函数。</p>
+<p>从ECMAScript 6开始，当第一个参数为正则表达式而第二个标志参数存在时，new RegExp(/ab+c/, 'i')不再抛出<a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> （“当从其他正则表达式进行构造时不支持标志”）的异常，取而代之，将使用这些参数创建一个新的正则表达式。</p>
+<p>当使用构造函数创造正则对象时，需要常规的字符转义规则（在前面加反斜杠 \）。比如，以下是等价的：</p>
+<pre class="brush: js">var re = new RegExp("\\w+");
+var re = /\w+/;</pre>
+<h2 id="Special_characters_in_regular_expressions" name="Special_characters_in_regular_expressions">正则表达式中特殊字符的含义</h2>
+<ul>
+<li><a href="https://developer.mozilla.orgReference/Global_Objects/RegExp#character-classes">字符类别（Character Classes）</a></li>
+<li><a href="https://developer.mozilla.orgReference/Global_Objects/RegExp#character-sets">字符集合（Character Sets）</a></li>
+<li><a href="https://developer.mozilla.orgReference/Global_Objects/RegExp#boundaries">边界（Boundaries）</a></li>
+<li><a href="https://developer.mozilla.orgReference/Global_Objects/RegExp#grouping-back-references">分组（grouping）与反向引用（back references）</a></li>
+<li><a href="https://developer.mozilla.orgReference/Global_Objects/RegExp#quantifiers">数量词（Quantifiers）</a></li>
+<li><a href="https://developer.mozilla.orgReference/Global_Objects/RegExp#assertions">断言（Assertions）</a></li>
+</ul>
+<table class="fullwidth-table">
+<tbody>
+<tr id="character-classes">
+<th colspan="2">字符类别（Character Classes）</th>
+</tr>
+<tr>
+<th>字符</th>
+<th>含义</th>
+</tr>
+<tr>
+<td><code>.</code></td>
+<td>
+<p>(点号，小数点) 匹配任意单个字符，但是行结束符除外：<code>\n</code> <code>\r</code> <code>\u2028</code> 或 <code>\u2029</code>。</p>
+<p>在字符集中，点( . )失去其特殊含义，并匹配一个字面点( . )。</p>
+<p>需要注意的是，<code>m</code> 多行（multiline）标志不会改变点号的表现。因此为了匹配多行中的字符集，可使用<code>[^]</code> （当然你不是打算用在旧版本 IE 中），它将会匹配任意字符，包括换行符。</p>
+<p>例如，<code>/.y/</code> 匹配 "yes make my day" 中的 "my" 和 "ay"，但是不匹配 "yes"。</p>
+</td>
+</tr>
+<tr>
+<td><code>\d</code></td>
+<td>
+<p>匹配任意阿拉伯数字。等价于<code>[0-9]</code>。</p>
+<p>例如，<code>/\d/</code> 或 <code>/[0-9]/</code> 匹配 "B2 is the suite number." 中的 '2'。 </p>
+</td>
+</tr>
+<tr>
+<td><code>\D</code></td>
+<td>
+<p>匹配任意一个不是阿拉伯数字的字符。等价于<code>[^0-9]</code>。</p>
+<p>例如，<code>/\D/</code> 或 <code>/[^0-9]/</code> 匹配 "B2 is the suite number." 中的 'B'。</p>
+</td>
+</tr>
+<tr>
+<td><code>\w</code></td>
+<td>
+<p>匹配任意来自基本拉丁字母表中的字母数字字符，还包括下划线。等价于 <code>[A-Za-z0-9_]</code>。</p>
+<p>例如，<code>/\w/</code> 匹配 "apple" 中的 'a'，"$5.28" 中的 '5' 和 "3D" 中的 '3'。</p>
+</td>
+</tr>
+<tr>
+<td><code>\W</code></td>
+<td>
+<p>匹配任意不是基本拉丁字母表中单词（字母数字下划线）字符的字符。等价于 <code>[^A-Za-z0-9_]</code>。</p>
+<p>例如，<code>/\W/</code> 或 <code>/[^A-Za-z0-9_]/</code> 匹配 "50%" 中的 '%'。</p>
+</td>
+</tr>
+<tr>
+<td><code>\s</code></td>
+<td>
+<p>匹配一个空白符，包括空格、制表符、换页符、换行符和其他 Unicode 空格。</p>
+<p>等价于 <code>[ \f\n\r\t\v​\u00a0\u1680​\u180e\u2000​\u2001\u2002​\u2003\u2004​ \u2005\u2006​\u2007\u2008​\u2009\u200a​\u2028\u2029​​\u202f\u205f​ \u3000]。</code></p>
+<p>例如 <code>/\s\w*/</code> 匹配 "foo bar" 中的 ' bar'。</p>
+</td>
+</tr>
+<tr>
+<td><code>\S</code></td>
+<td>
+<p>匹配一个非空白符。等价于 <code><code>[^ \f\n\r\t\v​\u00a0\u1680​\u180e\u2000​\u2001\u2002​\u2003\u2004​ \u2005\u2006​\u2007\u2008​\u2009\u200a​\u2028\u2029​\u202f\u205f​\u3000]</code></code>。</p>
+<p>例如，<code>/\S\w*/</code> 匹配 "foo bar" 中的 'foo'。</p>
+</td>
+</tr>
+<tr>
+<td><code>\t</code></td>
+<td>匹配一个水平制表符（tab）</td>
+</tr>
+<tr>
+<td><code>\r</code></td>
+<td>匹配一个回车符（carriage return）</td>
+</tr>
+<tr>
+<td><code>\n</code></td>
+<td>匹配一个换行符（linefeed）</td>
+</tr>
+<tr>
+<td><code>\v</code></td>
+<td>匹配一个垂直制表符（vertical tab）</td>
+</tr>
+<tr>
+<td><code>\f</code></td>
+<td>匹配一个换页符（form-feed）</td>
+</tr>
+<tr>
+<td><code>[\b]</code></td>
+<td>匹配一个退格符（backspace）（不要与 <code>\b</code> 混淆）</td>
+</tr>
+<tr>
+<td><code>\0</code></td>
+<td>匹配一个 NUL 字符。不要在此后面跟小数点。</td>
+</tr>
+<tr>
+<td><code>\c<em>X</em></code></td>
+<td>
+<p><code><em>X</em></code> 是 A - Z 的一个字母。匹配字符串中的一个控制字符。</p>
+<p>例如，<code>/\cM/</code> 匹配字符串中的 control-M。</p>
+</td>
+</tr>
+<tr>
+<td><code>\x<em>hh</em></code></td>
+<td>匹配编码为 <code><em>hh</em></code> （两个十六进制数字）的字符。</td>
+</tr>
+<tr>
+<td><code>\u<em>hhhh</em></code></td>
+<td>匹配 Unicode 值为 <code><em>hhhh</em></code> （四个十六进制数字）的字符。</td>
+</tr>
+<tr>
+<td><code>\</code></td>
+<td>
+<p>对于那些通常被认为字面意义的字符来说，表示下一个字符具有特殊用处，并且不会被按照字面意义解释。</p>
+<p>例如 <code>/b/</code> 匹配字符 'b'。在 b 前面加上一个反斜杠，即使用 <code>/\b/</code>，则该字符变得特殊，以为这匹配一个单词边界。</p>
+<p><em>或</em></p>
+<p>对于那些通常特殊对待的字符，表示下一个字符不具有特殊用途，会被按照字面意义解释。</p>
+<p>例如，* 是一个特殊字符，表示匹配某个字符 0 或多次，如 <code>/a*/</code> 意味着 0 或多个 "a"。 为了匹配字面意义上的 <code>*</code> ，在它前面加上一个反斜杠，例如，<code>/a\*/</code>匹配 'a*'。</p>
+</td>
+</tr>
+</tbody>
+<tbody>
+<tr id="character-sets">
+<th colspan="2">字符集合（Character Sets）</th>
+</tr>
+<tr>
+<th>字符</th>
+<th>含义</th>
+</tr>
+<tr>
+<td><code>[xyz]</code></td>
+<td>
+<p>一个字符集合，也叫字符组。匹配集合中的任意一个字符。你可以使用连字符'-'指定一个范围。</p>
+<p>例如，[abcd] 等价于 [a-d]，匹配"brisket"中的'b'和"chop"中的'c'。</p>
+</td>
+</tr>
+<tr>
+<td><code>[^xyz]</code></td>
+<td>
+<p>一个反义或补充字符集，也叫反义字符组。也就是说，它匹配任意不在括号内的字符。你也可以通过使用连字符 '-' 指定一个范围内的字符。</p>
+<p>例如，<code>[^abc]</code> 等价于 <code>[^a-c]。</code> 第一个匹配的是 "bacon" 中的'o' 和 "chop" 中的 'h'。</p>
+</td>
+</tr>
+</tbody>
+<tbody>
+<tr id="boundaries">
+<th colspan="2">边界（Boundaries）</th>
+</tr>
+<tr>
+<th>字符</th>
+<th>含义</th>
+</tr>
+<tr>
+<td><code>^</code></td>
+<td>
+<p>匹配输入开始。如果多行（multiline）标志被设为 true，该字符也会匹配一个断行（line break）符后的开始处。</p>
+<p>例如，<code>/^A/</code> 不匹配 "an A" 中的 "A"，但匹配 "An A" 中的 "A"。</p>
+</td>
+</tr>
+<tr>
+<td><code>$</code></td>
+<td>
+<p>匹配输入结尾。如果多行（multiline）标志被设为 true，该字符也会匹配一个断行（line break）符的前的结尾处。</p>
+<p>例如，<code>/t$/</code> 不匹配 "eater" 中的 "t"，但匹配 "eat" 中的 "t"。</p>
+</td>
+</tr>
+<tr>
+<td><code>\b</code></td>
+<td>
+<p>匹配一个零宽单词边界（zero-width word boundary），如一个字母与一个空格之间。 （不要和 <code>[\b]</code> 混淆）</p>
+<p>例如，<code>/\bno/</code> 匹配 "at noon" 中的 "no"，<code>/ly\b/</code> 匹配 "possibly yesterday." 中的 "ly"。</p>
+</td>
+</tr>
+<tr>
+<td><code>\B</code></td>
+<td>
+<p>匹配一个零宽非单词边界（zero-width non-word boundary），如两个字母之间或两个空格之间。</p>
+<p>例如，<code>/\Bon/</code> 匹配 "at noon" 中的 "on"，<code>/ye\B/</code> 匹配 "possibly yesterday." 中的 "ye"。</p>
+</td>
+</tr>
+</tbody>
+<tbody>
+<tr id="grouping-back-references">
+<th colspan="2">分组（Grouping）与反向引用（back references）</th>
+</tr>
+<tr>
+<th>字符</th>
+<th>含义</th>
+</tr>
+<tr>
+<td><code>(<em>x</em>)</code></td>
+<td>
+<p>匹配 <code><em>x</em></code> 并且捕获匹配项。 这被称为捕获括号（capturing parentheses）。</p>
+<p>例如，<code>/(foo)/</code> 匹配且捕获 "foo bar." 中的 "foo"。被匹配的子字符串可以在结果数组的元素 <code>[1], ..., [n]</code> 中找到，或在被定义的 <code>RegExp</code> 对象的属性 <code>$1, ..., $9</code> 中找到。</p>
+<p>捕获组（Capturing groups）有性能惩罚。如果不需再次访问被匹配的子字符串，最好使用非捕获括号（non-capturing parentheses），见下面。</p>
+</td>
+</tr>
+<tr>
+<td><code>\<em>n</em></code></td>
+<td>
+<p><code><em>n</em></code> 是一个正整数。一个反向引用（back reference），指向正则表达式中第 n 个括号（从左开始数）中匹配的子字符串。</p>
+<p>例如，<code>/apple(,)\sorange\1/</code> 匹配 "apple, orange, cherry, peach." 中的 "apple,orange,"。一个更全面的例子在该表格下面。</p>
+</td>
+</tr>
+<tr>
+<td><code>(?:<em>x</em>)</code></td>
+<td>匹配 <code><em>x</em></code> 不会捕获匹配项。这被称为非捕获括号（non-capturing parentheses）。匹配项不能够从结果数组的元素 <code>[1], ..., [n]</code> 或已被定义的 <code>RegExp</code> 对象的属性 <code>$1, ..., $9</code> 再次访问到。</td>
+</tr>
+</tbody>
+<tbody>
+<tr id="quantifiers">
+<th colspan="2">数量词（Quantifiers）</th>
+</tr>
+<tr>
+<th>字符</th>
+<th>含义</th>
+</tr>
+<tr>
+<td><code><em>x</em>*</code></td>
+<td>
+<p>匹配前面的模式 <em>x</em> 0 或多次。</p>
+<p>例如，<code>/bo*/</code> 匹配 "A ghost booooed" 中的 "boooo"，"A bird warbled" 中的 "b"，但是不匹配 "A goat grunted"。</p>
+</td>
+</tr>
+<tr>
+<td><code><em>x</em>+</code></td>
+<td>
+<p>匹配前面的模式 <em>x</em> 1 或多次。等价于 <code>{1,}</code>。</p>
+<p>例如，<code>/a+/</code> 匹配 "candy" 中的 "a"，"caaaaaaandy" 中所有的 "a"。</p>
+</td>
+</tr>
+<tr>
+<td><code><em>x</em>*?</code><br/>
+<code><em>x</em>+?</code></td>
+<td>
+<p>像上面的 * 和 + 一样匹配前面的模式 <em>x</em>，然而匹配是最小可能匹配。</p>
+<p>例如，<code>/".*?"/</code> 匹配 '"foo" "bar"' 中的 '"foo"'，而 * 后面没有 ? 时匹配 '"foo" "bar"'。</p>
+</td>
+</tr>
+<tr>
+<td><code><em>x</em>?</code></td>
+<td>
+<p>匹配前面的模式 <em>x</em> 0 或 1 次。</p>
+<p>例如，<code>/e?le?/</code> 匹配 "angel" 中的 "el"，"angle" 中的 "le"。</p>
+<p>如果在数量词 <code>*</code>、<code>+</code>、<code>?</code> 或 <code>{}</code>, 任意一个后面紧跟该符号（?），会使数量词变为非贪婪（ non-greedy） ，即匹配次数最小化。反之，默认情况下，是贪婪的（greedy），即匹配次数最大化。</p>
+<p>在使用于向前断言（lookahead assertions）时，见该表格中 <code>(?=)、</code><code>(?!)</code> 和 <code>(?:)</code> 的说明。</p>
+</td>
+</tr>
+<tr>
+<td><code><em>x</em>(?=<em>y</em>)</code></td>
+<td>只有当 <code><em>x</em></code> 后面紧跟着 <code><em>y</em></code> 时，才匹配 <em><code>x</code></em>。 例如，<code>/Jack(?=Sprat)/</code> 只有在 'Jack' 后面紧跟着 'Sprat' 时，才会匹配它。<code>/Jack(?=Sprat|Frost)/</code> 只有在 'Jack' 后面紧跟着 'Sprat' 或 'Frost' 时，才会匹配它。然而，'Sprat' 或 'Frost' 都不是匹配结果的一部分。</td>
+</tr>
+<tr>
+<td><code><em>x</em>(?!<em>y</em>)</code></td>
+<td>
+<p>只有当 <code><em>x</em></code> 后面不是紧跟着 <code><em>y</em></code> 时，才匹配 <code><em>x</em></code>。例如，<code>/\d+(?!\.)/</code> 只有当一个数字后面没有紧跟着一个小数点时，才会匹配该数字。</p>
+<p><code>/\d+(?!\.)/.exec("3.141")</code> 匹配 141 而不是 3.141。</p>
+</td>
+</tr>
+<tr>
+<td><code><em>x</em>|<em>y</em></code></td>
+<td>
+<p>匹配 <code><em>x</em></code> 或 <code><em>y</em></code></p>
+<p>例如，<code>/green|red/</code> 匹配 "green apple" 中的 ‘green'，"red apple." 中的 'red'。</p>
+</td>
+</tr>
+<tr>
+<td><code><em>x</em>{<em>n</em>}</code></td>
+<td>
+<p><code><em>n</em></code> 是一个正整数。前面的模式 <em>x</em> 连续出现 n 次时匹配。</p>
+<p>例如，<code>/a{2}/</code> 不匹配 "candy," 中的 "a"，但是匹配 "caandy," 中的两个 "a"，且匹配 "caaandy." 中的前两个 "a"。</p>
+</td>
+</tr>
+<tr>
+<td><code><em>x</em>{<em>n</em>,}</code></td>
+<td>
+<p><code><em>n</em></code> 是一个正整数。前面的模式 <em>x</em> 连续出现至少 n 次时匹配。</p>
+<p>例如，<code>/a{2,}/</code> 不匹配 "candy" 中的 "a"，但是匹配 "caandy" 和 "caaaaaaandy." 中所有的 "a"。</p>
+</td>
+</tr>
+<tr>
+<td><code><em>x</em>{<em>n</em>,<em>m</em>}</code></td>
+<td>
+<p><code><em>n</em></code> 和 <code><em>m</em></code> 为正整数。前面的模式 x 连续出现至少 n 次，至多 m 次时匹配。</p>
+<p>例如，<code>/a{1,3}/</code> 不匹配 "cndy"，匹配 "candy," 中的 "a"，"caandy," 中的两个 "a"，匹配 "caaaaaaandy" 中的前面三个 "a"。注意，当匹配 "caaaaaaandy" 时，即使原始字符串拥有更多的 "a"，匹配项也是 "aaa"。</p>
+</td>
+</tr>
+</tbody>
+<tbody>
+<tr id="assertions">
+<th colspan="2">断言（Assertions）</th>
+</tr>
+<tr>
+<th>字符</th>
+<th>含义</th>
+</tr>
+<tr>
+<td><code><em>x</em>(?=<em>y</em>)</code></td>
+<td>
+<p>仅匹配被y跟随的x。</p>
+<p>举个例子，<code>/Jack(?=Sprat)/</code>，如果"Jack"后面跟着sprat，则匹配之。</p>
+<p><code>/Jack(?=Sprat|Frost)/</code> ，如果"Jack"后面跟着"Sprat"或者"Frost"，则匹配之。但是，"Sprat" 和"Frost" 都不会在匹配结果中出现。</p>
+</td>
+</tr>
+<tr>
+<td><code><em>x</em>(?!<em>y</em>)</code></td>
+<td>
+<p>仅匹配不被y跟随的x。</p>
+<p>举个例子，<code>/\d+(?!\.)/</code> 只会匹配不被点（.）跟随的数字。<br/>
+<code>/\d+(?!\.)/.exec('3.141') </code>匹配"141"，而不是"3.141"</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+<ol>
+<li><span id="endnote_equivalent_s"><strong><a href="https://developer.mozilla.orgReference/Global_Objects/RegExp#ref_equivalent_s">^</a></strong></span>等价于:
+  <p><code>[\t\n\v\f\r \u00a0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000]</code></p>
+</li>
+</ol>
+<h3 id="Properties" name="Properties">属性</h3>
+<dl>
+<dt><a href="Reference/Global_Objects/RegExp/prototype" title="RegExp.prototype 属性表示 RegExp 构造函数的原型对象。"><code>RegExp.prototype</code></a></dt>
+<dd>允许为所有正则对象添加属性。</dd>
+<dt>RegExp.length</dt>
+<dd><code>RegExp.length</code> 值为 2。</dd>
+</dl>
+<div><div class="blockIndicator inheritsbox template-jsOverrides">
+<div><span style="font-weight: 700;">Properties inherited from <a href="https://developer.mozilla.orgReference/Global_Objects/Function"><code>Function</code></a>:</span></div>
+<div><a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Function/Arity"><code>arity</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Function/Caller"><code>caller</code></a>, <a class="internal new" href="https://developer.mozilla.orgReference/Global_Objects/Function/Constructor" rel="nofollow"><code>constructor</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Function/Length"><code>length</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Function/Name"><code>name</code></a></div>
+</div></div>
+<h3 id="Methods" name="Methods">方法</h3>
+<div>全局对象<span style="line-height: 1.5;"> </span><code style="font-size: 14px;">RegExp</code><span style="line-height: 1.5;"> 自身没有方法, 不过它会继承一些方法通过原型链</span></div>
+<div> </div>
+<p></p><div class="blockIndicator inheritsbox template-jsOverrides">
+<div><span style="font-weight: 700;">Methods inherited from <a href="https://developer.mozilla.orgReference/Global_Objects/Function"><code>Function</code></a>:</span></div>
+<div><a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Function/Apply"><code>apply</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Function/Call"><code>call</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Function/ToSource"><code>toSource</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Function/ToString"><code>toString</code></a></div>
+</div><p></p>
+<h2 id="RegExp_实例">RegExp 实例</h2>
+<h3 id="RegExp_instances-Properties" name="RegExp_instances-Properties">属性</h3>
+<div><p>查看<a class="new" href="/zh-CN/docs/JavaScript/Reference/Deprecated_Features#RegExp_Properties" rel="nofollow" title="zh-CN/docs/JavaScript/Reference/Deprecated_Features#RegExp_Properties">已废弃的RegExp属性</a></p>
+<p>注意，<code>RegExp</code> 对象的几个属性既有完整的长属性名，也有对应的类 Perl 的短属性名。两个属性都有着同样的值。JavaScript 的正则语法就是基于 Perl 的。</p>
+<dl>
+<dt>
+<code style="font-style: normal; font-weight: bold;">RegExp.prototype.</code><code style="font-style: normal; font-weight: bold;">constructor</code></dt>
+<dd>
+  创建该正则对象的构造函数。</dd>
+<dt>
+<a href="Reference/Global_Objects/RegExp/global" title='global 属性表明正则表达式是否使用了 "g" 标志。global 是一个正则表达式实例的只读属性。'><code>RegExp.prototype.global</code></a></dt>
+<dd>
+  是否开启全局匹配，也就是匹配目标字符串中所有可能的匹配项，而不是只进行第一次匹配。</dd>
+<dt>
+<a href="Reference/Global_Objects/RegExp/ignoreCase" title='ignoreCase 属性表明正则表达式是否使用了 "i" 标志。ignoreCase 是正则表达式实例的只读属性。'><code>RegExp.prototype.ignoreCase</code></a></dt>
+<dd>
+  在匹配字符串时是否要忽略字符的大小写。</dd>
+<dt>
+<a href="Reference/Global_Objects/RegExp/lastIndex" title="lastIndex 是正则表达式的一个可读可写的整型属性，用来指定下一次匹配的起始索引。"><code>RegExp.prototype.lastIndex</code></a></dt>
+<dd>
+  下次匹配开始的字符串索引位置。</dd>
+<dt>
+<a href="Reference/Global_Objects/RegExp/multiline" title='multiline 属性表明正则表达式是否使用了 "m" 标志。multiline 是正则表达式实例的一个只读属性。'><code>RegExp.prototype.multiline</code></a></dt>
+<dd>
+  是否开启多行模式匹配（影响 ^ 和 $ 的行为）。</dd>
+<dt>
+<a href="Reference/Global_Objects/RegExp/source" title="source 属性返回一个值为当前正则表达式对象的模式文本的字符串，该字符串不会包含正则字面量两边的斜杠以及任何的标志字符。"><code>RegExp.prototype.source</code></a></dt>
+<dd>
+  正则对象的源模式文本。</dd>
+<dt>
+<a href="Reference/Global_Objects/RegExp/sticky" title="sticky 属性反映了搜索是否具有粘性（ 仅从正则表达式的 lastIndex 属性表示的索引处搜索 ）。sticky 是正则表达式对象的只读属性。"><code>RegExp.prototype.sticky</code></a> <span title="这是一个实验性的 API，请尽量不要在生产环境中使用它。"><i class="icon-beaker"> </i></span></dt>
+<dd>
+  是否开启粘滞匹配。</dd>
+</dl>
+<div>
+<div class="blockIndicator inheritsbox template-jsOverrides">
+<div><span style="font-weight: 700;">Properties inherited from <a href="https://developer.mozilla.orgReference/Global_Objects/Object"><code>Object</code></a>:</span></div>
+<div><a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/Parent"><code>__parent__</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/Proto"><code>__proto__</code></a></div>
+</div></div></div>
+<h3 id="方法">方法</h3>
+<div><p>查看<a class="new" href="/zh-CN/docs/JavaScript/Reference/Deprecated_Features#RegExp_Methods" rel="nofollow" title="zh-CN/docs/JavaScript/Reference/Deprecated_Features#RegExp_Methods">已废弃的RegExp方法</a></p>
+<dl>
+<dt>
+<a href="Reference/Global_Objects/RegExp/exec" title="exec() 方法在一个指定字符串中执行一个搜索匹配。返回一个结果数组或 null。"><code>RegExp.prototype.exec()</code></a></dt>
+<dd>
+  在目标字符串中执行一次正则匹配操作。</dd>
+<dt>
+<a href="Reference/Global_Objects/RegExp/test" title="test() 方法执行一个检索，用来查看正则表达式与指定的字符串是否匹配。返回 true 或 false。"><code>RegExp.prototype.test()</code></a></dt>
+<dd>
+  测试当前正则是否能匹配目标字符串。</dd>
+<dt>
+<a href="Reference/Global_Objects/RegExp/toSource" title="返回一个字符串,代表当前对象的源代码"><code>RegExp.prototype.toSource()</code></a> <span class="icon-only-inline" title="This API has not been standardized."><i class="icon-warning-sign"> </i></span></dt>
+<dd>
+  返回一个字符串，其值为该正则对象的字面量形式。覆盖了<code>Object.prototype.toSource</code> 方法.</dd>
+<dt>
+<a href="Reference/Global_Objects/RegExp/toString" title="toString() 返回一个表示该正则表达式的字符串。"><code>RegExp.prototype.toString()</code></a></dt>
+<dd>
+  返回一个字符串，其值为该正则对象的字面量形式。覆盖了<a href="Reference/Global_Objects/Object/toString" title="toString() 方法返回一个表示该对象的字符串。"><code>Object.prototype.toString()</code></a> 方法。</dd>
+</dl>
+<div>
+<div class="blockIndicator inheritsbox template-jsOverrides">
+<div><span style="font-weight: 700;">Methods inherited from <a href="https://developer.mozilla.orgReference/Global_Objects/Object"><code>Object</code></a>:</span></div>
+<div><a class="internal new" href="https://developer.mozilla.orgReference/Global_Objects/Object/DefineGetter" rel="nofollow"><code>__defineGetter__</code></a>, <a class="internal new" href="https://developer.mozilla.orgReference/Global_Objects/Object/DefineSetter" rel="nofollow"><code>__defineSetter__</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/HasOwnProperty"><code>hasOwnProperty</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/IsPrototypeOf"><code>isPrototypeOf</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/LookupGetter"><code>__lookupGetter__</code></a>, <a class="internal new" href="https://developer.mozilla.orgReference/Global_Objects/Object/LookupSetter" rel="nofollow"><code>__lookupSetter__</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/NoSuchMethod"><code>__noSuchMethod__</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/PropertyIsEnumerable"><code>propertyIsEnumerable</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/ToLocaleString"><code>toLocaleString</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/Unwatch"><code>unwatch</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/ValueOf"><code>valueOf</code></a>, <a class="internal" href="https://developer.mozilla.orgReference/Global_Objects/Object/Watch"><code>watch</code></a></div>
+</div></div></div>
+<h2 id="例子">例子</h2>
+<h3 id="Example:_Using_a_regular_expression_to_change_data_format" name="Example:_Using_a_regular_expression_to_change_data_format">例子：使用正则改变数据结构</h3>
+<p>下例使用 <a href="Reference/Global_Objects/String/replace" title="replace() 方法返回一个由替换值（replacement）替换一些或所有匹配的模式（pattern）后的新字符串。模式可以是一个字符串或者一个正则表达式，替换值可以是一个字符串或者一个每次匹配都要调用的函数。"><code>replace</code></a> 方法 （继承自 <a href="Reference/Global_Objects/String" title="String 全局对象是一个用于字符串或一个字符序列的构造函数。"><code>String</code></a>）去匹配姓名 <em>first last </em>输出新的格式 <em>last</em>, <em>first</em>。脚本中使用 <code>$1 和</code> <code>$2</code> 指明括号里先前的匹配.</p>
+<pre class="brush: js">var re = /(\w+)\s(\w+)/;
+var str = "John Smith";
+var newstr = str.replace(re, "$2, $1");
+print(newstr);</pre>
+<p>显示 "Smith, John".</p>
+<h3 id="例子：在多行中使用正则表达式" style="line-height: 24px;">例子：在多行中使用正则表达式</h3>
+<pre class="brush: js">var s = "Please yes\nmake my day!";
+s.match(/yes.*day/);
+// Returns null
+s.match(/yes[^]*day/);
+// Returns 'yes\nmake my day'</pre>
+<h3 id="Example:_Using_a_regular_expression_with_the_sticky_flag" name="Example:_Using_a_regular_expression_with_the_sticky_flag">例子: 使用带有 ”sticky“ 标志的正则表达式</h3>
+<p>该例展示了，如何在正则表达式上使用 sticky 标志，用来匹配多行输入的单独行。</p>
+<pre class="brush: js">var text = "First line\nsecond line";
+var regex = /(\S+) line\n?/y;
+
+var match = regex.exec(text);
+print(match[1]);  // prints "First"
+print(regex.lastIndex); // prints 11
+
+var match2 = regex.exec(text);
+print(match2[1]); // prints "Second"
+print(regex.lastIndex); // prints "22"
+
+var match3 = regex.exec(text);
+print(match3 === null); // prints "true"</pre>
+<p>可以使用 <code>try { … } catch { … }</code> 来测试运行时（run-time）是否支持 <code>sticky</code> 标志。这种情况下，必须使用 <code>eval(…)</code> 表达式或 <code>RegExp(<var>regex-string</var>, <var>flags-string</var>)</code> 语法（这是由于 <code>/<var>regex</var>/<var>flags</var></code> 表示法将会在编译时刻被处理，因此在 <code>catch</code> 语句块处理异常前就会抛出一个异常。例如：</p>
+<pre class="brush: js">var supports_sticky;
+try { RegExp('','y'); supports_sticky = true; }
+catch(e) { supports_sticky = false; }
+alert(supports_sticky); // alerts "false" in Firefox 2, "true" in Firefox 3+</pre>
+<h3 id="Browser_Compatibility" name="Browser_Compatibility">例子：使用正则表达式和 Unicode 字符</h3>
+<p>正如上面表格提到的，<code>\w</code> 或 <code>\W</code> 只会匹配基本的 ASCII 字符；如 'a' 到 'z'、 'A' 到 'Z'、 0 到 9 及 '_'。为了匹配其他语言中的字符，如西里尔（Cyrillic）或 希伯来语（Hebrew），要使用 <code>\uhhhh</code>，"hhhh" 表示以十六进制表示的字符的 Unicode 值。下例展示了怎样从一个单词中分离出 Unicode 字符。</p>
+<pre class="brush: js">var text = "Образец text на русском языке";
+var regex = /[\u0400-\u04FF]+/g;
+
+var match = regex.exec(text);
+print(match[1]);  // prints "Образец"
+print(regex.lastIndex);  // prints "7"
+
+var match2 = regex.exec(text);
+print(match2[1]);  // prints "на" [did not print "text"]
+print(regex.lastIndex);  // prints "15"
+
+// and so on</pre>
+<p>这里有一个外部资源，用来获取 Unicode 中的不同区块范围：<a class="external" href="http://kourge.net/projects/regexp-unicode-block" rel="noopener" title="http://kourge.net/projects/regexp-unicode-block">Regexp-unicode-block</a></p>
+<h3 id="例子：从_URL_中提取子域名" style="line-height: 24px;">例子：从 URL 中提取子域名</h3>
+<pre class="brush: js">var url = "http://xxx.domain.com";
+print(/[^.]+/.exec(url)[0].substr(7)); // prints "xxx"</pre>
+<h2 id="规范" style="margin-bottom: 20px; line-height: 30px;">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td>ECMAScript 1st Edition. Implemented in JavaScript 1.1</td>
+<td>Standard</td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-15.10" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">RegExp</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-regexp-regular-expression-objects" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">RegExp</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="Browser_Compatibility" name="Browser_Compatibility">浏览器兼容性</h2>
+<p></p><div class="blockIndicator warning"><strong><a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">We're converting our compatibility data into a machine-readable JSON format</a></strong>.
+            This compatibility table still uses the old format,
+            because we haven't yet converted the data it contains.
+            <strong><a class="new" href="/zh-CN/docs/MDN/Contribute/Structures/Compatibility_tables" rel="nofollow">Find out how you can help!</a></strong></div>
+<div class="htab">
+<a id="AutoCompatibilityTable" name="AutoCompatibilityTable"></a>
+<ul>
+<li class="selected"><a>Desktop</a></li>
+<li><a>Mobile</a></li>
+</ul>
+</div><p></p>
+<div id="compat-desktop">
+<table class="compat-table">
+<tbody>
+<tr>
+<th style="line-height: 16px;">Feature</th>
+<th style="line-height: 16px;">Chrome</th>
+<th style="line-height: 16px;">Firefox (Gecko)</th>
+<th style="line-height: 16px;">Internet Explorer</th>
+<th style="line-height: 16px;">Opera</th>
+<th style="line-height: 16px;">Safari</th>
+</tr>
+<tr>
+<td>Basic support</td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+</tr>
+<tr>
+<td>Sticky flag ("y")</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><a href="/en-US/Firefox/Releases/3" title="Released on 2008-06-17.">3.0</a> (1.9)</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="compat-mobile">
+<table class="compat-table">
+<tbody>
+<tr>
+<th style="line-height: 16px;">Feature</th>
+<th style="line-height: 16px;">Android</th>
+<th style="line-height: 16px;">Chrome for Android</th>
+<th style="line-height: 16px;">Firefox Mobile (Gecko)</th>
+<th style="line-height: 16px;">IE Mobile</th>
+<th style="line-height: 16px;">Opera Mobile</th>
+<th style="line-height: 16px;">Safari Mobile</th>
+</tr>
+<tr>
+<td>Basic support</td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+</tr>
+<tr>
+<td>Sticky flag ("y")</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td>1.0 (1.9)</td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p id="相关链接" style="margin-bottom: 20px; line-height: 30px;">[1] Behind a flag.</p>
+<p>[2] At least from version 41.</p>
+<h2 id="Gecko-特定的_注释">Gecko-特定的 注释</h2>
+<p>Starting with Gecko 34 (Firefox 34 / Thunderbird 34 / SeaMonkey 2.31), in the case of a capturing group with quantifiers preventing its exercise, the matched text for a capturing group is now <code>undefined</code> instead of an empty string:</p>
+<pre><code>// Firefox 33 or older
+'x'.replace(/x(.)?/g, function(m, group) {
+  console.log("'group:" + group + "'");
+}); // 'group:'
+
+// Firefox 34 or newer
+'x'.replace(/x(.)?/g, function(m, group) {
+  console.log("'group:" + group + "'");
+}); // 'group:undefined'</code></pre>
+<p>Note that due to web compatibility, <code>RegExp.$N</code> will still return an empty string instead of <code>undefined</code> (<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1053944" rel="noopener" title="FIXED: RegExp.$N changed behavior since FF 33">bug 1053944</a>).</p>
+<h2 id="相关链接_2">相关链接</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions" title="JavaScript/Guide/Regular_Expressions">Regular Expressions</a> chapter in the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide" title="JavaScript/Guide">JavaScript Guide</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match">String.prototype.match()</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace">String.prototype.replace()</a></li>
+</ul>
+</article>

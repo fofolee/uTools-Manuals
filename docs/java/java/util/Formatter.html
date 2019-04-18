@@ -1,0 +1,1231 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util 
+   </div>
+<h2 class="title" title="Class Formatter">Class Formatter</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.util.Formatter</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Closeable.html" title="java.io中的接口">Closeable</a> ， <a href="../../java/io/Flushable.html" title="java.io中的接口">Flushable</a> ， <a href="../../java/lang/AutoCloseable.html" title="java.lang中的接口">AutoCloseable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">Formatter</span>
+extends <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../java/io/Closeable.html" title="interface in java.io">Closeable</a>, <a href="../../java/io/Flushable.html" title="interface in java.io">Flushable</a></pre>
+<div class="block">
+<span>printf风格格式字符串的解释器。</span>
+<span>此类提供对布局调整和对齐的支持，数字，字符串和日期/时间数据的常用格式以及特定于区域设置的输出。</span>
+<span>常见的Java类型，如<code>byte</code> ， <a href="../../java/math/BigDecimal.html" title="java.math中的类"><code>BigDecimal</code></a>和<a href="../../java/util/Calendar.html" title="java.util中的类"><code>Calendar</code></a>都支持。</span>
+<span>通过<a href="../../java/util/Formattable.html" title="java.util中的接口"><code>Formattable</code></a>接口提供了用于任意用户类型的<a href="../../java/util/Formattable.html" title="java.util中的接口">限制</a>格式化定制。</span>
+<p> <span>对于多线程访问，格式化器不一定是安全的。</span> <span>线程安全是可选的，是本课程中用户的责任。</span> </p>
+<p> <span>Java语言的格式化打印受到C的<code>printf</code>极大启发。</span> <span>虽然格式字符串类似于C，但是已经进行了一些自定义以适应Java语言并利用其一些功能。</span> <span>此外，Java格式化比C更严格;</span> <span>例如，如果转换与标志不兼容，将抛出异常。</span> <span>在C中，不适用的标志被忽略。</span> <span>因此，格式字符串旨在被C程序员识别，但不一定完全与C中的那些完全兼容。</span> </p>
+<p> <span>预期用途示例：</span> </p>
+<blockquote>
+<span><pre>
+   StringBuilder sb = new StringBuilder();
+   // Send all output to the Appendable object sb
+   Formatter formatter = new Formatter(sb, Locale.US);
+
+   // Explicit argument indices may be used to re-order output.
+   formatter.format("%4$2s %3$2s %2$2s %1$2s", "a", "b", "c", "d")
+   // -&gt; " d  c  b  a"
+
+   // Optional locale as the first argument can be used to get
+   // locale-specific formatting of numbers.  The precision and width can be
+   // given to round and align the value.
+   formatter.format(Locale.FRANCE, "e = %+10.4f", Math.E);
+   // -&gt; "e =    +2,7183"
+
+   // The '(' numeric flag may be used to format negative numbers with
+   // parentheses rather than a minus sign.  Group separators are
+   // automatically inserted.
+   formatter.format("Amount gained or lost since last statement: $ %(,.2f",
+                    balanceDelta);
+   // -&gt; "Amount gained or lost since last statement: $ (6,217.58)"
+ </pre></span>
+</blockquote>
+<p> <span>存在通用格式化请求的方便方法，如以下调用所示：</span> </p>
+<blockquote>
+<span><pre>
+   // Writes a formatted string to System.out.
+   System.out.format("Local time: %tT", Calendar.getInstance());
+   // -&gt; "Local time: 13:34:18"
+
+   // Writes formatted output to System.err.
+   System.err.printf("Unable to open file '%1$s': %2$s",
+                     fileName, exception.getMessage());
+   // -&gt; "Unable to open file 'food': No such file or directory"
+ </pre></span>
+</blockquote>
+<p> <span>像C的<code>sprintf(3)</code> ，字符串可能使用静态方法<a href="../../java/lang/String.html#format-java.lang.String-java.lang.Object...-"><code>String.format</code>进行格式化</a> ：</span> </p>
+<blockquote>
+<span><pre>
+   // Format a string containing a date.
+   import java.util.Calendar;
+   import java.util.GregorianCalendar;
+   import static java.util.Calendar.*;
+
+   Calendar c = new GregorianCalendar(1995, MAY, 23);
+   String s = String.format("Duke's Birthday: %1$tb %1$te, %1$tY", c);
+   // -&gt; s == "Duke's Birthday: May 23, 1995"
+ </pre></span>
+</blockquote>
+<h3> <span><a name="org">Organization</a></span> </h3>
+<p> <span>本规范分为两部分。</span> <span>第一部分， <a href="#summary">Summary</a> ，涵盖了基本的格式化概念。</span> <span>本节适用于想要快速入门并熟悉其他编程语言格式化打印的用户。</span> <span>第二部分， <a href="#detail">Details</a> ，具体实现细节。</span> <span>它适用于希望更精确地规定格式化行为的用户。</span> </p>
+<h3> <span><a name="summary">Summary</a></span> </h3>
+<p> <span>本节旨在提供格式化概念的简要概述。</span> <span>有关精确的行为细节，请参阅<a href="#detail">Details</a>部分。</span> </p>
+<h4> <span><a name="syntax">Format String Syntax</a></span> </h4>
+<p> <span>产生格式化输出的每种方法都需要<i>格式字符串</i>和<i>参数列表</i> 。</span> <span>格式字符串是一个<a href="../../java/lang/String.html" title="java.lang中的类"><code>String</code></a> ，它可能包含固定文本和一个或多个嵌入式<i>格式说明符</i> 。</span> <span>请考虑以下示例：</span> </p>
+<blockquote>
+<span><pre>
+   Calendar c = ...;
+   String s = String.format("Duke's Birthday: %1$tm %1$te,%1$tY", c);
+ </pre></span>
+</blockquote>
+<span>此格式字符串是<code>format</code>方法的第一个参数。</span>
+<span>它包含三个格式说明符“ <code>%1$tm</code> ”，“ <code>%1$te</code> ”和“ <code>%1$tY</code> ”，它们指示如何处理参数以及应在文本中插入它们。</span>
+<span>格式字符串的其余部分是固定文本，包括<code>"Dukes Birthday: "</code>和任何其他空格或标点符号。</span>
+<span>参数列表由传递给格式字符串后的方法的所有参数组成。</span>
+<span>在上面的例子中，参数列表大小为1，由<a href="../../java/util/Calendar.html" title="java.util中的类"><code>Calendar</code></a>对象<code>c</code> 。</span>
+<ul>
+<li> <span>一般，字符和数字类型的格式说明符具有以下语法：</span>
+<blockquote>
+<span><pre>
+   %[argument_index$][flags][width][.precision]conversion
+ </pre></span>
+</blockquote><p> <span><i>argument_index</i>是一个十进制整数，表示参数在参数列表中的位置。</span> <span>第一个参数为“ <code>1$</code> ”，第二个为“ <code>2$</code> ”等。</span> </p><p> <span>可选<i>标志</i>是修改输出格式的一组字符。</span> <span>该组有效标志取决于转换。</span> </p><p> <span>可选的<i>宽度</i>是一个正十进制整数，表示要写入输出的最小字符数。</span> </p><p> <span>可选<i>精度</i>是通常用于限制<i>字符</i>数的非负十进制整数。</span> <span>具体行为取决于转换。</span> </p><p> <span>所需的<i>转换</i>是一个字符，指示参数应如何格式化。</span> <span>给定参数的一组有效转换取决于参数的数据类型。</span> </p></li>
+<li> <span>用于表示日期和时间的类型的格式说明符具有以下语法：</span>
+<blockquote>
+<span><pre>
+   %[argument_index$][flags][width]conversion
+ </pre></span>
+</blockquote><p> <span><i>argument_index</i> ， <i>flags</i>和<i>width</i>的可选<i>参数</i>如上所述。</span> </p><p> <span>所需的<i>转换</i>是两个字符的顺序。</span> <span>第一个字符是<code>'t'</code>或<code>'T'</code> 。</span> <span>第二个字符表示要使用的格式。</span> <span>这些字符与GNU <code>date</code>和POSIX <code>strftime(3c)</code>所定义的相似但不<code>strftime(3c)</code> 。</span> </p></li>
+<li> <span>与参数不对应的格式说明符具有以下语法：</span>
+<blockquote>
+<span><pre>
+   %[flags][width]conversion
+ </pre></span>
+</blockquote><p> <span>可选<i>标志</i>和<i>宽度</i>如上定义。</span> </p><p> <span>所需的<i>转换</i>是指示要插入输出的内容的字符。</span> </p></li>
+</ul>
+<h4> <span>转换</span> </h4>
+<p> <span>转换分为以下几类：</span> </p>
+<ol>
+<li> <span><b>一般</b> - 可以应用于任何参数类型</span> </li>
+<li> <span><b>字符</b> -可以被施加到其代表的Unicode字符基本类型： <code>char</code> ， <a href="../../java/lang/Character.html" title="java.lang中的类"><code>Character</code></a> ， <code>byte</code> ， <a href="../../java/lang/Byte.html" title="java.lang中的类"><code>Byte</code></a> ， <code>short</code>和<a href="../../java/lang/Short.html" title="java.lang中的类"><code>Short</code></a> 。</span> <span>这种转换也可以被施加到所述类型<code>int</code>和<a href="../../java/lang/Integer.html" title="java.lang中的类"><code>Integer</code></a>时<a href="../../java/lang/Character.html#isValidCodePoint-int-"><code>Character.isValidCodePoint(int)</code></a>返回<code>true</code></span> </li>
+<li> <span><b>数字</b></span>
+<ol>
+<li> <span><b>积分</b> -可应用于Java的整数类型： <code>byte</code> ， <a href="../../java/lang/Byte.html" title="java.lang中的类"><code>Byte</code></a> ， <code>short</code> ， <a href="../../java/lang/Short.html" title="java.lang中的类"><code>Short</code></a> ， <code>int</code>和<a href="../../java/lang/Integer.html" title="java.lang中的类"><code>Integer</code></a> ， <code>long</code> ， <a href="../../java/lang/Long.html" title="java.lang中的类"><code>Long</code></a>和<a href="../../java/math/BigInteger.html" title="java.math中的类"><code>BigInteger</code></a> （但不包括<code>char</code>和<a href="../../java/lang/Character.html" title="java.lang中的类"><code>Character</code></a> ）</span> </li>
+<li> <span><b>浮点</b> -可用于Java的浮点类型： <code>float</code> ， <a href="../../java/lang/Float.html" title="java.lang中的类"><code>Float</code></a> ， <code>double</code> ， <a href="../../java/lang/Double.html" title="java.lang中的类"><code>Double</code></a>和<a href="../../java/math/BigDecimal.html" title="java.math中的类"><code>BigDecimal</code></a></span> </li>
+</ol></li>
+<li> <span><b>日期/时间</b> -可以被施加到Java类型，其能够编码的日期或时间的： <code>long</code> ， <a href="../../java/lang/Long.html" title="java.lang中的类"><code>Long</code></a> ， <a href="../../java/util/Calendar.html" title="java.util中的类"><code>Calendar</code></a> ， <a href="../../java/util/Date.html" title="java.util中的类"><code>Date</code></a>和<a href="../../java/time/temporal/TemporalAccessor.html" title="java.time.temporal中的接口"><code>TemporalAccessor</code></a></span> </li>
+<li> <span><b>百分比</b> - 产生一个文字<code>'%'</code> （ <tt>'\u0025'</tt> ）</span> </li>
+<li> <span><b>线分离器</b> - 生产平台专用线分离器</span> </li>
+</ol>
+<p> <span>下表总结了支持的转换。</span> <span>通过一个大写字符标记转换（即<code>'B'</code> ， <code>'H'</code> ， <code>'S'</code> ， <code>'C'</code> ， <code>'X'</code> ， <code>'E'</code> ， <code>'G'</code> ， <code>'A'</code>和<code>'T'</code> ）相同的那些相应的小写转换字符除了将结果转换成上情况按照当时的规则<a href="../../java/util/Locale.html" title="java.util中的类"><code>Locale</code></a> 。</span> <span>结果相当于以下调用<a href="../../java/lang/String.html#toUpperCase--"><code>String.toUpperCase()</code></a></span> </p>
+<pre>  <span>out.toUpperCase()</span> </pre>
+<span>   Conversion   Argument Category   Description     <code>'b'</code>, <code>'B'</code>   general   If the argument <i>arg</i> is <code>null</code>, then the result is "<code>false</code>". If <i>arg</i> is a <code>boolean</code> or <a href="../../java/lang/Boolean.html" title="class in java.lang"><code>Boolean</code></a>, then the result is the string returned by <a href="../../java/lang/String.html#valueOf-boolean-"><code>String.valueOf(arg)</code></a>. Otherwise, the result is "true".     <code>'h'</code>, <code>'H'</code>   general   If the argument <i>arg</i> is <code>null</code>, then the result is "<code>null</code>". Otherwise, the result is obtained by invoking <code>Integer.toHexString(arg.hashCode())</code>.     <code>'s'</code>, <code>'S'</code>   general   If the argument <i>arg</i> is <code>null</code>, then the result is "<code>null</code>". If <i>arg</i> implements <a href="../../java/util/Formattable.html" title="interface in java.util"><code>Formattable</code></a>, then <a href="../../java/util/Formattable.html#formatTo-java.util.Formatter-int-int-int-"><code>arg.formatTo</code></a> is invoked. Otherwise, the result is obtained by invoking <code>arg.toString()</code>.    <code>'c'</code>, <code>'C'</code>   character   The result is a Unicode character    <code>'d'</code>   integral   The result is formatted as a decimal integer    <code>'o'</code>   integral   The result is formatted as an octal integer    <code>'x'</code>, <code>'X'</code>   integral   The result is formatted as a hexadecimal integer    <code>'e'</code>, <code>'E'</code>   floating point   The result is formatted as a decimal number in computerized scientific notation    <code>'f'</code>   floating point   The result is formatted as a decimal number    <code>'g'</code>, <code>'G'</code>   floating point   The result is formatted using computerized scientific notation or decimal format, depending on the precision and the value after rounding.    <code>'a'</code>, <code>'A'</code>   floating point   The result is formatted as a hexadecimal floating-point number with a significand and an exponent. This conversion is <b>not</b> supported for the <code>BigDecimal</code> type despite the latter's being in the <i>floating point</i> argument category.    <code>'t'</code>, <code>'T'</code>   date/time   Prefix for date and time conversion characters. See <a href="#dt">Date/Time Conversions</a>.    <code>'%'</code>   percent   The result is a literal <code>'%'</code> (<tt>'\u0025'</tt>)    <code>'n'</code>   line separator   The result is the platform-specific line separator   </span>
+<table cellpadding="5" summary="genConv">
+</table>
+<p> <span>任何未明确定义为转换的字符都是非法的，并保留给将来的扩展。</span> </p>
+<h4> <span><a name="dt">Date/Time Conversions</a></span> </h4>
+<p> <span>为<code>'t'</code>和<code>'T'</code>转换定义了以下日期和时间转换后缀字符。</span> <span>类型与GNU <code>date</code>和POSIX <code>strftime(3c)</code>所定义的类似但不<code>strftime(3c)</code> 。</span> <span>提供额外的转换类型（例如访问特定Java的功能<code>'L'</code>内的第二对毫秒）。</span> </p>
+<p> <span>以下转换字符用于格式化时间：</span> </p>
+<span> <code>'H'</code>   Hour of the day for the 24-hour clock, formatted as two digits with a leading zero as necessary i.e. <code>00 - 23</code>.    <code>'I'</code>   Hour for the 12-hour clock, formatted as two digits with a leading zero as necessary, i.e. <code>01 - 12</code>.    <code>'k'</code>   Hour of the day for the 24-hour clock, i.e. <code>0 - 23</code>.    <code>'l'</code>   Hour for the 12-hour clock, i.e. <code>1 - 12</code>.    <code>'M'</code>   Minute within the hour formatted as two digits with a leading zero as necessary, i.e. <code>00 - 59</code>.    <code>'S'</code>   Seconds within the minute, formatted as two digits with a leading zero as necessary, i.e. <code>00 - 60</code> ("<code>60</code>" is a special value required to support leap seconds).    <code>'L'</code>   Millisecond within the second formatted as three digits with leading zeros as necessary, i.e. <code>000 - 999</code>.    <code>'N'</code>   Nanosecond within the second, formatted as nine digits with leading zeros as necessary, i.e. <code>000000000 - 999999999</code>.    <code>'p'</code>   Locale-specific <a href="../../java/text/DateFormatSymbols.html#getAmPmStrings--">morning or afternoon</a> marker in lower case, e.g."<code>am</code>" or "<code>pm</code>". Use of the conversion prefix <code>'T'</code> forces this output to upper case.    <code>'z'</code> <a href="http://www.ietf.org/rfc/rfc0822.txt">RFC 822</a> style numeric time zone offset from GMT, e.g. <code>-0800</code>. This value will be adjusted as necessary for Daylight Saving Time. For <code>long</code>, <a href="../../java/lang/Long.html" title="class in java.lang"><code>Long</code></a>, and <a href="../../java/util/Date.html" title="class in java.util"><code>Date</code></a> the time zone used is the <a href="../../java/util/TimeZone.html#getDefault--">default time zone</a> for this instance of the Java virtual machine.    <code>'Z'</code>   A string representing the abbreviation for the time zone. This value will be adjusted as necessary for Daylight Saving Time. For <code>long</code>, <a href="../../java/lang/Long.html" title="class in java.lang"><code>Long</code></a>, and <a href="../../java/util/Date.html" title="class in java.util"><code>Date</code></a> the time zone used is the <a href="../../java/util/TimeZone.html#getDefault--">default time zone</a> for this instance of the Java virtual machine. The Formatter's locale will supersede the locale of the argument (if any).    <code>'s'</code>   Seconds since the beginning of the epoch starting at 1 January 1970 <code>00:00:00</code> UTC, i.e. <code>Long.MIN_VALUE/1000</code> to <code>Long.MAX_VALUE/1000</code>.    <code>'Q'</code>   Milliseconds since the beginning of the epoch starting at 1 January 1970 <code>00:00:00</code> UTC, i.e. <code>Long.MIN_VALUE</code> to <code>Long.MAX_VALUE</code>.   </span>
+<table cellpadding="5" summary="time">
+</table>
+<p> <span>以下转换字符用于格式化日期：</span> </p>
+<span> <code>'B'</code>   Locale-specific <a href="../../java/text/DateFormatSymbols.html#getMonths--">full month name</a>, e.g. <code>"January"</code>, <code>"February"</code>.    <code>'b'</code>   Locale-specific <a href="../../java/text/DateFormatSymbols.html#getShortMonths--">abbreviated month name</a>, e.g. <code>"Jan"</code>, <code>"Feb"</code>.    <code>'h'</code>   Same as <code>'b'</code>.    <code>'A'</code>   Locale-specific full name of the <a href="../../java/text/DateFormatSymbols.html#getWeekdays--">day of the week</a>, e.g. <code>"Sunday"</code>, <code>"Monday"</code> <code>'a'</code>   Locale-specific short name of the <a href="../../java/text/DateFormatSymbols.html#getShortWeekdays--">day of the week</a>, e.g. <code>"Sun"</code>, <code>"Mon"</code> <code>'C'</code>   Four-digit year divided by <code>100</code>, formatted as two digits with leading zero as necessary, i.e. <code>00 - 99</code> <code>'Y'</code>   Year, formatted as at least four digits with leading zeros as necessary, e.g. <code>0092</code> equals <code>92</code> CE for the Gregorian calendar.    <code>'y'</code>   Last two digits of the year, formatted with leading zeros as necessary, i.e. <code>00 - 99</code>.    <code>'j'</code>   Day of year, formatted as three digits with leading zeros as necessary, e.g. <code>001 - 366</code> for the Gregorian calendar.    <code>'m'</code>   Month, formatted as two digits with leading zeros as necessary, i.e. <code>01 - 13</code>.    <code>'d'</code>   Day of month, formatted as two digits with leading zeros as necessary, i.e. <code>01 - 31</code> <code>'e'</code>   Day of month, formatted as two digits, i.e. <code>1 - 31</code>.   </span>
+<table cellpadding="5" summary="date">
+</table>
+<p> <span>以下转换字符用于格式化常用日期/时间合成。</span> </p>
+<span> <code>'R'</code>   Time formatted for the 24-hour clock as <code>"%tH:%tM"</code> <code>'T'</code>   Time formatted for the 24-hour clock as <code>"%tH:%tM:%tS"</code>.    <code>'r'</code>   Time formatted for the 12-hour clock as <code>"%tI:%tM:%tS %Tp"</code>. The location of the morning or afternoon marker (<code>'%Tp'</code>) may be locale-dependent.    <code>'D'</code>   Date formatted as <code>"%tm/%td/%ty"</code>.    <code>'F'</code> <a href="http://www.w3.org/TR/NOTE-datetime">ISO 8601</a> complete date formatted as <code>"%tY-%tm-%td"</code>.    <code>'c'</code>   Date and time formatted as <code>"%ta %tb %td %tT %tZ %tY"</code>, e.g. <code>"Sun Jul 20 16:17:00 EDT 1969"</code>.   </span>
+<table cellpadding="5" summary="composites">
+</table>
+<p> <span>任何未明确定义为日期/时间转换后缀的字符都是非法的，并保留给将来的扩展名。</span> </p>
+<h4> <span>标志</span> </h4>
+<p> <span>下表总结了支持的标志。</span> <span><i>y</i>表示指定的参数类型支持该标志。</span> </p>
+<span>   Flag   General   Character   Integral   Floating Point   Date/Time   Description     '-'   y   y   y   y   y   The result will be left-justified.     '#'   y<sup>1</sup>   -   y<sup>3</sup>   y   -   The result should use a conversion-dependent alternate form     '+'   -   -   y<sup>4</sup>   y   -   The result will always include a sign     '  '   -   -   y<sup>4</sup>   y   -   The result will include a leading space for positive values     '0'   -   -   y   y   -   The result will be zero-padded     ','   -   -   y<sup>2</sup>   y<sup>5</sup>   -   The result will include locale-specific <a href="../../java/text/DecimalFormatSymbols.html#getGroupingSeparator--">grouping separators</a>     '('   -   -   y<sup>4</sup>   y<sup>5</sup>   -   The result will enclose negative numbers in parentheses   </span>
+<table cellpadding="5" summary="genConv">
+</table>
+<p> <span><sup>1</sup>取决于<code>Formattable</code>的<a href="../../java/util/Formattable.html" title="java.util中的接口">定义</a> 。</span> </p>
+<p> <span><sup>2</sup>仅用于<code>'d'</code>转换。</span> </p>
+<p> <span><sup>3</sup>对于<code>'o'</code> ， <code>'x'</code>和<code>'X'</code>仅转换。</span> </p>
+<p> <span><sup>4</sup>对于<code>'d'</code> ， <code>'o'</code> ， <code>'x'</code>和<code>'X'</code>施加到转换<a href="../../java/math/BigInteger.html" title="java.math中的类"><code>BigInteger</code></a>或<code>'d'</code>施加到<code>byte</code> ， <a href="../../java/lang/Byte.html" title="java.lang中的类"><code>Byte</code></a> ， <code>short</code> ， <a href="../../java/lang/Short.html" title="java.lang中的类"><code>Short</code></a> ， <code>int</code>和<a href="../../java/lang/Integer.html" title="java.lang中的类"><code>Integer</code></a> ， <code>long</code>和<a href="../../java/lang/Long.html" title="java.lang中的类"><code>Long</code></a> 。</span> </p>
+<p> <span><sup>5</sup>对于<code>'e'</code> ， <code>'E'</code> ， <code>'f'</code> ， <code>'g'</code>和<code>'G'</code>只有转换。</span> </p>
+<p> <span>任何未明确定义为标志的字符都是非法的，并保留给将来的扩展名。</span> </p>
+<h4> <span>宽度</span> </h4>
+<p> <span>宽度是要写入输出的最小字符数。</span> <span>对于行分隔符转换，宽度不适用;</span> <span>如果提供，将抛出异常。</span> </p>
+<h4> <span>精确</span> </h4>
+<p> <span>对于一般参数类型，精度是要写入输出的最大字符数。</span> </p>
+<p> <span>对于浮点转换<code>'a'</code> ， <code>'A'</code> ， <code>'e'</code> ， <code>'E'</code>和<code>'f'</code>精度的小数点后的位数。</span> <span>如果转换为<code>'g'</code>或<code>'G'</code> ，则精度是<code>'g'</code>后产生的幅度的总位数。</span> </p>
+<p> <span>对于字符，积分和日期/时间参数类型以及百分比和行分隔符转换，精度不适用;</span> <span>如果提供精度，将抛出异常。</span> </p>
+<h4> <span>参数指数</span> </h4>
+<p> <span>参数index是一个十进制整数，表示参数在参数列表中的位置。</span> <span>第一个参数为“ <code>1$</code> ”，第二个为“ <code>2$</code> ”等。</span> </p>
+<p> <span>通过位置引用参数的另一种方法是使用<code>'&lt;'</code> （ <tt>'\u003c'</tt> ）标志，这将导致重新使用先前格式说明符的参数。</span> <span>例如，以下两个语句将产生相同的字符串：</span> </p>
+<blockquote>
+<span><pre>
+   Calendar c = ...;
+   String s1 = String.format("Duke's Birthday: %1$tm %1$te,%1$tY", c);
+
+   String s2 = String.format("Duke's Birthday: %1$tm %&lt;te,%&lt;tY", c);
+ </pre></span>
+</blockquote>
+<hr/>
+<h3> <span><a name="detail">Details</a></span> </h3>
+<p> <span>本节旨在提供格式化的行为细节，包括条件和异常，支持的数据类型，本地化以及标志，转换和数据类型之间的交互。</span> <span>有关格式化概念的概述，请参阅<a href="#summary">Summary</a></span> </p>
+<p> <span>未明确定义为转换，日期/时间转换后缀或标志的任何字符都是非法的，并保留给将来的扩展名。</span> <span>在格式字符串中使用这样的字符将导致抛出<a href="../../java/util/UnknownFormatConversionException.html" title="java.util中的类"><code>UnknownFormatConversionException</code></a>或<a href="../../java/util/UnknownFormatFlagsException.html" title="java.util中的类"><code>UnknownFormatFlagsException</code></a> 。</span> </p>
+<p> <span>如果格式说明符含有无效值的宽度或精度，否则不支持，则将<a href="../../java/util/IllegalFormatWidthException.html" title="java.util中的类">分别引用<code>IllegalFormatWidthException</code></a>或<a href="../../java/util/IllegalFormatPrecisionException.html" title="java.util中的类"><code>IllegalFormatPrecisionException</code></a> 。</span> </p>
+<p> <span>如果格式说明符包含不适用于相应参数的<a href="../../java/util/IllegalFormatConversionException.html" title="java.util中的类">转换字符，</a>则将抛出<a href="../../java/util/IllegalFormatConversionException.html" title="java.util中的类"><code>IllegalFormatConversionException</code></a> 。</span> </p>
+<p> <span>所有指定的异常可通过任何的抛出<code>format</code>的方法<code>Formatter</code>以及通过任何<code>format</code>方便的方法，如<a href="../../java/lang/String.html#format-java.lang.String-java.lang.Object...-"><code>String.format</code></a>和<a href="../../java/io/PrintStream.html#printf-java.lang.String-java.lang.Object...-"><code>PrintStream.printf</code></a> 。</span> </p>
+<p> <span>通过一个大写字符标记转换（即<code>'B'</code> ， <code>'H'</code> ， <code>'S'</code> ， <code>'C'</code> ， <code>'X'</code> ， <code>'E'</code> ， <code>'G'</code> ， <code>'A'</code>和<code>'T'</code> ）相同的那些相应的小写转换字符除了将结果转换成上情况按照现行规定<a href="../../java/util/Locale.html" title="java.util中的类"><code>Locale</code></a> 。</span> <span>结果相当于以下调用<a href="../../java/lang/String.html#toUpperCase--"><code>String.toUpperCase()</code></a></span> </p>
+<pre>  <span>out.toUpperCase()</span> </pre>
+<h4> <span><a name="dgen">General</a></span> </h4>
+<p> <span>以下一般转换可能适用于任何参数类型：</span> </p>
+<span> <code>'b'</code> <tt>'\u0062'</tt>   Produces either "<code>true</code>" or "<code>false</code>" as returned by <a href="../../java/lang/Boolean.html#toString-boolean-"><code>Boolean.toString(boolean)</code></a>. <p> If the argument is <code>null</code>, then the result is "<code>false</code>". If the argument is a <code>boolean</code> or <a href="../../java/lang/Boolean.html" title="class in java.lang"><code>Boolean</code></a>, then the result is the string returned by <a href="../../java/lang/String.html#valueOf-boolean-"><code>String.valueOf()</code></a>. Otherwise, the result is "<code>true</code>". </p><p> If the <code>'#'</code> flag is given, then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'B'</code> <tt>'\u0042'</tt>   The upper-case variant of <code>'b'</code>.     <code>'h'</code> <tt>'\u0068'</tt>   Produces a string representing the hash code value of the object. <p> If the argument, <i>arg</i> is <code>null</code>, then the result is "<code>null</code>". Otherwise, the result is obtained by invoking <code>Integer.toHexString(arg.hashCode())</code>. </p><p> If the <code>'#'</code> flag is given, then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'H'</code> <tt>'\u0048'</tt>   The upper-case variant of <code>'h'</code>.     <code>'s'</code> <tt>'\u0073'</tt>   Produces a string. <p> If the argument is <code>null</code>, then the result is "<code>null</code>". If the argument implements <a href="../../java/util/Formattable.html" title="interface in java.util"><code>Formattable</code></a>, then its <a href="../../java/util/Formattable.html#formatTo-java.util.Formatter-int-int-int-"><code>formatTo</code></a> method is invoked. Otherwise, the result is obtained by invoking the argument's <code>toString()</code> method. </p><p> If the <code>'#'</code> flag is given and the argument is not a <a href="../../java/util/Formattable.html" title="interface in java.util"><code>Formattable</code></a> , then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'S'</code> <tt>'\u0053'</tt>   The upper-case variant of <code>'s'</code>.   </span>
+<table cellpadding="5" summary="dgConv">
+</table>
+<p> <span>下面<a name="dFlags">flags</a>适用于常规转换：</span> </p>
+<span> <code>'-'</code> <tt>'\u002d'</tt>   Left justifies the output. Spaces (<tt>'\u0020'</tt>) will be added at the end of the converted value as required to fill the minimum width of the field. If the width is not provided, then a <a href="../../java/util/MissingFormatWidthException.html" title="class in java.util"><code>MissingFormatWidthException</code></a> will be thrown. If this flag is not given then the output will be right-justified.     <code>'#'</code> <tt>'\u0023'</tt>   Requires the output use an alternate form. The definition of the form is specified by the conversion.   </span>
+<table cellpadding="5" summary="dFlags">
+</table>
+<p> <span><a name="genWidth">width</a>是要写入输出的最小字符数。</span> <span>如果转换的值的长度小于宽度，则输出将被填充<tt>'  '</tt> （ <tt>'\u0020'</tt> ），直到总字符数等于宽度。</span> <span>默认情况下，填充在左侧。</span> <span>如果给出了<code>'-'</code>标志，则填充将在右侧。</span> <span>如果没有指定宽度，则没有最小值。</span> </p>
+<p> <span>精度是写入输出的最大字符数。</span> <span>在宽度之前应用精度，因此即使宽度大于精度，输出也将被截断为<code>precision</code>个字符。</span> <span>如果未指定精度，则对字符数没有明确的限制。</span> </p>
+<h4> <span><a name="dchar">Character</a></span> </h4>
+<span>该转换可以应用于<code>char</code>和<a href="../../java/lang/Character.html" title="java.lang中的类"><code>Character</code></a> 。</span>
+<span>它也可以被施加到类型<code>byte</code> ， <a href="../../java/lang/Byte.html" title="java.lang中的类"><code>Byte</code></a> ， <code>short</code>和<a href="../../java/lang/Short.html" title="java.lang中的类"><code>Short</code></a> ， <code>int</code>和<a href="../../java/lang/Integer.html" title="java.lang中的类"><code>Integer</code></a>时<a href="../../java/lang/Character.html#isValidCodePoint-int-"><code>Character.isValidCodePoint(int)</code></a>返回<code>true</code> 。</span>
+<span>如果它返回<code>false</code>那么将抛出一个<a href="../../java/util/IllegalFormatCodePointException.html" title="java.util中的类"><code>IllegalFormatCodePointException</code></a> 。</span>
+<span> <code>'c'</code> <tt>'\u0063'</tt>   Formats the argument as a Unicode character as described in <a href="../lang/Character.html#unicode">Unicode Character Representation</a>. This may be more than one 16-bit <code>char</code> in the case where the argument represents a supplementary character. <p> If the <code>'#'</code> flag is given, then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'C'</code> <tt>'\u0043'</tt>   The upper-case variant of <code>'c'</code>.   </span>
+<table cellpadding="5" summary="charConv">
+</table>
+<p> <span>适用于<a href="#dFlags">General conversions</a>的<code>'-'</code>标志。</span> <span>如果给出<code>'#'</code>标志，那么<a href="../../java/util/FormatFlagsConversionMismatchException.html" title="java.util中的类"><code>FormatFlagsConversionMismatchException</code></a>将被抛出。</span> </p>
+<p> <span>宽度定义为<a href="#genWidth">General conversions</a> 。</span> </p>
+<p> <span>精度不适用。</span> <span>如果指定精度，则会抛出<a href="../../java/util/IllegalFormatPrecisionException.html" title="java.util中的类"><code>IllegalFormatPrecisionException</code></a> 。</span> </p>
+<h4> <span><a name="dnum">Numeric</a></span> </h4>
+<p> <span>数字转换分为以下几类：</span> </p>
+<ol>
+<li> <span><a href="#dnint"><b>Byte, Short, Integer, and Long</b></a></span> </li>
+<li> <span><a href="#dnbint"><b>BigInteger</b></a></span> </li>
+<li> <span><a href="#dndec"><b>Float and Double</b></a></span> </li>
+<li> <span><a href="#dnbdec"><b>BigDecimal</b></a></span> </li>
+</ol>
+<p> <span>数字类型将根据以下算法进行格式化：</span> </p>
+<p> <span><b><a name="L10nAlgorithm">Number Localization Algorithm</a></b></span> </p>
+<p> <span>在获得整数部分，小数部分和指数（适用于数据类型）的数字后，应用以下转换：</span> </p>
+<ol>
+<li> <span>字符串中的每个数字字符<i>d</i>被替换为相对于当前语言环境<a href="../../java/text/DecimalFormatSymbols.html#getZeroDigit--">zero digit</a> <i>z</i>计算的特定于语言环境的<a href="../../java/text/DecimalFormatSymbols.html#getZeroDigit--">数字</a> ;</span> <span>那就是<i>d -</i> <code>'0'</code> <i>+ z</i> 。</span> </li>
+<li> <span>如果存在小数分隔<a href="../../java/text/DecimalFormatSymbols.html#getDecimalSeparator--">符</a> ，则会替换特定于区域的decimal separator。</span> </li>
+<li> <span>如果<code>','</code> <tt>（'\u002c'）</tt> <a name="L10nGroup">flag</a>给出，那么语言环境的特定<a href="../../java/text/DecimalFormatSymbols.html#getGroupingSeparator--">grouping separator</a>通过在由区域设置的规定的时间间隔扫描所述字符串从至少显著到最显著位数的整数部分和插入的隔板插入<a href="../../java/text/DecimalFormat.html#getGroupingSize--">grouping size</a> 。</span> </li>
+<li> <span>如果给出了<code>'0'</code>标志，那么在符号字符（如果有的话）和第一个非零数字之前插入特定于区域的<a href="../../java/text/DecimalFormatSymbols.html#getZeroDigit--">zero digits</a> ，直到字符串的长度等于所请求的字段宽度。</span> </li>
+<li> <span>如果该值为负和<code>'('</code>标志被给出，那么<code>'('</code> <tt>（'\u0028'）</tt>被前置和<code>')'</code> <tt>（'\u0029'）</tt>将被附加。</span> </li>
+<li> <span>如果该值为负（或浮点负零），并且没有给出<code>'('</code>标志，那么将添加一个<code>'-'</code> （ <tt>'\u002d'</tt> ）。</span> </li>
+<li> <span>如果给出了<code>'+'</code>标志，并且值为正或零（或浮点正零），那么将会添加一个<code>'+'</code> （ <tt>'\u002b'</tt> ）。</span> </li>
+</ol>
+<p> <span>如果值为NaN或正无穷大，则将输出文字字符串“NaN”或“Infinity”。</span> <span>如果值为负无穷大，则如果给出<code>'('</code>标志，则输出将为“（无穷大”）， <code>'('</code>输出将为“-Infinity”。</span> <span>这些值不是本地化的。</span> </p>
+<p> <span><a name="dnint"><b> Byte, Short, Integer, and Long </b></a></span> </p>
+<p> <span>以下转换可以应用于<code>byte</code> ， <a href="../../java/lang/Byte.html" title="java.lang中的类"><code>Byte</code></a> ， <code>short</code> ， <a href="../../java/lang/Short.html" title="java.lang中的类"><code>Short</code></a> ， <code>int</code>和<a href="../../java/lang/Integer.html" title="java.lang中的类"><code>Integer</code></a> ， <code>long</code>和<a href="../../java/lang/Long.html" title="java.lang中的类"><code>Long</code></a> 。</span> </p>
+<span> <code>'d'</code> <tt>'\u0064'</tt>   Formats the argument as a decimal integer. The <a href="#L10nAlgorithm">localization algorithm</a> is applied. <p> If the <code>'0'</code> flag is given and the value is negative, then the zero padding will occur after the sign. </p><p> If the <code>'#'</code> flag is given then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'o'</code> <tt>'\u006f'</tt>   Formats the argument as an integer in base eight. No localization is applied. <p> If <i>x</i> is negative then the result will be an unsigned value generated by adding 2<sup>n</sup> to the value where <code>n</code> is the number of bits in the type as returned by the static <code>SIZE</code> field in the <a href="../../java/lang/Byte.html#SIZE">Byte</a>, <a href="../../java/lang/Short.html#SIZE">Short</a>, <a href="../../java/lang/Integer.html#SIZE">Integer</a>, or <a href="../../java/lang/Long.html#SIZE">Long</a> classes as appropriate. </p><p> If the <code>'#'</code> flag is given then the output will always begin with the radix indicator <code>'0'</code>. </p><p> If the <code>'0'</code> flag is given then the output will be padded with leading zeros to the field width following any indication of sign. </p><p> If <code>'('</code>, <code>'+'</code>, '  ', or <code>','</code> flags are given then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'x'</code> <tt>'\u0078'</tt>   Formats the argument as an integer in base sixteen. No localization is applied. <p> If <i>x</i> is negative then the result will be an unsigned value generated by adding 2<sup>n</sup> to the value where <code>n</code> is the number of bits in the type as returned by the static <code>SIZE</code> field in the <a href="../../java/lang/Byte.html#SIZE">Byte</a>, <a href="../../java/lang/Short.html#SIZE">Short</a>, <a href="../../java/lang/Integer.html#SIZE">Integer</a>, or <a href="../../java/lang/Long.html#SIZE">Long</a> classes as appropriate. </p><p> If the <code>'#'</code> flag is given then the output will always begin with the radix indicator <code>"0x"</code>. </p><p> If the <code>'0'</code> flag is given then the output will be padded to the field width with leading zeros after the radix indicator or sign (if present). </p><p> If <code>'('</code>, <tt>'  '</tt>, <code>'+'</code>, or <code>','</code> flags are given then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'X'</code> <tt>'\u0058'</tt>   The upper-case variant of <code>'x'</code>. The entire string representing the number will be converted to <a href="../../java/lang/String.html#toUpperCase-java.util.Locale-">upper case</a> including the <code>'x'</code> (if any) and all hexadecimal digits <code>'a'</code> - <code>'f'</code> (<tt>'\u0061'</tt> - <tt>'\u0066'</tt>).   </span>
+<table cellpadding="5" summary="IntConv">
+</table>
+<p> <span>如果转换是<code>'o'</code> ， <code>'x'</code> ，或<code>'X'</code>和两个<code>'#'</code>和<code>'0'</code>标志，那么结果将包含（基数指示符<code>'0'</code>为八进制和<code>"0x"</code>或<code>"0X"</code>为十六进制）时，一些数量的零（基于宽度） ，和价值。</span> </p>
+<p> <span>如果没有给出<code>'-'</code>标志，则空格填充将发生在符号之前。</span> </p>
+<p> <span>下面<a name="intFlags">flags</a>适用于数字积分转换：</span> </p>
+<span> <code>'+'</code> <tt>'\u002b'</tt>   Requires the output to include a positive sign for all positive numbers. If this flag is not given then only negative values will include a sign. <p> If both the <code>'+'</code> and <tt>'  '</tt> flags are given then an <a href="../../java/util/IllegalFormatFlagsException.html" title="class in java.util"><code>IllegalFormatFlagsException</code></a> will be thrown. </p> <tt>'  '</tt> <tt>'\u0020'</tt>   Requires the output to include a single extra space (<tt>'\u0020'</tt>) for non-negative values. <p> If both the <code>'+'</code> and <tt>'  '</tt> flags are given then an <a href="../../java/util/IllegalFormatFlagsException.html" title="class in java.util"><code>IllegalFormatFlagsException</code></a> will be thrown. </p> <code>'0'</code> <tt>'\u0030'</tt>   Requires the output to be padded with leading <a href="../../java/text/DecimalFormatSymbols.html#getZeroDigit--">zeros</a> to the minimum field width following any sign or radix indicator except when converting NaN or infinity. If the width is not provided, then a <a href="../../java/util/MissingFormatWidthException.html" title="class in java.util"><code>MissingFormatWidthException</code></a> will be thrown. <p> If both the <code>'-'</code> and <code>'0'</code> flags are given then an <a href="../../java/util/IllegalFormatFlagsException.html" title="class in java.util"><code>IllegalFormatFlagsException</code></a> will be thrown. </p> <code>','</code> <tt>'\u002c'</tt>   Requires the output to include the locale-specific <a href="../../java/text/DecimalFormatSymbols.html#getGroupingSeparator--">group separators</a> as described in the <a href="#L10nGroup">"group" section</a> of the localization algorithm.     <code>'('</code> <tt>'\u0028'</tt>   Requires the output to prepend a <code>'('</code> (<tt>'\u0028'</tt>) and append a <code>')'</code> (<tt>'\u0029'</tt>) to negative values.   </span>
+<table cellpadding="5" summary="intFlags">
+</table>
+<p> <span>如果没有<a name="intdFlags">flags</a>给出的默认格式如下：</span> </p>
+<ul>
+<li> <span>输出在width内<code>width</code></span> </li>
+<li> <span>负数字以<code>'-'</code> （ <tt>'\u002d'</tt> ）开头</span> </li>
+<li> <span>正数和零不包括符号或额外的前导空间</span> </li>
+<li> <span>不包括分组分隔符</span> </li>
+</ul>
+<p> <span><a name="intWidth">width</a>是要写入输出的最小字符数。</span> <span>这包括任何符号，数字，分组分隔符，基数指示符和括号。</span> <span>如果转换值的长度小于宽度，则输出将被空格（ <tt>'\u0020'</tt> ）填充，直到<tt>字符</tt>的总数等于宽度。</span> <span>默认情况下，填充在左侧。</span> <span>如果<code>'-'</code>标志，则填充将在右侧。</span> <span>如果没有指定width，那么没有最小值。</span> </p>
+<p> <span>精度不适用。</span> <span>如果指定精度，则会抛出<a href="../../java/util/IllegalFormatPrecisionException.html" title="java.util中的类"><code>IllegalFormatPrecisionException</code></a> 。</span> </p>
+<p> <span><a name="dnbint"><b> BigInteger </b></a></span> </p>
+<p> <span>以下转换可能适用于<a href="../../java/math/BigInteger.html" title="java.math中的类"><code>BigInteger</code></a> 。</span> </p>
+<span> <code>'d'</code> <tt>'\u0064'</tt>   Requires the output to be formatted as a decimal integer. The <a href="#L10nAlgorithm">localization algorithm</a> is applied. <p> If the <code>'#'</code> flag is given <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'o'</code> <tt>'\u006f'</tt>   Requires the output to be formatted as an integer in base eight. No localization is applied. <p> If <i>x</i> is negative then the result will be a signed value beginning with <code>'-'</code> (<tt>'\u002d'</tt>). Signed output is allowed for this type because unlike the primitive types it is not possible to create an unsigned equivalent without assuming an explicit data-type size. </p><p> If <i>x</i> is positive or zero and the <code>'+'</code> flag is given then the result will begin with <code>'+'</code> (<tt>'\u002b'</tt>). </p><p> If the <code>'#'</code> flag is given then the output will always begin with <code>'0'</code> prefix. </p><p> If the <code>'0'</code> flag is given then the output will be padded with leading zeros to the field width following any indication of sign. </p><p> If the <code>','</code> flag is given then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'x'</code> <tt>'\u0078'</tt>   Requires the output to be formatted as an integer in base sixteen. No localization is applied. <p> If <i>x</i> is negative then the result will be a signed value beginning with <code>'-'</code> (<tt>'\u002d'</tt>). Signed output is allowed for this type because unlike the primitive types it is not possible to create an unsigned equivalent without assuming an explicit data-type size. </p><p> If <i>x</i> is positive or zero and the <code>'+'</code> flag is given then the result will begin with <code>'+'</code> (<tt>'\u002b'</tt>). </p><p> If the <code>'#'</code> flag is given then the output will always begin with the radix indicator <code>"0x"</code>. </p><p> If the <code>'0'</code> flag is given then the output will be padded to the field width with leading zeros after the radix indicator or sign (if present). </p><p> If the <code>','</code> flag is given then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'X'</code> <tt>'\u0058'</tt>   The upper-case variant of <code>'x'</code>. The entire string representing the number will be converted to <a href="../../java/lang/String.html#toUpperCase-java.util.Locale-">upper case</a> including the <code>'x'</code> (if any) and all hexadecimal digits <code>'a'</code> - <code>'f'</code> (<tt>'\u0061'</tt> - <tt>'\u0066'</tt>).   </span>
+<table cellpadding="5" summary="BIntConv">
+</table>
+<p> <span>如果转换是<code>'o'</code> ， <code>'x'</code> ，或<code>'X'</code>和两个<code>'#'</code>和<code>'0'</code>标志，那么结果将包含（基座指示器<code>'0'</code>为八进制和<code>"0x"</code>或<code>"0X"</code>为十六进制）时，一些数量的零（基于宽度） ，和价值。</span> </p>
+<p> <span>如果给出了<code>'0'</code>标志，并且该值为负值，则零填充将发生在符号之后。</span> </p>
+<p> <span>如果没有给出<code>'-'</code>标志，则空格填充将发生在符号之前。</span> </p>
+<p> <span>所有<a href="#intFlags">flags</a>为Byte，Short，Integer和Long定义。</span> <span><a href="#intdFlags">default behavior</a>当没有给出标志与Byte，Short，Integer和Long相同。</span> </p>
+<p> <span>width的<a href="#intWidth">规范</a>与字节，短，整数和长度相同。</span> </p>
+<p> <span>精度不适用。</span> <span>如果指定精度，则会抛出<a href="../../java/util/IllegalFormatPrecisionException.html" title="java.util中的类"><code>IllegalFormatPrecisionException</code></a> 。</span> </p>
+<p> <span><a name="dndec"><b> Float and Double</b></a></span> </p>
+<p> <span>以下转换可以应用于<code>float</code> ， <a href="../../java/lang/Float.html" title="java.lang中的类"><code>Float</code></a> ， <code>double</code>和<a href="../../java/lang/Double.html" title="java.lang中的类"><code>Double</code></a> 。</span> </p>
+<span> <code>'e'</code> <tt>'\u0065'</tt>   Requires the output to be formatted using <a name="scientific">computerized scientific notation</a>. The <a href="#L10nAlgorithm">localization algorithm</a> is applied. <p> The formatting of the magnitude <i>m</i> depends upon its value. </p><p> If <i>m</i> is NaN or infinite, the literal strings "NaN" or "Infinity", respectively, will be output. These values are not localized. </p><p> If <i>m</i> is positive-zero or negative-zero, then the exponent will be <code>"+00"</code>. </p><p> Otherwise, the result is a string that represents the sign and magnitude (absolute value) of the argument. The formatting of the sign is described in the <a href="#L10nAlgorithm">localization algorithm</a>. The formatting of the magnitude <i>m</i> depends upon its value. </p><p> Let <i>n</i> be the unique integer such that 10<sup><i>n</i></sup> &lt;= <i>m</i> &lt; 10<sup><i>n</i>+1</sup>; then let <i>a</i> be the mathematically exact quotient of <i>m</i> and 10<sup><i>n</i></sup> so that 1 &lt;= <i>a</i> &lt; 10. The magnitude is then represented as the integer part of <i>a</i>, as a single decimal digit, followed by the decimal separator followed by decimal digits representing the fractional part of <i>a</i>, followed by the exponent symbol <code>'e'</code> (<tt>'\u0065'</tt>), followed by the sign of the exponent, followed by a representation of <i>n</i> as a decimal integer, as produced by the method <a href="../../java/lang/Long.html#toString-long-int-"><code>Long.toString(long, int)</code></a>, and zero-padded to include at least two digits. </p><p> The number of digits in the result for the fractional part of <i>m</i> or <i>a</i> is equal to the precision. If the precision is not specified then the default value is <code>6</code>. If the precision is less than the number of digits which would appear after the decimal point in the string returned by <a href="../../java/lang/Float.html#toString-float-"><code>Float.toString(float)</code></a> or <a href="../../java/lang/Double.html#toString-double-"><code>Double.toString(double)</code></a> respectively, then the value will be rounded using the <a href="../../java/math/BigDecimal.html#ROUND_HALF_UP">round half up algorithm</a>. Otherwise, zeros may be appended to reach the precision. For a canonical representation of the value, use <a href="../../java/lang/Float.html#toString-float-"><code>Float.toString(float)</code></a> or <a href="../../java/lang/Double.html#toString-double-"><code>Double.toString(double)</code></a> as appropriate. </p><p>If the <code>','</code> flag is given, then an <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'E'</code> <tt>'\u0045'</tt>   The upper-case variant of <code>'e'</code>. The exponent symbol will be <code>'E'</code> (<tt>'\u0045'</tt>).     <code>'g'</code> <tt>'\u0067'</tt>   Requires the output to be formatted in general scientific notation as described below. The <a href="#L10nAlgorithm">localization algorithm</a> is applied. <p> After rounding for the precision, the formatting of the resulting magnitude <i>m</i> depends on its value. </p><p> If <i>m</i> is greater than or equal to 10<sup>-4</sup> but less than 10<sup>precision</sup> then it is represented in <i><a href="#decimal">decimal format</a></i>. </p><p> If <i>m</i> is less than 10<sup>-4</sup> or greater than or equal to 10<sup>precision</sup>, then it is represented in <i><a href="#scientific">computerized scientific notation</a></i>. </p><p> The total number of significant digits in <i>m</i> is equal to the precision. If the precision is not specified, then the default value is <code>6</code>. If the precision is <code>0</code>, then it is taken to be <code>1</code>. </p><p> If the <code>'#'</code> flag is given then an <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'G'</code> <tt>'\u0047'</tt>   The upper-case variant of <code>'g'</code>.     <code>'f'</code> <tt>'\u0066'</tt>   Requires the output to be formatted using <a name="decimal">decimal format</a>. The <a href="#L10nAlgorithm">localization algorithm</a> is applied. <p> The result is a string that represents the sign and magnitude (absolute value) of the argument. The formatting of the sign is described in the <a href="#L10nAlgorithm">localization algorithm</a>. The formatting of the magnitude <i>m</i> depends upon its value. </p><p> If <i>m</i> NaN or infinite, the literal strings "NaN" or "Infinity", respectively, will be output. These values are not localized. </p><p> The magnitude is formatted as the integer part of <i>m</i>, with no leading zeroes, followed by the decimal separator followed by one or more decimal digits representing the fractional part of <i>m</i>. </p><p> The number of digits in the result for the fractional part of <i>m</i> or <i>a</i> is equal to the precision. If the precision is not specified then the default value is <code>6</code>. If the precision is less than the number of digits which would appear after the decimal point in the string returned by <a href="../../java/lang/Float.html#toString-float-"><code>Float.toString(float)</code></a> or <a href="../../java/lang/Double.html#toString-double-"><code>Double.toString(double)</code></a> respectively, then the value will be rounded using the <a href="../../java/math/BigDecimal.html#ROUND_HALF_UP">round half up algorithm</a>. Otherwise, zeros may be appended to reach the precision. For a canonical representation of the value, use <a href="../../java/lang/Float.html#toString-float-"><code>Float.toString(float)</code></a> or <a href="../../java/lang/Double.html#toString-double-"><code>Double.toString(double)</code></a> as appropriate. </p> <code>'a'</code> <tt>'\u0061'</tt>   Requires the output to be formatted in hexadecimal exponential form. No localization is applied. <p> The result is a string that represents the sign and magnitude (absolute value) of the argument <i>x</i>. </p><p> If <i>x</i> is negative or a negative-zero value then the result will begin with <code>'-'</code> (<tt>'\u002d'</tt>). </p><p> If <i>x</i> is positive or a positive-zero value and the <code>'+'</code> flag is given then the result will begin with <code>'+'</code> (<tt>'\u002b'</tt>). </p><p> The formatting of the magnitude <i>m</i> depends upon its value. </p>
+<ul>
+<li> If the value is NaN or infinite, the literal strings "NaN" or "Infinity", respectively, will be output. </li>
+<li> If <i>m</i> is zero then it is represented by the string <code>"0x0.0p0"</code>. </li>
+<li> If <i>m</i> is a <code>double</code> value with a normalized representation then substrings are used to represent the significand and exponent fields. The significand is represented by the characters <code>"0x1."</code> followed by the hexadecimal representation of the rest of the significand as a fraction. The exponent is represented by <code>'p'</code> (<tt>'\u0070'</tt>) followed by a decimal string of the unbiased exponent as if produced by invoking <a href="../../java/lang/Integer.html#toString-int-"><code>Integer.toString</code></a> on the exponent value. If the precision is specified, the value is rounded to the given number of hexadecimal digits. </li>
+<li> If <i>m</i> is a <code>double</code> value with a subnormal representation then, unless the precision is specified to be in the range 1 through 12, inclusive, the significand is represented by the characters <code>'0x0.'</code> followed by the hexadecimal representation of the rest of the significand as a fraction, and the exponent represented by <code>'p-1022'</code>. If the precision is in the interval [1, 12], the subnormal value is normalized such that it begins with the characters <code>'0x1.'</code>, rounded to the number of hexadecimal digits of precision, and the exponent adjusted accordingly. Note that there must be at least one nonzero digit in a subnormal significand. </li>
+</ul> <p> If the <code>'('</code> or <code>','</code> flags are given, then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'A'</code> <tt>'\u0041'</tt>   The upper-case variant of <code>'a'</code>. The entire string representing the number will be converted to upper case including the <code>'x'</code> (<tt>'\u0078'</tt>) and <code>'p'</code> (<tt>'\u0070'</tt> and all hexadecimal digits <code>'a'</code> - <code>'f'</code> (<tt>'\u0061'</tt> - <tt>'\u0066'</tt>).   </span>
+<table cellpadding="5" summary="floatConv">
+</table>
+<p> <span>全部<a href="#intFlags">flags</a>定义为字节，短，整数和长度适用。</span> </p>
+<p> <span>如果给出了<code>'#'</code>标志，则小数分隔符将始终存在。</span> </p>
+<p> <span>如果没有<a name="floatdFlags">flags</a>给出的默认格式如下：</span> </p>
+<ul>
+<li> <span>输出在width内<code>width</code></span> </li>
+<li> <span>负号以<code>'-'</code></span> </li>
+<li> <span>正数和正零不包括符号或额外的前导空间</span> </li>
+<li> <span>不包括分组分隔符</span> </li>
+<li> <span>小数分隔符仅在数字跟随时才会出现</span> </li>
+</ul>
+<p> <span><a name="floatDWidth">width</a>是要写入输出的最小字符数。</span> <span>这包括任何符号，数字，分组分隔符，十进制分隔符，指数符号，基数指示符，括号和表示无穷大和NaN的字符串。</span> <span>如果转换值的长度小于宽度，则输出将被空格填充（ <tt>'\u0020'</tt> ），直到字符总数等于宽度。</span> <span>默认情况下，填充在左侧。</span> <span>如果给出<code>'-'</code>标志，则填充将在右侧。</span> <span>如果没有指定width，那么没有最小值。</span> </p>
+<p> <span>如果<a name="floatDPrec">conversion</a>是<code>'e'</code> ， <code>'E'</code>或<code>'f'</code> ，则精度是数字的小数分隔后的位数。</span> <span>如果未指定精度，则假定为<code>6</code> 。</span> </p>
+<p> <span>如果转换为<code>'g'</code>或<code>'G'</code> ，则精度是四舍五入后所得大小的有效数字的总数。</span> <span>如果未指定精度，则默认值为<code>6</code> 。</span> <span>如果精度为<code>0</code> ，则为<code>1</code> 。</span> </p>
+<p> <span>如果转换为<code>'a'</code>或<code>'A'</code> ，则精度是小数点之后的十六进制数字的数量。</span> <span>如果没有提供精度，则输出<a href="../../java/lang/Double.html#toHexString-double-"><code>Double.toHexString(double)</code></a>返回的所有数字。</span> </p>
+<p> <span><a name="dnbdec"><b> BigDecimal </b></a></span> </p>
+<p> <span>可以应用<a href="../../java/math/BigDecimal.html" title="java.math中的类">以下转换<code>BigDecimal</code></a> 。</span> </p>
+<span> <code>'e'</code> <tt>'\u0065'</tt>   Requires the output to be formatted using <a name="bscientific">computerized scientific notation</a>. The <a href="#L10nAlgorithm">localization algorithm</a> is applied. <p> The formatting of the magnitude <i>m</i> depends upon its value. </p><p> If <i>m</i> is positive-zero or negative-zero, then the exponent will be <code>"+00"</code>. </p><p> Otherwise, the result is a string that represents the sign and magnitude (absolute value) of the argument. The formatting of the sign is described in the <a href="#L10nAlgorithm">localization algorithm</a>. The formatting of the magnitude <i>m</i> depends upon its value. </p><p> Let <i>n</i> be the unique integer such that 10<sup><i>n</i></sup> &lt;= <i>m</i> &lt; 10<sup><i>n</i>+1</sup>; then let <i>a</i> be the mathematically exact quotient of <i>m</i> and 10<sup><i>n</i></sup> so that 1 &lt;= <i>a</i> &lt; 10. The magnitude is then represented as the integer part of <i>a</i>, as a single decimal digit, followed by the decimal separator followed by decimal digits representing the fractional part of <i>a</i>, followed by the exponent symbol <code>'e'</code> (<tt>'\u0065'</tt>), followed by the sign of the exponent, followed by a representation of <i>n</i> as a decimal integer, as produced by the method <a href="../../java/lang/Long.html#toString-long-int-"><code>Long.toString(long, int)</code></a>, and zero-padded to include at least two digits. </p><p> The number of digits in the result for the fractional part of <i>m</i> or <i>a</i> is equal to the precision. If the precision is not specified then the default value is <code>6</code>. If the precision is less than the number of digits to the right of the decimal point then the value will be rounded using the <a href="../../java/math/BigDecimal.html#ROUND_HALF_UP">round half up algorithm</a>. Otherwise, zeros may be appended to reach the precision. For a canonical representation of the value, use <a href="../../java/math/BigDecimal.html#toString--"><code>BigDecimal.toString()</code></a>. </p><p> If the <code>','</code> flag is given, then an <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'E'</code> <tt>'\u0045'</tt>   The upper-case variant of <code>'e'</code>. The exponent symbol will be <code>'E'</code> (<tt>'\u0045'</tt>).     <code>'g'</code> <tt>'\u0067'</tt>   Requires the output to be formatted in general scientific notation as described below. The <a href="#L10nAlgorithm">localization algorithm</a> is applied. <p> After rounding for the precision, the formatting of the resulting magnitude <i>m</i> depends on its value. </p><p> If <i>m</i> is greater than or equal to 10<sup>-4</sup> but less than 10<sup>precision</sup> then it is represented in <i><a href="#bdecimal">decimal format</a></i>. </p><p> If <i>m</i> is less than 10<sup>-4</sup> or greater than or equal to 10<sup>precision</sup>, then it is represented in <i><a href="#bscientific">computerized scientific notation</a></i>. </p><p> The total number of significant digits in <i>m</i> is equal to the precision. If the precision is not specified, then the default value is <code>6</code>. If the precision is <code>0</code>, then it is taken to be <code>1</code>. </p><p> If the <code>'#'</code> flag is given then an <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p> <code>'G'</code> <tt>'\u0047'</tt>   The upper-case variant of <code>'g'</code>.     <code>'f'</code> <tt>'\u0066'</tt>   Requires the output to be formatted using <a name="bdecimal">decimal format</a>. The <a href="#L10nAlgorithm">localization algorithm</a> is applied. <p> The result is a string that represents the sign and magnitude (absolute value) of the argument. The formatting of the sign is described in the <a href="#L10nAlgorithm">localization algorithm</a>. The formatting of the magnitude <i>m</i> depends upon its value. </p><p> The magnitude is formatted as the integer part of <i>m</i>, with no leading zeroes, followed by the decimal separator followed by one or more decimal digits representing the fractional part of <i>m</i>. </p><p> The number of digits in the result for the fractional part of <i>m</i> or <i>a</i> is equal to the precision. If the precision is not specified then the default value is <code>6</code>. If the precision is less than the number of digits to the right of the decimal point then the value will be rounded using the <a href="../../java/math/BigDecimal.html#ROUND_HALF_UP">round half up algorithm</a>. Otherwise, zeros may be appended to reach the precision. For a canonical representation of the value, use <a href="../../java/math/BigDecimal.html#toString--"><code>BigDecimal.toString()</code></a>. </p> </span>
+<table cellpadding="5" summary="floatConv">
+</table>
+<p> <span>所有<a href="#intFlags">flags</a>定义为字节，短，整数和长度适用。</span> </p>
+<p> <span>如果给出<code>'#'</code>标志，则小数分隔符将始终存在。</span> </p>
+<p> <span><a href="#floatdFlags">default behavior</a>当没有标志被赋予与Float和Double相同。</span> </p>
+<p> <span>的说明书<a href="#floatDWidth">width</a>和<a href="#floatDPrec">precision</a>是一样的浮点和双精度限定。</span> </p>
+<h4> <span><a name="ddt">Date/Time</a></span> </h4>
+<p> <span>这种转换可以应用于<code>long</code> ， <a href="../../java/lang/Long.html" title="java.lang中的类"><code>Long</code></a> ， <a href="../../java/util/Calendar.html" title="java.util中的类"><code>Calendar</code></a> ， <a href="../../java/util/Date.html" title="java.util中的类"><code>Date</code></a>和<a href="../../java/time/temporal/TemporalAccessor.html" title="java.time.temporal中的接口"><code>TemporalAccessor</code></a></span> </p>
+<span> <code>'t'</code> <tt>'\u0074'</tt>   Prefix for date and time conversion characters.     <code>'T'</code> <tt>'\u0054'</tt>   The upper-case variant of <code>'t'</code>.   </span>
+<table cellpadding="5" summary="DTConv">
+</table>
+<p> <span>为<code>'t'</code>和<code>'T'</code>转换定义了以下日期和时间转换字符后缀。</span> <span>类型与GNU <code>date</code>和POSIX <code>strftime(3c)</code>所定义的类似但不<code>strftime(3c)</code> 。</span> <span>提供额外的转换类型（例如访问特定Java的功能<code>'L'</code>内的第二对毫秒）。</span> </p>
+<p> <span>以下转换字符用于格式化时间：</span> </p>
+<span> <code>'H'</code> <tt>'\u0048'</tt>   Hour of the day for the 24-hour clock, formatted as two digits with a leading zero as necessary i.e. <code>00 - 23</code>. <code>00</code> corresponds to midnight.    <code>'I'</code> <tt>'\u0049'</tt>   Hour for the 12-hour clock, formatted as two digits with a leading zero as necessary, i.e. <code>01 - 12</code>. <code>01</code> corresponds to one o'clock (either morning or afternoon).    <code>'k'</code> <tt>'\u006b'</tt>   Hour of the day for the 24-hour clock, i.e. <code>0 - 23</code>. <code>0</code> corresponds to midnight.    <code>'l'</code> <tt>'\u006c'</tt>   Hour for the 12-hour clock, i.e. <code>1 - 12</code>. <code>1</code> corresponds to one o'clock (either morning or afternoon).    <code>'M'</code> <tt>'\u004d'</tt>   Minute within the hour formatted as two digits with a leading zero as necessary, i.e. <code>00 - 59</code>.    <code>'S'</code> <tt>'\u0053'</tt>   Seconds within the minute, formatted as two digits with a leading zero as necessary, i.e. <code>00 - 60</code> ("<code>60</code>" is a special value required to support leap seconds).    <code>'L'</code> <tt>'\u004c'</tt>   Millisecond within the second formatted as three digits with leading zeros as necessary, i.e. <code>000 - 999</code>.    <code>'N'</code> <tt>'\u004e'</tt>   Nanosecond within the second, formatted as nine digits with leading zeros as necessary, i.e. <code>000000000 - 999999999</code>. The precision of this value is limited by the resolution of the underlying operating system or hardware.    <code>'p'</code> <tt>'\u0070'</tt>   Locale-specific <a href="../../java/text/DateFormatSymbols.html#getAmPmStrings--">morning or afternoon</a> marker in lower case, e.g."<code>am</code>" or "<code>pm</code>". Use of the conversion prefix <code>'T'</code> forces this output to upper case. (Note that <code>'p'</code> produces lower-case output. This is different from GNU <code>date</code> and POSIX <code>strftime(3c)</code> which produce upper-case output.)    <code>'z'</code> <tt>'\u007a'</tt> <a href="http://www.ietf.org/rfc/rfc0822.txt">RFC 822</a> style numeric time zone offset from GMT, e.g. <code>-0800</code>. This value will be adjusted as necessary for Daylight Saving Time. For <code>long</code>, <a href="../../java/lang/Long.html" title="class in java.lang"><code>Long</code></a>, and <a href="../../java/util/Date.html" title="class in java.util"><code>Date</code></a> the time zone used is the <a href="../../java/util/TimeZone.html#getDefault--">default time zone</a> for this instance of the Java virtual machine.    <code>'Z'</code> <tt>'\u005a'</tt>   A string representing the abbreviation for the time zone. This value will be adjusted as necessary for Daylight Saving Time. For <code>long</code>, <a href="../../java/lang/Long.html" title="class in java.lang"><code>Long</code></a>, and <a href="../../java/util/Date.html" title="class in java.util"><code>Date</code></a> the time zone used is the <a href="../../java/util/TimeZone.html#getDefault--">default time zone</a> for this instance of the Java virtual machine. The Formatter's locale will supersede the locale of the argument (if any).    <code>'s'</code> <tt>'\u0073'</tt>   Seconds since the beginning of the epoch starting at 1 January 1970 <code>00:00:00</code> UTC, i.e. <code>Long.MIN_VALUE/1000</code> to <code>Long.MAX_VALUE/1000</code>.    <code>'Q'</code> <tt>'\u004f'</tt>   Milliseconds since the beginning of the epoch starting at 1 January 1970 <code>00:00:00</code> UTC, i.e. <code>Long.MIN_VALUE</code> to <code>Long.MAX_VALUE</code>. The precision of this value is limited by the resolution of the underlying operating system or hardware.   </span>
+<table cellpadding="5" summary="time">
+</table>
+<p> <span>以下转换字符用于格式化日期：</span> </p>
+<span> <code>'B'</code> <tt>'\u0042'</tt>   Locale-specific <a href="../../java/text/DateFormatSymbols.html#getMonths--">full month name</a>, e.g. <code>"January"</code>, <code>"February"</code>.    <code>'b'</code> <tt>'\u0062'</tt>   Locale-specific <a href="../../java/text/DateFormatSymbols.html#getShortMonths--">abbreviated month name</a>, e.g. <code>"Jan"</code>, <code>"Feb"</code>.    <code>'h'</code> <tt>'\u0068'</tt>   Same as <code>'b'</code>.    <code>'A'</code> <tt>'\u0041'</tt>   Locale-specific full name of the <a href="../../java/text/DateFormatSymbols.html#getWeekdays--">day of the week</a>, e.g. <code>"Sunday"</code>, <code>"Monday"</code> <code>'a'</code> <tt>'\u0061'</tt>   Locale-specific short name of the <a href="../../java/text/DateFormatSymbols.html#getShortWeekdays--">day of the week</a>, e.g. <code>"Sun"</code>, <code>"Mon"</code> <code>'C'</code> <tt>'\u0043'</tt>   Four-digit year divided by <code>100</code>, formatted as two digits with leading zero as necessary, i.e. <code>00 - 99</code> <code>'Y'</code> <tt>'\u0059'</tt>   Year, formatted to at least four digits with leading zeros as necessary, e.g. <code>0092</code> equals <code>92</code> CE for the Gregorian calendar.    <code>'y'</code> <tt>'\u0079'</tt>   Last two digits of the year, formatted with leading zeros as necessary, i.e. <code>00 - 99</code>.    <code>'j'</code> <tt>'\u006a'</tt>   Day of year, formatted as three digits with leading zeros as necessary, e.g. <code>001 - 366</code> for the Gregorian calendar. <code>001</code> corresponds to the first day of the year.    <code>'m'</code> <tt>'\u006d'</tt>   Month, formatted as two digits with leading zeros as necessary, i.e. <code>01 - 13</code>, where "<code>01</code>" is the first month of the year and ("<code>13</code>" is a special value required to support lunar calendars).    <code>'d'</code> <tt>'\u0064'</tt>   Day of month, formatted as two digits with leading zeros as necessary, i.e. <code>01 - 31</code>, where "<code>01</code>" is the first day of the month.    <code>'e'</code> <tt>'\u0065'</tt>   Day of month, formatted as two digits, i.e. <code>1 - 31</code> where "<code>1</code>" is the first day of the month.   </span>
+<table cellpadding="5" summary="date">
+</table>
+<p> <span>以下转换字符用于格式化常用日期/时间合成。</span> </p>
+<span> <code>'R'</code> <tt>'\u0052'</tt>   Time formatted for the 24-hour clock as <code>"%tH:%tM"</code> <code>'T'</code> <tt>'\u0054'</tt>   Time formatted for the 24-hour clock as <code>"%tH:%tM:%tS"</code>.    <code>'r'</code> <tt>'\u0072'</tt>   Time formatted for the 12-hour clock as <code>"%tI:%tM:%tS %Tp"</code>. The location of the morning or afternoon marker (<code>'%Tp'</code>) may be locale-dependent.    <code>'D'</code> <tt>'\u0044'</tt>   Date formatted as <code>"%tm/%td/%ty"</code>.    <code>'F'</code> <tt>'\u0046'</tt> <a href="http://www.w3.org/TR/NOTE-datetime">ISO 8601</a> complete date formatted as <code>"%tY-%tm-%td"</code>.    <code>'c'</code> <tt>'\u0063'</tt>   Date and time formatted as <code>"%ta %tb %td %tT %tZ %tY"</code>, e.g. <code>"Sun Jul 20 16:17:00 EDT 1969"</code>.   </span>
+<table cellpadding="5" summary="composites">
+</table>
+<p> <span>适用于<a href="#dFlags">General conversions</a>的<code>'-'</code>标志。</span> <span>如果给出了<code>'#'</code>标志，那么将抛出一个<a href="../../java/util/FormatFlagsConversionMismatchException.html" title="java.util中的类"><code>FormatFlagsConversionMismatchException</code></a> 。</span> </p>
+<p> <span>宽度是要写入输出的最小字符数。</span> <span>如果转换值的长度小于<code>width</code>则输出将被空格（ <tt>'\u0020'</tt> ）填充，直到总字符数等于宽度。</span> <span>默认情况下，填充在左侧。</span> <span>如果给出<code>'-'</code>标志，则填充将在右侧。</span> <span>如果没有指定width，那么没有最小值。</span> </p>
+<p> <span>精度不适用。</span> <span>如果指定精度，则会抛出<a href="../../java/util/IllegalFormatPrecisionException.html" title="java.util中的类">8845629397111111</a> 。</span> </p>
+<h4> <span><a name="dper">Percent</a></span> </h4>
+<p> <span>转换不符合任何参数。</span> </p>
+<span> <code>'%'</code>   The result is a literal <code>'%'</code> (<tt>'\u0025'</tt>) <p> The width is the minimum number of characters to be written to the output including the <code>'%'</code>. If the length of the converted value is less than the <code>width</code> then the output will be padded by spaces (<tt>'\u0020'</tt>) until the total number of characters equals width. The padding is on the left. If width is not specified then just the <code>'%'</code> is output. </p><p> The <code>'-'</code> flag defined for <a href="#dFlags">General conversions</a> applies. If any other flags are provided, then a <a href="../../java/util/FormatFlagsConversionMismatchException.html" title="class in java.util"><code>FormatFlagsConversionMismatchException</code></a> will be thrown. </p><p> The precision is not applicable. If the precision is specified an <a href="../../java/util/IllegalFormatPrecisionException.html" title="class in java.util"><code>IllegalFormatPrecisionException</code></a> will be thrown. </p> </span>
+<table cellpadding="5" summary="DTConv">
+</table>
+<h4> <span><a name="dls">Line Separator</a></span> </h4>
+<p> <span>转换不符合任何参数。</span> </p>
+<span> <code>'n'</code>   the platform-specific line separator as returned by <a href="../../java/lang/System.html#getProperty-java.lang.String-"><code>System.getProperty("line.separator")</code></a>.   </span>
+<table cellpadding="5" summary="DTConv">
+</table>
+<p> <span>标志，宽度和精度不适用。</span> <span>如果有任何提供的<a href="../../java/util/IllegalFormatFlagsException.html" title="java.util中的类">话</a> ，将分别投<a href="../../java/util/IllegalFormatWidthException.html" title="java.util中的类">给<code>IllegalFormatFlagsException</code>,<code>IllegalFormatWidthException</code></a>和<a href="../../java/util/IllegalFormatPrecisionException.html" title="java.util中的类"><code>IllegalFormatPrecisionException</code></a> 。</span> </p>
+<h4> <span><a name="dpos">Argument Index</a></span> </h4>
+<p> <span>格式说明符可以通过三种方式引用参数：</span> </p>
+<ul>
+<li> <span>当格式说明符包含参数索引时，将使用<i>显式索引</i> 。</span> <span>参数index是一个十进制整数，表示参数在参数列表中的位置。</span> <span>第一个参数由“ <code>1$</code> ” <code>1$</code> ，第二个参数由“ <code>2$</code> ”等<code>2$</code> 。参数可以被多次引用。</span> <p> <span>例如：</span> </p>
+<blockquote>
+<span><pre>
+   formatter.format("%4$s %3$s %2$s %1$s %4$s %3$s %2$s %1$s",
+                    "a", "b", "c", "d")
+   // -&gt; "d c b a d c b a"
+ </pre></span>
+</blockquote></li>
+<li> <span>当格式说明符包含一个<code>'&lt;'</code> （ <tt>'\u003c'</tt> ）标志时，会使用<i>相对索引</i> ，该标志会导致先前格式说明符的参数被重新使用。</span> <span>如果没有以前的参数，则抛出一个<a href="../../java/util/MissingFormatArgumentException.html" title="java.util中的类"><code>MissingFormatArgumentException</code></a> 。</span>
+<blockquote>
+<span><pre>
+    formatter.format("%s %s %&lt;s %&lt;s", "a", "b", "c", "d")
+    // -&gt; "a b b b"
+    // "c" and "d" are ignored because they are not referenced
+ </pre></span>
+</blockquote></li>
+<li> <span>当格式说明符既不包含参数索引也不包含<code>'&lt;'</code>标志时，将使用<i>普通索引</i> 。</span> <span>使用普通索引的每个格式说明符都被分配给参数列表中的顺序隐含索引，该索引独立于显式索引或相关索引使用的索引。</span>
+<blockquote>
+<span><pre>
+   formatter.format("%s %s %s %s", "a", "b", "c", "d")
+   // -&gt; "a b c d"
+ </pre></span>
+</blockquote></li>
+</ul>
+<p> <span>可以使用使用所有形式的索引的格式字符串，例如：</span> </p>
+<blockquote>
+<span><pre>
+   formatter.format("%2$s %s %&lt;s %s", "a", "b", "c", "d")
+   // -&gt; "b a a b"
+   // "c" and "d" are ignored because they are not referenced
+ </pre></span>
+</blockquote>
+<p> <span>参数的最大数量受限于The Java™ Virtual Machine Specification定义的Java数组的最大维<cite>数</cite> 。</span> <span>如果参数索引不符合可用参数，则抛出<a href="../../java/util/MissingFormatArgumentException.html" title="java.util中的类"><code>MissingFormatArgumentException</code></a> 。</span> </p>
+<p> <span>如果比格式说明符更多的参数，额外的参数将被忽略。</span> </p>
+<p> <span>除非另有说明，否则将<code>null</code>参数传递给此类中的任何方法或构造函数将导致抛出<a href="../../java/lang/NullPointerException.html" title="java.lang中的类"><code>NullPointerException</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.5 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/util/Formatter.BigDecimalLayoutForm.html" title="enum in java.util">Formatter.BigDecimalLayoutForm</a></span></code>
+<div class="block">
+              枚举为 
+             <code>BigDecimal</code>格式。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter--">Formatter</a></span>()</code>
+<div class="block">
+              构造一个新的格式化程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.lang.Appendable-">Formatter</a></span>(<a href="../../java/lang/Appendable.html" title="interface in java.lang">Appendable</a> a)</code>
+<div class="block">
+              使用指定的目的地构造一个新的格式化程序。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.lang.Appendable-java.util.Locale-">Formatter</a></span>(<a href="../../java/lang/Appendable.html" title="interface in java.lang">Appendable</a> a, <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)</code>
+<div class="block">
+              构造一个具有指定目的地和区域设置的新格式化程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.io.File-">Formatter</a></span>(<a href="../../java/io/File.html" title="class in java.io">File</a> file)</code>
+<div class="block">
+              使用指定的文件构造一个新的格式化程序。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.io.File-java.lang.String-">Formatter</a></span>(<a href="../../java/io/File.html" title="class in java.io">File</a> file, <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn)</code>
+<div class="block">
+              使用指定的文件和字符集构造一个新的格式化程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.io.File-java.lang.String-java.util.Locale-">Formatter</a></span>(<a href="../../java/io/File.html" title="class in java.io">File</a> file, <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn, <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)</code>
+<div class="block">
+              使用指定的文件，字符集和区域设置构造一个新的格式化程序。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.util.Locale-">Formatter</a></span>(<a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)</code>
+<div class="block">
+              构造具有指定区域设置的新格式化程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.io.OutputStream-">Formatter</a></span>(<a href="../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os)</code>
+<div class="block">
+              使用指定的输出流构造一个新的格式化程序。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.io.OutputStream-java.lang.String-">Formatter</a></span>(<a href="../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os, <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn)</code>
+<div class="block">
+              使用指定的输出流和字符集构造一个新的格式化程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.io.OutputStream-java.lang.String-java.util.Locale-">Formatter</a></span>(<a href="../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os, <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn, <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)</code>
+<div class="block">
+              使用指定的输出流，字符集和区域设置构造一个新的格式化程序。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.io.PrintStream-">Formatter</a></span>(<a href="../../java/io/PrintStream.html" title="class in java.io">PrintStream</a> ps)</code>
+<div class="block">
+              使用指定的打印流构造新的格式化程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.lang.String-">Formatter</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> fileName)</code>
+<div class="block">
+              构造具有指定文件名的新格式化程序。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.lang.String-java.lang.String-">Formatter</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> fileName, <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn)</code>
+<div class="block">
+              构造具有指定文件名和字符集的新格式化程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#Formatter-java.lang.String-java.lang.String-java.util.Locale-">Formatter</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> fileName, <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn, <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)</code>
+<div class="block">
+              构造具有指定文件名，字符集和区域设置的新格式化程序。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#close--">close</a></span>()</code>
+<div class="block">
+              关闭此格式化程序。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#flush--">flush</a></span>()</code>
+<div class="block">
+              刷新格式化程序。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../java/util/Formatter.html" title="class in java.util">Formatter</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#format-java.util.Locale-java.lang.String-java.lang.Object...-">format</a></span>(<a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l, <a href="../../java/lang/String.html" title="class in java.lang">String</a> format, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>... args)</code>
+<div class="block">
+              使用指定的区域设置，格式字符串和参数将格式化的字符串写入此对象的目标。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../java/util/Formatter.html" title="class in java.util">Formatter</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#format-java.lang.String-java.lang.Object...-">format</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> format, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>... args)</code>
+<div class="block">
+              使用指定的格式字符串和参数将格式化的字符串写入此对象的目标。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#ioException--">ioException</a></span>()</code>
+<div class="block">
+<span>返回此<code>IOException</code>最后抛出的<a href="../../java/lang/Appendable.html" title="java.lang中的接口">IOException</a> 。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../java/util/Locale.html" title="class in java.util">Locale</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#locale--">locale</a></span>()</code>
+<div class="block">
+              返回通过构建此格式化程序设置的区域设置。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../java/lang/Appendable.html" title="interface in java.lang">Appendable</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#out--">out</a></span>()</code>
+<div class="block">
+              返回输出的目的地。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/util/Formatter.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回在输出的 
+             <code>toString()</code>上调用 
+             <code>toString()</code>的结果。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="Formatter--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter()</pre>
+<div class="block">
+<span>构造一个新的格式化程序。</span>
+<p> <span>格式化输出的目的地是<a href="../../java/lang/StringBuilder.html" title="java.lang中的类"><code>StringBuilder</code></a> ，其可以通过调用被检索<a href="../../java/util/Formatter.html#out--"><code>out()</code></a>并且其当前内容可以通过调用被转换成字符串<a href="../../java/util/Formatter.html#toString--"><code>toString()</code></a> 。</span> <span>使用的语言环境是<a href="../../java/util/Locale.html#getDefault-java.util.Locale.Category-">default locale</a>为<a href="../../java/util/Locale.Category.html#FORMAT">formatting</a> Java虚拟机实例。</span> </p>
+</div> </li>
+</ul> <a name="Formatter-java.lang.Appendable-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/lang/Appendable.html" title="interface in java.lang">Appendable</a> a)</pre>
+<div class="block">
+<span>使用指定的目的地构造一个新的格式化程序。</span>
+<p> <span>所使用的语言环境是Java虚拟机的这个实例的<a href="../../java/util/Locale.html#getDefault-java.util.Locale.Category-">formatting</a>的<a href="../../java/util/Locale.Category.html#FORMAT">default locale</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>a</code> - 格式化输出的目的地。</span>
+<span>如果<code>a</code>是<code>null</code>那么将创建一个<a href="../../java/lang/StringBuilder.html" title="java.lang中的类"><code>StringBuilder</code></a> 。</span>
+</dd>
+</dl> </li>
+</ul> <a name="Formatter-java.util.Locale-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)</pre>
+<div class="block">
+<span>构造具有指定区域设置的新格式化程序。</span>
+<p> <span>格式化输出的目的地是<a href="../../java/lang/StringBuilder.html" title="java.lang中的类"><code>StringBuilder</code></a> ，其可以通过调用被检索<a href="../../java/util/Formatter.html#out--"><code>out()</code></a>并且其当前内容可以通过调用被转换成字符串<a href="../../java/util/Formatter.html#toString--"><code>toString()</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>l</code> - <a href="../../java/util/Locale.html" title="java.util中的类">格式化</a>期间应用的locale。</span>
+<span>如果<code>l</code>是<code>null</code> ，则不应用本地化。</span>
+</dd>
+</dl> </li>
+</ul> <a name="Formatter-java.lang.Appendable-java.util.Locale-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/lang/Appendable.html" title="interface in java.lang">Appendable</a> a,
+                 <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)</pre>
+<div class="block">
+            构造一个具有指定目的地和区域设置的新格式化程序。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>a</code> - 格式化输出的目的地。</span>
+<span>如果<code>a</code>是<code>null</code>那么将创建一个<a href="../../java/lang/StringBuilder.html" title="java.lang中的类"><code>StringBuilder</code></a> 。</span>
+</dd>
+<dd>
+<span><code>l</code> - <a href="../../java/util/Locale.html" title="java.util中的类">格式化</a>期间应用的locale。</span>
+<span>如果<code>l</code>是<code>null</code> ，则不应用定位。</span>
+</dd>
+</dl> </li>
+</ul> <a name="Formatter-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/lang/String.html" title="class in java.lang">String</a> fileName)
+          throws <a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a></pre>
+<div class="block">
+<span>构造具有指定文件名的新格式化程序。</span>
+<p> <span>使用的字符集是Java虚拟机的这个实例的<a href="../../java/nio/charset/Charset.html#defaultCharset--">default charset</a> 。</span> </p>
+<p> <span>使用的语言环境是<a href="../../java/util/Locale.html#getDefault-java.util.Locale.Category-">default locale</a>为<a href="../../java/util/Locale.Category.html#FORMAT">formatting</a> Java虚拟机实例。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>fileName</code> - 用作此格式化程序的目标位置的文件的名称。</span>
+<span>如果文件存在，那么它将被截断为零大小;</span>
+<span>否则，将创建一个新文件。</span>
+<span>输出将被写入文件并进行缓冲。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且 
+            <a href="../../java/lang/SecurityManager.html#checkWrite-java.io.FileDescriptor-"><code>checkWrite(fileName)</code></a>否认对该文件的写入访问 
+           </dd>
+<dd>
+<code><a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a></code> - 如果给定的文件名不表示现有的可写常规文件，并且无法创建该名称的新常规文件，或者在打开或创建文件时出现其他错误 
+           </dd>
+</dl> </li>
+</ul> <a name="Formatter-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/lang/String.html" title="class in java.lang">String</a> fileName,
+                 <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn)
+          throws <a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a>,
+                 <a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></pre>
+<div class="block">
+<span>构造具有指定文件名和字符集的新格式化程序。</span>
+<p> <span>使用的语言环境是<a href="../../java/util/Locale.html#getDefault-java.util.Locale.Category-">default locale</a>为<a href="../../java/util/Locale.Category.html#FORMAT">formatting</a> Java虚拟机实例。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>fileName</code> - 要用作此格式化程序的目标的文件的名称。</span>
+<span>如果文件存在，那么它将被截断为零大小;</span>
+<span>否则，将创建一个新文件。</span>
+<span>输出将被写入文件并进行缓冲。</span>
+</dd>
+<dd>
+<span><code>csn</code> - 受支持的charset的<a href="../../java/nio/charset/Charset.html" title="java.nio.charset中的类">名字</a></span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a></code> - 如果给定的文件名不表示现有的可写常规文件，并且无法创建该名称的新常规文件，或者在打开或创建文件时发生其他错误 
+           </dd>
+<dd>
+<code><a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且 
+            <a href="../../java/lang/SecurityManager.html#checkWrite-java.io.FileDescriptor-"><code>checkWrite(fileName)</code></a>拒绝对文件的写入访问 
+           </dd>
+<dd>
+<code><a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></code> - 如果不支持命名的字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="Formatter-java.lang.String-java.lang.String-java.util.Locale-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/lang/String.html" title="class in java.lang">String</a> fileName,
+                 <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn,
+                 <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)
+          throws <a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a>,
+                 <a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></pre>
+<div class="block">
+            构造具有指定文件名，字符集和区域设置的新格式化程序。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>fileName</code> - 用作此格式化程序的目标的文件的名称。</span>
+<span>如果文件存在，那么它将被截断为零大小;</span>
+<span>否则，将创建一个新文件。</span>
+<span>输出将被写入文件并进行缓冲。</span>
+</dd>
+<dd>
+<span><code>csn</code> -的名字支持<a href="../../java/nio/charset/Charset.html" title="java.nio.charset中的类">charset</a></span>
+</dd>
+<dd>
+<span><code>l</code> - <a href="../../java/util/Locale.html" title="java.util中的类">格式化</a>期间应用的locale。</span>
+<span>如果<code>l</code>是<code>null</code> ，则不应用本地化。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a></code> - 如果给定的文件名不表示现有的，可写的常规文件，并且无法创建该名称的新常规文件，或者在打开或创建文件时发生其他错误 
+           </dd>
+<dd>
+<code><a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果存在安全管理员，并且 
+            <a href="../../java/lang/SecurityManager.html#checkWrite-java.io.FileDescriptor-"><code>checkWrite(fileName)</code></a>拒绝对文件的写入访问 
+           </dd>
+<dd>
+<code><a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></code> - 如果不支持命名的字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="Formatter-java.io.File-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/io/File.html" title="class in java.io">File</a> file)
+          throws <a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a></pre>
+<div class="block">
+<span>使用指定的文件构造一个新的格式化程序。</span>
+<p> <span>所使用的字符集是Java虚拟机的这个实例的<a href="../../java/nio/charset/Charset.html#defaultCharset--">default charset</a> 。</span> </p>
+<p> <span>所使用的语言环境是<a href="../../java/util/Locale.html#getDefault-java.util.Locale.Category-">default locale</a> ，用于Java虚拟机的此实例的<a href="../../java/util/Locale.Category.html#FORMAT">formatting</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>file</code> - 用作此格式化程序的目的地的文件。</span>
+<span>如果文件存在，那么它将被截断为零大小;</span>
+<span>否则，将创建一个新文件。</span>
+<span>输出将被写入文件并进行缓冲。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> -如果安全管理器，并且 
+            <a href="../../java/lang/SecurityManager.html#checkWrite-java.io.FileDescriptor-"><code>checkWrite(file.getPath())</code></a>拒绝写入访问文件 
+           </dd>
+<dd>
+<code><a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a></code> - 如果给定的文件对象不表示现有的可写常规文件，并且无法创建该名称的新常规文件，或者在打开或创建文件时出现其他错误 
+           </dd>
+</dl> </li>
+</ul> <a name="Formatter-java.io.File-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/io/File.html" title="class in java.io">File</a> file,
+                 <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn)
+          throws <a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a>,
+                 <a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></pre>
+<div class="block">
+<span>使用指定的文件和字符集构造一个新的格式化程序。</span>
+<p> <span>使用的语言环境是<a href="../../java/util/Locale.html#getDefault-java.util.Locale.Category-">default locale</a>为<a href="../../java/util/Locale.Category.html#FORMAT">formatting</a> Java虚拟机实例。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>file</code> - 用作此格式化程序的目的地的文件。</span>
+<span>如果文件存在，那么它将被截断为零大小;</span>
+<span>否则，将创建一个新文件。</span>
+<span>输出将被写入文件并进行缓冲。</span>
+</dd>
+<dd>
+<span><code>csn</code> -的名字支持<a href="../../java/nio/charset/Charset.html" title="java.nio.charset中的类">charset</a></span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a></code> - 如果给定的文件对象不表示现有的可写常规文件，并且无法创建该名称的新常规文件，或者在打开或创建文件时发生其他错误 
+           </dd>
+<dd>
+<code><a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果存在安全管理员，并且 
+            <a href="../../java/lang/SecurityManager.html#checkWrite-java.io.FileDescriptor-"><code>checkWrite(file.getPath())</code></a>拒绝对该文件的写入访问 
+           </dd>
+<dd>
+<code><a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></code> - 如果不支持命名的字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="Formatter-java.io.File-java.lang.String-java.util.Locale-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/io/File.html" title="class in java.io">File</a> file,
+                 <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn,
+                 <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)
+          throws <a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a>,
+                 <a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></pre>
+<div class="block">
+            使用指定的文件，字符集和区域设置构造一个新的格式化程序。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>file</code> - 用作此格式化程序的目的地的文件。</span>
+<span>如果文件存在，那么它将被截断为零大小;</span>
+<span>否则，将创建一个新文件。</span>
+<span>输出将被写入文件并进行缓冲。</span>
+</dd>
+<dd>
+<span><code>csn</code> -的名字支持<a href="../../java/nio/charset/Charset.html" title="java.nio.charset中的类">charset</a></span>
+</dd>
+<dd>
+<span><code>l</code> - <a href="../../java/util/Locale.html" title="java.util中的类">格式化</a>期间应用的locale。</span>
+<span>如果<code>l</code>是<code>null</code> ，则不应用本地化。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/FileNotFoundException.html" title="class in java.io">FileNotFoundException</a></code> - 如果给定的文件对象不表示现有的可写的常规文件，并且无法创建该名称的新常规文件，或者在打开或创建文件时发生其他错误 
+           </dd>
+<dd>
+<code><a href="../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在，并且 
+            <a href="../../java/lang/SecurityManager.html#checkWrite-java.io.FileDescriptor-"><code>checkWrite(file.getPath())</code></a>否认对该文件的写入访问 
+           </dd>
+<dd>
+<code><a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></code> - 如果不支持命名的字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="Formatter-java.io.PrintStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/io/PrintStream.html" title="class in java.io">PrintStream</a> ps)</pre>
+<div class="block">
+<span>使用指定的打印流构造新的格式化程序。</span>
+<p> <span>使用的语言环境是<a href="../../java/util/Locale.html#getDefault-java.util.Locale.Category-">default locale</a>为<a href="../../java/util/Locale.Category.html#FORMAT">formatting</a> Java虚拟机实例。</span> </p>
+<p> <span>字符写入给定的<a href="../../java/io/PrintStream.html" title="java.io中的类"><code>PrintStream</code></a>对象，因此使用该对象的字符集进行编码。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ps</code> - 用作此格式化程序的目标的流。 
+           </dd>
+</dl> </li>
+</ul> <a name="Formatter-java.io.OutputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os)</pre>
+<div class="block">
+<span>使用指定的输出流构造一个新的格式化程序。</span>
+<p> <span>所使用的字符集是Java虚拟机的这个实例的<a href="../../java/nio/charset/Charset.html#defaultCharset--">default charset</a> 。</span> </p>
+<p> <span>所使用的区域是<a href="../../java/util/Locale.html#getDefault-java.util.Locale.Category-">default locale</a> ，用于<a href="../../java/util/Locale.Category.html#FORMAT">formatting</a>用于此Java虚拟机实例。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>os</code> - 用作此格式化程序的目标的输出流。</span>
+<span>输出将被缓冲。</span>
+</dd>
+</dl> </li>
+</ul> <a name="Formatter-java.io.OutputStream-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os,
+                 <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn)
+          throws <a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></pre>
+<div class="block">
+<span>使用指定的输出流和字符集构造一个新的格式化程序。</span>
+<p> <span>使用的语言环境是<a href="../../java/util/Locale.html#getDefault-java.util.Locale.Category-">default locale</a>为<a href="../../java/util/Locale.Category.html#FORMAT">formatting</a> Java虚拟机实例。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>os</code> - 用作此格式化程序目标的输出流。</span>
+<span>输出将被缓冲。</span>
+</dd>
+<dd>
+<span><code>csn</code> -的名字支持<a href="../../java/nio/charset/Charset.html" title="java.nio.charset中的类">charset</a></span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></code> - 如果不支持命名的字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="Formatter-java.io.OutputStream-java.lang.String-java.util.Locale-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>Formatter</h4> <pre>public Formatter(<a href="../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> os,
+                 <a href="../../java/lang/String.html" title="class in java.lang">String</a> csn,
+                 <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l)
+          throws <a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></pre>
+<div class="block">
+            使用指定的输出流，字符集和区域设置构造一个新的格式化程序。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>os</code> - 用作此格式化程序的目的地的输出流。</span>
+<span>输出将被缓冲。</span>
+</dd>
+<dd>
+<span><code>csn</code> -的名字支持<a href="../../java/nio/charset/Charset.html" title="java.nio.charset中的类">charset</a></span>
+</dd>
+<dd>
+<span><code>l</code> - <a href="../../java/util/Locale.html" title="java.util中的类">格式化</a>期间应用的locale。</span>
+<span>如果<code>l</code>是<code>null</code> ，则不应用本地化。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/UnsupportedEncodingException.html" title="class in java.io">UnsupportedEncodingException</a></code> - 如果不支持命名的字符集 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="locale--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>locale</h4> <pre>public <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> locale()</pre>
+<div class="block">
+<span>返回通过构建此格式化程序设置的区域设置。</span>
+<p> <span>具有locale参数的此对象的<a href="../../java/util/Formatter.html#format-java.util.Locale-java.lang.String-java.lang.Object...-"><code>format</code></a>方法不会更改此值。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>null</code>如果没有应用本地化，否则是一个区域设置 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/util/FormatterClosedException.html" title="class in java.util">FormatterClosedException</a></code> - 如果这个格式化程序已经通过调用其 
+            <a href="../../java/util/Formatter.html#close--"><code>close()</code></a>方法关闭了 
+           </dd>
+</dl> </li>
+</ul> <a name="out--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>out</h4> <pre>public <a href="../../java/lang/Appendable.html" title="interface in java.lang">Appendable</a> out()</pre>
+<div class="block">
+            返回输出的目的地。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             输出的目的地 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/util/FormatterClosedException.html" title="class in java.util">FormatterClosedException</a></code> - 如果格式化程序已经通过调用其 
+            <a href="../../java/util/Formatter.html#close--"><code>close()</code></a>方法关闭了 
+           </dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>返回在输出的目的地调用<code>toString()</code>的结果。</span>
+<span>例如，以下代码将文本格式化为<a href="../../java/lang/StringBuilder.html" title="java.lang中的类"><code>StringBuilder</code>，</a>然后检索结果字符串：</span>
+<blockquote>
+<span><pre>
+   Formatter f = new Formatter();
+   f.format("Last reboot at %tc", lastRebootDate);
+   String s = f.toString();
+   // -&gt; s == "Last reboot at Sat Jan 01 00:00:00 PST 2000"
+ </pre></span>
+</blockquote>
+<p> <span>调用此方法的行为方式与调用完全相同</span> </p>
+<pre>  <span>out().toString()</span> </pre>
+<p> <span>根据toString的<code>toString</code>的<a href="../../java/lang/Appendable.html" title="java.lang中的接口">规格</a> ，返回的字符串可能包含或不包含写入目的地的字符。</span> <span>例如，缓冲区通常在<code>toString()</code>中返回其内容，但是由于数据被丢弃，流不能。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#toString--">toString</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在输出的目的地调用 
+            <code>toString()</code>的结果 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/util/FormatterClosedException.html" title="class in java.util">FormatterClosedException</a></code> - 如果格式化程序已经通过调用其 
+            <a href="../../java/util/Formatter.html#close--"><code>close()</code></a>方法关闭 
+           </dd>
+</dl> </li>
+</ul> <a name="flush--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>flush</h4> <pre>public void flush()</pre>
+<div class="block">
+<span>刷新格式化程序。</span>
+<span>如果目的地实现了<a href="../../java/io/Flushable.html" title="java.io中的接口"><code>Flushable</code></a>接口，则将调用其<code>flush</code>方法。</span>
+<p> <span>刷新格式器将目标中的任何缓冲输出写入底层流。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/Flushable.html#flush--">flush</a></code>中的 
+            <code><a href="../../java/io/Flushable.html" title="interface in java.io">Flushable</a></code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/util/FormatterClosedException.html" title="class in java.util">FormatterClosedException</a></code> - 如果格式化程序已经通过调用其 
+            <a href="../../java/util/Formatter.html#close--"><code>close()</code></a>方法关闭 
+           </dd>
+</dl> </li>
+</ul> <a name="close--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>close</h4> <pre>public void close()</pre>
+<div class="block">
+<span>关闭此格式化程序。</span>
+<span>如果目的地实现<a href="../../java/io/Closeable.html" title="java.io中的接口"><code>Closeable</code></a>接口，则其<code>close</code>方法将被调用。</span>
+<p> <span>关闭格式化程序允许它释放它可能持有的资源（如打开的文件）。</span> <span>如果格式化程序已经关闭，则调用此方法没有任何作用。</span> </p>
+<p> <span>在格式化程序关闭后，除了<a href="../../java/util/Formatter.html#ioException--"><code>ioException()</code></a>之外， <a href="../../java/util/Formatter.html#ioException--">尝试</a>调用任何方法将导致<a href="../../java/util/FormatterClosedException.html" title="java.util中的类"><code>FormatterClosedException</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/io/Closeable.html#close--">close</a></code>中的 
+            <code><a href="../../java/io/Closeable.html" title="interface in java.io">Closeable</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/AutoCloseable.html#close--">close</a></code>在接口 
+            <code><a href="../../java/lang/AutoCloseable.html" title="interface in java.lang">AutoCloseable</a></code>
+</dd>
+</dl> </li>
+</ul> <a name="ioException--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ioException</h4> <pre>public <a href="../../java/io/IOException.html" title="class in java.io">IOException</a> ioException()</pre>
+<div class="block">
+<span>返回此<code>IOException</code>最后抛出的<a href="../../java/lang/Appendable.html" title="java.lang中的接口">IOException</a> 。</span>
+<p> <span>如果目的地的<code>append()</code>方法从不抛出<code>IOException</code> ，那么此方法将始终返回<code>null</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             最后由异常的可追加或抛出 
+            <code>null</code>如果没有这样的例外存在。 
+           </dd>
+</dl> </li>
+</ul> <a name="format-java.lang.String-java.lang.Object...-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>format</h4> <pre>public <a href="../../java/util/Formatter.html" title="class in java.util">Formatter</a> format(<a href="../../java/lang/String.html" title="class in java.lang">String</a> format,
+                        <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>... args)</pre>
+<div class="block">
+<span>使用指定的格式字符串和参数将格式化的字符串写入此对象的目标。</span>
+<span>所使用的区域是在构建格式化程序期间定义的区域。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>format</code> - Format string syntax中 
+            <a href="#syntax">描述的</a>格式字符串。 
+           </dd>
+<dd>
+<span><code>args</code> - 格式字符串中格式说明符引用的参数。</span>
+<span>如果比格式说明符更多的参数，额外的参数将被忽略。</span>
+<span>参数的最大数量受限于The Java™ Virtual Machine Specification定义的Java数组的最大<cite>维度</cite> 。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个格式化 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<span><code><a href="../../java/util/IllegalFormatException.html" title="class in java.util">IllegalFormatException</a></code> - 如果格式字符串包含非法语法，则与给定参数不兼容的格式说明符，给定格式字符串的参数不足或其他非法条件。</span>
+<span>有关所有可能的格式化错误的<a href="#detail">规范</a> ，请参阅<a href="#detail">格式化</a>程序类规范的<a href="#detail">Details</a>部分。</span>
+</dd>
+<dd>
+<code><a href="../../java/util/FormatterClosedException.html" title="class in java.util">FormatterClosedException</a></code> - 如果格式化程序已经通过调用其 
+            <a href="../../java/util/Formatter.html#close--"><code>close()</code></a>方法关闭 
+           </dd>
+</dl> </li>
+</ul> <a name="format-java.util.Locale-java.lang.String-java.lang.Object...-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>format</h4> <pre>public <a href="../../java/util/Formatter.html" title="class in java.util">Formatter</a> format(<a href="../../java/util/Locale.html" title="class in java.util">Locale</a> l,
+                        <a href="../../java/lang/String.html" title="class in java.lang">String</a> format,
+                        <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>... args)</pre>
+<div class="block">
+            使用指定的区域设置，格式字符串和参数将格式化的字符串写入此对象的目标。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>l</code> - <a href="../../java/util/Locale.html" title="java.util中的类">格式化</a>期间应用的locale。</span>
+<span>如果<code>l</code>是<code>null</code> ，则不应用定位。</span>
+<span>这不会改变在构建期间设置的对象的区域设置。</span>
+</dd>
+<dd>
+<code>format</code> - Format string syntax中 
+            <a href="#syntax">描述的</a>格式字符串 
+           </dd>
+<dd>
+<span><code>args</code> - 格式字符串中格式说明符引用的参数。</span>
+<span>如果比格式说明符更多的参数，额外的参数将被忽略。</span>
+<span>参数的最大数量受限于The Java™ Virtual Machine Specification定义的Java数组的最大维<cite>数</cite> 。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个格式化 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<span><code><a href="../../java/util/IllegalFormatException.html" title="class in java.util">IllegalFormatException</a></code> - 如果格式字符串包含非法语法，则与给定参数不兼容的格式说明符，给定格式字符串的参数不足或其他非法条件。</span>
+<span>有关所有可能的格式化错误的<a href="#detail">规范</a> ，请参阅<a href="#detail">格式化</a>程序类规范的<a href="#detail">Details</a>部分。</span>
+</dd>
+<dd>
+<code><a href="../../java/util/FormatterClosedException.html" title="class in java.util">FormatterClosedException</a></code> - 如果格式化程序通过调用其 
+            <a href="../../java/util/Formatter.html#close--"><code>close()</code></a>方法已关闭 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

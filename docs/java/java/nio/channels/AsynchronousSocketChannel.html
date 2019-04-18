@@ -1,0 +1,1220 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.nio.channels 
+   </div>
+<h2 class="title" title="Class AsynchronousSocketChannel">Class AsynchronousSocketChannel</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.nio.channels.AsynchronousSocketChannel</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Closeable.html" title="java.io中的接口">Closeable</a> ， <a href="../../../java/lang/AutoCloseable.html" title="java.lang中的接口">AutoCloseable</a> ， <a href="../../../java/nio/channels/AsynchronousByteChannel.html" title="java.nio.channels中的接口">AsynchronousByteChannel</a> ， <a href="../../../java/nio/channels/AsynchronousChannel.html" title="java.nio.channels中的接口">AsynchronousChannel</a> ， <a href="../../../java/nio/channels/Channel.html" title="java.nio.channels中的接口">Channel</a> ， <a href="../../../java/nio/channels/NetworkChannel.html" title="java.nio.channels中的接口">NetworkChannel</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">AsynchronousSocketChannel</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../../java/nio/channels/AsynchronousByteChannel.html" title="interface in java.nio.channels">AsynchronousByteChannel</a>, <a href="../../../java/nio/channels/NetworkChannel.html" title="interface in java.nio.channels">NetworkChannel</a></pre>
+<div class="block">
+<span>用于面向流的连接插座的异步通道。</span>
+<p> <span>异步套接字通道以两种方式之一创建。</span> <span>通过调用由此类定义的<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#open-java.nio.channels.AsynchronousChannelGroup-"><code>open</code></a>方法之一创建新创建的<code>AsynchronousSocketChannel</code> 。</span> <span>新创建的频道已打开但尚未连接。</span> <span>A相连接<code>AsynchronousSocketChannel</code>当连接到的插座制成创建<a href="../../../java/nio/channels/AsynchronousServerSocketChannel.html" title="java.nio.channels中的类"><code>AsynchronousServerSocketChannel</code></a> 。</span> <span>不可能为任意的，预先存在的<a href="../../../java/net/Socket.html" title="java.net中的类"><code>socket</code></a>创建异步套接字通道。</span> </p>
+<p> <span>新创建的通道通过调用其<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#connect-java.net.SocketAddress-A-java.nio.channels.CompletionHandler-"><code>connect</code></a>方法进行连接;</span> <span>一旦连接，通道保持连接，直到它被关闭。</span> <span>是否连接套接字通道可以通过调用其<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#getRemoteAddress--"><code>getRemoteAddress</code></a>方法来<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#getRemoteAddress--">确定</a> 。</span> <span>尝试在未连接的通道上调用I / O操作将导致抛出<a href="../../../java/nio/channels/NotYetConnectedException.html" title="java.nio.channels中的类"><code>NotYetConnectedException</code></a> 。</span> </p>
+<p> <span>这种类型的通道可以安全地被多个并发线程使用。</span> <span>它们支持并发读写，但最多只能读取一次读写操作，一次写操作可以随时进行。</span> <span>如果线程在先前的读取操作完成之前启动了读取操作，那么将抛出一个<a href="../../../java/nio/channels/ReadPendingException.html" title="java.nio.channels中的类"><code>ReadPendingException</code></a> 。</span> <span>类似地，在前一次写入完成之前尝试启动写入操作将抛出一个<a href="../../../java/nio/channels/WritePendingException.html" title="java.nio.channels中的类"><code>WritePendingException</code></a> 。</span> </p>
+<p> <span>套接字选项使用<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#setOption-java.net.SocketOption-T-"><code>setOption</code></a>方法进行配置。</span> <span>异步套接字通道支持以下选项：</span> </p>
+<blockquote>
+<span>
+<table border="" summary="Socket options">
+<tbody>
+<tr>
+<th>Option Name</th>
+<th>描述</th>
+</tr>
+<tr>
+<td> <a href="../../../java/net/StandardSocketOptions.html#SO_SNDBUF"><code>SO_SNDBUF</code></a> </td>
+<td> The size of the socket send buffer </td>
+</tr>
+<tr>
+<td> <a href="../../../java/net/StandardSocketOptions.html#SO_RCVBUF"><code>SO_RCVBUF</code></a> </td>
+<td> The size of the socket receive buffer </td>
+</tr>
+<tr>
+<td> <a href="../../../java/net/StandardSocketOptions.html#SO_KEEPALIVE"><code>SO_KEEPALIVE</code></a> </td>
+<td> Keep connection alive </td>
+</tr>
+<tr>
+<td> <a href="../../../java/net/StandardSocketOptions.html#SO_REUSEADDR"><code>SO_REUSEADDR</code></a> </td>
+<td> Re-use address </td>
+</tr>
+<tr>
+<td> <a href="../../../java/net/StandardSocketOptions.html#TCP_NODELAY"><code>TCP_NODELAY</code></a> </td>
+<td> Disable the Nagle algorithm </td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+<span>还可以支持附加（实现特定）选项。</span>
+<h2> <span>超时</span> </h2>
+<p> <span><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#read-java.nio.ByteBuffer-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-">此类</a>定义的<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#read-java.nio.ByteBuffer-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-"><code>read</code></a>和<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#write-java.nio.ByteBuffer-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-"><code>write</code></a>方法允许在启动读或写操作时指定超时。</span> <span>如果在操作完成之前经过了超时，则操作将以异常<code>InterruptedByTimeoutException</code> <a href="../../../java/nio/channels/InterruptedByTimeoutException.html" title="java.nio.channels中的类">完成</a> 。</span> <span>超时可能会使通道或底层连接处于不一致的状态。</span> <span>在实现不能保证字节没有从通道读取的情况下，它将通道置于实现特定的<em>错误状态</em> 。</span> <span>随后尝试启动<code>read</code>操作会引起未指定的运行时异常。</span> <span>类似地，如果<code>write</code>操作超时，并且实现不能保证字节尚未被写入通道，则进一步尝试向通道发送<code>write</code>导致未指定的运行时异常被抛出。</span> <span>当超时过去时，没有定义I / O操作的<a href="../../../java/nio/ByteBuffer.html" title="java.nio中的类"><code>ByteBuffer</code></a>或缓冲区序列的状态。</span> <span>应该丢弃缓冲区，或者至少要小心，以确保在通道保持打开状态时缓冲区不被访问。</span> <span>接受超时参数的所有方法都将小于或等于0的值表示为I / O操作不超时。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.7 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#AsynchronousSocketChannel-java.nio.channels.spi.AsynchronousChannelProvider-">AsynchronousSocketChannel</a></span>(<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="class in java.nio.channels.spi">AsynchronousChannelProvider</a> provider)</code>
+<div class="block">
+              初始化此类的新实例。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#bind-java.net.SocketAddress-">bind</a></span>(<a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a> local)</code>
+<div class="block">
+              将通道的套接字绑定到本地地址。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>abstract <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#connect-java.net.SocketAddress-">connect</a></span>(<a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a> remote)</code>
+<div class="block">
+              连接此频道。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>abstract &lt;A&gt; void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#connect-java.net.SocketAddress-A-java.nio.channels.CompletionHandler-">connect</a></span>(<a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a> remote, A attachment, <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a>,? super A&gt; handler)</code>
+<div class="block">
+              连接此频道。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>abstract <a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#getLocalAddress--">getLocalAddress</a></span>()</code>
+<div class="block">
+              返回此通道的套接字所绑定的套接字地址。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>abstract <a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#getRemoteAddress--">getRemoteAddress</a></span>()</code>
+<div class="block">
+              返回此通道的插座所连接的远程地址。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#open--">open</a></span>()</code>
+<div class="block">
+              打开异步套接字通道。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>static <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#open-java.nio.channels.AsynchronousChannelGroup-">open</a></span>(<a href="../../../java/nio/channels/AsynchronousChannelGroup.html" title="class in java.nio.channels">AsynchronousChannelGroup</a> group)</code>
+<div class="block">
+              打开异步套接字通道。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="class in java.nio.channels.spi">AsynchronousChannelProvider</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#provider--">provider</a></span>()</code>
+<div class="block">
+              返回创建此通道的提供程序。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>abstract <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#read-java.nio.ByteBuffer-">read</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst)</code>
+<div class="block">
+              从该通道读取到给定缓冲区的字节序列。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>abstract &lt;A&gt; void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#read-java.nio.ByteBuffer:A-int-int-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-">read</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] dsts, int offset, int length, long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit, A attachment, <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Long.html" title="class in java.lang">Long</a>,? super A&gt; handler)</code>
+<div class="block">
+              从该通道读取字节序列到给定缓冲区的子序列中。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>&lt;A&gt; void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#read-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-">read</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst, A attachment, <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>,? super A&gt; handler)</code>
+<div class="block">
+              从该通道读取到给定缓冲区的字节序列。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>abstract &lt;A&gt; void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#read-java.nio.ByteBuffer-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-">read</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst, long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit, A attachment, <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>,? super A&gt; handler)</code>
+<div class="block">
+              从该通道读取到给定缓冲区的字节序列。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>abstract &lt;T&gt; <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#setOption-java.net.SocketOption-T-">setOption</a></span>(<a href="../../../java/net/SocketOption.html" title="interface in java.net">SocketOption</a>&lt;T&gt; name, T value)</code>
+<div class="block">
+              设置套接字选项的值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#shutdownInput--">shutdownInput</a></span>()</code>
+<div class="block">
+              关闭连接进行阅读，不关闭频道。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#shutdownOutput--">shutdownOutput</a></span>()</code>
+<div class="block">
+              关闭连接以进行写入，而不关闭通道。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>abstract <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#write-java.nio.ByteBuffer-">write</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src)</code>
+<div class="block">
+              从给定的缓冲区向该通道写入一个字节序列。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>abstract &lt;A&gt; void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#write-java.nio.ByteBuffer:A-int-int-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-">write</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] srcs, int offset, int length, long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit, A attachment, <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Long.html" title="class in java.lang">Long</a>,? super A&gt; handler)</code>
+<div class="block">
+              从给定缓冲区的子序列将一个字节序列写入该通道。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>&lt;A&gt; void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#write-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-">write</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src, A attachment, <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>,? super A&gt; handler)</code>
+<div class="block">
+              从给定的缓冲区向该通道写入一个字节序列。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>abstract &lt;A&gt; void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/channels/AsynchronousSocketChannel.html#write-java.nio.ByteBuffer-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-">write</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src, long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit, A attachment, <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>,? super A&gt; handler)</code>
+<div class="block">
+              从给定的缓冲区向该通道写入一个字节序列。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.nio.channels.AsynchronousChannel">
+<!-- --> </a> <h3>Methods inherited from interface java.nio.channels.<a href="../../../java/nio/channels/AsynchronousChannel.html" title="interface in java.nio.channels">AsynchronousChannel</a></h3> <code><a href="../../../java/nio/channels/AsynchronousChannel.html#close--">close</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.nio.channels.Channel">
+<!-- --> </a> <h3>Methods inherited from interface java.nio.channels.<a href="../../../java/nio/channels/Channel.html" title="interface in java.nio.channels">Channel</a></h3> <code><a href="../../../java/nio/channels/Channel.html#isOpen--">isOpen</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.nio.channels.NetworkChannel">
+<!-- --> </a> <h3>Methods inherited from interface java.nio.channels.<a href="../../../java/nio/channels/NetworkChannel.html" title="interface in java.nio.channels">NetworkChannel</a></h3> <code><a href="../../../java/nio/channels/NetworkChannel.html#getOption-java.net.SocketOption-">getOption</a>, <a href="../../../java/nio/channels/NetworkChannel.html#supportedOptions--">supportedOptions</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="AsynchronousSocketChannel-java.nio.channels.spi.AsynchronousChannelProvider-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>AsynchronousSocketChannel</h4> <pre>protected AsynchronousSocketChannel(<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="class in java.nio.channels.spi">AsynchronousChannelProvider</a> provider)</pre>
+<div class="block">
+            初始化此类的新实例。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>provider</code> - 创建此频道的提供商 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="provider--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>provider</h4> <pre>public final <a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="class in java.nio.channels.spi">AsynchronousChannelProvider</a> provider()</pre>
+<div class="block">
+            返回创建此通道的提供程序。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             创建此频道的提供商 
+           </dd>
+</dl> </li>
+</ul> <a name="open-java.nio.channels.AsynchronousChannelGroup-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>open</h4> <pre>public static <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a> open(<a href="../../../java/nio/channels/AsynchronousChannelGroup.html" title="class in java.nio.channels">AsynchronousChannelGroup</a> group)
+                                      throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>打开异步套接字通道。</span>
+<p> <span>新的信道是通过调用创建<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html#openAsynchronousSocketChannel-java.nio.channels.AsynchronousChannelGroup-"><code>openAsynchronousSocketChannel</code></a>的方法<a href="../../../java/nio/channels/spi/AsynchronousChannelProvider.html" title="java.nio.channels.spi中的类"><code>AsynchronousChannelProvider</code></a>创建该组。</span> <span>如果组参数为<code>null</code>则生成的通道由系统级默认提供程序创建，并绑定到<em>默认组</em> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>group</code> - 新建渠道应绑定的群组，或默认群组 
+            <code>null</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个新的异步套接字通道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="class in java.nio.channels">ShutdownChannelGroupException</a></code> - 如果通道组关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="open--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>open</h4> <pre>public static <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a> open()
+                                      throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>打开异步套接字通道。</span>
+<p> <span>此方法返回绑定到<em>默认组</em>的异步套接字通道。此方法等效于评估表达式：</span> </p>
+<blockquote>
+<span><pre>
+ open((AsynchronousChannelGroup)null);
+ </pre></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个新的异步套接字通道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="bind-java.net.SocketAddress-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>bind</h4> <pre>public abstract <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a> bind(<a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a> local)
+                                        throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面： <code><a href="../../../java/nio/channels/NetworkChannel.html#bind-java.net.SocketAddress-">NetworkChannel</a></code>复制</span>
+</div>
+<div class="block">
+<span>将通道的套接字绑定到本地地址。</span>
+<p> <span>该方法用于在套接字和本地地址之间建立关联。</span> <span>一旦建立关联，则套接字保持绑定，直到通道关闭。</span> <span>如果<code>local</code>参数的值为<code>null</code>则套接字将被绑定到自动分配的地址。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/NetworkChannel.html#bind-java.net.SocketAddress-">bind</a></code>中的 
+            <code><a href="../../../java/nio/channels/NetworkChannel.html" title="interface in java.nio.channels">NetworkChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>local</code> - 绑定套接字的地址，或 
+            <code>null</code>将套接字绑定到自动分配的套接字地址 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个频道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ConnectionPendingException.html" title="class in java.nio.channels">ConnectionPendingException</a></code> - 如果此通道上的连接操作已在进行中 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AlreadyBoundException.html" title="class in java.nio.channels">AlreadyBoundException</a></code> - 如果套接字已经绑定 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/UnsupportedAddressTypeException.html" title="class in java.nio.channels">UnsupportedAddressTypeException</a></code> - 如果不支持给定地址的类型 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果已安装安全管理员，并且其 
+            <a href="../../../java/lang/SecurityManager.html#checkListen-int-"><code>checkListen</code></a>方法拒绝操作 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/nio/channels/NetworkChannel.html#getLocalAddress--"><code>NetworkChannel.getLocalAddress()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setOption-java.net.SocketOption-java.lang.Object-">
+<!-- --> </a><a name="setOption-java.net.SocketOption-T-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setOption</h4> <pre>public abstract &lt;T&gt; <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a> setOption(<a href="../../../java/net/SocketOption.html" title="interface in java.net">SocketOption</a>&lt;T&gt; name,
+                                                        T value)
+                                                 throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span class="descfrmTypeLabel">从接口复制： <code><a href="../../../java/nio/channels/NetworkChannel.html#setOption-java.net.SocketOption-T-">NetworkChannel</a></code></span>
+</div>
+<div class="block">
+            设置套接字选项的值。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/NetworkChannel.html#setOption-java.net.SocketOption-T-">setOption</a></code>在接口 
+            <code><a href="../../../java/nio/channels/NetworkChannel.html" title="interface in java.nio.channels">NetworkChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 套接字选项值的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 套接字选项 
+           </dd>
+<dd>
+<span><code>value</code> - 套接字选项的值。</span>
+<span><code>null</code>的值可能是某些套接字选项的有效值。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个频道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果该值不是此套接字选项的有效值 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此频道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/net/StandardSocketOptions.html" title="java.net中的类"><code>StandardSocketOptions</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="shutdownInput--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shutdownInput</h4> <pre>public abstract <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a> shutdownInput()
+                                                 throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>关闭连接进行阅读，不关闭频道。</span>
+<p> <span>一旦关闭读取，则通道上的进一步读取将返回<code>-1</code>流末端指示。</span> <span>如果连接的输入端已经关闭，则调用此方法没有任何作用。</span> <span>对未完成的读取操作的影响是系统依赖的，因此未指定。</span> <span>如果有的话，如果套接字接收缓冲区中尚未读取数据或数据到达的影响，也是系统依赖的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个频道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此频道尚未连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此频道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="shutdownOutput--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shutdownOutput</h4> <pre>public abstract <a href="../../../java/nio/channels/AsynchronousSocketChannel.html" title="class in java.nio.channels">AsynchronousSocketChannel</a> shutdownOutput()
+                                                  throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>关闭连接以进行写入，而不关闭通道。</span>
+<p> <span>一旦关闭写入，则进一步尝试写入通道会抛出<a href="../../../java/nio/channels/ClosedChannelException.html" title="java.nio.channels中的类"><code>ClosedChannelException</code></a> 。</span> <span>如果连接的输出端已经关闭，则调用此方法不起作用。</span> <span>对未完成的写入操作的影响是依赖于系统的，因此未指定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个频道 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此通道尚未连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果此频道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生其他I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="getRemoteAddress--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRemoteAddress</h4> <pre>public abstract <a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a> getRemoteAddress()
+                                        throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>返回此通道的插座所连接的远程地址。</span>
+<p> <span>通道绑定并连接到Internet协议套接字地址时，此方法的返回值为<a href="../../../java/net/InetSocketAddress.html" title="java.net中的类"><code>InetSocketAddress</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>远程地址;</span>
+<span><code>null</code>如果通道的插座未连接</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O错误 
+           </dd>
+</dl> </li>
+</ul> <a name="connect-java.net.SocketAddress-java.lang.Object-java.nio.channels.CompletionHandler-">
+<!-- --> </a><a name="connect-java.net.SocketAddress-A-java.nio.channels.CompletionHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>connect</h4> <pre>public abstract &lt;A&gt; void connect(<a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a> remote,
+                                 A attachment,
+                                 <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a>,? super A&gt; handler)</pre>
+<div class="block">
+<span>连接此频道。</span>
+<p> <span>此方法启动连接此通道的操作。</span> <span><code>handler</code>参数是一个完成处理程序，当连接成功建立或连接无法建立时调用。</span> <span>如果无法建立连接，则通道关闭。</span> </p>
+<p> <span>该方法执行与<a href="../../../java/net/Socket.html" title="java.net中的类"><code>Socket</code></a>类完全相同的安全检查。</span> <span>也就是说，如果安装了一个安全管理器，则该方法验证其<a href="../../../java/lang/SecurityManager.html#checkConnect-java.lang.String-int-"><code>checkConnect</code></a>方法是否允许连接到给定远程端点的地址和端口号。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>A</code> - 
+            <code>A</code>的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>remote</code> - 要连接此通道的远程地址 
+           </dd>
+<dd>
+<span><code>attachment</code> - 要附加到I / O操作的对象;</span>
+<span>可以是<code>null</code></span>
+</dd>
+<dd>
+<code>handler</code> - 消耗结果的处理程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/UnresolvedAddressException.html" title="class in java.nio.channels">UnresolvedAddressException</a></code> - 如果给定的远程地址未完全解析 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/UnsupportedAddressTypeException.html" title="class in java.nio.channels">UnsupportedAddressTypeException</a></code> - 如果不支持给定的远程地址的类型 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AlreadyConnectedException.html" title="class in java.nio.channels">AlreadyConnectedException</a></code> - 如果此频道已连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ConnectionPendingException.html" title="class in java.nio.channels">ConnectionPendingException</a></code> - 如果此通道上已经有连接操作 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="class in java.nio.channels">ShutdownChannelGroupException</a></code> - 如果通道组已经终止 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果已安装安全管理器，并且不允许访问给定的远程端点 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#getRemoteAddress--"><code>getRemoteAddress()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="connect-java.net.SocketAddress-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>connect</h4> <pre>public abstract <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;<a href="../../../java/lang/Void.html" title="class in java.lang">Void</a>&gt; connect(<a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a> remote)</pre>
+<div class="block">
+<span>连接此频道。</span>
+<p> <span>此方法启动连接此通道的操作。</span> <span>此方法的行为方式与<a href="../../../java/nio/channels/AsynchronousSocketChannel.html#connect-java.net.SocketAddress-A-java.nio.channels.CompletionHandler-"><code>connect(SocketAddress, Object, CompletionHandler)</code></a>方法完全相同，不同的是，该方法不是指定完成处理程序，而是返回一个<code>Future</code>挂起结果的<code>Future</code> 。</span> <span>该<code>Future</code>的<a href="../../../java/util/concurrent/Future.html#get--"><code>get</code></a>方法返回<code>null</code>成功完成。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>remote</code> - 要连接此通道的远程地址 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示待处理结果的 
+            <code>Future</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/UnresolvedAddressException.html" title="class in java.nio.channels">UnresolvedAddressException</a></code> - 如果给定的远程地址未完全解析 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/UnsupportedAddressTypeException.html" title="class in java.nio.channels">UnsupportedAddressTypeException</a></code> - 如果不支持给定远程地址的类型 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/AlreadyConnectedException.html" title="class in java.nio.channels">AlreadyConnectedException</a></code> - 如果此频道已连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ConnectionPendingException.html" title="class in java.nio.channels">ConnectionPendingException</a></code> - 如果此通道上的连接操作已在进行中 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果已安装安全管理器，并且不允许访问给定的远程端点 
+           </dd>
+</dl> </li>
+</ul> <a name="read-java.nio.ByteBuffer-long-java.util.concurrent.TimeUnit-java.lang.Object-java.nio.channels.CompletionHandler-">
+<!-- --> </a><a name="read-java.nio.ByteBuffer-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public abstract &lt;A&gt; void read(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst,
+                              long timeout,
+                              <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit,
+                              A attachment,
+                              <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>,? super A&gt; handler)</pre>
+<div class="block">
+<span>从该通道读取到给定缓冲区的字节序列。</span>
+<p> <span>该方法启动异步读取操作，以从该通道读取到给定缓冲器中的字节序列。</span> <span><code>handler</code>参数是一个完成处理程序，在读取操作完成（或失败）时调用该处理程序。</span> <span>传递给完成处理程序的结果是读取的字节数或<code>-1</code>如果没有字节可以读取，因为通道已达到流出尾。</span> </p>
+<p> <span>如果指定了超时并且操作完成之前的超时过期，则操作将以异常<code>InterruptedByTimeoutException</code> <a href="../../../java/nio/channels/InterruptedByTimeoutException.html" title="java.nio.channels中的类">完成</a> 。</span> <span>在发生超时的情况下，实现不能保证字节未被读取，或者不会从通道读入给定的缓冲区，所以进一步尝试从通道中读取将导致抛出非特定的运行时异常。</span> </p>
+<p> <span>否则该方法的工作方式与<a href="../../../java/nio/channels/AsynchronousByteChannel.html#read-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-"><code>AsynchronousByteChannel.read(ByteBuffer,Object,CompletionHandler)</code></a>方法相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>A</code> - 
+            <code>A</code>的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dst</code> - 要传输字节的缓冲区 
+           </dd>
+<dd>
+<code>timeout</code> - 完成I / O操作的最长时间 
+           </dd>
+<dd>
+<code>unit</code> - 
+            <code>timeout</code>参数的时间单位 
+           </dd>
+<dd>
+<span><code>attachment</code> - 要附加到I / O操作的对象;</span>
+<span>可以<code>null</code></span>
+</dd>
+<dd>
+<code>handler</code> - 消耗结果的处理程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果缓冲区是只读的 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ReadPendingException.html" title="class in java.nio.channels">ReadPendingException</a></code> - 如果此通道上的读取操作已在进行中 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此频道尚未连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="class in java.nio.channels">ShutdownChannelGroupException</a></code> - 如果通道组已经终止 
+           </dd>
+</dl> </li>
+</ul> <a name="read-java.nio.ByteBuffer-java.lang.Object-java.nio.channels.CompletionHandler-">
+<!-- --> </a><a name="read-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public final &lt;A&gt; void read(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst,
+                           A attachment,
+                           <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>,? super A&gt; handler)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面复制： <code><a href="../../../java/nio/channels/AsynchronousByteChannel.html#read-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-">AsynchronousByteChannel</a></code></span>
+</div>
+<div class="block">
+<span>从该通道读取到给定缓冲区的字节序列。</span>
+<p> <span>该方法启动异步读取操作，以从该通道读取到给定缓冲器中的字节序列。</span> <span><code>handler</code>参数是一个完成处理程序，当读取操作完成（或失败）时调用该处理程序。</span> <span>传递给完成处理程序的结果是读取的字节数或<code>-1</code>如果由于通道已达到流出端，则不能读取字节。</span> </p>
+<p> <span>读取操作可以从通道读取<i>r</i>个字节，其中<i>r</i>是缓冲区中剩余的字节数，即在<code>dst.remaining()</code>读取时为dst.remaining()。</span> <span>其中<i>r</i>为0，读操作立即完成，结果为<code>0</code>而不启动I / O操作。</span> </p>
+<p> <span>假设长度为<i>n</i>的字节序列被读出，其中<tt>0</tt> <tt>&lt;</tt> <i><tt>&lt;=Ñ</tt></i> <i>河</i></span> <span>该字节序列将被传送到缓冲器中，使序列中的第一个字节处于索引<i>p</i> ，最后一个字节处于索引<i>p</i> <tt>+</tt> <i>n</i> <tt>-</tt> <tt>1</tt> ，其中<i>p</i>是执行读取时缓冲区的位置。</span> <span>完成后，缓冲区的位置将等于<i>p</i> <tt>+</tt> <i>n</i> ;</span> <span>其限制将不会改变。</span> </p>
+<p> <span>缓冲区不能安全地被多个并发线程使用，因此在操作完成之前，请注意不要访问缓冲区。</span> </p>
+<p> <span>可以随时调用此方法。</span> <span>某些渠道类型在任何给定时间可能不允许多于一个读取。</span> <span>如果线程在先前的读取操作完成之前启动读取操作，那么将抛出一个<a href="../../../java/nio/channels/ReadPendingException.html" title="java.nio.channels中的类"><code>ReadPendingException</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousByteChannel.html#read-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-">read</a></code>中的 
+            <code><a href="../../../java/nio/channels/AsynchronousByteChannel.html" title="interface in java.nio.channels">AsynchronousByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>A</code> - 
+            <code>A</code>的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dst</code> - 要传输字节的缓冲区 
+           </dd>
+<dd>
+<span><code>attachment</code> - 要附加到I / O操作的对象;</span>
+<span>可以是<code>null</code></span>
+</dd>
+<dd>
+<code>handler</code> - 完成处理程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果缓冲区是只读的 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ReadPendingException.html" title="class in java.nio.channels">ReadPendingException</a></code> - 如果通道不允许多个读取未完成，并且以前的读取尚未完成 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此频道尚未连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="class in java.nio.channels">ShutdownChannelGroupException</a></code> - 如果通道组已终止 
+           </dd>
+</dl> </li>
+</ul> <a name="read-java.nio.ByteBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public abstract <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>&gt; read(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> dst)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">从接口复制： <code><a href="../../../java/nio/channels/AsynchronousByteChannel.html#read-java.nio.ByteBuffer-">AsynchronousByteChannel</a></code></span>
+</div>
+<div class="block">
+<span>从该通道读取到给定缓冲区的字节序列。</span>
+<p> <span>该方法启动异步读取操作，以从该通道读取到给定缓冲器中的字节序列。</span> <span>该方法的行为方式与<a href="../../../java/nio/channels/AsynchronousByteChannel.html#read-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-"><code>read(ByteBuffer,Object,CompletionHandler)</code></a>方法完全相同，不同的是，该方法不是指定完成处理程序，而是返回一个<code>Future</code>待处理结果的<code>Future</code> 。</span> <span><code>Future</code>的<a href="../../../java/util/concurrent/Future.html#get--"><code>get</code></a>方法返回读取的字节数或<code>-1</code>如果没有字节可以读取，因为通道已经到达流终止。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousByteChannel.html#read-java.nio.ByteBuffer-">read</a></code>中的 
+            <code><a href="../../../java/nio/channels/AsynchronousByteChannel.html" title="interface in java.nio.channels">AsynchronousByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dst</code> - 要传输字节的缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             代表操作结果的未来 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果缓冲区是只读的 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ReadPendingException.html" title="class in java.nio.channels">ReadPendingException</a></code> - 如果通道不允许多个读取未完成，并且以前的读取尚未完成 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此频道尚未连接 
+           </dd>
+</dl> </li>
+</ul> <a name="read-java.nio.ByteBuffer:A-int-int-long-java.util.concurrent.TimeUnit-java.lang.Object-java.nio.channels.CompletionHandler-">
+<!-- --> </a><a name="read-java.nio.ByteBuffer:A-int-int-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>read</h4> <pre>public abstract &lt;A&gt; void read(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] dsts,
+                              int offset,
+                              int length,
+                              long timeout,
+                              <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit,
+                              A attachment,
+                              <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Long.html" title="class in java.lang">Long</a>,? super A&gt; handler)</pre>
+<div class="block">
+<span>从该通道读取字节序列到给定缓冲区的子序列中。</span>
+<span>这种操作（有时称为<em>散射读取</em> ）通常在实现将数据分组到由一个或多个固定长度的标题后跟可变长度主体组成的段的网络协议时非常有用。</span>
+<span><code>handler</code>参数是一个完成处理程序，在读取操作完成（或失败）时调用该处理程序。</span>
+<span>传递给完成处理程序的结果是读取的字节数或<code>-1</code>如果没有字节可以读取，因为通道已经达到流出尾。</span>
+<p> <span>该方法从该通道开始读取最多<i>r</i>个字节，其中<i>r</i>是给定缓冲区数组的指定子序列中剩余的总字节数，</span> </p>
+<blockquote>
+<span><pre>
+ dsts[offset].remaining()
+     + dsts[offset+1].remaining()
+     + ... + dsts[offset+length-1].remaining()</pre></span>
+</blockquote>
+<span>在尝试阅读的时刻。</span>
+<p> <span>假设长度为<i>n</i>的字节序列被读出，其中<tt>0</tt> <tt>&lt;</tt> <i><tt>&lt;=Ñ</tt></i> <i>河</i></span> <span>到这个序列的第一个<tt>dsts[offset].remaining()</tt>字节被传送到缓冲区<tt>dsts[offset]</tt> ，直到下一个<tt>dsts[offset+1].remaining()</tt>字节被传送到缓冲区<tt>dsts[offset+1]</tt>等等，直到整个字节序列被传送到给定的缓冲区。</span> <span>尽可能多的字节被传送到每个缓冲器中，因此除了最后更新的缓冲器之外，每个更新的缓冲器的最终位置被保证等于该缓冲器的限制。</span> <span>底层操作系统可能对可能在I / O操作中使用的缓冲区数量施加限制。</span> <span>当缓冲区的数量（剩余字节数）超过此限制时，I / O操作将由操作系统允许的最大缓冲区数来执行。</span> </p>
+<p> <span>如果指定了超时，并且操作完成之前超时已过，则完成<a href="../../../java/nio/channels/InterruptedByTimeoutException.html" title="java.nio.channels中的类">异常<code>InterruptedByTimeoutException</code></a> 。</span> <span>在发生超时的情况下，实现不能保证字节未被读取，或者不会从通道读入给定的缓冲区，所以进一步尝试从通道中读取将导致抛出非特定的运行时异常。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>A</code> - 
+            <code>A</code>的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>dsts</code> - 要传输字节的缓冲区 
+           </dd>
+<dd>
+<span><code>offset</code> - 要传输字节的第一个缓冲区的缓冲区中的偏移量;</span>
+<span>必须是非负数，不得大于<code>dsts.length</code></span>
+</dd>
+<dd>
+<span><code>length</code> - 要访问的缓冲区的最大数量;</span>
+<span>必须是非负数，不得大于<code>dsts.length - offset</code></span>
+</dd>
+<dd>
+<code>timeout</code> - 完成I / O操作的最长时间 
+           </dd>
+<dd>
+<code>unit</code> - 
+            <code>timeout</code>参数的时间单位 
+           </dd>
+<dd>
+<span><code>attachment</code> - 要附加到I / O操作的对象;</span>
+<span>可以<code>null</code></span>
+</dd>
+<dd>
+<code>handler</code> - 消费结果的处理程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IndexOutOfBoundsException.html" title="class in java.lang">IndexOutOfBoundsException</a></code> - 如果不符合 
+            <code>offset</code>和 
+            <code>length</code>参数的前提条件 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果缓冲区是只读的 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ReadPendingException.html" title="class in java.nio.channels">ReadPendingException</a></code> - 如果此通道上的读取操作已在进行中 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此频道尚未连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="class in java.nio.channels">ShutdownChannelGroupException</a></code> - 如果通道组已终止 
+           </dd>
+</dl> </li>
+</ul> <a name="write-java.nio.ByteBuffer-long-java.util.concurrent.TimeUnit-java.lang.Object-java.nio.channels.CompletionHandler-">
+<!-- --> </a><a name="write-java.nio.ByteBuffer-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public abstract &lt;A&gt; void write(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src,
+                               long timeout,
+                               <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit,
+                               A attachment,
+                               <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>,? super A&gt; handler)</pre>
+<div class="block">
+<span>从给定的缓冲区向该通道写入一个字节序列。</span>
+<p> <span>该方法启动异步写入操作，以从给定的缓冲区向该通道写入字节序列。</span> <span><code>handler</code>参数是在写操作完成（或失败）时调用的完成处理程序。</span> <span>传递给完成处理程序的结果是写入的字节数。</span> </p>
+<p> <span>如果指定了超时，并且在操作完成之前超时已过，则完成<a href="../../../java/nio/channels/InterruptedByTimeoutException.html" title="java.nio.channels中的类">异常<code>InterruptedByTimeoutException</code></a> 。</span> <span>在发生超时的情况下，实现不能保证字节未被写入或不会从给定缓冲区写入通道，所以进一步尝试写入通道将导致抛出非特定的运行时异常。</span> </p>
+<p> <span>否则，此方法的工作方式与<a href="../../../java/nio/channels/AsynchronousByteChannel.html#write-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-"><code>AsynchronousByteChannel.write(ByteBuffer,Object,CompletionHandler)</code></a>方法相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>A</code> - 
+            <code>A</code>的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>src</code> - 要检索字节的缓冲区 
+           </dd>
+<dd>
+<code>timeout</code> - 完成I / O操作的最长时间 
+           </dd>
+<dd>
+<code>unit</code> - 
+            <code>timeout</code>参数的时间单位 
+           </dd>
+<dd>
+<span><code>attachment</code> - 要附加到I / O操作的对象;</span>
+<span>可以是<code>null</code></span>
+</dd>
+<dd>
+<code>handler</code> - 消耗结果的处理程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/WritePendingException.html" title="class in java.nio.channels">WritePendingException</a></code> - 如果此通道上的写操作已在进行中 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此频道尚未连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="class in java.nio.channels">ShutdownChannelGroupException</a></code> - 如果通道组已终止 
+           </dd>
+</dl> </li>
+</ul> <a name="write-java.nio.ByteBuffer-java.lang.Object-java.nio.channels.CompletionHandler-">
+<!-- --> </a><a name="write-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public final &lt;A&gt; void write(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src,
+                            A attachment,
+                            <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>,? super A&gt; handler)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">说明从界面复制： <code><a href="../../../java/nio/channels/AsynchronousByteChannel.html#write-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-">AsynchronousByteChannel</a></code></span>
+</div>
+<div class="block">
+<span>从给定的缓冲区向该通道写入一个字节序列。</span>
+<p> <span>该方法启动异步写入操作，以从给定的缓冲区向该通道写入字节序列。</span> <span><code>handler</code>参数是在写操作完成（或失败）时调用的完成处理程序。</span> <span>传递给完成处理程序的结果是写入的字节数。</span> </p>
+<p> <span>写入操作可以写入<i>r</i>字节到通道，其中<i>r</i>是缓冲区中剩余的字节数，即在<code>src.remaining()</code>写入时的src.remaining()。</span> <span>其中<i>r</i>为0，写操作将立即完成，结果为<code>0</code>而不启动I / O操作。</span> </p>
+<p> <span>假设长度为<i>n</i>的字节序列写入，其中<tt>0</tt> <tt>&lt;</tt> <i><tt>&lt;=Ñ</tt></i> <i>河</i></span> <span>该字节序列将从索引<i>p</i>开始从缓冲区传送，其中<i>p</i>是执行写入时的缓冲区的位置;</span> <span>写入的最后一个字节的索引将为<i>p</i> <tt>+</tt> <i>n</i> <tt>-</tt> <tt>1</tt> 。</span> <span>完成后，缓冲区的位置将等于<i>p</i> <tt>+</tt> <i>n</i> ;</span> <span>其限制将不会改变。</span> </p>
+<p> <span>缓冲区不能安全地被多个并发线程使用，因此在操作完成之前，请注意不要访问缓冲区。</span> </p>
+<p> <span>可以随时调用此方法。</span> <span>某些频道类型可能不允许在任何给定时间多出一个写入。</span> <span>如果线程在先前写入操作完成之前启动写操作，那么将抛出一个<a href="../../../java/nio/channels/WritePendingException.html" title="java.nio.channels中的类"><code>WritePendingException</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousByteChannel.html#write-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-">write</a></code>在接口 
+            <code><a href="../../../java/nio/channels/AsynchronousByteChannel.html" title="interface in java.nio.channels">AsynchronousByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>A</code> - 
+            <code>A</code>的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>src</code> - 要检索字节的缓冲区 
+           </dd>
+<dd>
+<span><code>attachment</code> - 要附加到I / O操作的对象;</span>
+<span>可以<code>null</code></span>
+</dd>
+<dd>
+<code>handler</code> - 完成处理程序对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/WritePendingException.html" title="class in java.nio.channels">WritePendingException</a></code> - 如果通道不允许多个写入未完成，并且以前的写入尚未完成 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此频道尚未连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="class in java.nio.channels">ShutdownChannelGroupException</a></code> - 如果通道组已经终止 
+           </dd>
+</dl> </li>
+</ul> <a name="write-java.nio.ByteBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public abstract <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>&gt; write(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> src)</pre>
+<div class="block">
+<span class="descfrmTypeLabel">描述从接口： <code><a href="../../../java/nio/channels/AsynchronousByteChannel.html#write-java.nio.ByteBuffer-">AsynchronousByteChannel</a></code>复制</span>
+</div>
+<div class="block">
+<span>从给定的缓冲区向该通道写入一个字节序列。</span>
+<p> <span>该方法启动异步写入操作，以从给定的缓冲区向该通道写入字节序列。</span> <span>该方法的行为方式与<a href="../../../java/nio/channels/AsynchronousByteChannel.html#write-java.nio.ByteBuffer-A-java.nio.channels.CompletionHandler-"><code>write(ByteBuffer,Object,CompletionHandler)</code></a>方法完全相同，但除了指定完成处理程序之外，此方法返回一个<code>Future</code>待处理结果的<code>Future</code> 。</span> <span><code>Future</code>的<a href="../../../java/util/concurrent/Future.html#get--"><code>get</code></a>方法返回写入的字节数。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/AsynchronousByteChannel.html#write-java.nio.ByteBuffer-">write</a></code>在接口 
+            <code><a href="../../../java/nio/channels/AsynchronousByteChannel.html" title="interface in java.nio.channels">AsynchronousByteChannel</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>src</code> - 要检索字节的缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             代表操作结果的未来 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/WritePendingException.html" title="class in java.nio.channels">WritePendingException</a></code> - 如果通道不允许多个写入未完成，并且之前的写入尚未完成 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此频道尚未连接 
+           </dd>
+</dl> </li>
+</ul> <a name="write-java.nio.ByteBuffer:A-int-int-long-java.util.concurrent.TimeUnit-java.lang.Object-java.nio.channels.CompletionHandler-">
+<!-- --> </a><a name="write-java.nio.ByteBuffer:A-int-int-long-java.util.concurrent.TimeUnit-A-java.nio.channels.CompletionHandler-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public abstract &lt;A&gt; void write(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a>[] srcs,
+                               int offset,
+                               int length,
+                               long timeout,
+                               <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit,
+                               A attachment,
+                               <a href="../../../java/nio/channels/CompletionHandler.html" title="interface in java.nio.channels">CompletionHandler</a>&lt;<a href="../../../java/lang/Long.html" title="class in java.lang">Long</a>,? super A&gt; handler)</pre>
+<div class="block">
+<span>从给定缓冲区的子序列将一个字节序列写入该通道。</span>
+<span>这种操作（有时称为<em>采集写入</em> ）通常用于实现将数据分组到由一个或多个固定长度的标题后跟可变长度主体组成的段的网络协议。</span>
+<span><code>handler</code>参数是在写操作完成（或失败）时调用的完成处理程序。</span>
+<span>传递给完成处理程序的结果是写入的字节数。</span>
+<p> <span>该方法启动对该通道的最多<i>r</i>个字节的写入，其中<i>r</i>是给定缓冲区数组的指定子序列中剩余的总字节数，也就是说，</span> </p>
+<blockquote>
+<span><pre>
+ srcs[offset].remaining()
+     + srcs[offset+1].remaining()
+     + ... + srcs[offset+length-1].remaining()</pre></span>
+</blockquote>
+<span>在尝试写入的时刻。</span>
+<p> <span>假设长度为<i>n</i>的字节序列被写入，其中<tt>88416991068819</tt> <tt>&lt;</tt> <i>n</i> <tt>&lt;=</tt> <i>r</i> 。</span> <span>直到该序列的第一个<tt>srcs[offset].remaining()</tt>字节从缓冲器<tt>srcs[offset]</tt>写入，直到下一个<tt>srcs[offset+1].remaining()</tt>字节从缓冲器<tt>srcs[offset+1]</tt>写入，等等，直到写入整个字节序列。</span> <span>尽可能多的字节从每个缓冲区写入，因此除了最后更新的缓冲区之外，每个更新的缓冲区的最终位置被保证等于该缓冲区的限制。</span> <span>底层操作系统可能对可能在I / O操作中使用的缓冲区数量施加限制。</span> <span>当缓冲区的数量（剩余字节数）超过此限制时，I / O操作将由操作系统允许的最大缓冲区数来执行。</span> </p>
+<p> <span>如果指定了超时，并且操作完成之前超时已过，则完成<a href="../../../java/nio/channels/InterruptedByTimeoutException.html" title="java.nio.channels中的类">异常<code>InterruptedByTimeoutException</code></a> 。</span> <span>在发生超时的情况下，实现不能保证字节未被写入，或者不会从给定的缓冲区写入通道，所以进一步尝试写入通道将导致抛出非特定的运行时异常。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>A</code> - 
+            <code>A</code>的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>srcs</code> - 要检索字节的缓冲区 
+           </dd>
+<dd>
+<span><code>offset</code> - 要检索字节的第一个缓冲区的缓冲区数组中的偏移量;</span>
+<span>必须是非负数，不得大于<code>srcs.length</code></span>
+</dd>
+<dd>
+<span><code>length</code> - 要访问的缓冲区的最大数量;</span>
+<span>必须是非负数，不得大于<code>srcs.length - offset</code></span>
+</dd>
+<dd>
+<code>timeout</code> - 完成I / O操作的最长时间 
+           </dd>
+<dd>
+<code>unit</code> - 
+            <code>timeout</code>参数的时间单位 
+           </dd>
+<dd>
+<span><code>attachment</code> - 要附加到I / O操作的对象;</span>
+<span>可以是<code>null</code></span>
+</dd>
+<dd>
+<code>handler</code> - 消费结果的处理程序 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IndexOutOfBoundsException.html" title="class in java.lang">IndexOutOfBoundsException</a></code> - 如果不符合 
+            <code>offset</code>和 
+            <code>length</code>参数的前提条件 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/WritePendingException.html" title="class in java.nio.channels">WritePendingException</a></code> - 如果此通道上的写操作已在进行中 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/NotYetConnectedException.html" title="class in java.nio.channels">NotYetConnectedException</a></code> - 如果此频道尚未连接 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/channels/ShutdownChannelGroupException.html" title="class in java.nio.channels">ShutdownChannelGroupException</a></code> - 如果通道组已终止 
+           </dd>
+</dl> </li>
+</ul> <a name="getLocalAddress--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getLocalAddress</h4> <pre>public abstract <a href="../../../java/net/SocketAddress.html" title="class in java.net">SocketAddress</a> getLocalAddress()
+                                       throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>返回此通道的套接字所绑定的套接字地址。</span>
+<p> <span>通道为Internet协议套接字地址的<a href="../../../java/nio/channels/NetworkChannel.html#bind-java.net.SocketAddress-"><code>bound</code></a> ，则此方法的返回值为<a href="../../../java/net/InetSocketAddress.html" title="java.net中的类"><code>InetSocketAddress</code></a> 。</span> </p>
+<p> <span>如果有一个安全管理器集，其<code>checkConnect</code>方法<code>checkConnect</code>本地地址和<code>-1</code>作为参数来调用，以查看是否允许该操作。</span> <span>如果不允许的操作， <code>SocketAddress</code>代表<a href="../../../java/net/InetAddress.html#getLoopbackAddress--"><code>loopback</code>个</a>地址和通道的套接字的本地端口返回。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/NetworkChannel.html#getLocalAddress--">getLocalAddress</a></code>在接口 
+            <code><a href="../../../java/nio/channels/NetworkChannel.html" title="interface in java.nio.channels">NetworkChannel</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该 
+            <code>SocketAddress</code> ，该套接字绑定到，或 
+            <code>SocketAddress</code>代表的环回地址，如果安全管理器拒绝，或 
+            <code>null</code>如果通道的套接字不绑定 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/channels/ClosedChannelException.html" title="class in java.nio.channels">ClosedChannelException</a></code> - 如果通道关闭 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - If an I/O error occurs 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

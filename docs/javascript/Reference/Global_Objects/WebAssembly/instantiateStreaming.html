@@ -1,0 +1,114 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong><code>WebAssembly.instantiateStreaming()</code></strong> 方法直接从流式底层源编译和实例化WebAssembly模块。这是加载wasm代码一种非常有效的优化方式。</p>
+<h2 id="Syntax">Syntax</h2>
+<pre class="syntaxbox">Promise&lt;ResultObject&gt; WebAssembly.instantiateStreaming(<em>source</em>, <em>importObject</em>);</pre>
+<h3 id="Parameters">Parameters</h3>
+<dl>
+<dt><em>source</em></dt>
+<dd>一个<a href="/zh-CN/docs/Web/API/Response" title="Fetch API 的Response接口呈现了对一次请求的响应数据"><code>Response</code></a>对象 或 一个可以履行（fulfill）一个（Response）的 <a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a>，表示你想要传输、编译和实例化的 .wasm 模块基础源。</dd>
+<dt><em>importObject</em> <span class="inlineIndicator optional optionalInline">可选</span></dt>
+<dd>包含一些想要导入到新创建<code>Instance</code>中值的对象，例如方法 或  <a href="Reference/Global_Objects/WebAssembly/Memory" title="WebAssembly.Memory() 构造函数创建一个新的 Memory 对象。它包含一个可调整大小的 ArrayBuffer ，其内存储的是 WebAssembly 实例 所访问内存的原始字节码。"><code>WebAssembly.Memory</code></a> 对象。每个已编译模块的声明导入必须有一个匹配属性，否则抛出 <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/LinkError">WebAssembly.LinkError</a> 异常。</dd>
+</dl>
+<h3 id="Return_value">Return value</h3>
+<p>一个 <code>Promise</code> ，通过resolve返回一个包含两个属性的 <code>ResultObject</code> ：</p>
+<ul>
+<li><code>module</code>: <a href="Reference/Global_Objects/WebAssembly/Module" title="所有 Module 实例继承自 Module() 构造函数的原型对象 —— 修改它会影响所有 Module 实例。"><code>WebAssembly.Module</code></a> 对象表示编译完成的WebAssembly模块. 这个<code>Module</code>能够再次被实例化 或 通过<a href="/en-US/docs/Web/API/Worker/postMessage">postMessage()</a>共享。</li>
+<li><code>instance</code>: <a href="Reference/Global_Objects/WebAssembly/Instance" title="一个 WebAssembly.Instance 对象是有状态的, 是WebAssembly.Module 的一个可执行实例.  实例包含所有的 WebAssembly 导出函数 ,允许从JavaScript 调用 WebAssembly 代码."><code>WebAssembly.Instance</code></a> 对象包含WebAssembly所有公开方法 <a href="/en-US/docs/WebAssembly/Exported_functions">Exported WebAssembly functions</a>.</li>
+</ul>
+<h3 id="Exceptions">Exceptions</h3>
+<ul>
+<li>如果任意参数的类型或结构错误, <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> 抛出.</li>
+<li>如果操作失败, Promise通过reject根据失败原因返回 <a class="new" href="Reference/Global_Objects/WebAssembly/CompileError" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!"><code>WebAssembly.CompileError</code></a>，<a href="Reference/Global_Objects/WebAssembly/LinkError" title="此页面仍未被本地化, 期待您的翻译!"><code>WebAssembly.LinkError</code></a> 或 <a class="new" href="Reference/Global_Objects/WebAssembly/RuntimeError" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!"><code>WebAssembly.RuntimeError</code></a>。</li>
+</ul>
+<h2 id="Examples">Examples</h2>
+<p>下面的示例 (在GitHub上查看 <a class="external" href="https://github.com/mdn/webassembly-examples/blob/master/js-api-examples/instantiate-streaming.html" rel="noopener">instantiate-streaming.html</a> 示例, 并且也可 <a class="external" href="https://mdn.github.io/webassembly-examples/js-api-examples/instantiate-streaming.html" rel="noopener">view it live</a> ) 直接从基础源传输一个 .wasm 模块，然后进行编译和实例化, Promise 履行后返回一个 <code>ResultObject</code>. 因为 <code>instantiateStreaming()</code> 方法允许履行后返回<a href="/zh-CN/docs/Web/API/Response" title="Fetch API 的Response接口呈现了对一次请求的响应数据"><code>Response</code></a>对象的Promise，你可以直接传递一个 <a href="/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/fetch" title="位于 WorkerOrGlobalScope 这一个 mixin 中的 fetch() 方法用于发起获取资源的请求。它返回一个 promise，这个 promise 会在请求响应后被 resolve，并传回 Response 对象。"><code>WindowOrWorkerGlobalScope.fetch()</code></a> 请求，它会在履行后将response传递给方法.</p>
+<pre class="brush: js">var importObject = { imports: { imported_func: arg =&gt; console.log(arg) } };
+
+WebAssembly.instantiateStreaming(fetch('simple.wasm'), importObject)
+.then(obj =&gt; obj.instance.exports.exported_func());</pre>
+<p>然后访问<code>ResultObject</code>的实例成员，并调用包含的公开函数。</p>
+<h2 id="Specifications">Specifications</h2>
+<table class="standard-table">
+<thead>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a class="external" href="https://github.com/WebAssembly/design/blob/master/Web.md#webassemblyinstantiatestreaming" hreflang="en" lang="en" rel="noopener">WebAssembly features for web embedding<br/><small lang="zh-CN">instantiateStreaming()</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td>Initial draft definition.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Browser_compatibility" name="Browser_compatibility">Browser compatibility</h2>
+<div>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>instantiateStreaming</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              61</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              16</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              58</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              61</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              61</td><td class="bc-supports-no bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              58</td><td class="bc-supports-unknown bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><span class="bc-supports-unknown bc-supports">
+<abbr class="bc-level bc-level-unknown only-icon" title="Compatibility unknown">
+<span>Compatibility unknown</span>
+                  
+                </abbr></span></dt><dd>Compatibility unknown</dd></dl></section></div><p></p>
+</div>
+<h2 id="See_also">See also</h2>
+<ul>
+<li><a href="/en-US/docs/WebAssembly">WebAssembly</a> overview page</li>
+<li><a href="/en-US/docs/WebAssembly/Concepts">WebAssembly concepts</a></li>
+<li><a href="/en-US/docs/WebAssembly/Using_the_JavaScript_API">Using the WebAssembly JavaScript API</a></li>
+<li><a href="Reference/Global_Objects/Promise">Promise</a></li>
+<li><a href="/zh-CN/docs/Web/API/Fetch_API/Using_Fetch">使用Fetch</a></li>
+</ul>
+</article>

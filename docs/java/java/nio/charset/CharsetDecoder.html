@@ -1,0 +1,820 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.nio.charset 
+   </div>
+<h2 class="title" title="Class CharsetDecoder">Class CharsetDecoder</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.nio.charset.CharsetDecoder</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">CharsetDecoder</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span>可以将特定字符集中的字节序列转换为十六位Unicode字符序列的引擎。</span>
+<span><a name="steps"></a></span>
+<p> <span>输入字节序列被提供在一个字节缓冲器或一系列这样的缓冲器中。</span> <span>输出字符序列被写入字符缓冲区或一系列这样的缓冲区。</span> <span>应通过下列方法调用顺序来始终使用解码器，以下称为<i>解码操作</i> ：</span> </p>
+<ol>
+<li><p> <span>通过<a href="../../../java/nio/charset/CharsetDecoder.html#reset--"><code>reset</code></a>方法复位解码器，除非以前没有使用过;</span> </p></li>
+<li><p> <span>调用<a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-"><code>decode</code></a>方法零次或更多次，只要附加输入可用，通过<tt>false</tt>为<tt>endOfInput</tt>参数，填充输入缓冲区并在调用之间刷新输出缓冲区;</span> </p></li>
+<li><p> <span>最后一次调用<a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-"><code>decode</code></a>方法，通过<tt>true</tt>的<tt>endOfInput</tt>论证;</span> <span>接着</span> </p></li>
+<li><p> <span>调用<a href="../../../java/nio/charset/CharsetDecoder.html#flush-java.nio.CharBuffer-"><code>flush</code></a>方法，使解码器可以将任何内部状态刷新到输出缓冲区。</span> </p></li>
+</ol>
+<span><a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-"><code>decode</code></a>方法的<a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-">每次</a>调用都会从输入缓冲区解码尽可能多的字节，将生成的字符写入输出缓冲区。</span>
+<span>当需要更多输入时，输出缓冲区中没有足够的空间，或者发生解码错误时， <a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-"><code>decode</code></a>方法返回。</span>
+<span>在每种情况下，返回一个<a href="../../../java/nio/charset/CoderResult.html" title="java.nio.charset中的类"><code>CoderResult</code></a>对象来描述终止的原因。</span>
+<span>调用者可以检查此对象并填写输入缓冲区，刷新输出缓冲区，或尝试从解码错误中恢复，并重试。</span>
+<span><a name="ce"></a></span>
+<p> <span>有两种一般类型的解码错误。</span> <span>如果输入字节序列对于此字符集不合法，那么输入被认为是格式<i>错误的</i> 。</span> <span>如果输入字节序列是合法的，但不能映射到有效的Unicode字符，则<i>遇到不可</i>映射的字符。</span> <span><a name="cae"></a></span> </p>
+<p> <span>如何处理解码错误取决于为该类型的错误所请求的操作，由<a href="../../../java/nio/charset/CodingErrorAction.html" title="java.nio.charset中的类"><code>CodingErrorAction</code></a>类的实例<a href="../../../java/nio/charset/CodingErrorAction.html" title="java.nio.charset中的类">描述</a> 。</span> <span>可能的错误动作是<a href="../../../java/nio/charset/CodingErrorAction.html#IGNORE">ignore</a>错误的输入， <a href="../../../java/nio/charset/CodingErrorAction.html#REPORT">report</a>的错误通过返回的<a href="../../../java/nio/charset/CoderResult.html" title="java.nio.charset中的类"><code>CoderResult</code></a>对象给调用者，或<a href="../../../java/nio/charset/CodingErrorAction.html#REPLACE">replace</a>的错误输入与替换字符串的当前值。</span> <span>替换的初始值为<tt>"\uFFFD"</tt> ;</span> <span>其值可以通过<a href="../../../java/nio/charset/CharsetDecoder.html#replaceWith-java.lang.String-"><code>replaceWith</code></a>方法更改。</span> </p>
+<p> <span>对格式错误的输入和不可映射的字符错误的默认操作是它们的<a href="../../../java/nio/charset/CodingErrorAction.html#REPORT">report</a> 。</span> <span>畸形输入错误动作可以通过<a href="../../../java/nio/charset/CharsetDecoder.html#onMalformedInput-java.nio.charset.CodingErrorAction-"><code>onMalformedInput</code></a>方法更改;</span> <span>可以通过<a href="../../../java/nio/charset/CharsetDecoder.html#onUnmappableCharacter-java.nio.charset.CodingErrorAction-"><code>onUnmappableCharacter</code></a>方法更改不可映射字符动作。</span> </p>
+<p> <span>该类旨在处理解码过程的许多细节，包括执行错误操作。</span> <span>特定字符集的解码器是该类的具体子类，仅需实现封装基本解码循环的抽象<a href="../../../java/nio/charset/CharsetDecoder.html#decodeLoop-java.nio.ByteBuffer-java.nio.CharBuffer-"><code>decodeLoop</code></a>方法。</span> <span>维护内部状态的子类应另外覆盖<a href="../../../java/nio/charset/CharsetDecoder.html#implFlush-java.nio.CharBuffer-"><code>implFlush</code></a>和<a href="../../../java/nio/charset/CharsetDecoder.html#implReset--"><code>implReset</code></a>方法。</span> </p>
+<p> <span>此类的实例不能安全地被多个并发线程使用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/nio/ByteBuffer.html" title="java.nio中的类"><code>ByteBuffer</code></a> ， <a href="../../../java/nio/CharBuffer.html" title="java.nio中的类"><code>CharBuffer</code></a> ， <a href="../../../java/nio/charset/Charset.html" title="java.nio.charset中的类"><code>Charset</code></a> ， <a href="../../../java/nio/charset/CharsetEncoder.html" title="java.nio.charset中的类"><code>CharsetEncoder</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#CharsetDecoder-java.nio.charset.Charset-float-float-">CharsetDecoder</a></span>(<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> cs, float averageCharsPerByte, float maxCharsPerByte)</code>
+<div class="block">
+              初始化一个新的解码器。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>float</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#averageCharsPerByte--">averageCharsPerByte</a></span>()</code>
+<div class="block">
+              返回每个字节输入的平均字符数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#charset--">charset</a></span>()</code>
+<div class="block">
+              返回创建此解码器的字符集。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-">decode</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> in)</code>
+<div class="block">
+              将单个输入字节缓冲器的剩余内容解码为新分配的字符缓冲区的方便方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../java/nio/charset/CoderResult.html" title="class in java.nio.charset">CoderResult</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-">decode</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> in, <a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> out, boolean endOfInput)</code>
+<div class="block">
+              从给定的输入缓冲区解码尽可能多的字节，将结果写入给定的输出缓冲区。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>protected abstract <a href="../../../java/nio/charset/CoderResult.html" title="class in java.nio.charset">CoderResult</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#decodeLoop-java.nio.ByteBuffer-java.nio.CharBuffer-">decodeLoop</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> in, <a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> out)</code>
+<div class="block">
+              将一个或多个字节解码为一个或多个字符。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#detectedCharset--">detectedCharset</a></span>()</code>
+<div class="block">
+              检索该解码器检测到的字符集 
+             <i>（可选操作）</i> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../java/nio/charset/CoderResult.html" title="class in java.nio.charset">CoderResult</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#flush-java.nio.CharBuffer-">flush</a></span>(<a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> out)</code>
+<div class="block">
+              刷新此解码器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>protected <a href="../../../java/nio/charset/CoderResult.html" title="class in java.nio.charset">CoderResult</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#implFlush-java.nio.CharBuffer-">implFlush</a></span>(<a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> out)</code>
+<div class="block">
+              刷新此解码器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#implOnMalformedInput-java.nio.charset.CodingErrorAction-">implOnMalformedInput</a></span>(<a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> newAction)</code>
+<div class="block">
+              报告对此解码器的格式错误的输入操作的更改。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#implOnUnmappableCharacter-java.nio.charset.CodingErrorAction-">implOnUnmappableCharacter</a></span>(<a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> newAction)</code>
+<div class="block">
+              报告该解码器的不可映射角色动作的变化。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#implReplaceWith-java.lang.String-">implReplaceWith</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> newReplacement)</code>
+<div class="block">
+              报告对该解码器的替换值的更改。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#implReset--">implReset</a></span>()</code>
+<div class="block">
+              重置此解码器，清除特定于字符集的内部状态。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#isAutoDetecting--">isAutoDetecting</a></span>()</code>
+<div class="block">
+              告知该解码器是否实现自动检测字符集。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#isCharsetDetected--">isCharsetDetected</a></span>()</code>
+<div class="block">
+              告知该解码器是否还检测到字符集 
+             <i>（可选操作）</i> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code><a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#malformedInputAction--">malformedInputAction</a></span>()</code>
+<div class="block">
+              返回此解码器当前的格式输入错误的操作。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>float</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#maxCharsPerByte--">maxCharsPerByte</a></span>()</code>
+<div class="block">
+              返回每个字节输入的最大字符数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#onMalformedInput-java.nio.charset.CodingErrorAction-">onMalformedInput</a></span>(<a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> newAction)</code>
+<div class="block">
+              更改此解码器的错误格式输入错误的操作。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code><a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#onUnmappableCharacter-java.nio.charset.CodingErrorAction-">onUnmappableCharacter</a></span>(<a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> newAction)</code>
+<div class="block">
+              更改此解码器的操作为不可映射的字符错误。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#replacement--">replacement</a></span>()</code>
+<div class="block">
+              返回此解码器的替换值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code><a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#replaceWith-java.lang.String-">replaceWith</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> newReplacement)</code>
+<div class="block">
+              更改此解码器的替换值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code><a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#reset--">reset</a></span>()</code>
+<div class="block">
+              复位该解码器，清除任何内部状态。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code><a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/CharsetDecoder.html#unmappableCharacterAction--">unmappableCharacterAction</a></span>()</code>
+<div class="block">
+              返回此解码器当前的不可映射字符错误的操作。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="CharsetDecoder-java.nio.charset.Charset-float-float-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>CharsetDecoder</h4> <pre>protected CharsetDecoder(<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> cs,
+                         float averageCharsPerByte,
+                         float maxCharsPerByte)</pre>
+<div class="block">
+<span>初始化一个新的解码器。</span>
+<span>新的解码器将具有给定的每字节字符值，并且其替换将是字符串<tt>"\uFFFD"</tt> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>cs</code> - 创建此解码器的字符集 
+           </dd>
+<dd>
+<code>averageCharsPerByte</code> - 一个正的浮点值，表示将为每个输入字节产生的预期字符数 
+           </dd>
+<dd>
+<code>maxCharsPerByte</code> - 一个正值，表示将为每个输入字节产生的最大字符数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数的前提条件不成立 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="charset--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>charset</h4> <pre>public final <a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> charset()</pre>
+<div class="block">
+            返回创建此解码器的字符集。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个解码器的字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="replacement--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>replacement</h4> <pre>public final <a href="../../../java/lang/String.html" title="class in java.lang">String</a> replacement()</pre>
+<div class="block">
+            返回此解码器的替换值。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个解码器目前的替换，从来不是 
+            <tt>null</tt>并且永远不会是空的 
+           </dd>
+</dl> </li>
+</ul> <a name="replaceWith-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>replaceWith</h4> <pre>public final <a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a> replaceWith(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> newReplacement)</pre>
+<div class="block">
+<span>更改此解码器的替换值。</span>
+<p> <span>此方法调用<a href="../../../java/nio/charset/CharsetDecoder.html#implReplaceWith-java.lang.String-"><code>implReplaceWith</code></a>方法，通过新的替换，检查新的替换是否可以接受。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newReplacement</code> - 替换值新替换;</span>
+<span>不能为<tt>null</tt> ，且必须具有非零长度</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个解码器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数的前提条件不成立 
+           </dd>
+</dl> </li>
+</ul> <a name="implReplaceWith-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>implReplaceWith</h4> <pre>protected void implReplaceWith(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> newReplacement)</pre>
+<div class="block">
+<span>报告对该解码器的替换值的更改。</span>
+<p> <span>这种方法的默认实现什么都不做。</span> <span>这个方法应该被需要通知更换更改的解码器所覆盖。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newReplacement</code> - 替换值 
+           </dd>
+</dl> </li>
+</ul> <a name="malformedInputAction--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>malformedInputAction</h4> <pre>public <a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> malformedInputAction()</pre>
+<div class="block">
+            返回此解码器当前的格式输入错误的操作。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             目前的格式错误的输入操作，从来不是 
+            <tt>null</tt>
+</dd>
+</dl> </li>
+</ul> <a name="onMalformedInput-java.nio.charset.CodingErrorAction-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>onMalformedInput</h4> <pre>public final <a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a> onMalformedInput(<a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> newAction)</pre>
+<div class="block">
+<span>更改此解码器的错误格式输入错误的操作。</span>
+<p> <span>此方法调用<a href="../../../java/nio/charset/CharsetDecoder.html#implOnMalformedInput-java.nio.charset.CodingErrorAction-"><code>implOnMalformedInput</code></a>方法，传递新的动作。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newAction</code> - 新动作</span>
+<span>不能是<tt>null</tt></span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个解码器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数的前提条件不成立 
+           </dd>
+</dl> </li>
+</ul> <a name="implOnMalformedInput-java.nio.charset.CodingErrorAction-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>implOnMalformedInput</h4> <pre>protected void implOnMalformedInput(<a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> newAction)</pre>
+<div class="block">
+<span>报告对此解码器的格式错误的输入操作的更改。</span>
+<p> <span>这种方法的默认实现什么都不做。</span> <span>应该通过需要通知变更输入错误的操作的解码器覆盖此方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newAction</code> - 新的动作 
+           </dd>
+</dl> </li>
+</ul> <a name="unmappableCharacterAction--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>unmappableCharacterAction</h4> <pre>public <a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> unmappableCharacterAction()</pre>
+<div class="block">
+            返回此解码器当前的不可映射字符错误的操作。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前不可映射的角色动作，从不 
+            <tt>null</tt>
+</dd>
+</dl> </li>
+</ul> <a name="onUnmappableCharacter-java.nio.charset.CodingErrorAction-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>onUnmappableCharacter</h4> <pre>public final <a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a> onUnmappableCharacter(<a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> newAction)</pre>
+<div class="block">
+<span>更改此解码器的操作为不可映射的字符错误。</span>
+<p> <span>此方法调用<a href="../../../java/nio/charset/CharsetDecoder.html#implOnUnmappableCharacter-java.nio.charset.CodingErrorAction-"><code>implOnUnmappableCharacter</code></a>方法，传递新的动作。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newAction</code> - 新动作</span>
+<span>不能是<tt>null</tt></span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个解码器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果参数的前提条件不成立 
+           </dd>
+</dl> </li>
+</ul> <a name="implOnUnmappableCharacter-java.nio.charset.CodingErrorAction-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>implOnUnmappableCharacter</h4> <pre>protected void implOnUnmappableCharacter(<a href="../../../java/nio/charset/CodingErrorAction.html" title="class in java.nio.charset">CodingErrorAction</a> newAction)</pre>
+<div class="block">
+<span>报告该解码器的不可映射角色动作的变化。</span>
+<p> <span>这种方法的默认实现什么都不做。</span> <span>应该通过需要通知不可映射角色动作更改的解码器覆盖此方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newAction</code> - 新的动作 
+           </dd>
+</dl> </li>
+</ul> <a name="averageCharsPerByte--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>averageCharsPerByte</h4> <pre>public final float averageCharsPerByte()</pre>
+<div class="block">
+<span>返回每个字节输入的平均字符数。</span>
+<span>该启发式值可用于估计给定输入序列所需的输出缓冲区的大小。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             每字节输入的平均字符数 
+           </dd>
+</dl> </li>
+</ul> <a name="maxCharsPerByte--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>maxCharsPerByte</h4> <pre>public final float maxCharsPerByte()</pre>
+<div class="block">
+<span>返回每个字节输入的最大字符数。</span>
+<span>该值可用于计算给定输入序列所需的输出缓冲区的最坏情况大小。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             每个字节输入的最大字符数 
+           </dd>
+</dl> </li>
+</ul> <a name="decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>decode</h4> <pre>public final <a href="../../../java/nio/charset/CoderResult.html" title="class in java.nio.charset">CoderResult</a> decode(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> in,
+                                <a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> out,
+                                boolean endOfInput)</pre>
+<div class="block">
+<span>从给定的输入缓冲区解码尽可能多的字节，将结果写入给定的输出缓冲区。</span>
+<p> <span>缓冲区从其当前位置开始读取并写入。</span> <span>将最多读取<a href="../../../java/nio/Buffer.html#remaining--"><code>in.remaining()</code></a>个字节，最多写入<a href="../../../java/nio/Buffer.html#remaining--"><code>out.remaining()</code>个</a>字符。</span> <span>缓冲区的位置将被提前以反映读取的字节和写入的字符，但是它们的标记和限制将不被修改。</span> </p>
+<p> <span>除了从输入缓冲区读取字节并将字符写入输出缓冲区之外，此方法返回一个<a href="../../../java/nio/charset/CoderResult.html" title="java.nio.charset中的类"><code>CoderResult</code></a>对象来描述其终止原因：</span> </p>
+<ul>
+<li><p> <span><a href="../../../java/nio/charset/CoderResult.html#UNDERFLOW"><code>CoderResult.UNDERFLOW</code></a>表示尽可能多的输入缓冲器被解码。</span> <span>如果没有进一步的输入，那么调用者可以进行到<a href="#steps">decoding operation的下一步</a> 。</span> <span>否则，此方法应再次调用再输入。</span> </p></li>
+<li><p> <span><a href="../../../java/nio/charset/CoderResult.html#OVERFLOW"><code>CoderResult.OVERFLOW</code></a>表示输出缓冲区中没有足够的空间来解码任何更多的字节。</span> <span>应该使用具有更多<a href="../../../java/nio/Buffer.html#remaining--">remaining个</a>字符的输出缓冲区再次调用此方法。</span> <span>这通常通过从输出缓冲器中排出任何解码的字符来完成。</span> </p></li>
+<li><p> <span>A <a href="../../../java/nio/charset/CoderResult.html#malformedForLength-int-">malformed-input</a>结果表示已检测到错误输入错误。</span> <span>格式错误的字节从输入缓冲区（可能递增）的位置开始;</span> <span>可以通过调用结果对象的<a href="../../../java/nio/charset/CoderResult.html#length--"><code>length</code></a>方法来确定格式错误的字节数。</span> <span>这种情况只适用于当<a href="../../../java/nio/charset/CharsetDecoder.html#onMalformedInput-java.nio.charset.CodingErrorAction-">malformed action</a>此解码器是<a href="../../../java/nio/charset/CodingErrorAction.html#REPORT"><code>CodingErrorAction.REPORT</code></a> ;</span> <span>否则，将根据要求忽略或替换格式错误的输入。</span> </p></li>
+<li><p> <span><a href="../../../java/nio/charset/CoderResult.html#unmappableForLength-int-">unmappable-character</a>结果表示检测到不匹配的字符错误。</span> <span>解码不可映射字符的字节从输入缓冲区（可能递增）的位置开始;</span> <span>可以通过调用结果对象的<a href="../../../java/nio/charset/CoderResult.html#length--"><code>length</code></a>方法来确定这样的字节的数量。</span> <span>这种情况只适用于当<a href="../../../java/nio/charset/CharsetDecoder.html#onUnmappableCharacter-java.nio.charset.CodingErrorAction-">unmappable action</a>此解码器是<a href="../../../java/nio/charset/CodingErrorAction.html#REPORT"><code>CodingErrorAction.REPORT</code></a> ;</span> <span>否则不可映射的字符将被忽略或替换，根据要求。</span> </p></li>
+</ul>
+<span>在任何情况下，如果要在相同的解码操作中重新启用此方法，则应注意保留输入缓冲区中剩余的任何字节，以便它们可用于下一次调用。</span>
+<p> <span><tt>endOfInput</tt>参数建议使用此方法来确定调用者是否可以提供超出给定输入缓冲区中的输入。</span> <span>如果提供附加输入的可能性，则调用应该传递<tt>false</tt>为此参数;</span> <span>如果不可能提供进一步的输入，那么调用者应该通过<tt>true</tt> 。</span> <span>这并不是错误的，实际上很常见的是在一次<tt>调用</tt>中传递false，后来发现没有进一步的输入实际上可用。</span> <span>然而，至关重要的是，以一系列调用方式最终调用此方法总是通过<tt>true</tt> ，以便任何剩余的未解码输入将被视为格式错误。</span> </p>
+<p> <span>此方法通过调用<a href="../../../java/nio/charset/CharsetDecoder.html#decodeLoop-java.nio.ByteBuffer-java.nio.CharBuffer-"><code>decodeLoop</code></a>方法，解释其结果，处理错误条件以及根据需要重新启动。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>in</code> - 输入字节缓冲区 
+           </dd>
+<dd>
+<code>out</code> - 输出字符缓冲区 
+           </dd>
+<dd>
+<code>endOfInput</code> - 
+            <tt>true</tt>如果且仅当调用者不能提供除了给定缓冲区之外的额外输入字节 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             描述终止原因的编码器结果对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> -如果解码操作已在进行中和之前的步骤是一个调用既不的 
+            <a href="../../../java/nio/charset/CharsetDecoder.html#reset--"><code>reset</code></a>方法，也没有该方法与用于 
+            <tt>endOfInput</tt>参数a的 
+            <tt>false</tt>值，也没有该方法与用于 
+            <tt>endOfInput</tt>参数a的 
+            <tt>true</tt>值的而是指示不完整的解码操作的返回值 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/charset/CoderMalfunctionError.html" title="class in java.nio.charset">CoderMalfunctionError</a></code> - 如果对decodeLoop方法的调用会引发意外的异常 
+           </dd>
+</dl> </li>
+</ul> <a name="flush-java.nio.CharBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>flush</h4> <pre>public final <a href="../../../java/nio/charset/CoderResult.html" title="class in java.nio.charset">CoderResult</a> flush(<a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> out)</pre>
+<div class="block">
+<span>刷新此解码器。</span>
+<p> <span>一些解码器保持内部状态，并且可能需要在读取总体输入序列后将一些最终字符写入输出缓冲区。</span> </p>
+<p> <span>任何额外的输出从其当前位置开始写入输出缓冲区。</span> <span>将写入最多<a href="../../../java/nio/Buffer.html#remaining--"><code>out.remaining()</code>个</a>字符。</span> <span>缓冲区的位置将适当地提前，但其标记和限制将不会被修改。</span> </p>
+<p> <span>如果此方法成功完成，则返回<a href="../../../java/nio/charset/CoderResult.html#UNDERFLOW"><code>CoderResult.UNDERFLOW</code></a> 。</span> <span>如果输出缓冲区的空间不足，则返回<a href="../../../java/nio/charset/CoderResult.html#OVERFLOW"><code>CoderResult.OVERFLOW</code></a> 。</span> <span>如果发生这种情况，则必须再次调用此方法，输出缓冲区有更多的空间，以便完成当前的<a href="#steps">decoding operation</a> 。</span> </p>
+<p> <span>如果该解码器已被刷新，则调用此方法没有任何作用。</span> </p>
+<p> <span>此方法调用<a href="../../../java/nio/charset/CharsetDecoder.html#implFlush-java.nio.CharBuffer-"><code>implFlush</code></a>方法来执行实际的刷新操作。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>out</code> - 输出字符缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个编码器结果对象，可以是 
+            <a href="../../../java/nio/charset/CoderResult.html#UNDERFLOW"><code>CoderResult.UNDERFLOW</code></a>或 
+            <a href="../../../java/nio/charset/CoderResult.html#OVERFLOW"><code>CoderResult.OVERFLOW</code></a>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> -如果当前解码操作的前一步骤是的调用既不 
+            <a href="../../../java/nio/charset/CharsetDecoder.html#flush-java.nio.CharBuffer-"><code>flush</code></a>方法也不三个参数的 
+            <a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-"><code>decode</code></a>方法与用于 
+            <tt>endOfInput</tt>参数a的值 
+            <tt>true</tt>
+</dd>
+</dl> </li>
+</ul> <a name="implFlush-java.nio.CharBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>implFlush</h4> <pre>protected <a href="../../../java/nio/charset/CoderResult.html" title="class in java.nio.charset">CoderResult</a> implFlush(<a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> out)</pre>
+<div class="block">
+<span>刷新此解码器。</span>
+<p> <span>这个方法的默认实现什么都不做，总是返回<a href="../../../java/nio/charset/CoderResult.html#UNDERFLOW"><code>CoderResult.UNDERFLOW</code></a> 。</span> <span>一旦读取了整个输入序列，这个方法就应该被解码器所覆盖。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>out</code> - 输出字符缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             编码结果对象，可以是 
+            <a href="../../../java/nio/charset/CoderResult.html#UNDERFLOW"><code>CoderResult.UNDERFLOW</code></a>或 
+            <a href="../../../java/nio/charset/CoderResult.html#OVERFLOW"><code>CoderResult.OVERFLOW</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="reset--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>reset</h4> <pre>public final <a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a> reset()</pre>
+<div class="block">
+<span>复位该解码器，清除任何内部状态。</span>
+<p> <span>此方法重置与字符集无关的状态，并且还调用<a href="../../../java/nio/charset/CharsetDecoder.html#implReset--"><code>implReset</code></a>方法以执行任何特定于字符集的重置操作。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个解码器 
+           </dd>
+</dl> </li>
+</ul> <a name="implReset--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>implReset</h4> <pre>protected void implReset()</pre>
+<div class="block">
+<span>重置此解码器，清除特定于字符集的内部状态。</span>
+<p> <span>这种方法的默认实现什么都不做。</span> <span>该方法应由维护内部状态的解码器覆盖。</span> </p>
+</div> </li>
+</ul> <a name="decodeLoop-java.nio.ByteBuffer-java.nio.CharBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>decodeLoop</h4> <pre>protected abstract <a href="../../../java/nio/charset/CoderResult.html" title="class in java.nio.charset">CoderResult</a> decodeLoop(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> in,
+                                          <a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> out)</pre>
+<div class="block">
+<span>将一个或多个字节解码为一个或多个字符。</span>
+<p> <span>该方法封装了基本的解码循环，解码尽可能多的字节，直到其用完输出，在输出缓冲区中用完，或遇到解码错误。</span> <span>该方法由<a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-"><code>decode</code></a>方法调用，处理结果解释和错误恢复。</span> </p>
+<p> <span>缓冲区从其当前位置开始读取并写入。</span> <span>将最多读取<a href="../../../java/nio/Buffer.html#remaining--"><code>in.remaining()</code></a>个字节，最多写入<a href="../../../java/nio/Buffer.html#remaining--"><code>out.remaining()</code>个</a>字符。</span> <span>缓冲区的位置将被提前以反映读取的字节和写入的字符，但是它们的标记和限制将不被修改。</span> </p>
+<p> <span>该方法返回一个<a href="../../../java/nio/charset/CoderResult.html" title="java.nio.charset中的类"><code>CoderResult</code></a>对象来描述其终止原因，与<a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-"><code>decode</code></a>方法相同。</span> <span>该方法的大多数实现由返回合适的结果对象用于解释处理解码错误<a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-java.nio.CharBuffer-boolean-"><code>decode</code></a>方法。</span> <span>优化的实现可能会检查相关的错误操作，并实现该操作本身。</span> </p>
+<p> <span>这种方法的实施方案可以通过返回执行任意的先行<a href="../../../java/nio/charset/CoderResult.html#UNDERFLOW"><code>CoderResult.UNDERFLOW</code></a>直到它接收到足够的输入。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>in</code> - 输入字节缓冲区 
+           </dd>
+<dd>
+<code>out</code> - 输出字符缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             描述终止原因的编码器结果对象 
+           </dd>
+</dl> </li>
+</ul> <a name="decode-java.nio.ByteBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>decode</h4> <pre>public final <a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> decode(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> in)
+                        throws <a href="../../../java/nio/charset/CharacterCodingException.html" title="class in java.nio.charset">CharacterCodingException</a></pre>
+<div class="block">
+<span>将单个输入字节缓冲器的剩余内容解码为新分配的字符缓冲区的方便方法。</span>
+<p> <span>该方法实现整个<a href="#steps">decoding operation</a> ;</span> <span>也就是说，它复位该解码器，然后解码给定字节缓冲器中的字节，最后它刷新该解码器。</span> <span>因此，如果解码操作已经进行，则不应该调用此方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>in</code> - 输入字节缓冲 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>包含解码操作结果的新分配字符缓冲器。</span>
+<span>缓冲区的位置将为零，其限制将遵循写入的最后一个字符。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果解码操作已经进行中 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/charset/MalformedInputException.html" title="class in java.nio.charset">MalformedInputException</a></code> - 如果从输入缓冲区的当前位置开始的字节序列对于此字符集不合法，并且当前格式错误的输入操作是 
+            <a href="../../../java/nio/charset/CodingErrorAction.html#REPORT"><code>CodingErrorAction.REPORT</code></a>
+</dd>
+<dd>
+<code><a href="../../../java/nio/charset/UnmappableCharacterException.html" title="class in java.nio.charset">UnmappableCharacterException</a></code> - 如果从输入缓冲区的当前位置开始的字节序列不能映射到等效的字符序列，并且当前的不可映像字符操作是 
+            <a href="../../../java/nio/charset/CodingErrorAction.html#REPORT"><code>CodingErrorAction.REPORT</code></a>
+</dd>
+<dd>
+<code><a href="../../../java/nio/charset/CharacterCodingException.html" title="class in java.nio.charset">CharacterCodingException</a></code>
+</dd>
+</dl> </li>
+</ul> <a name="isAutoDetecting--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isAutoDetecting</h4> <pre>public boolean isAutoDetecting()</pre>
+<div class="block">
+<span>告知该解码器是否实现自动检测字符集。</span>
+<p> <span>此方法的默认实现始终返回<tt>false</tt> ;</span> <span>它应该被自动检测解码器覆盖，以返回<tt>true</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>true</tt>如果并且只有该解码器实现了自动检测字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="isCharsetDetected--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isCharsetDetected</h4> <pre>public boolean isCharsetDetected()</pre>
+<div class="block">
+<span>告知该解码器是否还检测到字符集<i>（可选操作）</i> 。</span>
+<p> <span>如果该解码器在解码操作期间在单个点实现自动检测字符集，则该方法可以开始返回<tt>true</tt>以指示在输入字节序列中检测到特定字符集。</span> <span>一旦发生这种情况，可以调用<a href="../../../java/nio/charset/CharsetDecoder.html#detectedCharset--"><code>detectedCharset</code></a>方法来检索检测到的字符集。</span> </p>
+<p> <span>该方法返回<tt>false</tt>并不意味着没有字节尚未解码。</span> <span>一些自动检测解码器能够解码输入字节序列的一些或甚至全部，而不固定在特定字符集上。</span> </p>
+<p> <span>这种方法的默认实现总是抛出一个<a href="../../../java/lang/UnsupportedOperationException.html" title="java.lang中的类"><code>UnsupportedOperationException</code></a> ;</span> <span>输入字符集<tt>确定</tt>后，自动检测解码器将被覆盖返回true。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>true</tt>如果并且仅当该解码器检测到特定的字符集 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果该解码器没有实现自动检测字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="detectedCharset--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>detectedCharset</h4> <pre>public <a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> detectedCharset()</pre>
+<div class="block">
+<span>检索该解码器检测到的字符集<i>（可选操作）</i> 。</span>
+<p> <span>如果该解码器实现了自动检测字符集，则该方法一旦检测到该字符集即返回实际的字符集。</span> <span>此后，该方法在当前解码操作的持续时间内返回相同的值。</span> <span>如果还没有足够的输入字节读取来确定实际的字符集，那么这个方法会抛出一个<a href="../../../java/lang/IllegalStateException.html" title="java.lang中的类"><code>IllegalStateException</code></a> 。</span> </p>
+<p> <span>这种方法的默认实现总是抛出一个<a href="../../../java/lang/UnsupportedOperationException.html" title="java.lang中的类"><code>UnsupportedOperationException</code></a> ;</span> <span>应该通过自动检测解码器来覆盖，以返回适当的值。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             通过这个自动检测解码器检测到的字符集，或 
+            <tt>null</tt>如果字符集还没有被确定 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果读取不足够的字节来确定字符集 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果该解码器不实现自动检测字符集 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

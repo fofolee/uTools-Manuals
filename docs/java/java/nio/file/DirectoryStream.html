@@ -1,0 +1,190 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.nio.file 
+   </div>
+<h2 class="title" title="Interface DirectoryStream">Interface DirectoryStream&lt;T&gt;</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 迭代器返回的元素的类型 
+       </dd>
+</dl>
+<dl>
+<dt>
+         All Superinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/lang/AutoCloseable.html" title="java.lang中的接口">AutoCloseable</a> ， <a href="../../../java/io/Closeable.html" title="java.io中的接口">Closeable</a> ， <a href="../../../java/lang/Iterable.html" title="java.lang中的接口">Iterable</a> &lt;T&gt;</span>
+</dd>
+</dl>
+<dl>
+<dt>
+         All Known Subinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/nio/file/SecureDirectoryStream.html" title="java.nio.file中的接口">SecureDirectoryStream</a> &lt;T&gt;</span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">DirectoryStream&lt;T&gt;</span>
+extends <a href="../../../java/io/Closeable.html" title="interface in java.io">Closeable</a>, <a href="../../../java/lang/Iterable.html" title="interface in java.lang">Iterable</a>&lt;T&gt;</pre>
+<div class="block">
+<span>一个对象来迭代目录中的条目。</span>
+<span>目录流允许方便地使用for-each结构来遍历目录。</span>
+<p> <span><b>虽然<code>DirectoryStream</code>扩展了<code>Iterable</code> ，但它不是通用的<code>Iterable</code> ，因为它只支持一个<code>Iterator</code> ;</b></span> <span><b>调用<a href="../../../java/nio/file/DirectoryStream.html#iterator--"><code>iterator</code></a>方法获得第二个或后续的迭代器抛出<code>IllegalStateException</code> 。</b></span> </p>
+<p> <span>目录流<code>Iterator</code>一个重要属性是它的<a href="../../../java/util/Iterator.html#hasNext--"><code>hasNext</code></a>方法被保证通过至少一个元素预读。</span> <span>如果<code>hasNext</code>方法返回<code>true</code> ，之后是调用<code>next</code>方法，则保证<code>next</code>方法不会因I / O错误而引发异常，或者因为流已经是<a href="../../../java/io/Closeable.html#close--"><code>closed</code></a> 。</span> <span><code>Iterator</code>不支持<a href="../../../java/util/Iterator.html#remove--"><code>remove</code></a>操作。</span> </p>
+<p> <span>A <code>DirectoryStream</code>在创建时打开，并通过调用<code>close</code>方法关闭。</span> <span>关闭目录流将释放与流相关联的任何资源。</span> <span>未能关闭流可能会导致资源泄漏。</span> <span>try-with-resources语句提供了一个有用的结构，以确保流被关闭：</span> </p>
+<pre>  <span>Path dir = ...
+   try (DirectoryStream&lt;Path&gt; stream = Files.newDirectoryStream(dir)) {
+       for (Path entry: stream) {
+           ...
+       }
+   }</span> </pre>
+<p> <span>一旦目录流关闭，则使用<code>Iterator</code>进一步访问<code>Iterator</code>行为就像流已经达到一样。</span> <span>由于预读， <code>Iterator</code>可能会在目录流关闭后返回一个或多个元素。</span> <span>一旦这些缓冲元素被读取，那么对<code>hasNext</code>方法的后续调用将返回<code>false</code> ，并且后续调用<code>next</code>方法将抛出<code>NoSuchElementException</code> 。</span> </p>
+<p> <span>目录流不需要<i>异步关闭</i> 。</span> <span>如果从目录中读取的目录流的迭代器中阻塞一个线程，另一个线程调用<code>close</code>方法，则第二个线程可能会阻塞，直到读取操作完成。</span> </p>
+<p> <span>如果在访问目录时遇到I / O错误，则导致<code>Iterator</code>的<code>hasNext</code>或<code>next</code>方法以<a href="../../../java/io/IOException.html" title="java.io中的类"><code>IOException</code></a>作为原因丢弃<a href="../../../java/nio/file/DirectoryIteratorException.html" title="java.nio.file中的类"><code>DirectoryIteratorException</code></a> 。</span> <span>如上所述， <code>hasNext</code>方法保证通过至少一个元素预读。</span> <span>这意味着如果<code>hasNext</code>方法返回<code>true</code> ，并且后跟一个调用<code>next</code>方法，那么保证<code>next</code>方法不会与<code>DirectoryIteratorException</code>失败。</span> </p>
+<p> <span>迭代器返回的元素没有特定的顺序。</span> <span>某些文件系统维护目录本身和目录的父目录的特殊链接。</span> <span>代表这些链接的条目不会由迭代器返回。</span> </p>
+<p> <span>迭代器<i>弱一致</i> 。</span> <span>它是线程安全的，但在迭代时不冻结目录，因此它可能（或可能不）反映在创建<code>DirectoryStream</code>之后发生的<code>DirectoryStream</code>更新。</span> </p>
+<p> <span><b>使用示例：</b>假设我们想要一个目录中的源文件的列表。</span> <span>此示例同时使用for-each和try-with-resources构造。</span> </p>
+<pre>  <span>List&lt;Path&gt; listSourceFiles(Path dir) throws IOException {
+       List&lt;Path&gt; result = new ArrayList&lt;&gt;();
+       try (DirectoryStream&lt;Path&gt; stream = Files.newDirectoryStream(dir, "*.{c,h,cpp,hpp,java}")) {
+           for (Path entry: stream) {
+               result.add(entry);
+           }
+       } catch (DirectoryIteratorException ex) {
+           // I/O error encounted during the iteration, the cause is an IOException
+           throw ex.getCause();
+       }
+       return result;
+   }</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.7 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/nio/file/Files.html#newDirectoryStream-java.nio.file.Path-"><code>Files.newDirectoryStream(Path)</code></a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Interface and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static interface </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/file/DirectoryStream.Filter.html" title="interface in java.nio.file">DirectoryStream.Filter</a>&lt;<a href="../../../java/nio/file/DirectoryStream.Filter.html" title="type parameter in DirectoryStream.Filter">T</a>&gt;</span></code>
+<div class="block">
+              由对象执行的接口，用于确定是否应接受或过滤目录条目。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/util/Iterator.html" title="interface in java.util">Iterator</a>&lt;<a href="../../../java/nio/file/DirectoryStream.html" title="type parameter in DirectoryStream">T</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/file/DirectoryStream.html#iterator--">iterator</a></span>()</code>
+<div class="block">
+              返回与此 
+             <code>DirectoryStream</code>的迭代器。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.io.Closeable">
+<!-- --> </a> <h3>Methods inherited from interface java.io.<a href="../../../java/io/Closeable.html" title="interface in java.io">Closeable</a></h3> <code><a href="../../../java/io/Closeable.html#close--">close</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Iterable">
+<!-- --> </a> <h3>Methods inherited from interface java.lang.<a href="../../../java/lang/Iterable.html" title="interface in java.lang">Iterable</a></h3> <code><a href="../../../java/lang/Iterable.html#forEach-java.util.function.Consumer-">forEach</a>, <a href="../../../java/lang/Iterable.html#spliterator--">spliterator</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="iterator--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>iterator</h4> <pre><a href="../../../java/util/Iterator.html" title="interface in java.util">Iterator</a>&lt;<a href="../../../java/nio/file/DirectoryStream.html" title="type parameter in DirectoryStream">T</a>&gt; iterator()</pre>
+<div class="block">
+            返回与此 
+           <code>DirectoryStream</code>的迭代器。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Iterable.html#iterator--">iterator</a></code>在界面 
+            <code><a href="../../../java/lang/Iterable.html" title="interface in java.lang">Iterable</a>&lt;<a href="../../../java/nio/file/DirectoryStream.html" title="type parameter in DirectoryStream">T</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与此 
+            <code>DirectoryStream</code>的迭代器 
+            <code>DirectoryStream</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果此目录流已关闭或迭代器已返回 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

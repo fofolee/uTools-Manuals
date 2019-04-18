@@ -1,0 +1,129 @@
+<article id="wikiArticle">
+<div> <div class="prevnext" style="text-align: right;">
+<p><a href="Guide/Details_of_the_Object_Model" style="float: left;">« 上一页</a><a href="Guide/Meta_programming">下一页  »</a></p>
+</div></div>
+<p class="summary">处理集合中的每个项是很常见的操作。JavaScript 提供了许多迭代集合的方法，从简单的<a href="Reference/Statements/for" title="for 语句用于创建一个循环，它包含了三个可选的表达式，三个可选的表达式包围在圆括号中并由分号分隔， 后跟一个在循环中执行的语句（通常是一个块语句）。"><code>for</code></a>循环到<a href="Reference/Global_Objects/Array/map" title="map() 方法创建一个新数组，其结果是该数组中的每个元素都调用一个提供的函数后返回的结果。"><code>map()</code></a><font face="Open Sans, Arial, sans-serif"><span style="font-weight: normal;">和</span></font><a href="Reference/Global_Objects/Array/filter" title="filter() 方法创建一个新数组, 其包含通过所提供函数实现的测试的所有元素。"><code>filter()</code></a>。迭代器和生成器将迭代的概念直接带入核心语言，并提供了一种机制来自定义<a href="Reference/Statements/for...of" title="for...of语句在可迭代对象（包括 Array，Map，Set，String，TypedArray，arguments 对象等等）上创建一个迭代循环，调用自定义迭代钩子，并为每个不同属性的值执行语句"><code>for...of</code></a>循环的行为 。</p>
+<p>更多详情，请参见:</p>
+<ul>
+<li><a href="Reference/Iteration_protocols">迭代协议</a></li>
+<li><a href="Reference/Statements/for...of" title="for...of语句在可迭代对象（包括 Array，Map，Set，String，TypedArray，arguments 对象等等）上创建一个迭代循环，调用自定义迭代钩子，并为每个不同属性的值执行语句"><code>for...of</code></a></li>
+<li><a href="Reference/Statements/function*" title="function* 这种声明方式(function关键字后跟一个星号）会定义一个生成器函数 (generator function)，它返回一个  Generator  对象。"><code>function*</code></a> 和 <a href="Reference/Global_Objects/Generator" title="生成器对象是由一个 generator function 返回的,并且它符合可迭代协议和迭代器协议。"><code>Generator</code></a></li>
+<li><a href="Reference/Operators/yield" title="yield 关键字用来暂停和恢复一个生成器函数（(function* 或遗留的生成器函数）。"><code>yield</code></a> 和 <a href="Reference/Operators/yield*" title="yield* 表达式用于委托给另一个generator 或可迭代对象。"><code>yield*</code></a></li>
+</ul>
+<h2 id="迭代器">迭代器</h2>
+<p>一个迭代器对象 ，知道如何每次访问集合中的一项， 并跟踪该序列中的当前位置。在  JavaScript 中 迭代器是一个对象，它提供了一个<code>next()</code> 方法，用来返回序列中的下一项。这个方法返回包含两个属性：<code>done</code>和 <code>value</code>。</p>
+<p>迭代器对象一旦被创建，就可以反复调用<code>next()</code>。</p>
+<pre class="brush: js line-numbers language-js"><code class="language-js"><span class="keyword token">function</span> <span class="function token">makeIterator</span><span class="punctuation token">(</span>array<span class="punctuation token">)</span><span class="punctuation token">{</span>
+    <span class="keyword token">var</span> nextIndex <span class="operator token">=</span> <span class="number token">0</span><span class="punctuation token">;</span>
+    <span class="keyword token">return</span> <span class="punctuation token">{</span>
+       next<span class="punctuation token">:</span> <span class="keyword token">function</span><span class="punctuation token">(</span><span class="punctuation token">)</span><span class="punctuation token">{</span>
+           <span class="keyword token">return</span> nextIndex <span class="operator token">&lt;</span> array<span class="punctuation token">.</span>length <span class="operator token">?</span>
+               <span class="punctuation token">{</span>value<span class="punctuation token">:</span> array<span class="punctuation token">[</span>nextIndex<span class="operator token">++</span><span class="punctuation token">]</span><span class="punctuation token">,</span> done<span class="punctuation token">:</span> <span class="keyword token">false</span><span class="punctuation token">}</span> <span class="punctuation token">:</span>
+               <span class="punctuation token">{</span>done<span class="punctuation token">:</span> <span class="keyword token">true</span><span class="punctuation token">}</span><span class="punctuation token">;</span>
+       <span class="punctuation token">}</span>
+    <span class="punctuation token">};</span>
+<span class="punctuation token">}</span></code></pre>
+<p>一旦初始化，<code>next()</code>方法可以用来依次访问对象中的键值：</p>
+<pre class="brush: js line-numbers language-js"><code class="language-js"><span class="keyword token">var</span> it <span class="operator token">=</span> <span class="function token">makeIterator</span><span class="punctuation token">(</span><span class="punctuation token">[</span><span class="string token">'yo'</span><span class="punctuation token">,</span> <span class="string token">'ya'</span><span class="punctuation token">]</span><span class="punctuation token">)</span><span class="punctuation token">;</span>
+console<span class="punctuation token">.</span><span class="function token">log</span><span class="punctuation token">(</span>it<span class="punctuation token">.</span><span class="function token">next</span><span class="punctuation token">(</span><span class="punctuation token">)</span><span class="punctuation token">.</span>value<span class="punctuation token">)</span><span class="punctuation token">;</span> <span class="comment token">// 'yo'</span>
+console<span class="punctuation token">.</span><span class="function token">log</span><span class="punctuation token">(</span>it<span class="punctuation token">.</span><span class="function token">next</span><span class="punctuation token">(</span><span class="punctuation token">)</span><span class="punctuation token">.</span>value<span class="punctuation token">)</span><span class="punctuation token">;</span> <span class="comment token">// 'ya'</span>
+console<span class="punctuation token">.</span><span class="function token">log</span><span class="punctuation token">(</span>it<span class="punctuation token">.</span><span class="function token">next</span><span class="punctuation token">(</span><span class="punctuation token">)</span><span class="punctuation token">.</span>done<span class="punctuation token">)</span><span class="punctuation token">;</span>  <span class="comment token">// true</span></code>
+</pre>
+<h2 id="生成器">生成器</h2>
+<p>虽然自定义的迭代器是一个有用的工具，但由于需要显式地维护其内部状态，因此需要谨慎地创建。<strong><a href="Reference/Global_Objects/Generator" title="生成器对象是由一个 generator function 返回的,并且它符合可迭代协议和迭代器协议。">Generators</a></strong>提供了一个强大的选择：它允许你定义一个包含自有迭代算法的函数， 同时它可以自动维护自己的状态。</p>
+<p>GeneratorFunction 是一个可以作为迭代器工厂的特殊函数。当它被执行时会返回一个新的Generator对象。 如果使用<a href="Reference/Statements/function*" title="function* 这种声明方式(function关键字后跟一个星号）会定义一个生成器函数 (generator function)，它返回一个  Generator  对象。"><code>function*</code></a>语法，则函数将变为GeneratorFunction。</p>
+<pre class="brush: js">function* idMaker() {
+  var index = 0;
+  while(true)
+    yield index++;
+}
+
+var gen = idMaker();
+
+console.log(gen.next().value); // 0
+console.log(gen.next().value); // 1
+console.log(gen.next().value); // 2
+// ...
+</pre>
+<h2 id="可迭代对象">可迭代对象</h2>
+<p>一个定义了迭代行为的对象，比如在<a href="Reference/Statements/for...of" title="for...of语句在可迭代对象（包括 Array，Map，Set，String，TypedArray，arguments 对象等等）上创建一个迭代循环，调用自定义迭代钩子，并为每个不同属性的值执行语句"><code>for...of</code></a>中循环了哪些值。一些内置类型，如<a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a>或<a href="Reference/Map" title="此页面仍未被本地化, 期待您的翻译!"><code>Map</code></a>具有默认的迭代行为，而其他类型（如<a href="Reference/Global_Objects/Object" title="Object 构造函数创建一个对象包装器。"><code>Object</code></a>）没有。</p>
+<p>为了实现<strong>可迭代</strong>，一个对象必须实现 <strong>@@iterator </strong>方法，这意味着这个对象（或其<a href="Guide/Inheritance_and_the_prototype_chain">原型链</a>中的一个对象）必须具有带 <a href="Reference/Global_Objects/Symbol/iterator" title="Symbol.iterator 为每一个对象定义了默认的迭代器。该迭代器可以被 for...of 循环使用。"><code>Symbol.iterator</code></a> 键的属性：</p>
+<h3 id="自定义的可迭代对象">自定义的可迭代对象</h3>
+<p>我们可以像这样实现自己的迭代：</p>
+<pre class="brush: js">var myIterable = {};
+myIterable[Symbol.iterator] = function* () {
+    yield 1;
+    yield 2;
+    yield 3;
+};
+
+for (let value of myIterable) { 
+    console.log(value); 
+}
+// 1
+// 2
+// 3
+
+//or
+
+console.log([...myIterable]); // [1, 2, 3]</pre>
+<h3 id="内置可迭代对象">内置可迭代对象</h3>
+<p><a href="Reference/String" title="此页面仍未被本地化, 期待您的翻译!"><code>String</code></a>，<a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a>，<a href="Reference/Global_Objects/TypedArray" title="一个TypedArray 对象描述一个底层的二进制数据缓存区的一个类似数组(array-like)视图。事实上，没有名为 TypedArray的全局对象，也没有一个名为的 TypedArray构造函数。相反，有许多不同的全局对象，下面会列出这些针对特定元素类型的类型化数组的构造函数。在下面的页面中，你会找到一些不管什么类型都公用的属性和方法。"><code>TypedArray</code></a>，<a href="Reference/Map" title="此页面仍未被本地化, 期待您的翻译!"><code>Map</code></a> 和 <a href="Reference/Global_Objects/Set" title="Set 对象允许你存储任何类型的唯一值，无论是原始值或者是对象引用。"><code>Set</code></a> 都内置可迭代对象，因为它们的原型对象都有一个 <a href="Reference/Global_Objects/Symbol/iterator" title="Symbol.iterator 为每一个对象定义了默认的迭代器。该迭代器可以被 for...of 循环使用。"><code>Symbol.iterator</code></a> 方法。</p>
+<h3 id="用于可迭代对象的语法">用于可迭代对象的语法</h3>
+<p>一些语句和表达式是预料会用于可迭代对象，例如 <a href="Reference/Statements/for...of" title="for...of语句在可迭代对象（包括 Array，Map，Set，String，TypedArray，arguments 对象等等）上创建一个迭代循环，调用自定义迭代钩子，并为每个不同属性的值执行语句"><code>for-of</code></a> 循环，<a href="Reference/Operators/Spread_operator" title="REDIRECT Spread syntax">spread syntax</a>，<a href="Reference/Operators/yield*" title="yield* 表达式用于委托给另一个generator 或可迭代对象。"><code>yield*</code></a> 和<a href="Reference/Operators/Destructuring_assignment" title="解构赋值语法是一种 Javascript 表达式，它使得将值从数组，或属性从对象，提取到不同的变量中，成为可能。">destructuring assignment</a>.</p>
+<pre class="brush: js">for (let value of ['a', 'b', 'c']) {
+    console.log(value);
+}
+// "a"
+// "b"
+// "c"
+
+[...'abc']; // ["a", "b", "c"]
+
+function* gen() {
+  yield* ['a', 'b', 'c'];
+}
+
+gen().next(); // { value: "a", done: false }
+
+[a, b, c] = new Set(['a', 'b', 'c']);
+a; // "a"</pre>
+<h2 id="高级生成器">高级生成器</h2>
+<p>生成器根据需求计算它们的产出值，这使得它们能够有效地表示计算成本高的序列，或者甚至如上所述的无限序列。</p>
+<p>The <a href="Reference/Global_Objects/Generator/next" title="next() 方法返回一个包含属性 done 和 value 的对象。该方法也可以通过接受一个参数用以向生成器传值。"><code>next()</code></a> 方法也接受可用于修改生成器内部状态的值。传递给<code>next()</code>的值将被视为暂停生成器的最后一个<code>yield</code>表达式的结果。</p>
+<p>以下是使用 <code>next(x)</code> 重新启动 fibonacci 序列生成器：</p>
+<pre class="brush: js">function* fibonacci() {
+  var fn1 = 0;
+  var fn2 = 1;
+  while (true) {  
+    var current = fn1;
+    fn1 = fn2;
+    fn2 = current + fn1;
+    var reset = yield current;
+    if (reset) {
+        fn1 = 0;
+        fn2 = 1;
+    }
+  }
+}
+
+var sequence = fibonacci();
+console.log(sequence.next().value);     // 0
+console.log(sequence.next().value);     // 1
+console.log(sequence.next().value);     // 1
+console.log(sequence.next().value);     // 2
+console.log(sequence.next().value);     // 3
+console.log(sequence.next().value);     // 5
+console.log(sequence.next().value);     // 8
+console.log(sequence.next(true).value); // 0
+console.log(sequence.next().value);     // 1
+console.log(sequence.next().value);     // 1
+console.log(sequence.next().value);     // 2
+</pre>
+<p>你可以通过调用其<a href="Reference/Global_Objects/Generator/throw" title="throw() 方法用来向生成器抛出异常，并恢复生成器的执行，返回带有 done 及 value 两个属性的对象。"><code>throw()</code></a>方法强制生成器抛出异常，并传递应该抛出的异常值。这个异常将从当前挂起的生成器的上下文中抛出，就好像当前挂起的<code>yield</code>是一个<code>throwvalue</code>语句。</p>
+<p>如果在抛出的异常处理期间没有遇到<code>yield</code>，则异常将通过调用 <code>throw()</code>向上传播，对 <code>next()</code>的后续调用将导致<code>done</code>属性为<code>true</code>。</p>
+<p>生成器具有<a href="Reference/Global_Objects/Generator/return" title="return() 方法返回给定的值并结束生成器。"><code>return(value)</code></a> 方法，返回给定的值并完成生成器本身。</p>
+<p></p><div class="prevnext" style="text-align: right;">
+<p><a href="Guide/Details_of_the_Object_Model" style="float: left;">« 上一页</a><a href="Guide/Meta_programming">下一页  »</a></p>
+</div><p></p>
+</article>

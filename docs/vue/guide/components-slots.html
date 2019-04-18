@@ -1,0 +1,379 @@
+<div class="content guide with-sidebar components-slots-guide">
+<h1>插槽</h1>
+<blockquote>
+<p>该页面假设你已经阅读过了<a href="components.html">组件基础</a>。如果你还对组件不太了解，推荐你先阅读它。</p>
+</blockquote>
+<blockquote>
+<p>在 2.6.0 中，我们为具名插槽和作用域插槽引入了一个新的统一的语法 (即 <code>v-slot</code> 指令)。它取代了 <code>slot</code> 和 <code>slot-scope</code> 这两个目前已被废弃但未被移除且仍在<a href="#废弃了的语法">文档中</a>的特性。新语法的由来可查阅这份 <a href="https://github.com/vuejs/rfcs/blob/master/active-rfcs/0001-new-slot-syntax.md" rel="noopener" target="_blank">RFC</a>。</p>
+</blockquote>
+<h2 id="插槽内容"><a class="headerlink" href="#插槽内容" title="插槽内容"></a>插槽内容</h2><p>Vue 实现了一套内容分发的 API，这套 API 的设计灵感源自 <a href="https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Slots-Proposal.md" rel="noopener" target="_blank">Web Components 规范草案</a>，将 <code>&lt;slot&gt;</code> 元素作为承载分发内容的出口。</p>
+<p>它允许你像这样合成组件：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">navigation-link</span> <span class="hljs-attr">url</span>=<span class="hljs-string">"/profile"</span>&gt;</span>
+  Your Profile
+<span class="hljs-tag">&lt;/<span class="hljs-name">navigation-link</span>&gt;</span></code></pre>
+<p>然后你在 <code>&lt;navigation-link&gt;</code> 的模板中可能会写为：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">a</span>
+  <span class="hljs-attr">v-bind:href</span>=<span class="hljs-string">"url"</span>
+  <span class="hljs-attr">class</span>=<span class="hljs-string">"nav-link"</span>
+&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span></code></pre>
+<p>当组件渲染的时候，<code>&lt;slot&gt;&lt;/slot&gt;</code> 将会被替换为“Your Profile”。插槽内可以包含任何模板代码，包括 HTML：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">navigation-link</span> <span class="hljs-attr">url</span>=<span class="hljs-string">"/profile"</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- 添加一个 Font Awesome 图标 --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"fa fa-user"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+  Your Profile
+<span class="hljs-tag">&lt;/<span class="hljs-name">navigation-link</span>&gt;</span></code></pre>
+<p>甚至其它的组件：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">navigation-link</span> <span class="hljs-attr">url</span>=<span class="hljs-string">"/profile"</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- 添加一个图标的组件 --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">font-awesome-icon</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"user"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">font-awesome-icon</span>&gt;</span>
+  Your Profile
+<span class="hljs-tag">&lt;/<span class="hljs-name">navigation-link</span>&gt;</span></code></pre>
+<p>如果 <code>&lt;navigation-link&gt;</code> <strong>没有</strong>包含一个 <code>&lt;slot&gt;</code> 元素，则该组件起始标签和结束标签之间的任何内容都会被抛弃。</p>
+<h2 id="编译作用域"><a class="headerlink" href="#编译作用域" title="编译作用域"></a>编译作用域</h2><p>当你想在一个插槽中使用数据时，例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">navigation-link</span> <span class="hljs-attr">url</span>=<span class="hljs-string">"/profile"</span>&gt;</span>
+  Logged in as {{ user.name }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">navigation-link</span>&gt;</span></code></pre>
+<p>该插槽跟模板的其它地方一样可以访问相同的实例属性 (也就是相同的“作用域”)，而<strong>不能</strong>访问 <code>&lt;navigation-link&gt;</code> 的作用域。例如 <code>url</code> 是访问不到的：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">navigation-link</span> <span class="hljs-attr">url</span>=<span class="hljs-string">"/profile"</span>&gt;</span>
+  Clicking here will send you to: {{ url }}
+  <span class="hljs-comment">&lt;!--
+  这里的 `url` 会是 undefined，因为 "/profile" 是
+  _传递给_ &lt;navigation-link&gt; 的而不是
+  在 &lt;navigation-link&gt; 组件*内部*定义的。
+  --&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">navigation-link</span>&gt;</span></code></pre>
+<p>作为一条规则，请记住：</p>
+<blockquote>
+<p>父级模板里的所有内容都是在父级作用域中编译的；子模板里的所有内容都是在子作用域中编译的。</p>
+</blockquote>
+<h2 id="后备内容"><a class="headerlink" href="#后备内容" title="后备内容"></a>后备内容</h2><p>有时为一个插槽设置具体的后备 (也就是默认的) 内容是很有用的，它只会在没有提供内容的时候被渲染。例如在一个 <code>&lt;submit-button&gt;</code> 组件中：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"submit"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+<p>我们可能希望这个 <code>&lt;button&gt;</code> 内绝大多数情况下都渲染文本“Submit”。为了将“Submit”作为后备内容，我们可以将它放在 <code>&lt;slot&gt;</code> 标签内：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"submit"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span>Submit<span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+<p>现在当我在一个父级组件中使用 <code>&lt;submit-button&gt;</code>  并且不提供任何插槽内容时：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">submit-button</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">submit-button</span>&gt;</span></code></pre>
+<p>后备内容“Submit”将会被渲染：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"submit"</span>&gt;</span>
+  Submit
+<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+<p>但是如果我们提供内容：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">submit-button</span>&gt;</span>
+  Save
+<span class="hljs-tag">&lt;/<span class="hljs-name">submit-button</span>&gt;</span></code></pre>
+<p>则这个提供的内容将会被渲染从而取代后备内容：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"submit"</span>&gt;</span>
+  Save
+<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+<h2 id="具名插槽"><a class="headerlink" href="#具名插槽" title="具名插槽"></a>具名插槽</h2><blockquote>
+<p>自 2.6.0 起有所更新。已废弃的使用 <code>slot</code> 特性的语法在<a href="#废弃了的语法">这里</a>。</p>
+</blockquote>
+<p>有时我们需要多个插槽。例如对于一个带有如下模板的 <code>&lt;base-layout&gt;</code> 组件：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"container"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">header</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- 我们希望把页头放这里 --&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">header</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">main</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- 我们希望把主要内容放这里 --&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">main</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">footer</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- 我们希望把页脚放这里 --&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">footer</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>对于这样的情况，<code>&lt;slot&gt;</code> 元素有一个特殊的特性：<code>name</code>。这个特性可以用来定义额外的插槽：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"container"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">header</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"header"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">header</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">main</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">main</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">footer</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"footer"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">footer</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>一个不带 <code>name</code> 的 <code>&lt;slot&gt;</code> 出口会带有隐含的名字“default”。</p>
+<p>在向具名插槽提供内容的时候，我们可以在一个 <code>&lt;template&gt;</code> 元素上使用 <code>v-slot</code> 指令，并以 <code>v-slot</code> 的参数的形式提供其名称：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-layout</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:header</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Here might be a page title<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>A paragraph for the main content.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>And another one.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:footer</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Here's some contact info<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">base-layout</span>&gt;</span></code></pre>
+<p>现在 <code>&lt;template&gt;</code> 元素中的所有内容都将会被传入相应的插槽。任何没有被包裹在带有 <code>v-slot</code> 的 <code>&lt;template&gt;</code> 中的内容都会被视为默认插槽的内容。</p>
+<p>然而，如果你希望更明确一些，仍然可以在一个 <code>&lt;template&gt;</code> 中包裹默认插槽的内容：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-layout</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:header</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Here might be a page title<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:default</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>A paragraph for the main content.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>And another one.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:footer</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Here's some contact info<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">base-layout</span>&gt;</span></code></pre>
+<p>任何一种写法都会渲染出：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"container"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">header</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Here might be a page title<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">header</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">main</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>A paragraph for the main content.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>And another one.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">main</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">footer</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Here's some contact info<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">footer</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>注意 <strong><code>v-slot</code> 只能添加在一个 <code>&lt;template&gt;</code> 上</strong> (只有<a href="#独占默认插槽的缩写语法">一种例外情况</a>)，这一点和已经废弃的 <a href="#废弃了的语法"><code>slot</code> 特性</a>不同。</p>
+<h2 id="作用域插槽"><a class="headerlink" href="#作用域插槽" title="作用域插槽"></a>作用域插槽</h2><blockquote>
+<p>自 2.6.0 起有所更新。已废弃的使用 <code>slot-scope</code> 特性的语法在<a href="#废弃了的语法">这里</a>。</p>
+</blockquote>
+<p>有时让插槽内容能够访问子组件中才有的数据是很有用的。例如，设想一个带有如下模板的 <code>&lt;current-user&gt;</code> 组件：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span>{{ user.lastName }}<span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span></code></pre>
+<p>我们想让它的后备内容显示用户的名，以取代正常情况下用户的姓，如下：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">current-user</span>&gt;</span>
+  {{ user.firstName }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<p>然而上述代码不会正常工作，因为只有 <code>&lt;current-user&gt;</code> 组件可以访问到 <code>user</code> 而我们提供的内容是在父级渲染的。</p>
+<p>为了让 <code>user</code> 在父级的插槽内容可用，我们可以将 <code>user</code> 作为一个 <code>&lt;slot&gt;</code> 元素的特性绑定上去：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">slot</span> <span class="hljs-attr">v-bind:user</span>=<span class="hljs-string">"user"</span>&gt;</span>
+    {{ user.lastName }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span></code></pre>
+<p>绑定在 <code>&lt;slot&gt;</code> 元素上的特性被称为<strong>插槽 prop</strong>。现在在父级作用域中，我们可以给 <code>v-slot</code> 带一个值来定义我们提供的插槽 prop 的名字：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">current-user</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:default</span>=<span class="hljs-string">"slotProps"</span>&gt;</span>
+    {{ slotProps.user.firstName }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<p>在这个例子中，我们选择将包含所有插槽 prop 的对象命名为 <code>slotProps</code>，但你也可以使用任意你喜欢的名字。</p>
+<h3 id="独占默认插槽的缩写语法"><a class="headerlink" href="#独占默认插槽的缩写语法" title="独占默认插槽的缩写语法"></a>独占默认插槽的缩写语法</h3><p>在上述情况下，当被提供的内容<em>只有</em>默认插槽时，组件的标签才可以被当作插槽的模板来使用。这样我们就可以把 <code>v-slot</code> 直接用在组件上：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">current-user</span> <span class="hljs-attr">v-slot:default</span>=<span class="hljs-string">"slotProps"</span>&gt;</span>
+  {{ slotProps.user.firstName }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<p>这种写法还可以更简单。就像假定未指明的内容对应默认插槽一样，不带参数的 <code>v-slot</code> 被假定对应默认插槽：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">current-user</span> <span class="hljs-attr">v-slot</span>=<span class="hljs-string">"slotProps"</span>&gt;</span>
+  {{ slotProps.user.firstName }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<p>注意默认插槽的缩写语法<strong>不能</strong>和具名插槽混用，因为它会导致作用域不明确：</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 无效，会导致警告 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">current-user</span> <span class="hljs-attr">v-slot</span>=<span class="hljs-string">"slotProps"</span>&gt;</span>
+  {{ slotProps.user.firstName }}
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:other</span>=<span class="hljs-string">"otherSlotProps"</span>&gt;</span>
+    slotProps is NOT available here
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<p>只要出现多个插槽，请始终为<em>所有的</em>插槽使用完整的基于 <code>&lt;template&gt;</code> 的语法：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">current-user</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:default</span>=<span class="hljs-string">"slotProps"</span>&gt;</span>
+    {{ slotProps.user.firstName }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:other</span>=<span class="hljs-string">"otherSlotProps"</span>&gt;</span>
+    ...
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<h3 id="解构插槽-Prop"><a class="headerlink" href="#解构插槽-Prop" title="解构插槽 Prop"></a>解构插槽 Prop</h3><p>作用域插槽的内部工作原理是将你的插槽内容包括在一个传入单个参数的函数里：</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">slotProps</span>) </span>{
+  <span class="hljs-comment">// 插槽内容</span>
+}</code></pre>
+<p>这意味着 <code>v-slot</code> 的值实际上可以是任何能够作为函数定义中的参数的 JavaScript 表达式。所以在支持的环境下 (<a href="single-file-components.html">单文件组件</a>或<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#浏览器兼容" rel="noopener" target="_blank">现代浏览器</a>)，你也可以使用 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#解构对象" rel="noopener" target="_blank">ES2015 解构</a>来传入具体的插槽 prop，如下：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">current-user</span> <span class="hljs-attr">v-slot</span>=<span class="hljs-string">"{ user }"</span>&gt;</span>
+  {{ user.firstName }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<p>这样可以使模板更简洁，尤其是在该插槽提供了多个 prop 的时候。它同样开启了 prop 重命名等其它可能，例如将 <code>user</code> 重命名为 <code>person</code>：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">current-user</span> <span class="hljs-attr">v-slot</span>=<span class="hljs-string">"{ user: person }"</span>&gt;</span>
+  {{ person.firstName }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<p>你甚至可以定义后备内容，用于插槽 prop 是 undefined 的情形：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">current-user</span> <span class="hljs-attr">v-slot</span>=<span class="hljs-string">"{ user = { firstName: 'Guest' } }"</span>&gt;</span>
+  {{ user.firstName }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<h2 id="动态插槽名"><a class="headerlink" href="#动态插槽名" title="动态插槽名"></a>动态插槽名</h2><blockquote>
+<p>2.6.0 新增</p>
+</blockquote>
+<p><a href="syntax.html#动态参数">动态指令参数</a>也可以用在 <code>v-slot</code> 上，来定义动态的插槽名：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-layout</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:</span>[<span class="hljs-attr">dynamicSlotName</span>]&gt;</span>
+    ...
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">base-layout</span>&gt;</span></code></pre>
+<h2 id="具名插槽的缩写"><a class="headerlink" href="#具名插槽的缩写" title="具名插槽的缩写"></a>具名插槽的缩写</h2><blockquote>
+<p>2.6.0 新增</p>
+</blockquote>
+<p>跟 <code>v-on</code> 和 <code>v-bind</code> 一样，<code>v-slot</code> 也有缩写，即把参数之前的所有内容 (<code>v-slot:</code>) 替换为字符 <code>#</code>。例如 <code>v-slot:header</code> 可以被重写为 <code>#header</code>：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-layout</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> #<span class="hljs-attr">header</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Here might be a page title<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>A paragraph for the main content.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>And another one.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> #<span class="hljs-attr">footer</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Here's some contact info<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">base-layout</span>&gt;</span></code></pre>
+<p>然而，和其它指令一样，该缩写只在其有参数的时候才可用。这意味着以下语法是无效的：</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 这样会触发一个警告 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">current-user</span> #=<span class="hljs-string">"{ user }"</span>&gt;</span>
+  {{ user.firstName }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<p>如果你希望使用缩写的话，你必须始终以明确插槽名取而代之：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">current-user</span> #<span class="hljs-attr">default</span>=<span class="hljs-string">"{ user }"</span>&gt;</span>
+  {{ user.firstName }}
+<span class="hljs-tag">&lt;/<span class="hljs-name">current-user</span>&gt;</span></code></pre>
+<h2 id="其它示例"><a class="headerlink" href="#其它示例" title="其它示例"></a>其它示例</h2><p><strong>插槽 prop 允许我们将插槽转换为可复用的模板，这些模板可以基于输入的 prop 渲染出不同的内容。</strong>这在设计封装数据逻辑同时允许父级组件自定义部分布局的可复用组件时是最有用的。</p>
+<p>例如，我们要实现一个 <code>&lt;todo-list&gt;</code> 组件，它是一个列表且包含布局和过滤逻辑：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span>
+    <span class="hljs-attr">v-for</span>=<span class="hljs-string">"todo in filteredTodos"</span>
+    <span class="hljs-attr">v-bind:key</span>=<span class="hljs-string">"todo.id"</span>
+  &gt;</span>
+    {{ todo.text }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></code></pre>
+<p>我们可以将每个 todo 作为父级组件的插槽，以此通过父级组件对其进行控制，然后将 <code>todo</code> 作为一个插槽 prop 进行绑定：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span>
+    <span class="hljs-attr">v-for</span>=<span class="hljs-string">"todo in filteredTodos"</span>
+    <span class="hljs-attr">v-bind:key</span>=<span class="hljs-string">"todo.id"</span>
+  &gt;</span>
+    <span class="hljs-comment">&lt;!--
+    我们为每个 todo 准备了一个插槽，
+    将 `todo` 对象作为一个插槽的 prop 传入。
+    --&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"todo"</span> <span class="hljs-attr">v-bind:todo</span>=<span class="hljs-string">"todo"</span>&gt;</span>
+      <span class="hljs-comment">&lt;!-- 后备内容 --&gt;</span>
+      {{ todo.text }}
+    <span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></code></pre>
+<p>现在当我们使用 <code>&lt;todo-list&gt;</code> 组件的时候，我们可以选择为 todo 定义一个不一样的 <code>&lt;template&gt;</code> 作为替代方案，并且可以从子组件获取数据：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">todo-list</span> <span class="hljs-attr">v-bind:todos</span>=<span class="hljs-string">"todos"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">v-slot:todo</span>=<span class="hljs-string">"{ todo }"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"todo.isComplete"</span>&gt;</span>✓<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+    {{ todo.text }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">todo-list</span>&gt;</span></code></pre>
+<p>这只是作用域插槽用武之地的冰山一角。想了解更多现实生活中的作用域插槽的用法，我们推荐浏览诸如 <a href="https://github.com/Akryum/vue-virtual-scroller" rel="noopener" target="_blank">Vue Virtual Scroller</a>、<a href="https://github.com/posva/vue-promised" rel="noopener" target="_blank">Vue Promised</a> 和 <a href="https://github.com/LinusBorg/portal-vue" rel="noopener" target="_blank">Portal Vue</a> 等库。</p>
+<h2 id="废弃了的语法"><a class="headerlink" href="#废弃了的语法" title="废弃了的语法"></a>废弃了的语法</h2><blockquote>
+<p><code>v-slot</code> 指令自 Vue 2.6.0 起被引入，提供更好的支持 <code>slot</code> 和 <code>slot-scope</code> 特性的 API 替代方案。<code>v-slot</code> 完整的由来参见这份 <a href="https://github.com/vuejs/rfcs/blob/master/active-rfcs/0001-new-slot-syntax.md" rel="noopener" target="_blank">RFC</a>。在接下来所有的 2.x 版本中 <code>slot</code> 和 <code>slot-scope</code> 特性仍会被支持，但已经被官方废弃且不会出现在 Vue 3 中。</p>
+</blockquote>
+<h3 id="带有-slot-特性的具名插槽"><a class="headerlink" href="#带有-slot-特性的具名插槽" title="带有 slot 特性的具名插槽"></a>带有 <code>slot</code> 特性的具名插槽</h3><blockquote>
+<p>自 2.6.0 起<abbr title="在所有 Vue 2.x 版本中仍被支持，但不再推荐使用。">被废弃</abbr>。新推荐的语法请查阅<a href="#具名插槽">这里</a>。</p>
+</blockquote>
+<p>在 <code>&lt;template&gt;</code> 上使用特殊的 <code>slot</code> 特性，可以将内容从父级传给具名插槽 (把<a href="#具名插槽">这里</a>提到过的 <code>&lt;base-layout&gt;</code> 组件作为示例)：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-layout</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">slot</span>=<span class="hljs-string">"header"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Here might be a page title<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>A paragraph for the main content.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>And another one.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">slot</span>=<span class="hljs-string">"footer"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Here's some contact info<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">base-layout</span>&gt;</span></code></pre>
+<p>或者直接把 <code>slot</code> 特性用在一个普通元素上：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-layout</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span> <span class="hljs-attr">slot</span>=<span class="hljs-string">"header"</span>&gt;</span>Here might be a page title<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>A paragraph for the main content.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>And another one.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">slot</span>=<span class="hljs-string">"footer"</span>&gt;</span>Here's some contact info<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">base-layout</span>&gt;</span></code></pre>
+<p>这里其实还有一个未命名插槽，也就是<strong>默认插槽</strong>，捕获所有未被匹配的内容。上述两个示例的 HTML 渲染结果均为：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"container"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">header</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Here might be a page title<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">header</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">main</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>A paragraph for the main content.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>And another one.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">main</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">footer</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Here's some contact info<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">footer</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<h3 id="带有-slot-scope-特性的作用域插槽"><a class="headerlink" href="#带有-slot-scope-特性的作用域插槽" title="带有 slot-scope 特性的作用域插槽"></a>带有 <code>slot-scope</code> 特性的作用域插槽</h3><blockquote>
+<p>自 2.6.0 起<abbr title="在所有 Vue 2.x 版本中仍被支持，但不再推荐使用。">被废弃</abbr>。新推荐的语法请查阅<a href="#作用域插槽">这里</a>。</p>
+</blockquote>
+<p>在 <code>&lt;template&gt;</code> 上使用特殊的 <code>slot-scope</code> 特性，可以接收传递给插槽的 prop (把<a href="#作用域插槽">这里</a>提到过的 <code>&lt;slot-example&gt;</code> 组件作为示例)：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">slot-example</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">slot</span>=<span class="hljs-string">"default"</span> <span class="hljs-attr">slot-scope</span>=<span class="hljs-string">"slotProps"</span>&gt;</span>
+    {{ slotProps.msg }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">slot-example</span>&gt;</span></code></pre>
+<p>这里的 <code>slot-scope</code> 声明了被接收的 prop 对象会作为 <code>slotProps</code> 变量存在于 <code>&lt;template</code>&gt; 作用域中。你可以像命名 JavaScript 函数参数一样随意命名 <code>slotProps</code>。</p>
+<p>这里的 <code>slot="default"</code> 可以被忽略为隐性写法：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">slot-example</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">slot-scope</span>=<span class="hljs-string">"slotProps"</span>&gt;</span>
+    {{ slotProps.msg }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">slot-example</span>&gt;</span></code></pre>
+<p><code>slot-scope</code> 特性也可以直接用于非 <code>&lt;template&gt;</code> 元素 (包括组件)：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">slot-example</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">slot-scope</span>=<span class="hljs-string">"slotProps"</span>&gt;</span>
+    {{ slotProps.msg }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">slot-example</span>&gt;</span></code></pre>
+<p><code>slot-scope</code> 的值可以接收任何有效的可以出现在函数定义的参数位置上的 JavaScript 表达式。这意味着在支持的环境下 (<a href="single-file-components.html">单文件组件</a>或<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#浏览器兼容" rel="noopener" target="_blank">现代浏览器</a>)，你也可以在表达式中使用 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#解构对象" rel="noopener" target="_blank">ES2015 解构</a>，如下：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">slot-example</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">slot-scope</span>=<span class="hljs-string">"{ msg }"</span>&gt;</span>
+    {{ msg }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">slot-example</span>&gt;</span></code></pre>
+<p>使用<a href="#其它示例">这里</a>描述过的 <code>&lt;todo-list&gt;</code> 作为示例，与它等价的使用 <code>slot-scope</code> 的代码是：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">todo-list</span> <span class="hljs-attr">v-bind:todos</span>=<span class="hljs-string">"todos"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">slot</span>=<span class="hljs-string">"todo"</span> <span class="hljs-attr">slot-scope</span>=<span class="hljs-string">"{ todo }"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"todo.isComplete"</span>&gt;</span>✓<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+    {{ todo.text }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">todo-list</span>&gt;</span></code></pre>
+<div class="guide-links">
+<span>← <a href="components-custom-events.html">自定义事件</a></span>
+<span style="float: right;"><a href="components-dynamic-async.html">动态组件 &amp; 异步组件</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srccomponents-slots.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

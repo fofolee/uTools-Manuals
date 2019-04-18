@@ -1,0 +1,1441 @@
+<div class="header">
+<div class="subTitle">
+     javax.swing 
+   </div>
+<h2 class="title" title="Class JLayer">Class JLayer&lt;V extends <a href="../../java/awt/Component.html" title="class in java.awt">Component</a>&gt;</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../java/awt/Component.html" title="class in java.awt">java.awt.Component</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../java/awt/Container.html" title="class in java.awt">java.awt.Container</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../javax/swing/JComponent.html" title="class in javax.swing">javax.swing.JComponent</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.swing.JLayer&lt;V&gt;</li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>V</code> - 
+        <code>JLayer</code>的视图组件的类型 
+       </dd>
+</dl>
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/awt/image/ImageObserver.html" title="java.awt.image中的接口">ImageObserver</a> ， <a href="../../java/awt/MenuContainer.html" title="java.awt中的接口">MenuContainer</a> ， <a href="../../java/beans/PropertyChangeListener.html" title="java.beans中的接口">PropertyChangeListener</a> ， <a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../java/util/EventListener.html" title="java.util中的接口">EventListener</a> ， <a href="../../javax/accessibility/Accessible.html" title="javax.accessibility中的接口">Accessible</a> ， <a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口">Scrollable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">JLayer&lt;V extends <a href="../../java/awt/Component.html" title="class in java.awt">Component</a>&gt;</span>
+extends <a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a>
+implements <a href="../../javax/swing/Scrollable.html" title="interface in javax.swing">Scrollable</a>, <a href="../../java/beans/PropertyChangeListener.html" title="interface in java.beans">PropertyChangeListener</a>, <a href="../../javax/accessibility/Accessible.html" title="interface in javax.accessibility">Accessible</a></pre>
+<div class="block">
+<span><code>JLayer</code>是用于Swing组件的通用装饰器，可以实现各种先进的绘画效果，并且可以接收在其边框内生成的所有<code>AWTEvent</code>的通知。</span>
+<p> <span><code>JLayer</code>将绘画和输入事件的处理委托给一个执行实际装饰的<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a>对象。</span> </p>
+<p> <span>在风俗画在实施<code>LayerUI</code>为JLayer本身及其所有子组件和事件通知工作。</span> <span>该组合使您可以通过添加新的高级功能来丰富现有组件，例如临时锁定层次结构，复合组件的数据提示，增强的鼠标滚动等等。</span> </p>
+<p> <span><code>JLayer</code>是一个很好的解决方案，如果您只需要对复合组件进行自定义绘画或从其子组件捕获输入事件。</span> </p>
+<pre>  <span>import javax.swing.*;
+ import javax.swing.plaf.LayerUI;
+ import java.awt.*;
+
+ public class JLayerSample {
+
+     private static JLayer&lt;JComponent&gt; createLayer() {
+         // This custom layerUI will fill the layer with translucent green
+         // and print out all mouseMotion events generated within its borders
+         LayerUI&lt;JComponent&gt; layerUI = new LayerUI&lt;JComponent&gt;() {
+
+             public void paint(Graphics g, JComponent c) {
+                 // paint the layer as is
+                 super.paint(g, c);
+                 // fill it with the translucent green
+                 g.setColor(new Color(0, 128, 0, 128));
+                 g.fillRect(0, 0, c.getWidth(), c.getHeight());
+             }
+
+             public void installUI(JComponent c) {
+                 super.installUI(c);
+                 // enable mouse motion events for the layer's subcomponents
+                 ((JLayer) c).setLayerEventMask(AWTEvent.MOUSE_MOTION_EVENT_MASK);
+             }
+
+             public void uninstallUI(JComponent c) {
+                 super.uninstallUI(c);
+                 // reset the layer event mask
+                 ((JLayer) c).setLayerEventMask(0);
+             }
+
+             // overridden method which catches MouseMotion events
+             public void eventDispatched(AWTEvent e, JLayer&lt;? extends JComponent&gt; l) {
+                 System.out.println("AWTEvent detected: " + e);
+             }
+         };
+         // create a component to be decorated with the layer
+         JPanel panel = new JPanel();
+         panel.add(new JButton("JButton"));
+
+         // create the layer for the panel using our custom layerUI
+         return new JLayer&lt;JComponent&gt;(panel, layerUI);
+     }
+
+     private static void createAndShowGUI() {
+         final JFrame frame = new JFrame();
+         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+         // work with the layer as with any other Swing component
+         frame.add(createLayer());
+
+         frame.setSize(200, 200);
+         frame.setLocationRelativeTo(null);
+         frame.setVisible(true);
+     }
+
+     public static void main(String[] args) throws Exception {
+         SwingUtilities.invokeAndWait(new Runnable() {
+             public void run() {
+                 createAndShowGUI();
+             }
+         });
+     }
+ }</span> </pre>
+<span><b>注意：</b> <code>JLayer</code>不支持以下方法：</span>
+<ul>
+<li> <span><a href="../../java/awt/Container.html#add-java.awt.Component-"><code>Container.add(java.awt.Component)</code></a></span> </li>
+<li> <span><a href="../../java/awt/Container.html#add-java.lang.String-java.awt.Component-"><code>Container.add(String, java.awt.Component)</code></a></span> </li>
+<li> <span><a href="../../java/awt/Container.html#add-java.awt.Component-int-"><code>Container.add(java.awt.Component, int)</code></a></span> </li>
+<li> <span><a href="../../java/awt/Container.html#add-java.awt.Component-java.lang.Object-"><code>Container.add(java.awt.Component, Object)</code></a></span> </li>
+<li> <span><a href="../../java/awt/Container.html#add-java.awt.Component-java.lang.Object-int-"><code>Container.add(java.awt.Component, Object, int)</code></a></span> </li>
+</ul>
+<span>使用任何一个将导致<code>UnsupportedOperationException</code>被抛出，添加一个组件到<code>JLayer</code>使用<a href="../../javax/swing/JLayer.html#setView-V-"><code>setView(Component)</code></a>或<a href="../../javax/swing/JLayer.html#setGlassPane-javax.swing.JPanel-"><code>setGlassPane(JPanel)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.7 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/JLayer.html#JLayer-V-"><code>JLayer(Component)</code></a> ， <a href="../../javax/swing/JLayer.html#setView-V-"><code>setView(Component)</code></a> ， <a href="../../javax/swing/JLayer.html#getView--"><code>getView()</code></a> ， <a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a> ， <a href="../../javax/swing/JLayer.html#JLayer-V-javax.swing.plaf.LayerUI-"><code>JLayer(Component, LayerUI)</code></a> ， <a href="../../javax/swing/JLayer.html#setUI-javax.swing.plaf.LayerUI-"><code>setUI(javax.swing.plaf.LayerUI)</code></a> ， <a href="../../javax/swing/JLayer.html#getUI--"><code>getUI()</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.javax.swing.JComponent">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class javax.swing.<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></h3> <code><a href="../../javax/swing/JComponent.AccessibleJComponent.html" title="class in javax.swing">JComponent.AccessibleJComponent</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.java.awt.Container">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class java.awt.<a href="../../java/awt/Container.html" title="class in java.awt">Container</a></h3> <code><a href="../../java/awt/Container.AccessibleAWTContainer.html" title="class in java.awt">Container.AccessibleAWTContainer</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.java.awt.Component">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class java.awt.<a href="../../java/awt/Component.html" title="class in java.awt">Component</a></h3> <code><a href="../../java/awt/Component.AccessibleAWTComponent.html" title="class in java.awt">Component.AccessibleAWTComponent</a>, <a href="../../java/awt/Component.BaselineResizeBehavior.html" title="enum in java.awt">Component.BaselineResizeBehavior</a>, <a href="../../java/awt/Component.BltBufferStrategy.html" title="class in java.awt">Component.BltBufferStrategy</a>, <a href="../../java/awt/Component.FlipBufferStrategy.html" title="class in java.awt">Component.FlipBufferStrategy</a></code></li>
+</ul> </li>
+</ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.javax.swing.JComponent">
+<!-- --> </a> <h3>Fields inherited from class javax.swing.<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></h3> <code><a href="../../javax/swing/JComponent.html#listenerList">listenerList</a>, <a href="../../javax/swing/JComponent.html#TOOL_TIP_TEXT_KEY">TOOL_TIP_TEXT_KEY</a>, <a href="../../javax/swing/JComponent.html#ui">ui</a>, <a href="../../javax/swing/JComponent.html#UNDEFINED_CONDITION">UNDEFINED_CONDITION</a>, <a href="../../javax/swing/JComponent.html#WHEN_ANCESTOR_OF_FOCUSED_COMPONENT">WHEN_ANCESTOR_OF_FOCUSED_COMPONENT</a>, <a href="../../javax/swing/JComponent.html#WHEN_FOCUSED">WHEN_FOCUSED</a>, <a href="../../javax/swing/JComponent.html#WHEN_IN_FOCUSED_WINDOW">WHEN_IN_FOCUSED_WINDOW</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.java.awt.Component">
+<!-- --> </a> <h3>Fields inherited from class java.awt.<a href="../../java/awt/Component.html" title="class in java.awt">Component</a></h3> <code><a href="../../java/awt/Component.html#accessibleContext">accessibleContext</a>, <a href="../../java/awt/Component.html#BOTTOM_ALIGNMENT">BOTTOM_ALIGNMENT</a>, <a href="../../java/awt/Component.html#CENTER_ALIGNMENT">CENTER_ALIGNMENT</a>, <a href="../../java/awt/Component.html#LEFT_ALIGNMENT">LEFT_ALIGNMENT</a>, <a href="../../java/awt/Component.html#RIGHT_ALIGNMENT">RIGHT_ALIGNMENT</a>, <a href="../../java/awt/Component.html#TOP_ALIGNMENT">TOP_ALIGNMENT</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.java.awt.image.ImageObserver">
+<!-- --> </a> <h3>Fields inherited from interface java.awt.image.<a href="../../java/awt/image/ImageObserver.html" title="interface in java.awt.image">ImageObserver</a></h3> <code><a href="../../java/awt/image/ImageObserver.html#ABORT">ABORT</a>, <a href="../../java/awt/image/ImageObserver.html#ALLBITS">ALLBITS</a>, <a href="../../java/awt/image/ImageObserver.html#ERROR">ERROR</a>, <a href="../../java/awt/image/ImageObserver.html#FRAMEBITS">FRAMEBITS</a>, <a href="../../java/awt/image/ImageObserver.html#HEIGHT">HEIGHT</a>, <a href="../../java/awt/image/ImageObserver.html#PROPERTIES">PROPERTIES</a>, <a href="../../java/awt/image/ImageObserver.html#SOMEBITS">SOMEBITS</a>, <a href="../../java/awt/image/ImageObserver.html#WIDTH">WIDTH</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#JLayer--">JLayer</a></span>()</code>
+<div class="block">
+<span>创建一个新的<code>JLayer</code>对象与一个<code>null</code>视图组件和默认<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a> 。</span>
+</div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#JLayer-V-">JLayer</a></span>(<a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a> view)</code>
+<div class="block">
+<span>创建一个新的<code>JLayer</code>对象，默认值为<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#JLayer-V-javax.swing.plaf.LayerUI-">JLayer</a></span>(<a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a> view, <a href="../../javax/swing/plaf/LayerUI.html" title="class in javax.swing.plaf">LayerUI</a>&lt;<a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a>&gt; ui)</code>
+<div class="block">
+<span>创建一个新的<code>JLayer</code>具有指定视图组件和对象<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a>对象。</span>
+</div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#addImpl-java.awt.Component-java.lang.Object-int-">addImpl</a></span>(<a href="../../java/awt/Component.html" title="class in java.awt">Component</a> comp, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> constraints, int index)</code>
+<div class="block">
+              这种方法不支持 
+             <code>JLayer</code> ，总是抛出 
+             <code>UnsupportedOperationException</code>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#addNotify--">addNotify</a></span>()</code>
+<div class="block">
+              通知此组件它现在有一个父组件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../javax/swing/JPanel.html" title="class in javax.swing">JPanel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#createGlassPane--">createGlassPane</a></span>()</code>
+<div class="block">
+              由构造函数调用方法创建一个默认值 
+             <code>glassPane</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#doLayout--">doLayout</a></span>()</code>
+<div class="block">
+              将其功能委托给 
+             <a href="../../javax/swing/plaf/LayerUI.html#doLayout-javax.swing.JLayer-"><code>LayerUI.doLayout(JLayer)</code></a>方法，如果设置为 
+             <code>LayerUI</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../javax/accessibility/AccessibleContext.html" title="class in javax.accessibility">AccessibleContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getAccessibleContext--">getAccessibleContext</a></span>()</code>
+<div class="block">
+              获取与此 
+             <code>JLayer</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../javax/swing/JPanel.html" title="class in javax.swing">JPanel</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getGlassPane--">getGlassPane</a></span>()</code>
+<div class="block">
+              返回 
+             <code>JLayer</code>的glassPane组件或 
+             <code>null</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getLayerEventMask--">getLayerEventMask</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>JLayer</code>及其 
+             <code>LayerUI</code>接收的事件掩码的位图。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../java/awt/Dimension.html" title="class in java.awt">Dimension</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getPreferredScrollableViewportSize--">getPreferredScrollableViewportSize</a></span>()</code>
+<div class="block">
+              返回视图组件的视口的首选大小。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getScrollableBlockIncrement-java.awt.Rectangle-int-int-">getScrollableBlockIncrement</a></span>(<a href="../../java/awt/Rectangle.html" title="class in java.awt">Rectangle</a> visibleRect, int orientation, int direction)</code>
+<div class="block">
+              返回滚动增量，这是显示逻辑行或列的组件所必需的，以便根据方向的值完全暴露一个行或列的块。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getScrollableTracksViewportHeight--">getScrollableTracksViewportHeight</a></span>()</code>
+<div class="block">
+              返回 
+             <code>false</code>以表示视口的高度不会确定图层的高度，除非图层的首选高度小于视口的高度。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getScrollableTracksViewportWidth--">getScrollableTracksViewportWidth</a></span>()</code>
+<div class="block">
+              返回 
+             <code>false</code> ，以指示视口的宽度不会确定图层的宽度，除非图层的首选宽度小于视口的宽度。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getScrollableUnitIncrement-java.awt.Rectangle-int-int-">getScrollableUnitIncrement</a></span>(<a href="../../java/awt/Rectangle.html" title="class in java.awt">Rectangle</a> visibleRect, int orientation, int direction)</code>
+<div class="block">
+              返回滚动增量，这是显示逻辑行或列的组件所必需的，以便根据方向的值完全暴露一个新行或列。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../javax/swing/plaf/LayerUI.html" title="class in javax.swing.plaf">LayerUI</a>&lt;? super <a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getUI--">getUI</a></span>()</code>
+<div class="block">
+<span>返回<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a>此<code>JLayer</code> 。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code><a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#getView--">getView</a></span>()</code>
+<div class="block">
+              返回 
+             <code>JLayer</code>的视图组件或 
+             <code>null</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#isOptimizedDrawingEnabled--">isOptimizedDrawingEnabled</a></span>()</code>
+<div class="block">
+<code>JLayer</code>覆盖此方法的默认实现（在 
+             <code>JComponent</code> ）以返回 
+             <code>false</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#isPaintingOrigin--">isPaintingOrigin</a></span>()</code>
+<div class="block">
+              始终返回 
+             <code>true</code>以使绘画来源于 
+             <code>JLayer</code> ，或其祖先之一。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#paint-java.awt.Graphics-">paint</a></span>(<a href="../../java/awt/Graphics.html" title="class in java.awt">Graphics</a> g)</code>
+<div class="block">
+<span>将所有绘画<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类">委托</a>给<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a>对象。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#paintComponent-java.awt.Graphics-">paintComponent</a></span>(<a href="../../java/awt/Graphics.html" title="class in java.awt">Graphics</a> g)</code>
+<div class="block">
+              这种方法是空的，因为所有的绘画都是由 
+             <a href="../../javax/swing/JLayer.html#paint-java.awt.Graphics-"><code>paint(Graphics)</code></a>和 
+             <a href="../../javax/swing/plaf/ComponentUI.html#update-java.awt.Graphics-javax.swing.JComponent-"><code>ComponentUI.update(Graphics, JComponent)</code></a>方法完成的 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#paintImmediately-int-int-int-int-">paintImmediately</a></span>(int x, int y, int w, int h)</code>
+<div class="block">
+              将其功能委托给 
+             <a href="../../javax/swing/plaf/LayerUI.html#paintImmediately-int-int-int-int-javax.swing.JLayer-"><code>LayerUI.paintImmediately(int, int, int, int, JLayer)</code></a>方法，如果设置为 
+             <code>LayerUI</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#propertyChange-java.beans.PropertyChangeEvent-">propertyChange</a></span>(<a href="../../java/beans/PropertyChangeEvent.html" title="class in java.beans">PropertyChangeEvent</a> evt)</code>
+<div class="block">
+              当绑定属性更改时，此方法将被调用。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#remove-java.awt.Component-">remove</a></span>(<a href="../../java/awt/Component.html" title="class in java.awt">Component</a> comp)</code>
+<div class="block">
+              从此容器中删除指定的组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#removeAll--">removeAll</a></span>()</code>
+<div class="block">
+              从此容器中删除所有组件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#removeNotify--">removeNotify</a></span>()</code>
+<div class="block">
+              通知此组件它不再具有父组件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#setBorder-javax.swing.border.Border-">setBorder</a></span>(<a href="../../javax/swing/border/Border.html" title="interface in javax.swing.border">Border</a> border)</code>
+<div class="block">
+              不支持非 
+             <code>null</code>边框或非零插值，以防止此组件的几何变得足够复杂，以禁止 
+             <code>LayerUI</code>类的 
+             <code>LayerUI</code>类化。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#setGlassPane-javax.swing.JPanel-">setGlassPane</a></span>(<a href="../../javax/swing/JPanel.html" title="class in javax.swing">JPanel</a> glassPane)</code>
+<div class="block">
+              设置 
+             <code>JLayer</code>的glassPane组件，可以是 
+             <code>null</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#setLayerEventMask-long-">setLayerEventMask</a></span>(long layerEventMask)</code>
+<div class="block">
+              启用来自JLayer的事件 
+             <b>及其</b>由指定的事件掩码参数定义的 
+             <b>所有</b>后代，以传递给 
+             <a href="../../javax/swing/plaf/LayerUI.html#eventDispatched-java.awt.AWTEvent-javax.swing.JLayer-"><code>LayerUI.eventDispatched(AWTEvent, JLayer)</code></a>方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#setLayout-java.awt.LayoutManager-">setLayout</a></span>(<a href="../../java/awt/LayoutManager.html" title="interface in java.awt">LayoutManager</a> mgr)</code>
+<div class="block">
+              设置此容器的布局管理器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#setUI-javax.swing.plaf.LayerUI-">setUI</a></span>(<a href="../../javax/swing/plaf/LayerUI.html" title="class in javax.swing.plaf">LayerUI</a>&lt;? super <a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a>&gt; ui)</code>
+<div class="block">
+<span>设置<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a>将执行绘图和接收<code>JLayer</code>输入事件。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#setView-V-">setView</a></span>(<a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a> view)</code>
+<div class="block">
+              设置 
+             <code>JLayer</code>的视图组件，可以是 
+             <code>null</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/JLayer.html#updateUI--">updateUI</a></span>()</code>
+<div class="block">
+              将其功能委托给 
+             <a href="../../javax/swing/plaf/LayerUI.html#updateUI-javax.swing.JLayer-"><code>LayerUI.updateUI(JLayer)</code></a>方法，如果设置为 
+             <code>LayerUI</code> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.JComponent">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></h3> <code><a href="../../javax/swing/JComponent.html#addAncestorListener-javax.swing.event.AncestorListener-">addAncestorListener</a>, <a href="../../javax/swing/JComponent.html#addVetoableChangeListener-java.beans.VetoableChangeListener-">addVetoableChangeListener</a>, <a href="../../javax/swing/JComponent.html#computeVisibleRect-java.awt.Rectangle-">computeVisibleRect</a>, <a href="../../javax/swing/JComponent.html#contains-int-int-">contains</a>, <a href="../../javax/swing/JComponent.html#createToolTip--">createToolTip</a>, <a href="../../javax/swing/JComponent.html#disable--">disable</a>, <a href="../../javax/swing/JComponent.html#enable--">enable</a>, <a href="../../javax/swing/JComponent.html#firePropertyChange-java.lang.String-boolean-boolean-">firePropertyChange</a>, <a href="../../javax/swing/JComponent.html#firePropertyChange-java.lang.String-char-char-">firePropertyChange</a>, <a href="../../javax/swing/JComponent.html#firePropertyChange-java.lang.String-int-int-">firePropertyChange</a>, <a href="../../javax/swing/JComponent.html#fireVetoableChange-java.lang.String-java.lang.Object-java.lang.Object-">fireVetoableChange</a>, <a href="../../javax/swing/JComponent.html#getActionForKeyStroke-javax.swing.KeyStroke-">getActionForKeyStroke</a>, <a href="../../javax/swing/JComponent.html#getActionMap--">getActionMap</a>, <a href="../../javax/swing/JComponent.html#getAlignmentX--">getAlignmentX</a>, <a href="../../javax/swing/JComponent.html#getAlignmentY--">getAlignmentY</a>, <a href="../../javax/swing/JComponent.html#getAncestorListeners--">getAncestorListeners</a>, <a href="../../javax/swing/JComponent.html#getAutoscrolls--">getAutoscrolls</a>, <a href="../../javax/swing/JComponent.html#getBaseline-int-int-">getBaseline</a>, <a href="../../javax/swing/JComponent.html#getBaselineResizeBehavior--">getBaselineResizeBehavior</a>, <a href="../../javax/swing/JComponent.html#getBorder--">getBorder</a>, <a href="../../javax/swing/JComponent.html#getBounds-java.awt.Rectangle-">getBounds</a>, <a href="../../javax/swing/JComponent.html#getClientProperty-java.lang.Object-">getClientProperty</a>, <a href="../../javax/swing/JComponent.html#getComponentGraphics-java.awt.Graphics-">getComponentGraphics</a>, <a href="../../javax/swing/JComponent.html#getComponentPopupMenu--">getComponentPopupMenu</a>, <a href="../../javax/swing/JComponent.html#getConditionForKeyStroke-javax.swing.KeyStroke-">getConditionForKeyStroke</a>, <a href="../../javax/swing/JComponent.html#getDebugGraphicsOptions--">getDebugGraphicsOptions</a>, <a href="../../javax/swing/JComponent.html#getDefaultLocale--">getDefaultLocale</a>, <a href="../../javax/swing/JComponent.html#getFontMetrics-java.awt.Font-">getFontMetrics</a>, <a href="../../javax/swing/JComponent.html#getGraphics--">getGraphics</a>, <a href="../../javax/swing/JComponent.html#getHeight--">getHeight</a>, <a href="../../javax/swing/JComponent.html#getInheritsPopupMenu--">getInheritsPopupMenu</a>, <a href="../../javax/swing/JComponent.html#getInputMap--">getInputMap</a>, <a href="../../javax/swing/JComponent.html#getInputMap-int-">getInputMap</a>, <a href="../../javax/swing/JComponent.html#getInputVerifier--">getInputVerifier</a>, <a href="../../javax/swing/JComponent.html#getInsets--">getInsets</a>, <a href="../../javax/swing/JComponent.html#getInsets-java.awt.Insets-">getInsets</a>, <a href="../../javax/swing/JComponent.html#getListeners-java.lang.Class-">getListeners</a>, <a href="../../javax/swing/JComponent.html#getLocation-java.awt.Point-">getLocation</a>, <a href="../../javax/swing/JComponent.html#getMaximumSize--">getMaximumSize</a>, <a href="../../javax/swing/JComponent.html#getMinimumSize--">getMinimumSize</a>, <a href="../../javax/swing/JComponent.html#getNextFocusableComponent--">getNextFocusableComponent</a>, <a href="../../javax/swing/JComponent.html#getPopupLocation-java.awt.event.MouseEvent-">getPopupLocation</a>, <a href="../../javax/swing/JComponent.html#getPreferredSize--">getPreferredSize</a>, <a href="../../javax/swing/JComponent.html#getRegisteredKeyStrokes--">getRegisteredKeyStrokes</a>, <a href="../../javax/swing/JComponent.html#getRootPane--">getRootPane</a>, <a href="../../javax/swing/JComponent.html#getSize-java.awt.Dimension-">getSize</a>, <a href="../../javax/swing/JComponent.html#getToolTipLocation-java.awt.event.MouseEvent-">getToolTipLocation</a>, <a href="../../javax/swing/JComponent.html#getToolTipText--">getToolTipText</a>, <a href="../../javax/swing/JComponent.html#getToolTipText-java.awt.event.MouseEvent-">getToolTipText</a>, <a href="../../javax/swing/JComponent.html#getTopLevelAncestor--">getTopLevelAncestor</a>, <a href="../../javax/swing/JComponent.html#getTransferHandler--">getTransferHandler</a>, <a href="../../javax/swing/JComponent.html#getUIClassID--">getUIClassID</a>, <a href="../../javax/swing/JComponent.html#getVerifyInputWhenFocusTarget--">getVerifyInputWhenFocusTarget</a>, <a href="../../javax/swing/JComponent.html#getVetoableChangeListeners--">getVetoableChangeListeners</a>, <a href="../../javax/swing/JComponent.html#getVisibleRect--">getVisibleRect</a>, <a href="../../javax/swing/JComponent.html#getWidth--">getWidth</a>, <a href="../../javax/swing/JComponent.html#getX--">getX</a>, <a href="../../javax/swing/JComponent.html#getY--">getY</a>, <a href="../../javax/swing/JComponent.html#grabFocus--">grabFocus</a>, <a href="../../javax/swing/JComponent.html#hide--">hide</a>, <a href="../../javax/swing/JComponent.html#isDoubleBuffered--">isDoubleBuffered</a>, <a href="../../javax/swing/JComponent.html#isLightweightComponent-java.awt.Component-">isLightweightComponent</a>, <a href="../../javax/swing/JComponent.html#isManagingFocus--">isManagingFocus</a>, <a href="../../javax/swing/JComponent.html#isOpaque--">isOpaque</a>, <a href="../../javax/swing/JComponent.html#isPaintingForPrint--">isPaintingForPrint</a>, <a href="../../javax/swing/JComponent.html#isPaintingTile--">isPaintingTile</a>, <a href="../../javax/swing/JComponent.html#isRequestFocusEnabled--">isRequestFocusEnabled</a>, <a href="../../javax/swing/JComponent.html#isValidateRoot--">isValidateRoot</a>, <a href="../../javax/swing/JComponent.html#paintBorder-java.awt.Graphics-">paintBorder</a>, <a href="../../javax/swing/JComponent.html#paintChildren-java.awt.Graphics-">paintChildren</a>, <a href="../../javax/swing/JComponent.html#paintImmediately-java.awt.Rectangle-">paintImmediately</a>, <a href="../../javax/swing/JComponent.html#paramString--">paramString</a>, <a href="../../javax/swing/JComponent.html#print-java.awt.Graphics-">print</a>, <a href="../../javax/swing/JComponent.html#printAll-java.awt.Graphics-">printAll</a>, <a href="../../javax/swing/JComponent.html#printBorder-java.awt.Graphics-">printBorder</a>, <a href="../../javax/swing/JComponent.html#printChildren-java.awt.Graphics-">printChildren</a>, <a href="../../javax/swing/JComponent.html#printComponent-java.awt.Graphics-">printComponent</a>, <a href="../../javax/swing/JComponent.html#processComponentKeyEvent-java.awt.event.KeyEvent-">processComponentKeyEvent</a>, <a href="../../javax/swing/JComponent.html#processKeyBinding-javax.swing.KeyStroke-java.awt.event.KeyEvent-int-boolean-">processKeyBinding</a>, <a href="../../javax/swing/JComponent.html#processKeyEvent-java.awt.event.KeyEvent-">processKeyEvent</a>, <a href="../../javax/swing/JComponent.html#processMouseEvent-java.awt.event.MouseEvent-">processMouseEvent</a>, <a href="../../javax/swing/JComponent.html#processMouseMotionEvent-java.awt.event.MouseEvent-">processMouseMotionEvent</a>, <a href="../../javax/swing/JComponent.html#putClientProperty-java.lang.Object-java.lang.Object-">putClientProperty</a>, <a href="../../javax/swing/JComponent.html#registerKeyboardAction-java.awt.event.ActionListener-javax.swing.KeyStroke-int-">registerKeyboardAction</a>, <a href="../../javax/swing/JComponent.html#registerKeyboardAction-java.awt.event.ActionListener-java.lang.String-javax.swing.KeyStroke-int-">registerKeyboardAction</a>, <a href="../../javax/swing/JComponent.html#removeAncestorListener-javax.swing.event.AncestorListener-">removeAncestorListener</a>, <a href="../../javax/swing/JComponent.html#removeVetoableChangeListener-java.beans.VetoableChangeListener-">removeVetoableChangeListener</a>, <a href="../../javax/swing/JComponent.html#repaint-long-int-int-int-int-">repaint</a>, <a href="../../javax/swing/JComponent.html#repaint-java.awt.Rectangle-">repaint</a>, <a href="../../javax/swing/JComponent.html#requestDefaultFocus--">requestDefaultFocus</a>, <a href="../../javax/swing/JComponent.html#requestFocus--">requestFocus</a>, <a href="../../javax/swing/JComponent.html#requestFocus-boolean-">requestFocus</a>, <a href="../../javax/swing/JComponent.html#requestFocusInWindow--">requestFocusInWindow</a>, <a href="../../javax/swing/JComponent.html#requestFocusInWindow-boolean-">requestFocusInWindow</a>, <a href="../../javax/swing/JComponent.html#resetKeyboardActions--">resetKeyboardActions</a>, <a href="../../javax/swing/JComponent.html#reshape-int-int-int-int-">reshape</a>, <a href="../../javax/swing/JComponent.html#revalidate--">revalidate</a>, <a href="../../javax/swing/JComponent.html#scrollRectToVisible-java.awt.Rectangle-">scrollRectToVisible</a>, <a href="../../javax/swing/JComponent.html#setActionMap-javax.swing.ActionMap-">setActionMap</a>, <a href="../../javax/swing/JComponent.html#setAlignmentX-float-">setAlignmentX</a>, <a href="../../javax/swing/JComponent.html#setAlignmentY-float-">setAlignmentY</a>, <a href="../../javax/swing/JComponent.html#setAutoscrolls-boolean-">setAutoscrolls</a>, <a href="../../javax/swing/JComponent.html#setBackground-java.awt.Color-">setBackground</a>, <a href="../../javax/swing/JComponent.html#setComponentPopupMenu-javax.swing.JPopupMenu-">setComponentPopupMenu</a>, <a href="../../javax/swing/JComponent.html#setDebugGraphicsOptions-int-">setDebugGraphicsOptions</a>, <a href="../../javax/swing/JComponent.html#setDefaultLocale-java.util.Locale-">setDefaultLocale</a>, <a href="../../javax/swing/JComponent.html#setDoubleBuffered-boolean-">setDoubleBuffered</a>, <a href="../../javax/swing/JComponent.html#setEnabled-boolean-">setEnabled</a>, <a href="../../javax/swing/JComponent.html#setFocusTraversalKeys-int-java.util.Set-">setFocusTraversalKeys</a>, <a href="../../javax/swing/JComponent.html#setFont-java.awt.Font-">setFont</a>, <a href="../../javax/swing/JComponent.html#setForeground-java.awt.Color-">setForeground</a>, <a href="../../javax/swing/JComponent.html#setInheritsPopupMenu-boolean-">setInheritsPopupMenu</a>, <a href="../../javax/swing/JComponent.html#setInputMap-int-javax.swing.InputMap-">setInputMap</a>, <a href="../../javax/swing/JComponent.html#setInputVerifier-javax.swing.InputVerifier-">setInputVerifier</a>, <a href="../../javax/swing/JComponent.html#setMaximumSize-java.awt.Dimension-">setMaximumSize</a>, <a href="../../javax/swing/JComponent.html#setMinimumSize-java.awt.Dimension-">setMinimumSize</a>, <a href="../../javax/swing/JComponent.html#setNextFocusableComponent-java.awt.Component-">setNextFocusableComponent</a>, <a href="../../javax/swing/JComponent.html#setOpaque-boolean-">setOpaque</a>, <a href="../../javax/swing/JComponent.html#setPreferredSize-java.awt.Dimension-">setPreferredSize</a>, <a href="../../javax/swing/JComponent.html#setRequestFocusEnabled-boolean-">setRequestFocusEnabled</a>, <a href="../../javax/swing/JComponent.html#setToolTipText-java.lang.String-">setToolTipText</a>, <a href="../../javax/swing/JComponent.html#setTransferHandler-javax.swing.TransferHandler-">setTransferHandler</a>, <a href="../../javax/swing/JComponent.html#setUI-javax.swing.plaf.ComponentUI-">setUI</a>, <a href="../../javax/swing/JComponent.html#setVerifyInputWhenFocusTarget-boolean-">setVerifyInputWhenFocusTarget</a>, <a href="../../javax/swing/JComponent.html#setVisible-boolean-">setVisible</a>, <a href="../../javax/swing/JComponent.html#unregisterKeyboardAction-javax.swing.KeyStroke-">unregisterKeyboardAction</a>, <a href="../../javax/swing/JComponent.html#update-java.awt.Graphics-">update</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.awt.Container">
+<!-- --> </a> <h3>Methods inherited from class java.awt.<a href="../../java/awt/Container.html" title="class in java.awt">Container</a></h3> <code><a href="../../java/awt/Container.html#add-java.awt.Component-">add</a>, <a href="../../java/awt/Container.html#add-java.awt.Component-int-">add</a>, <a href="../../java/awt/Container.html#add-java.awt.Component-java.lang.Object-">add</a>, <a href="../../java/awt/Container.html#add-java.awt.Component-java.lang.Object-int-">add</a>, <a href="../../java/awt/Container.html#add-java.lang.String-java.awt.Component-">add</a>, <a href="../../java/awt/Container.html#addContainerListener-java.awt.event.ContainerListener-">addContainerListener</a>, <a href="../../java/awt/Container.html#addPropertyChangeListener-java.beans.PropertyChangeListener-">addPropertyChangeListener</a>, <a href="../../java/awt/Container.html#addPropertyChangeListener-java.lang.String-java.beans.PropertyChangeListener-">addPropertyChangeListener</a>, <a href="../../java/awt/Container.html#applyComponentOrientation-java.awt.ComponentOrientation-">applyComponentOrientation</a>, <a href="../../java/awt/Container.html#areFocusTraversalKeysSet-int-">areFocusTraversalKeysSet</a>, <a href="../../java/awt/Container.html#countComponents--">countComponents</a>, <a href="../../java/awt/Container.html#deliverEvent-java.awt.Event-">deliverEvent</a>, <a href="../../java/awt/Container.html#findComponentAt-int-int-">findComponentAt</a>, <a href="../../java/awt/Container.html#findComponentAt-java.awt.Point-">findComponentAt</a>, <a href="../../java/awt/Container.html#getComponent-int-">getComponent</a>, <a href="../../java/awt/Container.html#getComponentAt-int-int-">getComponentAt</a>, <a href="../../java/awt/Container.html#getComponentAt-java.awt.Point-">getComponentAt</a>, <a href="../../java/awt/Container.html#getComponentCount--">getComponentCount</a>, <a href="../../java/awt/Container.html#getComponents--">getComponents</a>, <a href="../../java/awt/Container.html#getComponentZOrder-java.awt.Component-">getComponentZOrder</a>, <a href="../../java/awt/Container.html#getContainerListeners--">getContainerListeners</a>, <a href="../../java/awt/Container.html#getFocusTraversalKeys-int-">getFocusTraversalKeys</a>, <a href="../../java/awt/Container.html#getFocusTraversalPolicy--">getFocusTraversalPolicy</a>, <a href="../../java/awt/Container.html#getLayout--">getLayout</a>, <a href="../../java/awt/Container.html#getMousePosition-boolean-">getMousePosition</a>, <a href="../../java/awt/Container.html#insets--">insets</a>, <a href="../../java/awt/Container.html#invalidate--">invalidate</a>, <a href="../../java/awt/Container.html#isAncestorOf-java.awt.Component-">isAncestorOf</a>, <a href="../../java/awt/Container.html#isFocusCycleRoot--">isFocusCycleRoot</a>, <a href="../../java/awt/Container.html#isFocusCycleRoot-java.awt.Container-">isFocusCycleRoot</a>, <a href="../../java/awt/Container.html#isFocusTraversalPolicyProvider--">isFocusTraversalPolicyProvider</a>, <a href="../../java/awt/Container.html#isFocusTraversalPolicySet--">isFocusTraversalPolicySet</a>, <a href="../../java/awt/Container.html#layout--">layout</a>, <a href="../../java/awt/Container.html#list-java.io.PrintStream-int-">list</a>, <a href="../../java/awt/Container.html#list-java.io.PrintWriter-int-">list</a>, <a href="../../java/awt/Container.html#locate-int-int-">locate</a>, <a href="../../java/awt/Container.html#minimumSize--">minimumSize</a>, <a href="../../java/awt/Container.html#paintComponents-java.awt.Graphics-">paintComponents</a>, <a href="../../java/awt/Container.html#preferredSize--">preferredSize</a>, <a href="../../java/awt/Container.html#printComponents-java.awt.Graphics-">printComponents</a>, <a href="../../java/awt/Container.html#processContainerEvent-java.awt.event.ContainerEvent-">processContainerEvent</a>, <a href="../../java/awt/Container.html#processEvent-java.awt.AWTEvent-">processEvent</a>, <a href="../../java/awt/Container.html#remove-int-">remove</a>, <a href="../../java/awt/Container.html#removeContainerListener-java.awt.event.ContainerListener-">removeContainerListener</a>, <a href="../../java/awt/Container.html#setComponentZOrder-java.awt.Component-int-">setComponentZOrder</a>, <a href="../../java/awt/Container.html#setFocusCycleRoot-boolean-">setFocusCycleRoot</a>, <a href="../../java/awt/Container.html#setFocusTraversalPolicy-java.awt.FocusTraversalPolicy-">setFocusTraversalPolicy</a>, <a href="../../java/awt/Container.html#setFocusTraversalPolicyProvider-boolean-">setFocusTraversalPolicyProvider</a>, <a href="../../java/awt/Container.html#transferFocusDownCycle--">transferFocusDownCycle</a>, <a href="../../java/awt/Container.html#validate--">validate</a>, <a href="../../java/awt/Container.html#validateTree--">validateTree</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.awt.Component">
+<!-- --> </a> <h3>Methods inherited from class java.awt.<a href="../../java/awt/Component.html" title="class in java.awt">Component</a></h3> <code><a href="../../java/awt/Component.html#action-java.awt.Event-java.lang.Object-">action</a>, <a href="../../java/awt/Component.html#add-java.awt.PopupMenu-">add</a>, <a href="../../java/awt/Component.html#addComponentListener-java.awt.event.ComponentListener-">addComponentListener</a>, <a href="../../java/awt/Component.html#addFocusListener-java.awt.event.FocusListener-">addFocusListener</a>, <a href="../../java/awt/Component.html#addHierarchyBoundsListener-java.awt.event.HierarchyBoundsListener-">addHierarchyBoundsListener</a>, <a href="../../java/awt/Component.html#addHierarchyListener-java.awt.event.HierarchyListener-">addHierarchyListener</a>, <a href="../../java/awt/Component.html#addInputMethodListener-java.awt.event.InputMethodListener-">addInputMethodListener</a>, <a href="../../java/awt/Component.html#addKeyListener-java.awt.event.KeyListener-">addKeyListener</a>, <a href="../../java/awt/Component.html#addMouseListener-java.awt.event.MouseListener-">addMouseListener</a>, <a href="../../java/awt/Component.html#addMouseMotionListener-java.awt.event.MouseMotionListener-">addMouseMotionListener</a>, <a href="../../java/awt/Component.html#addMouseWheelListener-java.awt.event.MouseWheelListener-">addMouseWheelListener</a>, <a href="../../java/awt/Component.html#bounds--">bounds</a>, <a href="../../java/awt/Component.html#checkImage-java.awt.Image-java.awt.image.ImageObserver-">checkImage</a>, <a href="../../java/awt/Component.html#checkImage-java.awt.Image-int-int-java.awt.image.ImageObserver-">checkImage</a>, <a href="../../java/awt/Component.html#coalesceEvents-java.awt.AWTEvent-java.awt.AWTEvent-">coalesceEvents</a>, <a href="../../java/awt/Component.html#contains-java.awt.Point-">contains</a>, <a href="../../java/awt/Component.html#createImage-java.awt.image.ImageProducer-">createImage</a>, <a href="../../java/awt/Component.html#createImage-int-int-">createImage</a>, <a href="../../java/awt/Component.html#createVolatileImage-int-int-">createVolatileImage</a>, <a href="../../java/awt/Component.html#createVolatileImage-int-int-java.awt.ImageCapabilities-">createVolatileImage</a>, <a href="../../java/awt/Component.html#disableEvents-long-">disableEvents</a>, <a href="../../java/awt/Component.html#dispatchEvent-java.awt.AWTEvent-">dispatchEvent</a>, <a href="../../java/awt/Component.html#enable-boolean-">enable</a>, <a href="../../java/awt/Component.html#enableEvents-long-">enableEvents</a>, <a href="../../java/awt/Component.html#enableInputMethods-boolean-">enableInputMethods</a>, <a href="../../java/awt/Component.html#firePropertyChange-java.lang.String-byte-byte-">firePropertyChange</a>, <a href="../../java/awt/Component.html#firePropertyChange-java.lang.String-double-double-">firePropertyChange</a>, <a href="../../java/awt/Component.html#firePropertyChange-java.lang.String-float-float-">firePropertyChange</a>, <a href="../../java/awt/Component.html#firePropertyChange-java.lang.String-long-long-">firePropertyChange</a>, <a href="../../java/awt/Component.html#firePropertyChange-java.lang.String-java.lang.Object-java.lang.Object-">firePropertyChange</a>, <a href="../../java/awt/Component.html#firePropertyChange-java.lang.String-short-short-">firePropertyChange</a>, <a href="../../java/awt/Component.html#getBackground--">getBackground</a>, <a href="../../java/awt/Component.html#getBounds--">getBounds</a>, <a href="../../java/awt/Component.html#getColorModel--">getColorModel</a>, <a href="../../java/awt/Component.html#getComponentListeners--">getComponentListeners</a>, <a href="../../java/awt/Component.html#getComponentOrientation--">getComponentOrientation</a>, <a href="../../java/awt/Component.html#getCursor--">getCursor</a>, <a href="../../java/awt/Component.html#getDropTarget--">getDropTarget</a>, <a href="../../java/awt/Component.html#getFocusCycleRootAncestor--">getFocusCycleRootAncestor</a>, <a href="../../java/awt/Component.html#getFocusListeners--">getFocusListeners</a>, <a href="../../java/awt/Component.html#getFocusTraversalKeysEnabled--">getFocusTraversalKeysEnabled</a>, <a href="../../java/awt/Component.html#getFont--">getFont</a>, <a href="../../java/awt/Component.html#getForeground--">getForeground</a>, <a href="../../java/awt/Component.html#getGraphicsConfiguration--">getGraphicsConfiguration</a>, <a href="../../java/awt/Component.html#getHierarchyBoundsListeners--">getHierarchyBoundsListeners</a>, <a href="../../java/awt/Component.html#getHierarchyListeners--">getHierarchyListeners</a>, <a href="../../java/awt/Component.html#getIgnoreRepaint--">getIgnoreRepaint</a>, <a href="../../java/awt/Component.html#getInputContext--">getInputContext</a>, <a href="../../java/awt/Component.html#getInputMethodListeners--">getInputMethodListeners</a>, <a href="../../java/awt/Component.html#getInputMethodRequests--">getInputMethodRequests</a>, <a href="../../java/awt/Component.html#getKeyListeners--">getKeyListeners</a>, <a href="../../java/awt/Component.html#getLocale--">getLocale</a>, <a href="../../java/awt/Component.html#getLocation--">getLocation</a>, <a href="../../java/awt/Component.html#getLocationOnScreen--">getLocationOnScreen</a>, <a href="../../java/awt/Component.html#getMouseListeners--">getMouseListeners</a>, <a href="../../java/awt/Component.html#getMouseMotionListeners--">getMouseMotionListeners</a>, <a href="../../java/awt/Component.html#getMousePosition--">getMousePosition</a>, <a href="../../java/awt/Component.html#getMouseWheelListeners--">getMouseWheelListeners</a>, <a href="../../java/awt/Component.html#getName--">getName</a>, <a href="../../java/awt/Component.html#getParent--">getParent</a>, <a href="../../java/awt/Component.html#getPeer--">getPeer</a>, <a href="../../java/awt/Component.html#getPropertyChangeListeners--">getPropertyChangeListeners</a>, <a href="../../java/awt/Component.html#getPropertyChangeListeners-java.lang.String-">getPropertyChangeListeners</a>, <a href="../../java/awt/Component.html#getSize--">getSize</a>, <a href="../../java/awt/Component.html#getToolkit--">getToolkit</a>, <a href="../../java/awt/Component.html#getTreeLock--">getTreeLock</a>, <a href="../../java/awt/Component.html#gotFocus-java.awt.Event-java.lang.Object-">gotFocus</a>, <a href="../../java/awt/Component.html#handleEvent-java.awt.Event-">handleEvent</a>, <a href="../../java/awt/Component.html#hasFocus--">hasFocus</a>, <a href="../../java/awt/Component.html#imageUpdate-java.awt.Image-int-int-int-int-int-">imageUpdate</a>, <a href="../../java/awt/Component.html#inside-int-int-">inside</a>, <a href="../../java/awt/Component.html#isBackgroundSet--">isBackgroundSet</a>, <a href="../../java/awt/Component.html#isCursorSet--">isCursorSet</a>, <a href="../../java/awt/Component.html#isDisplayable--">isDisplayable</a>, <a href="../../java/awt/Component.html#isEnabled--">isEnabled</a>, <a href="../../java/awt/Component.html#isFocusable--">isFocusable</a>, <a href="../../java/awt/Component.html#isFocusOwner--">isFocusOwner</a>, <a href="../../java/awt/Component.html#isFocusTraversable--">isFocusTraversable</a>, <a href="../../java/awt/Component.html#isFontSet--">isFontSet</a>, <a href="../../java/awt/Component.html#isForegroundSet--">isForegroundSet</a>, <a href="../../java/awt/Component.html#isLightweight--">isLightweight</a>, <a href="../../java/awt/Component.html#isMaximumSizeSet--">isMaximumSizeSet</a>, <a href="../../java/awt/Component.html#isMinimumSizeSet--">isMinimumSizeSet</a>, <a href="../../java/awt/Component.html#isPreferredSizeSet--">isPreferredSizeSet</a>, <a href="../../java/awt/Component.html#isShowing--">isShowing</a>, <a href="../../java/awt/Component.html#isValid--">isValid</a>, <a href="../../java/awt/Component.html#isVisible--">isVisible</a>, <a href="../../java/awt/Component.html#keyDown-java.awt.Event-int-">keyDown</a>, <a href="../../java/awt/Component.html#keyUp-java.awt.Event-int-">keyUp</a>, <a href="../../java/awt/Component.html#list--">list</a>, <a href="../../java/awt/Component.html#list-java.io.PrintStream-">list</a>, <a href="../../java/awt/Component.html#list-java.io.PrintWriter-">list</a>, <a href="../../java/awt/Component.html#location--">location</a>, <a href="../../java/awt/Component.html#lostFocus-java.awt.Event-java.lang.Object-">lostFocus</a>, <a href="../../java/awt/Component.html#mouseDown-java.awt.Event-int-int-">mouseDown</a>, <a href="../../java/awt/Component.html#mouseDrag-java.awt.Event-int-int-">mouseDrag</a>, <a href="../../java/awt/Component.html#mouseEnter-java.awt.Event-int-int-">mouseEnter</a>, <a href="../../java/awt/Component.html#mouseExit-java.awt.Event-int-int-">mouseExit</a>, <a href="../../java/awt/Component.html#mouseMove-java.awt.Event-int-int-">mouseMove</a>, <a href="../../java/awt/Component.html#mouseUp-java.awt.Event-int-int-">mouseUp</a>, <a href="../../java/awt/Component.html#move-int-int-">move</a>, <a href="../../java/awt/Component.html#nextFocus--">nextFocus</a>, <a href="../../java/awt/Component.html#paintAll-java.awt.Graphics-">paintAll</a>, <a href="../../java/awt/Component.html#postEvent-java.awt.Event-">postEvent</a>, <a href="../../java/awt/Component.html#prepareImage-java.awt.Image-java.awt.image.ImageObserver-">prepareImage</a>, <a href="../../java/awt/Component.html#prepareImage-java.awt.Image-int-int-java.awt.image.ImageObserver-">prepareImage</a>, <a href="../../java/awt/Component.html#processComponentEvent-java.awt.event.ComponentEvent-">processComponentEvent</a>, <a href="../../java/awt/Component.html#processFocusEvent-java.awt.event.FocusEvent-">processFocusEvent</a>, <a href="../../java/awt/Component.html#processHierarchyBoundsEvent-java.awt.event.HierarchyEvent-">processHierarchyBoundsEvent</a>, <a href="../../java/awt/Component.html#processHierarchyEvent-java.awt.event.HierarchyEvent-">processHierarchyEvent</a>, <a href="../../java/awt/Component.html#processInputMethodEvent-java.awt.event.InputMethodEvent-">processInputMethodEvent</a>, <a href="../../java/awt/Component.html#processMouseWheelEvent-java.awt.event.MouseWheelEvent-">processMouseWheelEvent</a>, <a href="../../java/awt/Component.html#remove-java.awt.MenuComponent-">remove</a>, <a href="../../java/awt/Component.html#removeComponentListener-java.awt.event.ComponentListener-">removeComponentListener</a>, <a href="../../java/awt/Component.html#removeFocusListener-java.awt.event.FocusListener-">removeFocusListener</a>, <a href="../../java/awt/Component.html#removeHierarchyBoundsListener-java.awt.event.HierarchyBoundsListener-">removeHierarchyBoundsListener</a>, <a href="../../java/awt/Component.html#removeHierarchyListener-java.awt.event.HierarchyListener-">removeHierarchyListener</a>, <a href="../../java/awt/Component.html#removeInputMethodListener-java.awt.event.InputMethodListener-">removeInputMethodListener</a>, <a href="../../java/awt/Component.html#removeKeyListener-java.awt.event.KeyListener-">removeKeyListener</a>, <a href="../../java/awt/Component.html#removeMouseListener-java.awt.event.MouseListener-">removeMouseListener</a>, <a href="../../java/awt/Component.html#removeMouseMotionListener-java.awt.event.MouseMotionListener-">removeMouseMotionListener</a>, <a href="../../java/awt/Component.html#removeMouseWheelListener-java.awt.event.MouseWheelListener-">removeMouseWheelListener</a>, <a href="../../java/awt/Component.html#removePropertyChangeListener-java.beans.PropertyChangeListener-">removePropertyChangeListener</a>, <a href="../../java/awt/Component.html#removePropertyChangeListener-java.lang.String-java.beans.PropertyChangeListener-">removePropertyChangeListener</a>, <a href="../../java/awt/Component.html#repaint--">repaint</a>, <a href="../../java/awt/Component.html#repaint-int-int-int-int-">repaint</a>, <a href="../../java/awt/Component.html#repaint-long-">repaint</a>, <a href="../../java/awt/Component.html#resize-java.awt.Dimension-">resize</a>, <a href="../../java/awt/Component.html#resize-int-int-">resize</a>, <a href="../../java/awt/Component.html#setBounds-int-int-int-int-">setBounds</a>, <a href="../../java/awt/Component.html#setBounds-java.awt.Rectangle-">setBounds</a>, <a href="../../java/awt/Component.html#setComponentOrientation-java.awt.ComponentOrientation-">setComponentOrientation</a>, <a href="../../java/awt/Component.html#setCursor-java.awt.Cursor-">setCursor</a>, <a href="../../java/awt/Component.html#setDropTarget-java.awt.dnd.DropTarget-">setDropTarget</a>, <a href="../../java/awt/Component.html#setFocusable-boolean-">setFocusable</a>, <a href="../../java/awt/Component.html#setFocusTraversalKeysEnabled-boolean-">setFocusTraversalKeysEnabled</a>, <a href="../../java/awt/Component.html#setIgnoreRepaint-boolean-">setIgnoreRepaint</a>, <a href="../../java/awt/Component.html#setLocale-java.util.Locale-">setLocale</a>, <a href="../../java/awt/Component.html#setLocation-int-int-">setLocation</a>, <a href="../../java/awt/Component.html#setLocation-java.awt.Point-">setLocation</a>, <a href="../../java/awt/Component.html#setName-java.lang.String-">setName</a>, <a href="../../java/awt/Component.html#setSize-java.awt.Dimension-">setSize</a>, <a href="../../java/awt/Component.html#setSize-int-int-">setSize</a>, <a href="../../java/awt/Component.html#show--">show</a>, <a href="../../java/awt/Component.html#show-boolean-">show</a>, <a href="../../java/awt/Component.html#size--">size</a>, <a href="../../java/awt/Component.html#toString--">toString</a>, <a href="../../java/awt/Component.html#transferFocus--">transferFocus</a>, <a href="../../java/awt/Component.html#transferFocusBackward--">transferFocusBackward</a>, <a href="../../java/awt/Component.html#transferFocusUpCycle--">transferFocusUpCycle</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="JLayer--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>JLayer</h4> <pre>public JLayer()</pre>
+<div class="block">
+<span>创建一个新的<code>JLayer</code>对象与一个<code>null</code>视图组件和默认<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JLayer.html#setView-V-"><code>setView(V)</code></a> ， 
+            <a href="../../javax/swing/JLayer.html#setUI-javax.swing.plaf.LayerUI-"><code>setUI(javax.swing.plaf.LayerUI&lt;? super V&gt;)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="JLayer-java.awt.Component-">
+<!-- --> </a><a name="JLayer-V-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>JLayer</h4> <pre>public JLayer(<a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a> view)</pre>
+<div class="block">
+<span>创建一个新的<code>JLayer</code>对象，默认值为<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>view</code> - 要由此装饰的 
+            <code>JLayer</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JLayer.html#setUI-javax.swing.plaf.LayerUI-"><code>setUI(javax.swing.plaf.LayerUI&lt;? super V&gt;)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="JLayer-java.awt.Component-javax.swing.plaf.LayerUI-">
+<!-- --> </a><a name="JLayer-V-javax.swing.plaf.LayerUI-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>JLayer</h4> <pre>public JLayer(<a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a> view,
+              <a href="../../javax/swing/plaf/LayerUI.html" title="class in javax.swing.plaf">LayerUI</a>&lt;<a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a>&gt; ui)</pre>
+<div class="block">
+<span>创建一个新的<code>JLayer</code>具有指定视图组件和对象<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a>对象。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>view</code> - 要装饰的组件 
+           </dd>
+<dd>
+<span><code>ui</code> - <a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a>代表将被这个<code>JLayer</code></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getView--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getView</h4> <pre>public <a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a> getView()</pre>
+<div class="block">
+<span>返回<code>JLayer</code>的视图组件或<code>null</code> 。</span>
+<br/>
+<span>这是一个绑定属性。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>JLayer</code>的视图组件或 
+            <code>null</code>如果不存在） 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JLayer.html#setView-V-"><code>setView(Component)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setView-java.awt.Component-">
+<!-- --> </a><a name="setView-V-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setView</h4> <pre>public void setView(<a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a> view)</pre>
+<div class="block">
+<span>设置<code>JLayer</code>的视图组件，可以是<code>null</code> 。</span>
+<br/>
+<span>这是一个绑定属性。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>view</code> - 这个 
+            <code>JLayer</code>的视图 
+            <code>JLayer</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JLayer.html#getView--"><code>getView()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setUI-javax.swing.plaf.LayerUI-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setUI</h4> <pre>public void setUI(<a href="../../javax/swing/plaf/LayerUI.html" title="class in javax.swing.plaf">LayerUI</a>&lt;? super <a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a>&gt; ui)</pre>
+<div class="block">
+<span>设置<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a> ，它将执行绘图并接收<code>JLayer</code>输入事件。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>ui</code> - <a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a>为这<code>JLayer</code></span>
+</dd>
+</dl> </li>
+</ul> <a name="getUI--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getUI</h4> <pre>public <a href="../../javax/swing/plaf/LayerUI.html" title="class in javax.swing.plaf">LayerUI</a>&lt;? super <a href="../../javax/swing/JLayer.html" title="type parameter in JLayer">V</a>&gt; getUI()</pre>
+<div class="block">
+<span>返回这个<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类">JLayer</a>的<code>JLayer</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>LayerUI</code>为这 
+            <code>JLayer</code>
+</dd>
+</dl> </li>
+</ul> <a name="getGlassPane--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getGlassPane</h4> <pre>public <a href="../../javax/swing/JPanel.html" title="class in javax.swing">JPanel</a> getGlassPane()</pre>
+<div class="block">
+<span>返回<code>JLayer</code>的glassPane组件或<code>null</code> 。</span>
+<br/>
+<span>这是一个绑定属性。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>JLayer</code>的glassPane组件或 
+            <code>null</code>如果不存在） 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JLayer.html#setGlassPane-javax.swing.JPanel-"><code>setGlassPane(JPanel)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setGlassPane-javax.swing.JPanel-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setGlassPane</h4> <pre>public void setGlassPane(<a href="../../javax/swing/JPanel.html" title="class in javax.swing">JPanel</a> glassPane)</pre>
+<div class="block">
+<span>设置<code>JLayer</code>的glassPane组件，可以是<code>null</code> 。</span>
+<br/>
+<span>这是一个绑定属性。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>glassPane</code> - 这个JLayer的glassPane 
+            <code>JLayer</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JLayer.html#getGlassPane--"><code>getGlassPane()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="createGlassPane--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createGlassPane</h4> <pre>public <a href="../../javax/swing/JPanel.html" title="class in javax.swing">JPanel</a> createGlassPane()</pre>
+<div class="block">
+<span>由构造函数调用方法创建一个默认值<code>glassPane</code> 。</span>
+<span>默认情况下，此方法创建一个新的JPanel，其可见性设置为true和opacity设置为false。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             默认为 
+            <code>glassPane</code>
+</dd>
+</dl> </li>
+</ul> <a name="setLayout-java.awt.LayoutManager-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setLayout</h4> <pre>public void setLayout(<a href="../../java/awt/LayoutManager.html" title="interface in java.awt">LayoutManager</a> mgr)</pre>
+<div class="block">
+<span>设置此容器的布局管理器。</span>
+<span>该方法被覆盖以防止布局管理器被设置。</span>
+<p> <span>注意：如果<code>mgr</code>是非<code>null</code> ，此方法将抛出一个异常，布局管理器不支持在<code>JLayer</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/awt/Container.html#setLayout-java.awt.LayoutManager-">setLayout</a></code>在 
+            <code><a href="../../java/awt/Container.html" title="class in java.awt">Container</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>mgr</code> - 指定的布局管理器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 不支持此方法 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/Container.html#doLayout--"><code>Container.doLayout()</code></a> ， 
+            <a href="../../java/awt/Container.html#getLayout--"><code>Container.getLayout()</code></a> ， 
+            <a href="../../java/awt/Container.html#invalidate--"><code>Container.invalidate()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setBorder-javax.swing.border.Border-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setBorder</h4> <pre>public void setBorder(<a href="../../javax/swing/border/Border.html" title="interface in javax.swing.border">Border</a> border)</pre>
+<div class="block">
+<span>不支持非<code>null</code>边框或非零插值，以防止此组件的几何变得足够复杂，以禁止<code>LayerUI</code>类的<code>LayerUI</code>类化。</span>
+<span>要创建带有边框的<code>JLayer</code> ，请将其添加到具有边框的<code>JPanel</code> 。</span>
+<p> <span>注意：如果<code>border</code>是非<code>null</code> ，该方法将抛出一个异常上不支持边框上<code>JLayer</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/JComponent.html#setBorder-javax.swing.border.Border-">setBorder</a></code>在 
+            <code><a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>border</code> - 要设置的 
+            <code>Border</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 不支持此方法 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/border/Border.html" title="javax.swing.border中的接口"><code>Border</code></a> ， <a href="../../javax/swing/border/CompoundBorder.html" title="javax.swing.border中的类"><code>CompoundBorder</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="addImpl-java.awt.Component-java.lang.Object-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addImpl</h4> <pre>protected void addImpl(<a href="../../java/awt/Component.html" title="class in java.awt">Component</a> comp,
+                       <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> constraints,
+                       int index)</pre>
+<div class="block">
+            这种方法不支持 
+           <code>JLayer</code> ，总是抛出 
+           <code>UnsupportedOperationException</code>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/awt/Container.html#addImpl-java.awt.Component-java.lang.Object-int-">addImpl</a></code>在 
+            <code><a href="../../java/awt/Container.html" title="class in java.awt">Container</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>comp</code> - 要添加的组件 
+           </dd>
+<dd>
+<code>constraints</code> - 表示此组件的布局约束的对象 
+           </dd>
+<dd>
+<code>index</code> - 容器列表中插入组件的位置，其中 
+            <code>-1</code>表示附加到最后 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 不支持此方法 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JLayer.html#setView-V-"><code>setView(Component)</code></a> ， 
+            <a href="../../javax/swing/JLayer.html#setGlassPane-javax.swing.JPanel-"><code>setGlassPane(JPanel)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="remove-java.awt.Component-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>remove</h4> <pre>public void remove(<a href="../../java/awt/Component.html" title="class in java.awt">Component</a> comp)</pre>
+<div class="block">
+<span>从此容器中删除指定的组件。</span>
+<span>该方法还通知布局管理器通过<code>removeLayoutComponent</code>方法从该容器的布局中<code>removeLayoutComponent</code> 。</span>
+<p> <span>该方法更改布局相关信息，因此使组件层次结构无效。</span> <span>如果已经显示了容器，则此后必须验证层次结构以反映更改。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/awt/Container.html#remove-java.awt.Component-">remove</a></code>在 
+            <code><a href="../../java/awt/Container.html" title="class in java.awt">Container</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>comp</code> - 要删除的组件 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/Container.html#add-java.awt.Component-"><code>Container.add(java.awt.Component)</code></a> ， 
+            <a href="../../java/awt/Container.html#invalidate--"><code>Container.invalidate()</code></a> ， 
+            <a href="../../java/awt/Container.html#validate--"><code>Container.validate()</code></a> ， 
+            <a href="../../java/awt/Container.html#remove-int-"><code>Container.remove(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="removeAll--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removeAll</h4> <pre>public void removeAll()</pre>
+<div class="block">
+<span>从此容器中删除所有组件。</span>
+<span>此方法还通知布局管理器通过<code>removeLayoutComponent</code>方法从该容器的布局中<code>removeLayoutComponent</code> 。</span>
+<p> <span>该方法更改布局相关信息，因此使组件层次结构无效。</span> <span>如果已经显示了容器，则此后必须验证层次结构以反映更改。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/awt/Container.html#removeAll--">removeAll</a></code>在 
+            <code><a href="../../java/awt/Container.html" title="class in java.awt">Container</a></code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/Container.html#add-java.awt.Component-"><code>Container.add(java.awt.Component)</code></a> ， 
+            <a href="../../java/awt/Container.html#remove-int-"><code>Container.remove(int)</code></a> ， 
+            <a href="../../java/awt/Container.html#invalidate--"><code>Container.invalidate()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isPaintingOrigin--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isPaintingOrigin</h4> <pre>protected boolean isPaintingOrigin()</pre>
+<div class="block">
+            始终返回 
+           <code>true</code> ，使绘画来源于 
+           <code>JLayer</code>或其祖先之一。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/JComponent.html#isPaintingOrigin--">isPaintingOrigin</a></code>在 
+            <code><a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             真正 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JComponent.html#isPaintingOrigin--"><code>JComponent.isPaintingOrigin()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="paintImmediately-int-int-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>paintImmediately</h4> <pre>public void paintImmediately(int x,
+                             int y,
+                             int w,
+                             int h)</pre>
+<div class="block">
+            将其功能委托给 
+           <a href="../../javax/swing/plaf/LayerUI.html#paintImmediately-int-int-int-int-javax.swing.JLayer-"><code>LayerUI.paintImmediately(int, int, int, int, JLayer)</code></a>方法，如果设置为 
+           <code>LayerUI</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/JComponent.html#paintImmediately-int-int-int-int-">paintImmediately</a></code>在 
+            <code><a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>x</code> - 要绘制的区域的x值 
+           </dd>
+<dd>
+<code>y</code> - 要绘制的区域的y值 
+           </dd>
+<dd>
+<code>w</code> - 要涂漆的区域的宽度 
+           </dd>
+<dd>
+<code>h</code> - 要涂漆的区域的高度 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JComponent.html#repaint-long-int-int-int-int-"><code>JComponent.repaint(long, int, int, int, int)</code></a> ， 
+            <a href="../../javax/swing/JComponent.html#isPaintingOrigin--"><code>JComponent.isPaintingOrigin()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="paint-java.awt.Graphics-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>paint</h4> <pre>public void paint(<a href="../../java/awt/Graphics.html" title="class in java.awt">Graphics</a> g)</pre>
+<div class="block">
+<span>代表所有绘画到<a href="../../javax/swing/plaf/LayerUI.html" title="javax.swing.plaf中的类"><code>LayerUI</code></a>对象。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/JComponent.html#paint-java.awt.Graphics-">paint</a></code>在类 
+            <code><a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>g</code> - 要呈现的 
+            <code>Graphics</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JComponent.html#paintComponent-java.awt.Graphics-"><code>JComponent.paintComponent(java.awt.Graphics)</code></a> ， 
+            <a href="../../javax/swing/JComponent.html#paintBorder-java.awt.Graphics-"><code>JComponent.paintBorder(java.awt.Graphics)</code></a> ， 
+            <a href="../../javax/swing/JComponent.html#paintChildren-java.awt.Graphics-"><code>JComponent.paintChildren(java.awt.Graphics)</code></a> ， 
+            <a href="../../javax/swing/JComponent.html#getComponentGraphics-java.awt.Graphics-"><code>JComponent.getComponentGraphics(java.awt.Graphics)</code></a> ， 
+            <a href="../../javax/swing/JComponent.html#repaint-long-int-int-int-int-"><code>JComponent.repaint(long, int, int, int, int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="paintComponent-java.awt.Graphics-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>paintComponent</h4> <pre>protected void paintComponent(<a href="../../java/awt/Graphics.html" title="class in java.awt">Graphics</a> g)</pre>
+<div class="block">
+            这种方法是空的，因为所有的绘画都是由 
+           <a href="../../javax/swing/JLayer.html#paint-java.awt.Graphics-"><code>paint(Graphics)</code></a>和 
+           <a href="../../javax/swing/plaf/ComponentUI.html#update-java.awt.Graphics-javax.swing.JComponent-"><code>ComponentUI.update(Graphics, JComponent)</code></a>方法完成的 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/JComponent.html#paintComponent-java.awt.Graphics-">paintComponent</a></code>在 
+            <code><a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>g</code> - 要保护的 
+            <code>Graphics</code>对象 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/JComponent.html#paint-java.awt.Graphics-"><code>JComponent.paint(java.awt.Graphics)</code></a> ， <a href="../../javax/swing/plaf/ComponentUI.html" title="javax.swing.plaf中的类"><code>ComponentUI</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="isOptimizedDrawingEnabled--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isOptimizedDrawingEnabled</h4> <pre>public boolean isOptimizedDrawingEnabled()</pre>
+<div class="block">
+<span><code>JLayer</code>覆盖此方法的默认实现（在<code>JComponent</code> ）以返回<code>false</code> 。</span>
+<span>这确保了绘图机器将调用<code>JLayer</code>的<code>paint</code>实现，而不是直接发送<code>JLayer</code>的孩子。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/JComponent.html#isOptimizedDrawingEnabled--">isOptimizedDrawingEnabled</a></code>在 
+            <code><a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             假 
+           </dd>
+</dl> </li>
+</ul> <a name="propertyChange-java.beans.PropertyChangeEvent-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>propertyChange</h4> <pre>public void propertyChange(<a href="../../java/beans/PropertyChangeEvent.html" title="class in java.beans">PropertyChangeEvent</a> evt)</pre>
+<div class="block">
+            当绑定属性更改时，此方法将被调用。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/beans/PropertyChangeListener.html#propertyChange-java.beans.PropertyChangeEvent-">propertyChange</a></code>在接口 
+            <code><a href="../../java/beans/PropertyChangeListener.html" title="interface in java.beans">PropertyChangeListener</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>evt</code> - 描述事件源和已更改的属性的PropertyChangeEvent对象。 
+           </dd>
+</dl> </li>
+</ul> <a name="setLayerEventMask-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setLayerEventMask</h4> <pre>public void setLayerEventMask(long layerEventMask)</pre>
+<div class="block">
+<span>启用来自JLayer <b>及其指定</b>事件掩码参数定义的所有后代的事件传递给<a href="../../javax/swing/plaf/LayerUI.html#eventDispatched-java.awt.AWTEvent-javax.swing.JLayer-"><code>LayerUI.eventDispatched(AWTEvent, JLayer)</code></a>方法。</span>
+<p> <span>事件被传递提供<code>LayerUI</code>设置为这个<code>JLayer</code>和<code>JLayer</code>可以显示。</span> </p>
+<p> <span>下面的示例示出了如何正确地使用该方法在<code>LayerUI</code>实现：</span> </p>
+<pre>  <span>public void installUI(JComponent c) {
+       super.installUI(c);
+       JLayer l = (JLayer) c;
+       // this LayerUI will receive only key and focus events
+       l.setLayerEventMask(AWTEvent.KEY_EVENT_MASK | AWTEvent.FOCUS_EVENT_MASK);
+    }
+
+    public void uninstallUI(JComponent c) {
+       super.uninstallUI(c);
+       JLayer l = (JLayer) c;
+       // JLayer must be returned to its initial state
+       l.setLayerEventMask(0);
+    }</span> </pre>
+<span>默认情况下， <code>JLayer</code>收到事件，其事件掩码为<code>0</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>layerEventMask</code> - 要接收的事件类型的位掩码 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JLayer.html#getLayerEventMask--"><code>getLayerEventMask()</code></a> ， 
+            <a href="../../javax/swing/plaf/LayerUI.html#eventDispatched-java.awt.AWTEvent-javax.swing.JLayer-"><code>LayerUI.eventDispatched(AWTEvent, JLayer)</code></a> ， 
+            <a href="../../java/awt/Component.html#isDisplayable--"><code>Component.isDisplayable()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getLayerEventMask--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLayerEventMask</h4> <pre>public long getLayerEventMask()</pre>
+<div class="block">
+<span>返回此<code>JLayer</code>及其<code>LayerUI</code>接收的事件掩码的位图。</span>
+<p> <span>这意味着<a href="../../javax/swing/plaf/LayerUI.html#eventDispatched-java.awt.AWTEvent-javax.swing.JLayer-"><code>LayerUI.eventDispatched(AWTEvent, JLayer)</code></a>方法将只接收与事件掩码匹配的事件。</span> </p>
+<p> <span>默认情况下<code>JLayer</code>收到任何事件。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             事件类型的位掩码为 
+            <code>JLayer</code>
+</dd>
+</dl> </li>
+</ul> <a name="updateUI--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>updateUI</h4> <pre>public void updateUI()</pre>
+<div class="block">
+            将其功能委托给 
+           <a href="../../javax/swing/plaf/LayerUI.html#updateUI-javax.swing.JLayer-"><code>LayerUI.updateUI(JLayer)</code></a>方法，如果设置为 
+           <code>LayerUI</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/JComponent.html#updateUI--">updateUI</a></code>在 
+            <code><a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></code>类 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JComponent.html#setUI-javax.swing.plaf.ComponentUI-"><code>JComponent.setUI(javax.swing.plaf.ComponentUI)</code></a> ， 
+            <a href="../../javax/swing/UIManager.html#getLookAndFeel--"><code>UIManager.getLookAndFeel()</code></a> ， 
+            <a href="../../javax/swing/UIManager.html#getUI-javax.swing.JComponent-"><code>UIManager.getUI(javax.swing.JComponent)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getPreferredScrollableViewportSize--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPreferredScrollableViewportSize</h4> <pre>public <a href="../../java/awt/Dimension.html" title="class in java.awt">Dimension</a> getPreferredScrollableViewportSize()</pre>
+<div class="block">
+<span>返回视图组件的视口的首选大小。</span>
+<p> <span>如果此层的视图组件实现<a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a> ，则此方法将其实现委托给视图组件。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/Scrollable.html#getPreferredScrollableViewportSize--">getPreferredScrollableViewportSize</a></code>在接口 
+            <code><a href="../../javax/swing/Scrollable.html" title="interface in javax.swing">Scrollable</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             视图组件的视口的首选大小 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getScrollableBlockIncrement-java.awt.Rectangle-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getScrollableBlockIncrement</h4> <pre>public int getScrollableBlockIncrement(<a href="../../java/awt/Rectangle.html" title="class in java.awt">Rectangle</a> visibleRect,
+                                       int orientation,
+                                       int direction)</pre>
+<div class="block">
+<span>返回滚动增量，这是显示逻辑行或列的组件所必需的，以便根据方向的值完全暴露一个行或列的块。</span>
+<p> <span>如果此层的视图组件实现<a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a> ，则此方法将其实现委托给视图组件。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/Scrollable.html#getScrollableBlockIncrement-java.awt.Rectangle-int-int-">getScrollableBlockIncrement</a></code>在接口 
+            <code><a href="../../javax/swing/Scrollable.html" title="interface in javax.swing">Scrollable</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>visibleRect</code> - 在视口内可见的视图区域 
+           </dd>
+<dd>
+<code>orientation</code> - SwingConstants.VERTICAL或SwingConstants.HORIZONTAL。 
+           </dd>
+<dd>
+<code>direction</code> - 向上/向左滚动小于0，向下/向右大于零。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在指定方向滚动的“块”增量 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getScrollableTracksViewportHeight--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getScrollableTracksViewportHeight</h4> <pre>public boolean getScrollableTracksViewportHeight()</pre>
+<div class="block">
+<span>返回<code>false</code>以指示视口的高度不会确定图层的高度，除非图层的首选高度小于视口的高度。</span>
+<p> <span>如果此层的视图组件实现<a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a> ，则此方法将其实现委托给视图组件。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/Scrollable.html#getScrollableTracksViewportHeight--">getScrollableTracksViewportHeight</a></code>中的 
+            <code><a href="../../javax/swing/Scrollable.html" title="interface in javax.swing">Scrollable</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             图层是否应跟踪视口的高度 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getScrollableTracksViewportWidth--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getScrollableTracksViewportWidth</h4> <pre>public boolean getScrollableTracksViewportWidth()</pre>
+<div class="block">
+<span>返回<code>false</code> ，以表示视口的宽度不会确定图层的宽度，除非图层的首选宽度小于视口的宽度。</span>
+<p> <span>如果此层的视图组件实现<a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a> ，则此方法将其实现委托给视图组件。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/Scrollable.html#getScrollableTracksViewportWidth--">getScrollableTracksViewportWidth</a></code>在接口 
+            <code><a href="../../javax/swing/Scrollable.html" title="interface in javax.swing">Scrollable</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             图层是否应跟踪视口的宽度 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getScrollableUnitIncrement-java.awt.Rectangle-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getScrollableUnitIncrement</h4> <pre>public int getScrollableUnitIncrement(<a href="../../java/awt/Rectangle.html" title="class in java.awt">Rectangle</a> visibleRect,
+                                      int orientation,
+                                      int direction)</pre>
+<div class="block">
+<span>返回滚动增量，这是显示逻辑行或列的组件所必需的，以便根据方向的值完全暴露一个新行或列。</span>
+<span>理想情况下，组件应通过返回完全暴露项目所需的距离来处理部分暴露的行或列。</span>
+<p> <span>滚动容器，如<code>JScrollPane</code> ，将在用户请求单位滚动时使用此方法。</span> </p>
+<p> <span>如果此层的视图组件实现<a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a> ，则此方法将其实现委托给视图组件。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/Scrollable.html#getScrollableUnitIncrement-java.awt.Rectangle-int-int-">getScrollableUnitIncrement</a></code>在接口 
+            <code><a href="../../javax/swing/Scrollable.html" title="interface in javax.swing">Scrollable</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>visibleRect</code> - 在视口内可见的视图区域 
+           </dd>
+<dd>
+<code>orientation</code> - SwingConstants.VERTICAL或SwingConstants.HORIZONTAL。 
+           </dd>
+<dd>
+<code>direction</code> - 向上/向左滚动小于0，向下/向右大于零。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>在指定方向滚动的“单位”增量。</span>
+<span>该值应始终为正。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/Scrollable.html" title="javax.swing中的接口"><code>Scrollable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="addNotify--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addNotify</h4> <pre>public void addNotify()</pre>
+<div class="block">
+<span>通知此组件它现在有一个父组件。</span>
+<span>调用此方法时，父组件链设置为<code>KeyboardAction</code>事件侦听器。</span>
+<span>该方法在内部被工具包调用，不应该被程序直接调用。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/JComponent.html#addNotify--">addNotify</a></code>在 
+            <code><a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JComponent.html#registerKeyboardAction-java.awt.event.ActionListener-java.lang.String-javax.swing.KeyStroke-int-"><code>JComponent.registerKeyboardAction(java.awt.event.ActionListener, java.lang.String, javax.swing.KeyStroke, int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="removeNotify--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>removeNotify</h4> <pre>public void removeNotify()</pre>
+<div class="block">
+<span>通知此组件它不再具有父组件。</span>
+<span>当调用此方法时，将删除在父组件链中设置的任何<code>KeyboardAction</code> 。</span>
+<span>该方法在内部被工具包调用，不应该被程序直接调用。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../javax/swing/JComponent.html#removeNotify--">removeNotify</a></code>在 
+            <code><a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a></code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JComponent.html#registerKeyboardAction-java.awt.event.ActionListener-java.lang.String-javax.swing.KeyStroke-int-"><code>JComponent.registerKeyboardAction(java.awt.event.ActionListener, java.lang.String, javax.swing.KeyStroke, int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="doLayout--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>doLayout</h4> <pre>public void doLayout()</pre>
+<div class="block">
+            将其功能委托给 
+           <a href="../../javax/swing/plaf/LayerUI.html#doLayout-javax.swing.JLayer-"><code>LayerUI.doLayout(JLayer)</code></a>方法，如果设置为 
+           <code>LayerUI</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/awt/Container.html#doLayout--">doLayout</a></code>在 
+            <code><a href="../../java/awt/Container.html" title="class in java.awt">Container</a></code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/LayoutManager.html#layoutContainer-java.awt.Container-"><code>LayoutManager.layoutContainer(java.awt.Container)</code></a> ， 
+            <a href="../../java/awt/Container.html#setLayout-java.awt.LayoutManager-"><code>Container.setLayout(java.awt.LayoutManager)</code></a> ， 
+            <a href="../../java/awt/Container.html#validate--"><code>Container.validate()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getAccessibleContext--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getAccessibleContext</h4> <pre>public <a href="../../javax/accessibility/AccessibleContext.html" title="class in javax.accessibility">AccessibleContext</a> getAccessibleContext()</pre>
+<div class="block">
+            获取与此 
+           <code>JLayer</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../javax/accessibility/Accessible.html#getAccessibleContext--">getAccessibleContext</a></code>在接口 
+            <code><a href="../../javax/accessibility/Accessible.html" title="interface in javax.accessibility">Accessible</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/awt/Component.html#getAccessibleContext--">getAccessibleContext</a></code>在 
+            <code><a href="../../java/awt/Component.html" title="class in java.awt">Component</a></code>类 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与此 
+            <code>JLayer</code> 。 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

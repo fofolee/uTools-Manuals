@@ -1,0 +1,1823 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.time 
+   </div>
+<h2 class="title" title="Class Instant">Class Instant</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.time.Instant</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../java/lang/Comparable.html" title="java.lang中的接口">Comparable</a> &lt; <a href="../../java/time/Instant.html" title="java.time中的类">Instant</a> &gt;， <a href="../../java/time/temporal/Temporal.html" title="java.time.temporal中的接口">Temporal</a> ， <a href="../../java/time/temporal/TemporalAccessor.html" title="java.time.temporal中的接口">TemporalAccessor</a> ， <a href="../../java/time/temporal/TemporalAdjuster.html" title="java.time.temporal中的接口">TemporalAdjuster</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">Instant</span>
+extends <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a>, <a href="../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a>, <a href="../../java/lang/Comparable.html" title="interface in java.lang">Comparable</a>&lt;<a href="../../java/time/Instant.html" title="class in java.time">Instant</a>&gt;, <a href="../../java/io/Serializable.html" title="interface in java.io">Serializable</a></pre>
+<div class="block">
+<span>在时间线上的瞬间点。</span>
+<p> <span>该类在时间线上建立单个瞬时点。</span> <span>这可能用于在应用程序中记录事件时间戳。</span> </p>
+<p> <span>实际上，这一瞬间存在一些限制。</span> <span>可测量的时间线限制在long中可以持有的<code>long</code> 。</span> <span>这大于当前估计的宇宙年龄。</span> <span>该瞬间存储为纳秒分辨率。</span> </p>
+<p> <span>瞬间的范围需要存储大于<code>long</code> 。</span> <span>为了实现这一点，类存储<code>long</code>表示划时代秒和<code>int</code>表示纳秒的秒，这将始终为0和999,999,999之间。</span> <span>时标是从标准的Java时代<code>1970-01-01T00:00:00Z</code> ，其中时代之后的时刻具有正值，较早的时刻具有负值。</span> <span>对于时代第二和纳秒部分，时间线上的值越大越小。</span> </p>
+<h3> <span>时间尺度</span> </h3>
+<p> <span>太阳日的长度是人类测量时间的标准方式。</span> <span>这传统上被分为60秒60小时的24小时，形成了86400秒。</span> </p>
+<p> <span>现代计时是基于相对于铯原子的跃迁精确定义SI秒的原子钟。</span> <span>SI秒的长度定义为非常接近一天的第86400分。</span> </p>
+<p> <span>不幸的是，随着地球的旋转，一天的长短变化。</span> <span>此外，随着时间的推移，一天的平均长度随着地球的减速而变得越来越长。</span> <span>因此，2012年太阳日的长度稍长于86400 SI秒。</span> <span>任何一天的实际长度以及地球减速的数量都是不可预知的，只能通过测量来确定。</span> <span>UT1时间尺度捕获一天中的准确时间，但在一天之后的一段时间内才可用。</span> </p>
+<p> <span>UTC时间刻度是将UT1的所有额外分数从UT1捆绑到整秒钟的标准方法，称为<i>闰秒</i> 。</span> <span>根据地球的旋转变化，可以添加或删除闰秒。</span> <span>因此，为了保持日子与太阳对齐，UTC允许一天有86399 SI秒或86401 SI秒。</span> </p>
+<p> <span>现代UTC时间尺度于1972年引入，引入了整个飞跃的概念。</span> <span>在1958年和1972年之间，UTC的定义是复杂的，次要的次秒级和对名义第二的长度的改变。</span> <span>截至2012年，正在进行讨论，以再次更改UTC的定义，有可能删除闰秒或引入其他更改。</span> </p>
+<p> <span>鉴于上述精确计时的复杂性，该Java API定义了自己的时间尺度<i>Java时间尺度</i> 。</span> </p>
+<p> <span>Java时间刻度将每个日历日划分为86400个细分，称为秒。</span> <span>这些秒可能与SI秒不同。</span> <span>它与事实上的国际民事时间尺度非常吻合，不时定义哪些变化。</span> </p>
+<p> <span>Java时间尺度对时间线的不同部分的定义略有不同，每个时间尺度基于用作民事时间基础的一致性国际时间尺度。</span> <span>每当修改或替换国际商定的时间尺度时，必须为其定义新的Java Time-Scale部分。</span> <span>每个细分必须符合以下要求：</span> </p>
+<ul>
+<li> <span>Java时间尺度应与国际民用时间尺度相匹配;</span> </li>
+<li> <span>Java时间尺度应每天中午完全符合国际民用时间尺度;</span> </li>
+<li> <span>Java时间尺度应与国际民用时间尺度有明确的关系。</span> </li>
+</ul>
+<span>目前，截至2013年，Java时间尺度中有两个部分。</span>
+<p> <span>对于从1972-11-03（截面如下所述的准确边界）的细分，直到另行通知，国际时间尺度是UTC（具有闰秒）。</span> <span>在此段中，Java时间刻度与UTC-SLS <a href="http://www.cl.cam.ac.uk/~mgk25/time/utc-sls/">相同</a> 。</span> <span>这与UTC没有闰秒的天数相同。</span> <span>在有闰秒的日子里，闰秒在一天的最后1000秒内平均分布，保持每天86400秒的出现。</span> </p>
+<p> <span>对于1972-11-03之前的部分，任意延伸回来，国际统一时间尺度被定义为UT1，应用于光学上，这相当于主要子午线（格林威治）的（平均）太阳时间。</span> <span>在这一部分，Java时间尺度与国际时间标准一致。</span> <span>两段之间的确切边界是1972-11-03T00：00和1972-11-04T12：00之间的UT1 = UTC的时刻。</span> </p>
+<p> <span>使用JSR-310 API的Java时间尺度的实现不需要提供任何次秒级准确的或者单调或平滑地进行的时钟。</span> <span>因此实际上不需要实际执行UTC-SLS转换，否则不需要知道闰秒。</span> <span>然而，JSR-310确实需要在定义表示当前时刻的时钟时记录其使用的方法。</span> <span>有关可用时钟的详细信息，请参阅<a href="../../java/time/Clock.html" title="java.time中的类"><code>Clock</code></a> 。</span> </p>
+<p> <span>Java时间标度用于所有日期时间类。</span> <span>这包括<code>Instant</code> ， <code>LocalDate</code> ， <code>LocalTime</code> ， <code>OffsetDateTime</code> ， <code>ZonedDateTime</code>和<code>Duration</code> 。</span> </p>
+<p> <span>这是一个<a href="../../java/lang/doc-files/ValueBased.html">value-based</a>课;</span> <span>使用身份敏感的操作（包括引用相等（的<code>==</code>上的实例），标识哈希码，或同步） <code>Instant</code>可具有不可预测的结果，应当避免。</span> <span><code>equals</code>方法应用于比较。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">实现要求：</span>
+</dt>
+<dd>
+         这个类是不可变的和线程安全的。 
+       </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.8 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../serialized-form.html#java.time.Instant">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#EPOCH">EPOCH</a></span></code>
+<div class="block">
+              常数为1970-01-01T00：00：00Z时代瞬间。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#MAX">MAX</a></span></code>
+<div class="block">
+              最大支持 
+             <code>Instant</code> ，'1000000000-12-31T23：59：59.999999999Z'。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#MIN">MIN</a></span></code>
+<div class="block">
+              最低支持 
+             <code>Instant</code> ，'-1000000000-01-01T00：00Z'。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#adjustInto-java.time.temporal.Temporal-">adjustInto</a></span>(<a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> temporal)</code>
+<div class="block">
+              调整指定的时间对象具有这个瞬间。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../java/time/OffsetDateTime.html" title="class in java.time">OffsetDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#atOffset-java.time.ZoneOffset-">atOffset</a></span>(<a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> offset)</code>
+<div class="block">
+              将此瞬间与偏移组合起来创建一个 
+             <code>OffsetDateTime</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#atZone-java.time.ZoneId-">atZone</a></span>(<a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</code>
+<div class="block">
+              将此瞬间与时区相结合，创建一个 
+             <code>ZonedDateTime</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#compareTo-java.time.Instant-">compareTo</a></span>(<a href="../../java/time/Instant.html" title="class in java.time">Instant</a> otherInstant)</code>
+<div class="block">
+              将此瞬间与指定的时刻进行比较。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#equals-java.lang.Object-">equals</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> otherInstant)</code>
+<div class="block">
+              检查这个瞬间是否等于指定的时刻。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#from-java.time.temporal.TemporalAccessor-">from</a></span>(<a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a> temporal)</code>
+<div class="block">
+              从时间对象获取一个 
+             <code>Instant</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#get-java.time.temporal.TemporalField-">get</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</code>
+<div class="block">
+              从该时刻获取指定字段的 
+             <code>int</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#getEpochSecond--">getEpochSecond</a></span>()</code>
+<div class="block">
+              从1970-01-01T00：00：00Z的Java时代获取秒数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#getLong-java.time.temporal.TemporalField-">getLong</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</code>
+<div class="block">
+              从该时刻获取指定字段的值为 
+             <code>long</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#getNano--">getNano</a></span>()</code>
+<div class="block">
+              从第二个开始就从时间线获得纳秒的数量。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              返回此时刻的哈希码。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#isAfter-java.time.Instant-">isAfter</a></span>(<a href="../../java/time/Instant.html" title="class in java.time">Instant</a> otherInstant)</code>
+<div class="block">
+              检查这个瞬间是否在指定的时刻之后。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#isBefore-java.time.Instant-">isBefore</a></span>(<a href="../../java/time/Instant.html" title="class in java.time">Instant</a> otherInstant)</code>
+<div class="block">
+              检查这个时刻是否在指定的时刻之前。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#isSupported-java.time.temporal.TemporalField-">isSupported</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</code>
+<div class="block">
+              检查指定的字段是否受支持。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#isSupported-java.time.temporal.TemporalUnit-">isSupported</a></span>(<a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              检查指定的单位是否受支持。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#minus-long-java.time.temporal.TemporalUnit-">minus</a></span>(long amountToSubtract, <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              返回此时刻的副本，减去指定的金额。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#minus-java.time.temporal.TemporalAmount-">minus</a></span>(<a href="../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amountToSubtract)</code>
+<div class="block">
+              返回此时刻的副本，减去指定的金额。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#minusMillis-long-">minusMillis</a></span>(long millisToSubtract)</code>
+<div class="block">
+              以毫秒为单位的指定持续时间返回此瞬间的副本。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#minusNanos-long-">minusNanos</a></span>(long nanosToSubtract)</code>
+<div class="block">
+              以纳秒为单位返回指定持续时间的此瞬间的副本。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#minusSeconds-long-">minusSeconds</a></span>(long secondsToSubtract)</code>
+<div class="block">
+              以秒为单位返回指定持续时间的此瞬间的副本。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#now--">now</a></span>()</code>
+<div class="block">
+              从系统时钟获取当前瞬间。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#now-java.time.Clock-">now</a></span>(<a href="../../java/time/Clock.html" title="class in java.time">Clock</a> clock)</code>
+<div class="block">
+              从指定的时钟获取当前时刻。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#ofEpochMilli-long-">ofEpochMilli</a></span>(long epochMilli)</code>
+<div class="block">
+              获得的一个实例 
+             <code>Instant</code>从1970-01-01T00划时代使用毫秒：00：00Z。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#ofEpochSecond-long-">ofEpochSecond</a></span>(long epochSecond)</code>
+<div class="block">
+              使用从1970-01-01T00：00：00Z的时代开始的秒数获得一个 
+             <code>Instant</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#ofEpochSecond-long-long-">ofEpochSecond</a></span>(long epochSecond, long nanoAdjustment)</code>
+<div class="block">
+              使用从1970-01-01T00：00：00Z的时期开始的秒数获得 
+             <code>Instant</code>的实例， 
+             <code>Instant</code>获得秒的纳秒分数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code>static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#parse-java.lang.CharSequence-">parse</a></span>(<a href="../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> text)</code>
+<div class="block">
+              从一个文本字符串（如 
+             <code>2007-12-03T10:15:30.00Z</code>获取一个 
+             <code>Instant</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#plus-long-java.time.temporal.TemporalUnit-">plus</a></span>(long amountToAdd, <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              返回添加指定数量的此瞬间的副本。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#plus-java.time.temporal.TemporalAmount-">plus</a></span>(<a href="../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amountToAdd)</code>
+<div class="block">
+              返回添加指定数量的此瞬间的副本。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#plusMillis-long-">plusMillis</a></span>(long millisToAdd)</code>
+<div class="block">
+              以毫秒为单位的指定持续时间返回此瞬间的副本。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#plusNanos-long-">plusNanos</a></span>(long nanosToAdd)</code>
+<div class="block">
+              以指定的持续时间返回此瞬间的副本，以纳秒为单位。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i30">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#plusSeconds-long-">plusSeconds</a></span>(long secondsToAdd)</code>
+<div class="block">
+              以指定的持续时间返回此瞬间的副本，以秒为单位。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i31">
+<td class="colFirst"><code>&lt;R&gt; R</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#query-java.time.temporal.TemporalQuery-">query</a></span>(<a href="../../java/time/temporal/TemporalQuery.html" title="interface in java.time.temporal">TemporalQuery</a>&lt;R&gt; query)</code>
+<div class="block">
+              使用指定的查询查询此即时。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i32">
+<td class="colFirst"><code><a href="../../java/time/temporal/ValueRange.html" title="class in java.time.temporal">ValueRange</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#range-java.time.temporal.TemporalField-">range</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</code>
+<div class="block">
+              获取指定字段的有效值的范围。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i33">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#toEpochMilli--">toEpochMilli</a></span>()</code>
+<div class="block">
+              将此瞬间转换为1970-01-01T00：00：00Z的时期的毫秒数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i34">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#toString--">toString</a></span>()</code>
+<div class="block">
+              此瞬间使用ISO-8601表示形式的字符串表示形式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i35">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#truncatedTo-java.time.temporal.TemporalUnit-">truncatedTo</a></span>(<a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              返回此 
+             <code>Instant</code>的副本截断到指定的单位。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i36">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#until-java.time.temporal.Temporal-java.time.temporal.TemporalUnit-">until</a></span>(<a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> endExclusive, <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              根据指定单位计算直到另一瞬间的时间量。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i37">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#with-java.time.temporal.TemporalAdjuster-">with</a></span>(<a href="../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a> adjuster)</code>
+<div class="block">
+              返回此瞬间的调整副本。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i38">
+<td class="colFirst"><code><a href="../../java/time/Instant.html" title="class in java.time">Instant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/Instant.html#with-java.time.temporal.TemporalField-long-">with</a></span>(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field, long newValue)</code>
+<div class="block">
+              将指定的字段设置为新值返回此瞬间的副本。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="EPOCH">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>EPOCH</h4> <pre>public static final <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> EPOCH</pre>
+<div class="block">
+            常数为1970-01-01T00：00：00Z时代瞬间。 
+          </div> </li>
+</ul> <a name="MIN">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>MIN</h4> <pre>public static final <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> MIN</pre>
+<div class="block">
+<span>最低支持<code>Instant</code> ，'-1000000000-01-01T00：00Z'。</span>
+<span>这可以被应用程序用作“过去”的瞬间。</span>
+<p> <span>这比最低<code>LocalDateTime</code> 。</span> <span>这提供了足够的值来处理的范围<code>ZoneOffset</code>影响除了本地日期时间的瞬间。</span> <span>该值也被选择为使得年的价值适合于<code>int</code> 。</span> </p>
+</div> </li>
+</ul> <a name="MAX">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>MAX</h4> <pre>public static final <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> MAX</pre>
+<div class="block">
+<span>最大支持<code>Instant</code> ，'1000000000-12-31T23：59：59.999999999Z'。</span>
+<span>这可以被应用程序用作“远未来”的瞬间。</span>
+<p> <span>这是一年后最大的<code>LocalDateTime</code> 。</span> <span>这提供了足够的值来处理的范围<code>ZoneOffset</code>影响除了本地日期时间的瞬间。</span> <span>该值也被选择为使得年度的价值符合<code>int</code> 。</span> </p>
+</div> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="now--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>now</h4> <pre>public static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> now()</pre>
+<div class="block">
+<span>从系统时钟获取当前瞬间。</span>
+<p> <span>这将查询<a href="../../java/time/Clock.html#systemUTC--"><code>system UTC clock</code></a>获取当前即时。</span> </p>
+<p> <span>使用此方法将阻止使用备用时间源进行测试的能力，因为时钟被有效地硬编码。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前即时使用系统时钟，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="now-java.time.Clock-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>now</h4> <pre>public static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> now(<a href="../../java/time/Clock.html" title="class in java.time">Clock</a> clock)</pre>
+<div class="block">
+<span>从指定的时钟获取当前时刻。</span>
+<p> <span>这将查询指定的时钟以获取当前时间。</span> </p>
+<p> <span>使用此方法可以使用备用时钟进行测试。</span> <span>替代时钟可以使用<a href="../../java/time/Clock.html" title="java.time中的类"><code>dependency injection</code>引入</a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>clock</code> - 要使用的时钟，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前即时，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="ofEpochSecond-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ofEpochSecond</h4> <pre>public static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> ofEpochSecond(long epochSecond)</pre>
+<div class="block">
+<span>使用从1970-01-01T00：00：00Z的时代开始的秒数获得一个<code>Instant</code>的实例。</span>
+<p> <span>纳秒场被设置为零。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>epochSecond</code> - 从1970-01-01T00：00：00Z的秒数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一瞬间，不为零 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果瞬间超过最大或最小瞬间 
+           </dd>
+</dl> </li>
+</ul> <a name="ofEpochSecond-long-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ofEpochSecond</h4> <pre>public static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> ofEpochSecond(long epochSecond,
+                                    long nanoAdjustment)</pre>
+<div class="block">
+<span>使用从1970-01-01T00：00：00Z的时代开始的秒数获得一个<code>Instant</code>的实例， <code>Instant</code>获得秒的纳秒分数。</span>
+<p> <span>该方法允许通过任意数量的纳秒。工厂将改变第二和纳秒的值，以确保存储的纳秒在0至999,999,999的范围内。</span> <span>例如，以下将导致完全相同的时刻：</span> </p>
+<pre>  <span>Instant.ofEpochSecond(3, 1);
+  Instant.ofEpochSecond(4, -999_999_999);
+  Instant.ofEpochSecond(2, 1000_000_001);</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>epochSecond</code> - 从1970-01-01T00：00：00Z开始的秒数 
+           </dd>
+<dd>
+<code>nanoAdjustment</code> - 纳秒秒调整为正数或负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一瞬间，不为零 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果瞬间超过最大或最小瞬间 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="ofEpochMilli-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ofEpochMilli</h4> <pre>public static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> ofEpochMilli(long epochMilli)</pre>
+<div class="block">
+<span>获得的一个实例<code>Instant</code>从1970-01-01T00划时代使用毫秒：00：00Z。</span>
+<p> <span>从指定的毫秒中提取秒和纳秒。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>epochMilli</code> - 从1970-01-01T00：00：00Z的毫秒数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一瞬间，不为零 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果瞬间超过最大或最小瞬间 
+           </dd>
+</dl> </li>
+</ul> <a name="from-java.time.temporal.TemporalAccessor-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>from</h4> <pre>public static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> from(<a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a> temporal)</pre>
+<div class="block">
+<span>从时间对象获取一个<code>Instant</code>的实例。</span>
+<p> <span>这将根据指定的时间获得一个瞬间。</span> <span>A <code>TemporalAccessor</code>表示日期和时间信息的任意集合，该工厂转换为<code>Instant</code>一个实例。</span> </p>
+<p> <span>该转换提取了<a href="../../java/time/temporal/ChronoField.html#INSTANT_SECONDS"><code>INSTANT_SECONDS</code></a>和<a href="../../java/time/temporal/ChronoField.html#NANO_OF_SECOND"><code>NANO_OF_SECOND</code></a>字段。</span> </p>
+<p> <span>该方法中，功能接口的签名相匹配<a href="../../java/time/temporal/TemporalQuery.html" title="java.time.temporal中的接口"><code>TemporalQuery</code></a>允许它被用作通过方法参考，查询<code>Instant::from</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>temporal</code> - 要转换的时间对象，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             即时，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法转换为 
+            <code>Instant</code>
+</dd>
+</dl> </li>
+</ul> <a name="parse-java.lang.CharSequence-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parse</h4> <pre>public static <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> parse(<a href="../../java/lang/CharSequence.html" title="interface in java.lang">CharSequence</a> text)</pre>
+<div class="block">
+<span>从一个文本字符串（如<code>2007-12-03T10:15:30.00Z</code>获取一个<code>Instant</code>的实例。</span>
+<p> <span>字符串必须表示UTC中的有效时间，并使用<a href="../../java/time/format/DateTimeFormatter.html#ISO_INSTANT"><code>DateTimeFormatter.ISO_INSTANT</code></a>进行解析。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>text</code> - 要解析的文本，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             解析的瞬间，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/format/DateTimeParseException.html" title="class in java.time.format">DateTimeParseException</a></code> - 如果文本无法解析 
+           </dd>
+</dl> </li>
+</ul> <a name="isSupported-java.time.temporal.TemporalField-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isSupported</h4> <pre>public boolean isSupported(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</pre>
+<div class="block">
+<span>检查指定的字段是否受支持。</span>
+<p> <span>这将检查是否可以查询指定字段的此即时。</span> <span>如果是假，然后调用<a href="../../java/time/Instant.html#range-java.time.temporal.TemporalField-"><code>range</code></a> ， <a href="../../java/time/Instant.html#get-java.time.temporal.TemporalField-"><code>get</code></a>和<a href="../../java/time/Instant.html#with-java.time.temporal.TemporalField-long-"><code>with(TemporalField, long)</code></a>方法会抛出异常。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>那么在这里实现查询。</span> <span>支持的字段有：</span> </p>
+<ul>
+<li> <code>NANO_OF_SECOND</code> </li>
+<li> <code>MICRO_OF_SECOND</code> </li>
+<li> <code>MILLI_OF_SECOND</code> </li>
+<li> <code>INSTANT_SECONDS</code> </li>
+</ul>
+<span>所有其他<code>ChronoField</code>实例将返回false。</span>
+<p> <span>如果该字段是不是一个<code>ChronoField</code> ，则此方法的结果是通过调用获得<code>TemporalField.isSupportedBy(TemporalAccessor)</code>传递<code>this</code>作为参数。</span> <span>字段是否受支持由字段决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#isSupported-java.time.temporal.TemporalField-">isSupported</a></code>在界面 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要检查的字段，null返回false 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果该字段在此瞬间被支持，则为true，否则为false 
+           </dd>
+</dl> </li>
+</ul> <a name="isSupported-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isSupported</h4> <pre>public boolean isSupported(<a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>检查指定的单位是否受支持。</span>
+<p> <span>这将检查指定的单位是否可以添加到该日期时间或从该日期时间中减去。</span> <span>如果为false，则调用<a href="../../java/time/Instant.html#plus-long-java.time.temporal.TemporalUnit-"><code>plus(long, TemporalUnit)</code></a>和<a href="../../java/time/Instant.html#minus-long-java.time.temporal.TemporalUnit-"><code>minus</code></a>方法将抛出异常。</span> </p>
+<p> <span>如果单位是<a href="../../java/time/temporal/ChronoUnit.html" title="枚举在java.time.temporal"><code>ChronoUnit</code>，</a>那么查询是在这里实现的。</span> <span>支持的单位是：</span> </p>
+<ul>
+<li> <code>NANOS</code> </li>
+<li> <code>MICROS</code> </li>
+<li> <code>MILLIS</code> </li>
+<li> <code>SECONDS</code> </li>
+<li> <code>MINUTES</code> </li>
+<li> <code>HOURS</code> </li>
+<li> <code>HALF_DAYS</code> </li>
+<li> <code>DAYS</code> </li>
+</ul>
+<span>所有其他<code>ChronoUnit</code>实例将返回false。</span>
+<p> <span>如果单位不是<code>ChronoUnit</code> ，则通过调用<code>TemporalUnit.isSupportedBy(Temporal)</code>通过<code>this</code>作为参数获得此方法的结果。</span> <span>设备是否受支持由本机决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#isSupported-java.time.temporal.TemporalUnit-">isSupported</a></code>在界面 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>unit</code> - 要检查的单位，null返回false 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果可以添加/减去单位，则为真，否则为false 
+           </dd>
+</dl> </li>
+</ul> <a name="range-java.time.temporal.TemporalField-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>range</h4> <pre>public <a href="../../java/time/temporal/ValueRange.html" title="class in java.time.temporal">ValueRange</a> range(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</pre>
+<div class="block">
+<span>获取指定字段的有效值的范围。</span>
+<p> <span>范围对象表示字段的最小和最大有效值。</span> <span>此瞬间用于提高返回范围的准确性。</span> <span>如果不可能返回范围，因为该字段不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>那么在这里实现查询。</span> <span><a href="../../java/time/Instant.html#isSupported-java.time.temporal.TemporalField-"><code>supported fields</code></a>将返回适当的范围实例。</span> <span>所有其他<code>ChronoField</code>实例将抛出一个<code>UnsupportedTemporalTypeException</code> 。</span> </p>
+<p> <span>如果该字段是不是一个<code>ChronoField</code> ，则此方法的结果是通过调用获得<code>TemporalField.rangeRefinedBy(TemporalAccessor)</code>传递<code>this</code>作为参数。</span> <span>是否可以获得范围由字段确定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#range-java.time.temporal.TemporalField-">range</a></code>在接口 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 查询范围的字段，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             字段的有效值的范围不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法获取字段的范围 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果该字段不被支持 
+           </dd>
+</dl> </li>
+</ul> <a name="get-java.time.temporal.TemporalField-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>get</h4> <pre>public int get(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</pre>
+<div class="block">
+<span>从该时刻获取指定字段的<code>int</code> 。</span>
+<p> <span>这将查询此时刻的指定字段的值。</span> <span>返回的值将始终在该字段的值的有效范围内。</span> <span>如果不可能返回值，因为该字段不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>如果字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>那么查询是在这里实现的。</span> <span>该<a href="../../java/time/Instant.html#isSupported-java.time.temporal.TemporalField-"><code>supported fields</code></a>将返回基于此日期时间有效值，除了<code>INSTANT_SECONDS</code>这是太大，无法在<code>int</code> ，并抛出一个<code>DateTimeException</code> 。</span> <span>所有其他<code>ChronoField</code>实例将抛出一个<code>UnsupportedTemporalTypeException</code> 。</span> </p>
+<p> <span>如果该字段是不是一个<code>ChronoField</code> ，则此方法的结果是通过调用获得<code>TemporalField.getFrom(TemporalAccessor)</code>传递<code>this</code>作为参数。</span> <span>该值是否可以获得，该值代表什么值由该字段决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#get-java.time.temporal.TemporalField-">get</a></code>在界面 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要获取的字段，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该字段的值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果字段的值无法获取或该值超出该字段的有效值的范围 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果该字段不被支持或值的范围超过 
+            <code>int</code>
+</dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="getLong-java.time.temporal.TemporalField-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLong</h4> <pre>public long getLong(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</pre>
+<div class="block">
+<span>从该时刻获取指定字段的值为<code>long</code> 。</span>
+<p> <span>这将查询此时刻的指定字段的值。</span> <span>如果不可能返回值，因为该字段不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>如果字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>那么查询是在这里实现的。</span> <span><a href="../../java/time/Instant.html#isSupported-java.time.temporal.TemporalField-"><code>supported fields</code></a>将根据此日期时间返回有效值。</span> <span>所有其他<code>ChronoField</code>实例将抛出一个<code>UnsupportedTemporalTypeException</code> 。</span> </p>
+<p> <span>如果该字段不是<code>ChronoField</code> ，则通过调用<code>TemporalField.getFrom(TemporalAccessor)</code>传递<code>this</code>作为参数获得该方法的结果。</span> <span>该值是否可以获得，该值代表什么值由该字段决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#getLong-java.time.temporal.TemporalField-">getLong</a></code>在界面 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要获取的字段，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该字段的值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法获取该字段的值 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果该字段不被支持 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="getEpochSecond--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getEpochSecond</h4> <pre>public long getEpochSecond()</pre>
+<div class="block">
+<span>从1970-01-01T00：00：00Z的Java时代获取秒数。</span>
+<p> <span>时代秒计数是第二个0是1970-01-01T00：00：00Z的秒的简单递增计数。</span> <span>当天的纳秒部分由<code>getNanosOfSecond</code>返回。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             从1970-01-01T00：00：00Z的时代开始的秒数 
+           </dd>
+</dl> </li>
+</ul> <a name="getNano--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNano</h4> <pre>public int getNano()</pre>
+<div class="block">
+<span>从第二个开始就从时间线获得纳秒的数量。</span>
+<p> <span>纳秒第二值测量从第二个返回的<code>getEpochSecond</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             秒内的纳秒总是正数，从不超过999,999,999 
+           </dd>
+</dl> </li>
+</ul> <a name="with-java.time.temporal.TemporalAdjuster-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>with</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> with(<a href="../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a> adjuster)</pre>
+<div class="block">
+<span>返回此瞬间的调整副本。</span>
+<p> <span>这将返回一个<code>Instant</code> ，基于这一个，随时调整。</span> <span>调整使用指定的调整器策略对象进行。</span> <span>阅读调整器的文档，了解将进行什么调整。</span> </p>
+<p> <span>该方法的结果是通过调用<a href="../../java/time/temporal/TemporalAdjuster.html#adjustInto-java.time.temporal.Temporal-"><code>TemporalAdjuster.adjustInto(Temporal)</code></a>方法获得的指定调整器通过<code>this</code>作为参数。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalAdjuster-">with</a></code>在接口 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>adjuster</code> - 调整器使用，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于 
+            <code>this</code>进行了调整，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行调整 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="with-java.time.temporal.TemporalField-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>with</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> with(<a href="../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field,
+                    long newValue)</pre>
+<div class="block">
+<span>将指定的字段设置为新值返回此瞬间的副本。</span>
+<p> <span>这将返回一个<code>Instant</code> ，基于此，更改指定字段的值。</span> <span>如果不可能设置该值，因为该字段不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code>，</a>则在此处执行调整。</span> <span>支持的字段的行为如下：</span> </p>
+<ul>
+<li> <span><code>NANO_OF_SECOND</code> - 返回具有指定的<code>Instant</code>的Instant。</span> <span>第二纪将不变。</span> </li>
+<li> <span><code>MICRO_OF_SECOND</code> - 返回一个<code>Instant</code> ，其纳秒用指定的微秒乘以1000替换。</span> <span>第二纪将不变。</span> </li>
+<li> <span><code>MILLI_OF_SECOND</code> - 返回一个<code>Instant</code> ，纳秒将以指定的毫秒数乘以1,000,000。</span> <span>第二纪将不变。</span> </li>
+<li> <span><code>INSTANT_SECONDS</code> - 返回一个<code>Instant</code>与指定的时代 - 秒。</span> <span>纳秒将不变。</span> </li>
+</ul>
+<p> <span>在所有情况下，如果新值超出该字段值的有效范围，那么<code>DateTimeException</code>将被抛出。</span> </p>
+<p> <span>所有其他<code>ChronoField</code>实例将抛出一个<code>UnsupportedTemporalTypeException</code> 。</span> </p>
+<p> <span>如果该字段不是<code>ChronoField</code> ，则通过调用<code>TemporalField.adjustInto(Temporal, long)</code> <code>this</code>作为参数的<code>this</code>获得该方法的结果。</span> <span>在这种情况下，该字段决定是否以及如何调整即时。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalField-long-">with</a></code>在界面 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要在结果中设置的字段，不为null 
+           </dd>
+<dd>
+<code>newValue</code> - 结果中字段的新值 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于 
+            <code>this</code>与指定的字段集，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果字段无法设置 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果该字段不被支持 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="truncatedTo-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>truncatedTo</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> truncatedTo(<a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>返回此<code>Instant</code>的副本截断到指定的单位。</span>
+<p> <span>截断该时刻返回的原始副本的字段小于设置为零的指定单位。</span> <span>这些字段是根据使用UTC偏移量计算的，如<code>toString</code> 。</span> <span>例如，使用<a href="../../java/time/temporal/ChronoUnit.html#MINUTES"><code>MINUTES</code></a>单位<a href="../../java/time/temporal/ChronoUnit.html#MINUTES">截断</a>将舍入到最近的分钟，将秒和纳秒设置为零。</span> </p>
+<p> <span>该单位必须有一个<a href="../../java/time/temporal/TemporalUnit.html#getDuration--">duration</a> ，划分为标准日期的长度，无余数。</span> <span>这包括所有提供的时间单位在<a href="../../java/time/temporal/ChronoUnit.html" title="枚举在java.time.temporal"><code>ChronoUnit</code></a>和<a href="../../java/time/temporal/ChronoUnit.html#DAYS"><code>DAYS</code></a> 。</span> <span>其他单位抛出异常。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>unit</code> - 要截断的单位，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于这个时间截断，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果单位无效截断 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+</dl> </li>
+</ul> <a name="plus-java.time.temporal.TemporalAmount-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plus</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> plus(<a href="../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amountToAdd)</pre>
+<div class="block">
+<span>返回添加指定数量的此瞬间的副本。</span>
+<p> <span>这将返回一个<code>Instant</code> ，基于此，添加指定的数量。</span> <span>量通常是<a href="../../java/time/Duration.html" title="java.time中的类"><code>Duration</code></a>但也可以是任何其他类型的实现<a href="../../java/time/temporal/TemporalAmount.html" title="java.time.temporal中的接口"><code>TemporalAmount</code></a>接口。</span> </p>
+<p> <span>通过调用<a href="../../java/time/temporal/TemporalAmount.html#addTo-java.time.temporal.Temporal-"><code>TemporalAmount.addTo(Temporal)</code></a>将计算委托给金额对象。</span> <span>金额实施可以以任何方式实现添加，但通常会回调到<a href="../../java/time/Instant.html#plus-long-java.time.temporal.TemporalUnit-"><code>plus(long, TemporalUnit)</code></a> 。</span> <span>请参阅金额执行的文档，以确定是否可以成功添加。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#plus-java.time.temporal.TemporalAmount-">plus</a></code>在接口 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToAdd</code> - 要添加的金额，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于这个瞬间与添加，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能添加 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="plus-long-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plus</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> plus(long amountToAdd,
+                    <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>返回添加指定数量的此瞬间的副本。</span>
+<p> <span>这返回一个<code>Instant</code> ，基于这一个，以添加的单位数量。</span> <span>如果不可能添加金额，因为单位不受支持或出于某种其他原因，则抛出异常。</span> </p>
+<p> <span>如果该字段是<a href="../../java/time/temporal/ChronoUnit.html" title="枚举在java.time.temporal"><code>ChronoUnit</code>，</a>那么在这里实现添加。</span> <span>支持的字段的行为如下：</span> </p>
+<ul>
+<li> <span><code>NANOS</code> - 返回一个<code>Instant</code> ，其中添加了<code>Instant</code>的纳秒数。</span> <span>这相当于<a href="../../java/time/Instant.html#plusNanos-long-"><code>plusNanos(long)</code></a> 。</span> </li>
+<li> <span><code>MICROS</code> - 返回一个<code>Instant</code>了指定微秒数的Instant。</span> <span>这相当于<a href="../../java/time/Instant.html#plusNanos-long-"><code>plusNanos(long)</code></a> ，数量乘以1,000。</span> </li>
+<li> <span><code>MILLIS</code> -返回<code>Instant</code>添加了指定的毫秒数。</span> <span>相当于<a href="../../java/time/Instant.html#plusNanos-long-"><code>plusNanos(long)</code></a> ，数额乘以1,000,000。</span> </li>
+<li> <span><code>SECONDS</code> - 返回一个<code>Instant</code> ，加上指定的秒数。</span> <span>这相当于<a href="../../java/time/Instant.html#plusSeconds-long-"><code>plusSeconds(long)</code></a> 。</span> </li>
+<li> <span><code>MINUTES</code> - 返回具有<code>Instant</code>分钟数的Instant。</span> <span>这相当于<a href="../../java/time/Instant.html#plusSeconds-long-"><code>plusSeconds(long)</code></a> ，数量乘以60。</span> </li>
+<li> <span><code>HOURS</code> -返回<code>Instant</code>与加入小时指定数目。</span> <span>相当于<a href="../../java/time/Instant.html#plusSeconds-long-"><code>plusSeconds(long)</code></a> ，金额乘以3,600。</span> </li>
+<li> <span><code>HALF_DAYS</code> - 返回一个<code>Instant</code> ，加上指定的半天。</span> <span>相当于<a href="../../java/time/Instant.html#plusSeconds-long-"><code>plusSeconds(long)</code></a> ，金额乘以43.00（12小时）。</span> </li>
+<li> <span><code>DAYS</code> -返回<code>Instant</code>添加了天的指定数目。</span> <span>相当于<a href="../../java/time/Instant.html#plusSeconds-long-"><code>plusSeconds(long)</code></a> ，数量乘以86,400（24小时）。</span> </li>
+</ul>
+<p> <span>所有其他<code>ChronoUnit</code>实例将抛出一个<code>UnsupportedTemporalTypeException</code> 。</span> </p>
+<p> <span>如果该字段是不是一个<code>ChronoUnit</code> ，则此方法的结果是通过调用获得<code>TemporalUnit.addTo(Temporal, long)</code>传递<code>this</code>作为参数。</span> <span>在这种情况下，单元确定是否以及如何执行添加。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#plus-long-java.time.temporal.TemporalUnit-">plus</a></code>接口 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToAdd</code> - 添加到结果中的单位数量可能为负数 
+           </dd>
+<dd>
+<code>unit</code> - 要添加的单位，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于这个瞬间与指定的量添加，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能添加 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="plusSeconds-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusSeconds</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> plusSeconds(long secondsToAdd)</pre>
+<div class="block">
+<span>以指定的持续时间返回此瞬间的副本，以秒为单位。</span>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>secondsToAdd</code> - 要添加的秒数，正数或负数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于这个瞬间添加了指定的秒，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超过最大或最小瞬间 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="plusMillis-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusMillis</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> plusMillis(long millisToAdd)</pre>
+<div class="block">
+<span>以毫秒为单位的指定持续时间返回此瞬间的副本。</span>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>millisToAdd</code> - 要添加的毫秒数，正或负 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于这个瞬间添加了指定的毫秒，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超过最大或最小瞬间 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="plusNanos-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plusNanos</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> plusNanos(long nanosToAdd)</pre>
+<div class="block">
+<span>以指定的持续时间返回此瞬间的副本，以纳秒为单位。</span>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nanosToAdd</code> - 增加的纳秒，正或负 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于这个瞬间添加了指定的纳秒，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超过最大或最小瞬间 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="minus-java.time.temporal.TemporalAmount-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minus</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> minus(<a href="../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amountToSubtract)</pre>
+<div class="block">
+<span>返回此时刻的副本，减去指定的金额。</span>
+<p> <span>这将返回一个<code>Instant</code> ，基于此，减去指定的数量。</span> <span>量通常是<a href="../../java/time/Duration.html" title="java.time中的类"><code>Duration</code></a>但也可以是任何其他类型的实现<a href="../../java/time/temporal/TemporalAmount.html" title="java.time.temporal中的接口"><code>TemporalAmount</code></a>接口。</span> </p>
+<p> <span>通过调用<a href="../../java/time/temporal/TemporalAmount.html#subtractFrom-java.time.temporal.Temporal-"><code>TemporalAmount.subtractFrom(Temporal)</code></a>将计算委托给金额对象。</span> <span>数量执行可以以任何方式实现减法，但是它通常会回调到<a href="../../java/time/Instant.html#minus-long-java.time.temporal.TemporalUnit-"><code>minus(long, TemporalUnit)</code></a> 。</span> <span>请参阅数量实施的文档，以确定是否可以成功减去它们。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#minus-java.time.temporal.TemporalAmount-">minus</a></code>在接口 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToSubtract</code> - 减去量，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于这个瞬间与减法而不是null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行减法 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="minus-long-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minus</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> minus(long amountToSubtract,
+                     <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>返回此时刻的副本，减去指定的金额。</span>
+<p> <span>这将返回一个<code>Instant</code> ，基于这一个，减去的单位数量。</span> <span>如果不可能减去金额，因为该单位不受支持或出于某种其他原因，则会抛出异常。</span> </p>
+<p> <span>这种方法相当于<a href="../../java/time/Instant.html#plus-long-java.time.temporal.TemporalUnit-"><code>plus(long, TemporalUnit)</code></a> ，数量被否定。</span> <span>请参阅该方法，以了解如何添加，从而减去运算。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#minus-long-java.time.temporal.TemporalUnit-">minus</a></code>在界面 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToSubtract</code> - 从结果中减去单位的数量可能为负数 
+           </dd>
+<dd>
+<code>unit</code> - 减去量的单位，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于此瞬间减去指定的数量，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行减法 
+           </dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="minusSeconds-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusSeconds</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> minusSeconds(long secondsToSubtract)</pre>
+<div class="block">
+<span>以秒为单位返回指定持续时间的此瞬间的副本。</span>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>secondsToSubtract</code> - 减去正数或负数的秒数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于此瞬间减去指定的秒数，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超过最大或最小瞬间 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="minusMillis-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusMillis</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> minusMillis(long millisToSubtract)</pre>
+<div class="block">
+<span>以毫秒为单位的指定持续时间返回此瞬间的副本。</span>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>millisToSubtract</code> - 减去正数或负数的毫秒数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于这个瞬间减去指定的毫秒，而不是null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超过最大或最小瞬间 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="minusNanos-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minusNanos</h4> <pre>public <a href="../../java/time/Instant.html" title="class in java.time">Instant</a> minusNanos(long nanosToSubtract)</pre>
+<div class="block">
+<span>以纳秒为单位返回指定持续时间的此瞬间的副本。</span>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nanosToSubtract</code> - 减去正数或负数的纳秒 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Instant</code>基于此瞬间减去指定的纳秒，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超过最大或最小瞬间 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="query-java.time.temporal.TemporalQuery-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>query</h4> <pre>public &lt;R&gt; R query(<a href="../../java/time/temporal/TemporalQuery.html" title="interface in java.time.temporal">TemporalQuery</a>&lt;R&gt; query)</pre>
+<div class="block">
+<span>使用指定的查询查询此即时。</span>
+<p> <span>这使用指定的查询策略对象来查询这一瞬间。</span> <span><code>TemporalQuery</code>对象定义了用于获取结果的逻辑。</span> <span>阅读查询的文档，以了解该方法的结果。</span> </p>
+<p> <span>该方法的结果是通过调用指定的查询<code>this</code>作为参数的<a href="../../java/time/temporal/TemporalQuery.html#queryFrom-java.time.temporal.TemporalAccessor-"><code>TemporalQuery.queryFrom(TemporalAccessor)</code></a>方法获得的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAccessor.html#query-java.time.temporal.TemporalQuery-">query</a></code>在界面 
+            <code><a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>R</code> - 结果的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>query</code> - 要调用的查询，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             查询结果可能返回null（由查询定义） 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法查询（由查询定义） 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出（由查询定义） 
+           </dd>
+</dl> </li>
+</ul> <a name="adjustInto-java.time.temporal.Temporal-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>adjustInto</h4> <pre>public <a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> adjustInto(<a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> temporal)</pre>
+<div class="block">
+<span>调整指定的时间对象具有这个瞬间。</span>
+<p> <span>这将返回与输入相同的可观察类型的时间对象，其瞬间改变为与此相同。</span> </p>
+<p> <span>调整相当于使用<a href="../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalField-long-"><code>Temporal.with(TemporalField, long)</code></a>两次，通过<a href="../../java/time/temporal/ChronoField.html#INSTANT_SECONDS"><code>ChronoField.INSTANT_SECONDS</code></a>和<a href="../../java/time/temporal/ChronoField.html#NANO_OF_SECOND"><code>ChronoField.NANO_OF_SECOND</code></a>作为字段。</span> </p>
+<p> <span>在大多数情况下，通过使用<a href="../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalAdjuster-"><code>Temporal.with(TemporalAdjuster)</code></a>来<a href="../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalAdjuster-">更正</a>调用模式：</span> </p>
+<pre>  <span>// these two lines are equivalent, but the second approach is recommended
+   temporal = thisInstant.adjustInto(temporal);
+   temporal = temporal.with(thisInstant);</span> </pre>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/TemporalAdjuster.html#adjustInto-java.time.temporal.Temporal-">adjustInto</a></code>在界面 
+            <code><a href="../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>temporal</code> - 要调整的目标对象，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             调整对象，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行调整 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="until-java.time.temporal.Temporal-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>until</h4> <pre>public long until(<a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> endExclusive,
+                  <a href="../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>根据指定单位计算直到另一瞬间的时间量。</span>
+<p> <span>这样可以计算两个<code>Instant</code>对象之间的时间量，单位为<code>TemporalUnit</code> 。</span> <span>起点和终点是<code>this</code>和指定的时刻。</span> <span>如果结束在开始之前，结果将为负数。</span> <span>计算返回一个整数，表示两个时刻之间完整单位的数量。</span> <span>所述<code>Temporal</code>传递给此方法被转换为<code>Instant</code>使用<a href="../../java/time/Instant.html#from-java.time.temporal.TemporalAccessor-"><code>from(TemporalAccessor)</code></a> 。</span> <span>例如，可以使用<code>startInstant.until(endInstant, SECONDS)</code>两个日期之间的天数。</span> </p>
+<p> <span>使用这种方法有两种等效的方法。</span> <span>第一个是调用这个方法。</span> <span>二是使用<a href="../../java/time/temporal/TemporalUnit.html#between-java.time.temporal.Temporal-java.time.temporal.Temporal-"><code>TemporalUnit.between(Temporal, Temporal)</code></a> ：</span> </p>
+<pre>  <span>// these two lines are equivalent
+   amount = start.until(end, SECONDS);
+   amount = SECONDS.between(start, end);</span> </pre>
+<span>应该根据这种做法进行选择，使代码更易读。</span>
+<p> <span>以<code>ChronoUnit</code>的这种方法<a href="../../java/time/temporal/ChronoUnit.html" title="枚举在java.time.temporal">计算</a> 。</span> <span>单位<code>NANOS</code> ， <code>MICROS</code> ， <code>MILLIS</code> ， <code>SECONDS</code> ， <code>MINUTES</code> ， <code>HOURS</code> ， <code>HALF_DAYS</code>和<code>DAYS</code>都支持。</span> <span>其他<code>ChronoUnit</code>值将抛出异常。</span> </p>
+<p> <span>如果该单元不是<code>ChronoUnit</code> ，则此方法的结果是通过调用获得<code>TemporalUnit.between(Temporal, Temporal)</code>传递<code>this</code>作为第一个参数和转换后的输入时间作为第二个参数。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/time/temporal/Temporal.html#until-java.time.temporal.Temporal-java.time.temporal.TemporalUnit-">until</a></code>在界面 
+            <code><a href="../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>endExclusive</code> - 结束日期，排他，转换为 
+            <code>Instant</code> ，不为空 
+           </dd>
+<dd>
+<code>unit</code> - 衡量金额的单位，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个瞬间和结束时刻之间的时间量 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能计算金额，或者结束时间不能转换为 
+            <code>Instant</code>
+</dd>
+<dd>
+<code><a href="../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="atOffset-java.time.ZoneOffset-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>atOffset</h4> <pre>public <a href="../../java/time/OffsetDateTime.html" title="class in java.time">OffsetDateTime</a> atOffset(<a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> offset)</pre>
+<div class="block">
+<span>将此瞬间与偏移相结合以创建<code>OffsetDateTime</code> 。</span>
+<p> <span>这将返回一个<code>OffsetDateTime</code>在指定的从UTC /格林威治偏移从该时刻形成。</span> <span>如果瞬间太大而无法适应偏移日期时间，将抛出异常。</span> </p>
+<p> <span>此方法相当于<a href="../../java/time/OffsetDateTime.html#ofInstant-java.time.Instant-java.time.ZoneId-"><code>OffsetDateTime.ofInstant(this, offset)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>offset</code> - 要组合的偏移量，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             从该时刻形成的偏移日期时间和指定的偏移量，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出了支持的范围 
+           </dd>
+</dl> </li>
+</ul> <a name="atZone-java.time.ZoneId-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>atZone</h4> <pre>public <a href="../../java/time/ZonedDateTime.html" title="class in java.time">ZonedDateTime</a> atZone(<a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> zone)</pre>
+<div class="block">
+<span>将此瞬间与时区相结合，创建一个<code>ZonedDateTime</code> 。</span>
+<p> <span>这将返回一个<code>ZonedDateTime</code> ，从该时刻在指定的时区形成。</span> <span>如果瞬间太大，无法进入划定的日期时间，将会抛出异常。</span> </p>
+<p> <span>此方法相当于<a href="../../java/time/ZonedDateTime.html#ofInstant-java.time.Instant-java.time.ZoneId-"><code>ZonedDateTime.ofInstant(this, zone)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>zone</code> - 要结合的区域，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             从这个时刻和指定的区域形成的划分的日期时间，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果结果超出了支持的范围 
+           </dd>
+</dl> </li>
+</ul> <a name="toEpochMilli--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toEpochMilli</h4> <pre>public long toEpochMilli()</pre>
+<div class="block">
+<span>将此瞬间转换为1970-01-01T00：00：00Z的时期的毫秒数。</span>
+<p> <span>如果这个时刻表示时间线上的一个点在将来或过去太远以适应<code>long</code>毫秒，则抛出异常。</span> </p>
+<p> <span>如果这个瞬间具有大于毫秒的精度，则转换将丢弃任何超量精度信息，就好像以毫秒为单位的整数除以一百万。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             自1970-01-01T00：00：00Z以来的毫秒数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="compareTo-java.time.Instant-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compareTo</h4> <pre>public int compareTo(<a href="../../java/time/Instant.html" title="class in java.time">Instant</a> otherInstant)</pre>
+<div class="block">
+<span>将此瞬间与指定的时刻进行比较。</span>
+<p> <span>比较是基于时刻的时间位置。</span> <span>它与“等于”一致，如<a href="../../java/lang/Comparable.html" title="java.lang中的接口"><code>Comparable</code></a>所定义。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Comparable.html#compareTo-T-">compareTo</a></code>在界面 
+            <code><a href="../../java/lang/Comparable.html" title="interface in java.lang">Comparable</a>&lt;<a href="../../java/time/Instant.html" title="class in java.time">Instant</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>otherInstant</code> - 其他即时比较，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             比较器值为负，如果较小，则如果较大则为正 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果otherInstant为空 
+           </dd>
+</dl> </li>
+</ul> <a name="isAfter-java.time.Instant-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isAfter</h4> <pre>public boolean isAfter(<a href="../../java/time/Instant.html" title="class in java.time">Instant</a> otherInstant)</pre>
+<div class="block">
+<span>检查这个瞬间是否在指定的时刻之后。</span>
+<p> <span>比较是基于时刻的时间位置。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>otherInstant</code> - 另一个即时比较，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果这个瞬间是在指定的时刻之后，则为真 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果otherInstant为null 
+           </dd>
+</dl> </li>
+</ul> <a name="isBefore-java.time.Instant-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isBefore</h4> <pre>public boolean isBefore(<a href="../../java/time/Instant.html" title="class in java.time">Instant</a> otherInstant)</pre>
+<div class="block">
+<span>检查这个时刻是否在指定的时刻之前。</span>
+<p> <span>比较是基于时刻的时间位置。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>otherInstant</code> - 另一个即时比较，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果这个时刻在指定的时刻之前，则为true 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果otherInstant为空 
+           </dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> otherInstant)</pre>
+<div class="block">
+<span>检查这个瞬间是否等于指定的时刻。</span>
+<p> <span>比较是基于时刻的时间位置。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在类别 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>otherInstant</code> - 另一个即时，null返回false 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果另一个时刻等于这个时刻，则为真 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+            返回此时刻的哈希码。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个合适的哈希码 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>此瞬间使用ISO-8601表示形式的字符串表示形式。</span>
+<p> <span>所使用的格式与<a href="../../java/time/format/DateTimeFormatter.html#ISO_INSTANT"><code>DateTimeFormatter.ISO_INSTANT</code></a>相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#toString--">toString</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此瞬间的ISO-8601表示，不为空 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

@@ -1,0 +1,227 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong><code>WebAssembly.Global</code></strong> 对象表示一个全局变量实例, 可以被JavaScript 和importable/exportable 访问 ,跨越一个或多个<a href="Reference/Global_Objects/WebAssembly/Module" title="所有 Module 实例继承自 Module() 构造函数的原型对象 —— 修改它会影响所有 Module 实例。"><code>WebAssembly.Module</code></a> 实例. 他允许被多个modules动态连接.</p>
+<h2 id="构造函数语法">构造函数语法</h2>
+<pre class="syntaxbox">var myGlobal = new WebAssembly.Global(<em>descriptor</em>, <em>value</em>);</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt>descriptor</dt>
+<dd><code>GlobalDescriptor</code> 包含2个属性的表:
+ <ul>
+<li><code>value</code>: A <a href="/zh-CN/docs/Web/API/USVString" title="USVString 对应于所有可能的 unicode标量值序列的集合。"><code>USVString</code></a> 表示全局变量的数据类型. 可以是<code>i32</code>, <code>i64</code>, <code>f32</code>, 或 <code>f64</code>.</li>
+<li><code>mutable</code>: 布尔值决定是否可以修改. 默认是 <code>false</code>.</li>
+</ul>
+</dd>
+<dt><em>value</em></dt>
+<dd>可以是任意变量值. This can be any value,需要其类型与变量类型匹配. 如果变量没有定义, 使用0代替,参考 <a class="external" href="https://webassembly.github.io/spec/js-api/#defaultvalue" rel="noopener"><code>DefaultValue</code> algorithm</a>.</dd>
+</dl>
+<h2 id="Global_构造函数属性">Global 构造函数属性</h2>
+<p>None.</p>
+<h2 id="Global_实例">Global 实例</h2>
+<p>所有的 <code>Global</code> 实例 继承自 <code>Global()</code> 构造函数 <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Global/prototype">prototype object</a> — 修改会影响 所有 <code>Global</code> 实例.</p>
+<h3 id="实例属性">实例属性</h3>
+<p></p><dl>
+<dt><code>Global.prototype.constructor</code></dt>
+<dd>Returns the function that created this object's instance. By default this is the <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Global" title="A WebAssembly.Global object represents a global variable instance, accessible from both JavaScript and importable/exportable across one or more WebAssembly.Module instances. This allows dynamic linking of multiple modules."><code>WebAssembly.Global()</code></a> constructor.</dd>
+<dt><code>Global.prototype[@@toStringTag]</code></dt>
+<dd>The initial value of the <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toStringTag">@@toStringTag</a> property is the String value "WebAssembly.Global".</dd>
+<dt><code>Global.prototype.value</code></dt>
+<dd>The value contained inside the global variable — this can be used to directly set and get the global's value.</dd>
+</dl><p></p>
+<h3 id="实例方法">实例方法</h3>
+<p></p><dl>
+<dt><code>Global.prototype.valueOf()</code></dt>
+<dd>Old-style method that returns the value contained inside the global variable.</dd>
+</dl><p></p>
+<h2 id="例子">例子</h2>
+<p>以下例子展示了使用 <code>WebAssembly.Global()</code> 构造函数创建一个新的实例. 它定义为可修饰的 类型为<code>i32</code> , 值为 0.</p>
+<p>global的值发生改变, 首先设置<code>Global.value</code> 为42, 然后使用导出函数 <code>incGlobal()</code> 增加为43. 导出函数在 <code>global.wasm</code> 模块中(它将参数的值加一并返回).</p>
+<pre class="brush: js">const output = document.getElementById('output');
+
+function assertEq(msg, got, expected) {
+    output.innerHTML += `Testing ${msg}: `;
+    if (got !== expected)
+        output.innerHTML += `FAIL!&lt;br&gt;Got: ${got}&lt;br&gt;Expected: ${expected}&lt;br&gt;`;
+    else
+        output.innerHTML += `SUCCESS! Got: ${got}&lt;br&gt;`;
+}
+
+assertEq("WebAssembly.Global exists", typeof WebAssembly.Global, "function");
+
+const global = new WebAssembly.Global({value:'i32', mutable:true}, 0);
+
+WebAssembly.instantiateStreaming(fetch('global.wasm'), { js: { global } })
+.then(({instance}) =&gt; {
+    assertEq("getting initial value from wasm", instance.exports.getGlobal(), 0);
+    global.value = 42;
+    assertEq("getting JS-updated value from wasm", instance.exports.getGlobal(), 42);
+    instance.exports.incGlobal();
+    assertEq("getting wasm-updated value from JS", global.value, 43);
+});</pre>
+<div class="note">
+<p><strong>注意</strong>: 你可以在<a class="external" href="https://mdn.github.io/webassembly-examples/js-api-examples/global.html" rel="noopener">running live on GitHub</a> 查看例子; 也可以访问<a class="external" href="https://github.com/mdn/webassembly-examples/blob/master/js-api-examples/global.html" rel="noopener">source code</a>.</p>
+</div>
+<h2 id="规格">规格</h2>
+<table class="standard-table">
+<thead>
+<tr>
+<th scope="col">规格</th>
+<th scope="col">状态</th>
+<th scope="col">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a class="external" href="https://webassembly.github.io/spec/js-api/#globals" hreflang="en" lang="en" rel="noopener">WebAssembly JavaScript Interface<br/><small lang="zh-CN">WebAssembly.Global()</small></a></td>
+<td><span class="spec-WD">Working Draft</span></td>
+<td>Initial draft definition.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Browser_compatibility" name="Browser_compatibility">浏览器兼容性</h2>
+<div>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>Global</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              69</td><td class="bc-supports-no bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              62</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              69</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              69</td><td class="bc-supports-no bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              62</td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td></tr><tr><th scope="row"><a class="new" href="Reference/Global_Objects/WebAssembly/Global/value" rel="nofollow"><code>value</code></a></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              69</td><td class="bc-supports-no bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              62</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              69</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              69</td><td class="bc-supports-no bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              62</td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td></tr><tr><th scope="row"><a class="new" href="Reference/Global_Objects/WebAssembly/Global/valueOf" rel="nofollow"><code>valueOf</code></a></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              69</td><td class="bc-supports-no bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              62</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              69</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              69</td><td class="bc-supports-no bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              62</td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd></dl></section></div><p></p>
+</div>
+<h2 id="See_also">See also</h2>
+<ul>
+<li><a href="/en-US/docs/WebAssembly">WebAssembly</a> overview page</li>
+<li><a href="/en-US/docs/WebAssembly/Concepts">WebAssembly concepts</a></li>
+<li><a href="/en-US/docs/WebAssembly/Using_the_JavaScript_API">Using the WebAssembly JavaScript API</a></li>
+<li><a class="external" href="https://github.com/WebAssembly/mutable-global/blob/master/proposals/mutable-global/Overview.md" rel="noopener">Import/Export mutable globals proposal</a></li>
+</ul>
+</article>

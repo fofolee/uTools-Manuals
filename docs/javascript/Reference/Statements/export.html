@@ -1,0 +1,209 @@
+<article id="wikiArticle">
+<div></div>
+<p><span class="seoSummary">在创建JavaScript模块时，<code><strong>export</strong></code> 语句用于从模块中导出函数、对象或原始值，以便其他程序可以通过 <a href="Reference/Statements/import" title='import 语句用于导入由另一个模块导出的绑定。无论是否声明了 strict mode ，导入的模块都运行在严格模式下。在浏览器中，import 语句只能在声明了 type="module" 的 script 的标签中使用。'><code>import</code></a> 语句使用它们。</span></p>
+<p dir="ltr" id="tw-target-text">无论您是否声明严格模式，导出的模块都处于严格模式。 export语句不能在嵌入式脚本中使用。</p>
+<p> </p>
+<h2 id="语法">语法</h2>
+<pre class="brush: js">export { <var>name1</var>, <var>name2</var>, …, <var>nameN</var> };
+export { <var>variable1</var> as <var>name1</var>, <var>variable2</var> as <var>name2</var>, …, <var>nameN</var> };
+export let <var>name1</var>, <var>name2</var>, …, <var>nameN</var>; // also var, const
+export let <var>name1</var> = …, <var>name2</var> = …, …, <var>nameN</var>; // also var, const
+export function FunctionName(){...}
+export class ClassName {...}
+
+export default <em>expression</em>;
+export default function (…) { … } // also class, function*
+export default function name1(…) { … } // also class, function*
+export { <var>name1</var> as default, … };
+
+export * from …;
+export { <var>name1</var>, <var>name2</var>, …, <var>nameN</var> } from …;
+export { <var>import1</var> as <var>name1</var>, <var>import2</var> as <var>name2</var>, …, <var>nameN</var> } from …;
+export { default } from …;</pre>
+<dl>
+<dt><code>nameN</code></dt>
+<dd>要导出的标识符（以便被其他脚本通过 <a href="Reference/Statements/import" title='import 语句用于导入由另一个模块导出的绑定。无论是否声明了 strict mode ，导入的模块都运行在严格模式下。在浏览器中，import 语句只能在声明了 type="module" 的 script 的标签中使用。'><code>import</code></a> 导入）</dd>
+</dl>
+<h2 id="描述">描述</h2>
+<p>有两种不同的导出方式，命名导出和默认导出。你能够在每一个模块中定义多个命名导出，但是只允许有一个默认导出。每种方式对应于上述的一种语法：</p>
+<ul>
+<li>命名导出：
+  <pre class="brush: js">// exports a function declared earlier
+export { myFunction }; 
+
+// exports a constant
+export const foo = Math.sqrt(2);</pre>
+</li>
+</ul>
+<ul>
+<li>默认导出（函数）：
+  <pre class="brush: js">export default function() {} </pre>
+</li>
+<li>默认导出（类）：
+  <pre class="brush: js">export default class {} </pre>
+</li>
+</ul>
+<p>在导出多个值时，命名导出非常有用。在导入期间，必须使用相应对象的相同名称。但是，可以使用任何名称导入默认导出，例如：</p>
+<pre class="brush: js">let k; export default k = 12; // in file test.js
+
+import m from './test' // note that we have the freedom to use import m instead of import k, because k was default export
+
+console.log(m);        // will log 12
+</pre>
+<p> 下面的语法不能从导入的模块导出默认导出值：</p>
+<pre class="brush: js">export * from …;</pre>
+<p>如果需要导出默认值，请使用下列代码：</p>
+<pre class="brush: js">export {default} from 'mod';</pre>
+<h2 id="示例">示例</h2>
+<h3 id="使用命名导出">使用命名导出</h3>
+<p>在模块中，我们可以使用以下代码：</p>
+<pre class="brush: js">// module "my-module.js"
+function cube(x) {
+  return x * x * x;
+}
+const foo = Math.PI + Math.SQRT2;
+var graph = {
+    options: {
+        color:'white',
+        thickness:'2px'
+    },
+    draw: function() {
+        console.log('From graph draw function');
+    }
+}
+export { cube, foo, graph };
+</pre>
+<p>这样的话，在其它脚本中，我们可以这样使用它：</p>
+<pre class="brush: js">// 在html中应使用带有module类型的script。
+// 示例:
+//   &lt;script type="module" src="./demo.js"&gt;&lt;/script&gt;
+//
+// 在http服务器上访问，否则将会有一个CORS保护报错。
+//
+// script demo.js
+
+import { cube, foo, graph } from 'my-module';
+graph.options = {
+    color:'blue',
+    thickness:'3px'
+}; 
+graph.draw();
+console.log(cube(3)); // 27
+console.log(foo);    // 4.555806215962888</pre>
+<h3 id="使用默认导出">使用默认导出</h3>
+<p>如果我们要导出一个值或模块中的返回值，就可以使用默认导出：</p>
+<pre class="brush: js">// module "my-module.js"
+export default function cube(x) {
+  return x * x * x;
+}
+</pre>
+<p>然后，在另一个脚本中，可以直接导入默认导出：</p>
+<pre class="brush: js line-numbers language-js">// module "my-module.js"
+import cube from 'my-module';
+console.log(cube(3)); // 27​​​​​</pre>
+<p>注意，不能使用 <code>var</code>、<code>let</code> 或 <code>const</code> 用于导出默认值 <code>export default</code>。</p>
+<h3 id="模块重定向">模块重定向</h3>
+<p>如果我们想要在当前模块中，导出指定导入模块的默认导出（等于是创建了一个“重定向”）：</p>
+<pre class="brush: js">// module "redirect-module.js"
+export {default} from './other-module';
+export * from './other-module';</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规范</th>
+<th scope="col">状态</th>
+<th scope="col">备注</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-exports" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Exports</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-exports" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Exports</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>export</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              61</td><td class="bc-supports-yes bc-browser-edge bc-has-history"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              16<div class="bc-icons"></div><section class="bc-history" id="sect1"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              16<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              15<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 15: this feature is behind the <code>Experimental JavaScript Features</code> preference.</dd></dl></section></td><td class="bc-supports-yes bc-browser-firefox bc-has-history"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60<div class="bc-icons"></div><section class="bc-history" id="sect2"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>54 — 60<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 54 until version 60 (exclusive): this feature is behind the <code>dom.moduleScripts.enabled</code> preference. To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10.1</td><td class="bc-supports-no bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              61</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android bc-has-history"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60<div class="bc-icons"></div><section class="bc-history" id="sect3"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>54 — 60<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 54 until version 60 (exclusive): this feature is behind the <code>dom.moduleScripts.enabled</code> preference. To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10.1</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-unknown bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td></tr></tbody></table><section class="bc-legend" id="sect4"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><span class="bc-supports-unknown bc-supports">
+<abbr class="bc-level bc-level-unknown only-icon" title="Compatibility unknown">
+<span>Compatibility unknown</span>
+                  
+                </abbr></span></dt><dd>Compatibility unknown</dd><dt><abbr class="only-icon" title="User must explicitly enable this feature."><span>User must explicitly enable this feature.</span><i class="ic-disabled"></i></abbr></dt><dd>User must explicitly enable this feature.</dd></dl></section></div><p></p>
+<h2 id="参见">参见</h2>
+<ul>
+<li><a href="Reference/Statements/import" title='import 语句用于导入由另一个模块导出的绑定。无论是否声明了 strict mode ，导入的模块都运行在严格模式下。在浏览器中，import 语句只能在声明了 type="module" 的 script 的标签中使用。'><code>import</code></a></li>
+<li><a class="external" href="https://hacks.mozilla.org/2015/08/es6-in-depth-modules/" rel="noopener">ES6 in Depth: Modules</a>, Hacks blog post by Jason Orendorff</li>
+<li><a class="external" href="https://hacks.mozilla.org/2018/03/es-modules-a-cartoon-deep-dive/" rel="noopener">ES modules: A cartoon deep-dive</a>, Hacks blog post by Lin Clark</li>
+<li><a class="external" href="http://exploringjs.com/es6/ch_modules.html" rel="noopener">Axel Rauschmayer's book: "Exploring JS: Modules"</a></li>
+</ul>
+</article>

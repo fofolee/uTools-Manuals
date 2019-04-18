@@ -1,0 +1,337 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.concurrent.locks 
+   </div>
+<h2 class="title" title="Class LockSupport">Class LockSupport</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.util.concurrent.locks.LockSupport</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public class <span class="typeNameLabel">LockSupport</span>
+extends <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span>用于创建锁和其他同步类的基本线程阻塞原语。</span>
+<p> <span>这个类与每个使用它的线程相关联，一个许可证（在<a href="../../../../java/util/concurrent/Semaphore.html" title="java.util.concurrent中的类"><code>Semaphore</code></a>类的意义上）。</span> <span>如果许可证可用，则呼叫<code>park</code>将<code>park</code>返回，在此过程中消耗它;</span> <span>否则<em>可能会</em>阻止。</span> <span>致电<code>unpark</code>使许可证可用，如果尚不可用。</span> <span>（与信号量不同，许可证不能累积，最多只有一个。）</span> </p>
+<p> <span>方法<code>park</code>和<code>unpark</code>提供了阻止和解除阻塞线程的有效手段，该方法不会遇到导致不推荐使用的方法<code>Thread.suspend</code>和<code>Thread.resume</code>目的不能使用的问题：一个线程调用<code>park</code>和另一个线程之间的尝试<code>unpark</code>线程将保持活跃性，由于许可证。</span> <span>另外，如果调用者的线程被中断， <code>park</code>将返回，并且支持超时版本。</span> <span><code>park</code>方法也可以在任何其他时间返回，因为“无理由”，因此一般必须在返回之前重新检查条件的循环中被调用。</span> <span>在这个意义上， <code>park</code>作为一个“忙碌等待”的优化，不浪费时间旋转，但必须与<code>unpark</code>配对才能有效。</span> </p>
+<p> <span><code>park</code>的三种形式也支持<code>blocker</code>对象参数。</span> <span>线程被阻止时记录此对象，以允许监视和诊断工具识别线程被阻止的原因。</span> <span>（此类工具可以使用方法<a href="../../../../java/util/concurrent/locks/LockSupport.html#getBlocker-java.lang.Thread-"><code>getBlocker(Thread)</code></a>访问阻止<a href="../../../../java/util/concurrent/locks/LockSupport.html#getBlocker-java.lang.Thread-">程序</a> 。）强烈鼓励使用这些形式而不是没有此参数的原始形式。</span> <span>在锁实现中作为<code>blocker</code>提供的正常参数是<code>this</code> 。</span> </p>
+<p> <span>这些方法被设计为用作创建更高级同步实用程序的工具，并且本身对于大多数并发控制应用程序本身并不有用。</span> <span><code>park</code>方法仅用于形式的构造：</span> </p>
+<pre>  <span><code> while (!canProceed()) { ... LockSupport.park(this); }</code></span> </pre>
+<span>其中既不<code>canProceed</code>也没有任何其他动作之前的呼叫<code>park</code>需要锁定或阻止。</span>
+<span>因为只有一个许可证与每个线程相关联， <code>park</code>任何中介使用可能会干扰其预期效果。</span>
+<p> <span><b>样品用法。</b></span> <span>这是一个先入先出的非可重入锁类的草图：</span> </p>
+<pre>  <span><code> class FIFOMutex { private final AtomicBoolean locked = new AtomicBoolean(false); private final Queue&lt;Thread&gt; waiters = new ConcurrentLinkedQueue&lt;Thread&gt;(); public void lock() { boolean wasInterrupted = false; Thread current = Thread.currentThread(); waiters.add(current); // Block while not first in queue or cannot acquire lock while (waiters.peek() != current || !locked.compareAndSet(false, true)) { LockSupport.park(this); if (Thread.interrupted()) // ignore interrupts while waiting wasInterrupted = true; } waiters.remove(); if (wasInterrupted) // reassert interrupt status on exit current.interrupt(); } public void unlock() { locked.set(false); LockSupport.unpark(waiters.peek()); } }</code></span> </pre>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>static <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/LockSupport.html#getBlocker-java.lang.Thread-">getBlocker</a></span>(<a href="../../../../java/lang/Thread.html" title="class in java.lang">Thread</a> t)</code>
+<div class="block">
+              返回提供给最近调用尚未解除阻塞的park方法的阻止程序对象，如果不阻止则返回null。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/LockSupport.html#park--">park</a></span>()</code>
+<div class="block">
+              禁止当前线程进行线程调度，除非许可证可用。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/LockSupport.html#park-java.lang.Object-">park</a></span>(<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> blocker)</code>
+<div class="block">
+              禁止当前线程进行线程调度，除非许可证可用。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/LockSupport.html#parkNanos-long-">parkNanos</a></span>(long nanos)</code>
+<div class="block">
+              禁用当前线程进行线程调度，直到指定的等待时间，除非许可证可用。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/LockSupport.html#parkNanos-java.lang.Object-long-">parkNanos</a></span>(<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> blocker, long nanos)</code>
+<div class="block">
+              禁用当前线程进行线程调度，直到指定的等待时间，除非许可证可用。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/LockSupport.html#parkUntil-long-">parkUntil</a></span>(long deadline)</code>
+<div class="block">
+              禁用当前线程进行线程调度，直到指定的截止日期，除非许可证可用。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/LockSupport.html#parkUntil-java.lang.Object-long-">parkUntil</a></span>(<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> blocker, long deadline)</code>
+<div class="block">
+              禁用当前线程进行线程调度，直到指定的截止日期，除非许可证可用。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/LockSupport.html#unpark-java.lang.Thread-">unpark</a></span>(<a href="../../../../java/lang/Thread.html" title="class in java.lang">Thread</a> thread)</code>
+<div class="block">
+              为给定的线程提供许可证（如果尚未提供）。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="unpark-java.lang.Thread-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>unpark</h4> <pre>public static void unpark(<a href="../../../../java/lang/Thread.html" title="class in java.lang">Thread</a> thread)</pre>
+<div class="block">
+<span>为给定的线程提供许可证（如果尚未提供）。</span>
+<span>如果线程在<code>park</code>被阻塞，那么它将被解除阻塞。</span>
+<span>否则，其下一次拨打<code>park</code>保证不被阻止。</span>
+<span>如果给定的线程尚未启动，则此操作无法保证完全没有任何影响。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>thread</code> - 要取消 
+            <code>thread</code>的线程，或 
+            <code>null</code> ，在这种情况下，此操作无效 
+           </dd>
+</dl> </li>
+</ul> <a name="park-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>park</h4> <pre>public static void park(<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> blocker)</pre>
+<div class="block">
+<span>禁止当前线程进行线程调度，除非许可证可用。</span>
+<p> <span>如果许可证可用，则它被消耗，并且该呼叫立即返回;</span> <span>否则当前线程对于线程调度目的将被禁用，并且处于休眠状态，直至发生三件事情之一：</span> </p>
+<ul>
+<li> <span>一些其他线程调用当前线程作为目标的<a href="../../../../java/util/concurrent/locks/LockSupport.html#unpark-java.lang.Thread-"><code>unpark</code></a> ;</span> <span>要么</span> </li>
+<li> <span>一些其他线程当前线程<a href="../../../../java/lang/Thread.html#interrupt--">interrupts</a> ;</span> <span>要么</span> </li>
+<li> <span>电话虚假（也就是说，没有理由）返回。</span> </li>
+</ul>
+<p> <span>这种方法<em>不</em>报告是哪个线程导致该方法返回。</span> <span>来电者应重新检查导致线程首先停放的条件。</span> <span>呼叫者还可以确定线程在返回时的中断状态。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>blocker</code> - 同步对象负责此线程停车 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="parkNanos-java.lang.Object-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parkNanos</h4> <pre>public static void parkNanos(<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> blocker,
+                             long nanos)</pre>
+<div class="block">
+<span>禁用当前线程进行线程调度，直到指定的等待时间，除非许可证可用。</span>
+<p> <span>如果许可证可用，则它被消耗，并且该呼叫立即返回;</span> <span>否则当前线程对于线程调度目的将被禁用，并且处于休眠状态，直到发生四件事情之一：</span> </p>
+<ul>
+<li> <span>其他一些线程调用当前线程作为目标的<a href="../../../../java/util/concurrent/locks/LockSupport.html#unpark-java.lang.Thread-"><code>unpark</code></a> ;</span> <span>要么</span> </li>
+<li> <span>其他线程<a href="../../../../java/lang/Thread.html#interrupt--">interrupts</a>当前线程;</span> <span>要么</span> </li>
+<li> <span>指定的等待时间过去了;</span> <span>要么</span> </li>
+<li> <span>电话虚假（也就是说，没有理由）返回。</span> </li>
+</ul>
+<p> <span>这种方法<em>不</em>报告是哪个线程导致该方法返回。</span> <span>来电者应重新检查导致线程首先停放的条件。</span> <span>呼叫者还可以确定线程的中断状态，或者返回时经过的时间。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>blocker</code> - 同步对象负责此线程停车 
+           </dd>
+<dd>
+<code>nanos</code> - 要等待的最大纳秒数 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="parkUntil-java.lang.Object-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parkUntil</h4> <pre>public static void parkUntil(<a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> blocker,
+                             long deadline)</pre>
+<div class="block">
+<span>禁用当前线程进行线程调度，直到指定的截止日期，除非许可证可用。</span>
+<p> <span>如果许可证可用，则它被消耗，并且该呼叫立即返回;</span> <span>否则当前线程对于线程调度目的将被禁用，并且处于休眠状态，直到发生四件事情之一：</span> </p>
+<ul>
+<li> <span>一些其他线程调用当前线程作为目标的<a href="../../../../java/util/concurrent/locks/LockSupport.html#unpark-java.lang.Thread-"><code>unpark</code></a> ;</span> <span>要么</span> </li>
+<li> <span>一些其他线程当前线程<a href="../../../../java/lang/Thread.html#interrupt--">interrupts</a> ;</span> <span>要么</span> </li>
+<li> <span>指定期限通过;</span> <span>要么</span> </li>
+<li> <span>电话虚假（也就是说，没有理由）返回。</span> </li>
+</ul>
+<p> <span>这种方法<em>不</em>报告是哪个线程导致该方法返回。</span> <span>来电者应重新检查导致线程首先停放的条件。</span> <span>呼叫者还可以确定线程的中断状态，或返回当前的时间。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>blocker</code> - 负责此线程停车的同步对象 
+           </dd>
+<dd>
+<code>deadline</code> - 绝对时间，以毫秒为单位，从时代到等到 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="getBlocker-java.lang.Thread-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getBlocker</h4> <pre>public static <a href="../../../../java/lang/Object.html" title="class in java.lang">Object</a> getBlocker(<a href="../../../../java/lang/Thread.html" title="class in java.lang">Thread</a> t)</pre>
+<div class="block">
+<span>返回提供给最近调用尚未解除阻塞的park方法的阻止程序对象，如果不阻止则返回null。</span>
+<span>返回的值只是一个瞬间的快照 - 线程可能已经被阻止或阻止在不同的阻止对象上。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>t</code> - 线程 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             阻滞剂 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果参数为空 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="park--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>park</h4> <pre>public static void park()</pre>
+<div class="block">
+<span>禁止当前线程进行线程调度，除非许可证可用。</span>
+<p> <span>如果许可证可用，则它被消耗，并且该呼叫立即返回;</span> <span>否则当前线程对于线程调度目的将被禁用，并且处于休眠状态，直至发生三件事情之一：</span> </p>
+<ul>
+<li> <span>一些其他线程调用当前线程作为目标的<a href="../../../../java/util/concurrent/locks/LockSupport.html#unpark-java.lang.Thread-"><code>unpark</code></a> ;</span> <span>要么</span> </li>
+<li> <span>其他一些线程当前线程为<a href="../../../../java/lang/Thread.html#interrupt--">interrupts</a> ;</span> <span>要么</span> </li>
+<li> <span>电话虚假（也就是说，没有理由）返回。</span> </li>
+</ul>
+<p> <span>这种方法<em>不</em>报告是哪个线程导致该方法返回。</span> <span>来电者应重新检查导致线程首先停放的条件。</span> <span>呼叫者还可以确定线程在返回时的中断状态。</span> </p>
+</div> </li>
+</ul> <a name="parkNanos-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parkNanos</h4> <pre>public static void parkNanos(long nanos)</pre>
+<div class="block">
+<span>禁用当前线程进行线程调度，直到指定的等待时间，除非许可证可用。</span>
+<p> <span>如果许可证可用，则它被消耗，并且该呼叫立即返回;</span> <span>否则当前线程对于线程调度目的将被禁用，并且处于休眠状态，直到发生四件事情之一：</span> </p>
+<ul>
+<li> <span>一些其他线程调用当前线程作为目标的<a href="../../../../java/util/concurrent/locks/LockSupport.html#unpark-java.lang.Thread-"><code>unpark</code></a> ;</span> <span>要么</span> </li>
+<li> <span>一些其他线程当前线程<a href="../../../../java/lang/Thread.html#interrupt--">interrupts</a> ;</span> <span>要么</span> </li>
+<li> <span>指定的等待时间过去了;</span> <span>要么</span> </li>
+<li> <span>电话虚假（也就是说，没有理由）返回。</span> </li>
+</ul>
+<p> <span>这种方法<em>不</em>报告是哪个线程导致该方法返回。</span> <span>来电者应重新检查导致线程首先停放的条件。</span> <span>呼叫者还可以确定线程的中断状态，或者返回时经过的时间。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nanos</code> - 等待的最大纳秒数 
+           </dd>
+</dl> </li>
+</ul> <a name="parkUntil-long-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>parkUntil</h4> <pre>public static void parkUntil(long deadline)</pre>
+<div class="block">
+<span>禁用当前线程进行线程调度，直到指定的截止日期，除非许可证可用。</span>
+<p> <span>如果许可证可用，则它被消耗，并且该呼叫立即返回;</span> <span>否则当前线程对于线程调度目的将被禁用，并且处于休眠状态，直到发生四件事情之一：</span> </p>
+<ul>
+<li> <span>一些其他线程调用当前线程作为目标的<a href="../../../../java/util/concurrent/locks/LockSupport.html#unpark-java.lang.Thread-"><code>unpark</code></a> ;</span> <span>要么</span> </li>
+<li> <span>其他一些线程当前线程为<a href="../../../../java/lang/Thread.html#interrupt--">interrupts</a> ;</span> <span>要么</span> </li>
+<li> <span>指定期限通过;</span> <span>要么</span> </li>
+<li> <span>电话虚假（也就是说，没有理由）返回。</span> </li>
+</ul>
+<p> <span>这种方法<em>不</em>报告是哪个线程导致该方法返回。</span> <span>来电者应重新检查导致线程首先停放的条件。</span> <span>呼叫者还可以确定线程的中断状态，或返回当前的时间。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>deadline</code> - 绝对时间，以毫秒为单位，从时代到等到 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

@@ -1,0 +1,140 @@
+<article id="wikiArticle">
+<div> <div class="blockIndicator experimental indicator-warning">
+<p><span title="这是一个实验性的 API，请尽量不要在生产环境中使用它。"><i class="icon-beaker"> </i></span> <strong>这是一个实验中的功能</strong><br/>此功能某些浏览器尚在开发中，请参考<a href="#Browser_compatibility">浏览器兼容性表格</a>以得到在不同浏览器中适合使用的前缀。由于该功能对应的标准文档可能被重新修订，所以在未来版本的浏览器中该功能的语法和行为可能随之改变。</p>
+</div></div>
+<p> 静态<code><strong>ArrayBuf</strong></code><strong>fer.transfer()</strong> 方法返回一个新的ArrayBuffer， 其内容取自oldBuffer的数据，并且根据 newByteLength 的大小来对数据进行截取或者以0扩展。 如果 newByteLength 未定义，则使用 oldBuffer 的byteLength。这个操作使得 oldBuffer 处于被移除的状态。</p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox">ArrayBuffer.transfer(oldBuffer [, newByteLength]);</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>oldBuffer</code></dt>
+<dd> 要转移的<a href="Reference/Global_Objects/ArrayBuffer" title="The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>ArrayBuffer</code></a>对象。</dd>
+<dt>newByteLength</dt>
+<dd>新 <code>ArrayBuffer</code> 对象的字节长度。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>一个新的ArrayBuffer对象。</p>
+<h2 id="描述">描述</h2>
+<p><code>ArrayBuffer.transfer()</code>方法允许你增长和移除 <code>ArrayBuffer</code> 对象。不需复制就能增长一个ArrayBuffer的功能，对于大的缓冲区来说，有速度优势 (类似realloc) 。当释放底层内存时，移除ArrayBuffer的功能给开发者提供了显式控制。这避免了必须丢弃所有引用和等待垃圾回收。</p>
+<h2 id="示例">示例</h2>
+<pre class="brush: js">var buf1 = new ArrayBuffer(40);
+new Int32Array(buf1)[0] = 42;
+
+var buf2 = ArrayBuffer.transfer(buf1, 80);
+buf1.byteLength; // 0 but if you use the polyfill then the value is still 40
+buf2.byteLength; // 80
+new Int32Array(buf2)[0]; // 42
+
+var buf3 = ArrayBuffer.transfer(buf2, 0);
+buf2.byteLength; // 0 but if you use the polyfill then the value is still 80
+buf3.byteLength; // 0
+</pre>
+<h2 id="Polyfill">Polyfill</h2>
+<p>You can partially work around this by inserting the following code at the beginning of your scripts, allowing use of much of the functionality of transfer<font face="Consolas, Liberation Mono, Courier, monospace">()</font> in implementations that do not natively support it. This is not the exact equivalent of this API, but this function transfers data from one ArrayBuffer to another ArrayBuffer.</p>
+<pre>if(!ArrayBuffer.transfer) {
+    ArrayBuffer.transfer = function (source, length) {
+        source = Object(source);
+        var dest = new ArrayBuffer(length);
+        if(!(source instanceof ArrayBuffer) || !(dest instanceof ArrayBuffer)) {
+            throw new TypeError("Source and destination must be ArrayBuffer instances");
+        }
+        if(dest.byteLength &gt;= source.byteLength) {
+            var nextOffset = 0;
+            var leftBytes = source.byteLength;
+            var wordSizes = [8, 4, 2, 1];
+            wordSizes.forEach(function (_wordSize_) {
+                if (leftBytes &gt;= _wordSize_) {
+                    var done = transferWith(_wordSize_, source, dest, nextOffset, leftBytes);
+                    nextOffset = done.nextOffset;
+                    leftBytes = done.leftBytes;
+                }
+            });
+        }
+        return dest;
+        function transferWith(wordSize, source, dest, nextOffset, leftBytes) {
+            var ViewClass = Uint8Array;
+            switch (wordSize)  {
+                case 8:
+                    ViewClass = Float64Array;
+                    break;
+                case 4:
+                    ViewClass = Float32Array;
+                    break;
+                case 2:
+                    ViewClass = Uint16Array;
+                    break;
+                case 1:
+                    ViewClass = Uint8Array;
+                    break;
+                default:
+                    ViewClass = Uint8Array;
+                    break;
+            }
+            var view_source = new ViewClass(source, nextOffset, Math.trunc(leftBytes / wordSize));
+            var view_dest = new ViewClass(dest, nextOffset, Math.trunc(leftBytes / wordSize));
+            for(var i=0; i&lt;view_dest.length; i++) {
+                view_dest[i] = view_source[i];
+            }
+            return {
+                nextOffset : view_source.byteOffset + view_source.byteLength,
+                leftBytes : source.byteLength - (view_source.byteOffset + view_source.byteLength)
+            }
+        }
+    };
+}</pre>
+<h2 id="规范">规范</h2>
+<p>Not part of any current specification draft document, but <a class="external" href="https://esdiscuss.org/topic/sept-23-2014-meeting-notes" rel="noopener">has been</a> <a class="external" href="https://gist.github.com/lukewagner/2735af7eea411e18cf20" rel="noopener">proposed</a> for a future ECMA-262 edition.</p>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>transfer</code> <div class="bc-icons"><abbr class="only-icon" title="Experimental. Expect behavior to change in the future."><span>Experimental</span><i class="ic-experimental"></i></abbr><abbr class="only-icon" title="Non-standard. Expect poor cross-browser support."><span>Non-standard</span><i class="ic-non-standard"></i></abbr></div></th><td class="bc-supports-no bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><abbr class="only-icon" title="Experimental. Expect behavior to change in the future."><span>Experimental. Expect behavior to change in the future.</span><i class="ic-experimental"></i></abbr></dt><dd>Experimental. Expect behavior to change in the future.</dd><dt><abbr class="only-icon" title="Non-standard. Expect poor cross-browser support."><span>Non-standard. Expect poor cross-browser support.</span><i class="ic-non-standard"></i></abbr></dt><dd>Non-standard. Expect poor cross-browser support.</dd></dl></section></div><p></p>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="/en-US/docs/Web/JavaScript/Typed_arrays" title="en/JavaScript typed arrays">JavaScript typed arrays</a></li>
+</ul>
+</article>

@@ -1,0 +1,2020 @@
+<div class="header">
+<div class="subTitle">
+     java.awt.font 
+   </div>
+<h2 class="title" title="Class TextLayout">Class TextLayout</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.awt.font.TextLayout</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/lang/Cloneable.html" title="java.lang中的接口">Cloneable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">TextLayout</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../../java/lang/Cloneable.html" title="interface in java.lang">Cloneable</a></pre>
+<div class="block">
+<span><code>TextLayout</code>是风格字符数据的不可变的图形表示。</span>
+<p> <span>它提供以下功能：</span> </p>
+<ul>
+<li> <span>隐式双向分析和重新排序，</span> </li>
+<li> <span>光标定位和移动，包括用于混合方向文本的分割光标，</span> </li>
+<li> <span>突出显示，包括混合方向文本的逻辑和视觉突出显示，</span> </li>
+<li> <span>多个基线（罗马，悬挂和居中），</span> </li>
+<li> <span>打测试，</span> </li>
+<li> <span>理由，</span> </li>
+<li> <span>默认字体替换，</span> </li>
+<li> <span>诸如上升，下降和提前的度量信息，以及</span> </li>
+<li> <span>渲染</span> </li>
+</ul>
+<p> <span>一个<code>TextLayout</code>对象可以使用其<code>draw</code>方法渲染。</span> </p>
+<p> <span><code>TextLayout</code>可以直接或通过使用<a href="../../../java/awt/font/LineBreakMeasurer.html" title="java.awt.font中的类"><code>LineBreakMeasurer</code>构建</a> 。</span> <span>直接构建时，源文本代表一个段落。</span> <span><code>LineBreakMeasurer</code>允许将样式文本分解成适合特定宽度的行。</span> <span>有关更多信息，请参阅<code>LineBreakMeasurer</code>文档。</span> </p>
+<p> <span><code>TextLayout</code>建设逻辑进行如下：</span> </p>
+<ul>
+<li> <span>段落属性被提取和检查，</span> </li>
+<li> <span>文本被分析用于双向重新排序，并且如果需要则重新排序信息被计算，</span> </li>
+<li> <span>文本被分割成样式运行</span> </li>
+<li> <span>为样式运行选择字体，首先如果存在属性<a href="../../../java/awt/font/TextAttribute.html#FONT"><code>TextAttribute.FONT</code></a>使用字体，否则通过使用已定义的属性计算默认字体</span> </li>
+<li> <span>如果文本在多个基准上，则运行或子文件进一步分解为共享一个共同基准的子目录，</span> </li>
+<li> <span>使用所选择的字体为每次运行生成glyphvectors，</span> </li>
+<li> <span>对glyphvectors执行最终双向重排序</span> </li>
+</ul>
+<p> <span>从<code>TextLayout</code>对象的方法返回的所有图形信息都是相对于<code>TextLayout</code>的起点， <code>TextLayout</code>是<code>TextLayout</code>对象的基线与其左边缘的<code>TextLayout</code> 。</span> <span>而且，假定传递给<code>TextLayout</code>对象的方法的坐标是相对于<code>TextLayout</code>对象的来源。</span> <span>客户通常需要在<code>TextLayout</code>对象的坐标系和另一个对象（例如<a href="../../../java/awt/Graphics.html" title="java.awt中的类"><code>Graphics</code></a>对象）中的坐标系之间进行<code>TextLayout</code> 。</span> </p>
+<p> <span><code>TextLayout</code>对象由样式文本构建，但它们不保留对其源文本的引用。</span> <span>因此，以前用于生成<code>TextLayout</code>的文本的更改不会影响<code>TextLayout</code> 。</span> </p>
+<p> <span>一对三种方法<code>TextLayout</code>对象（ <code>getNextRightHit</code> ， <code>getNextLeftHit</code>和<code>hitTestChar</code> ）返回的实例<a href="../../../java/awt/font/TextHitInfo.html" title="java.awt.font中的类"><code>TextHitInfo</code></a> 。</span> <span>这些<code>TextHitInfo</code>对象中的偏移量相对于<code>TextLayout</code> ， <b>而不是</b>用于创建<code>TextLayout</code>的文本。</span> <span>类似地，接受<code>TextHitInfo</code>实例作为参数的<code>TextLayout</code>方法期望<code>TextHitInfo</code>对象的偏移量相对于<code>TextLayout</code> ，而不是任何基础文本存储模型。</span> </p>
+<p> <span><strong>示例</strong> ：</span> </p>
+<p> <span>构造和绘制一个<code>TextLayout</code>及其边界矩形：</span> </p>
+<blockquote>
+<span><pre>
+   Graphics2D g = ...;
+   Point2D loc = ...;
+   Font font = Font.getFont("Helvetica-bold-italic");
+   FontRenderContext frc = g.getFontRenderContext();
+   TextLayout layout = new TextLayout("This is a string", font, frc);
+   layout.draw(g, (float)loc.getX(), (float)loc.getY());
+
+   Rectangle2D bounds = layout.getBounds();
+   bounds.setRect(bounds.getX()+loc.getX(),
+                  bounds.getY()+loc.getY(),
+                  bounds.getWidth(),
+                  bounds.getHeight());
+   g.draw(bounds);
+ </pre></span>
+</blockquote>
+<p> <span>测试一个<code>TextLayout</code> （确定哪个字符在特定的图形位置）：</span> </p>
+<blockquote>
+<span><pre>
+   Point2D click = ...;
+   TextHitInfo hit = layout.hitTestChar(
+                         (float) (click.getX() - loc.getX()),
+                         (float) (click.getY() - loc.getY()));
+ </pre></span>
+</blockquote>
+<p> <span>按右箭头按键：</span> </p>
+<blockquote>
+<span><pre>
+   int insertionIndex = ...;
+   TextHitInfo next = layout.getNextRightHit(insertionIndex);
+   if (next != null) {
+       // translate graphics to origin of layout on screen
+       g.translate(loc.getX(), loc.getY());
+       Shape[] carets = layout.getCaretShapes(next.getInsertionIndex());
+       g.draw(carets[0]);
+       if (carets[1] != null) {
+           g.draw(carets[1]);
+       }
+   }
+ </pre></span>
+</blockquote>
+<p> <span>绘制对应于源文本中的子字符串的选择范围。</span> <span>所选区域可能不是视觉上连续的：</span> </p>
+<blockquote>
+<span><pre>
+   // selStart, selLimit should be relative to the layout,
+   // not to the source text
+
+   int selStart = ..., selLimit = ...;
+   Color selectionColor = ...;
+   Shape selection = layout.getLogicalHighlightShape(selStart, selLimit);
+   // selection may consist of disjoint areas
+   // graphics is assumed to be tranlated to origin of layout
+   g.setColor(selectionColor);
+   g.fill(selection);
+ </pre></span>
+</blockquote>
+<p> <span>绘制视觉上连续的选择范围。</span> <span>选择范围可以对应于源文本中的多个子字符串。</span> <span>可以使用<code>getLogicalRangesForVisualSelection()</code>获取相应的源文本子串的范围：</span> </p>
+<blockquote>
+<span><pre>
+   TextHitInfo selStart = ..., selLimit = ...;
+   Shape selection = layout.getVisualHighlightShape(selStart, selLimit);
+   g.setColor(selectionColor);
+   g.fill(selection);
+   int[] ranges = getLogicalRangesForVisualSelection(selStart, selLimit);
+   // ranges[0], ranges[1] is the first selection range,
+   // ranges[2], ranges[3] is the second selection range, etc.
+ </pre></span>
+</blockquote>
+<p> <span>注意：字体旋转可以使文本基线旋转，多次运行不同的旋转可能导致基线弯曲或曲折。</span> <span>为了解决这个（罕见的）可能性，指定了一些API返回度量值并在“基线相对坐标”（例如，上升，前进）中获取参数，而其他API在“标准坐标”（例如getBounds）中。</span> <span>基线相对坐标中的值将“x”坐标映射到沿着基线的距离（正x沿着基线向前），“y”坐标与“x”处垂直于基线的距离y从基线矢量顺时针旋转90度）。</span> <span>沿着x轴和y轴测量标准坐标值，在TextLayout的原点为0,0。</span> <span>每个相关API的文档指示什么值在什么坐标系中。</span> <span>通常，与测量相关的API处于基准相对坐标，而与显示相关的API处于标准坐标。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/awt/font/LineBreakMeasurer.html" title="java.awt.font中的类"><code>LineBreakMeasurer</code></a> ， <a href="../../../java/awt/font/TextAttribute.html" title="java.awt.font中的类"><code>TextAttribute</code></a> ， <a href="../../../java/awt/font/TextHitInfo.html" title="java.awt.font中的类"><code>TextHitInfo</code></a> ， <a href="../../../java/awt/font/LayoutPath.html" title="java.awt.font中的类"><code>LayoutPath</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.CaretPolicy.html" title="class in java.awt.font">TextLayout.CaretPolicy</a></span></code>
+<div class="block">
+              定义确定强插插位置的策略。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../../java/awt/font/TextLayout.CaretPolicy.html" title="class in java.awt.font">TextLayout.CaretPolicy</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#DEFAULT_CARET_POLICY">DEFAULT_CARET_POLICY</a></span></code>
+<div class="block">
+              当客户端未指定策略时，将使用此 
+             <code>CaretPolicy</code> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#TextLayout-java.text.AttributedCharacterIterator-java.awt.font.FontRenderContext-">TextLayout</a></span>(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> text, <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</code>
+<div class="block">
+              从一个迭代器构造一个 
+             <code>TextLayout</code>样式文本。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#TextLayout-java.lang.String-java.awt.Font-java.awt.font.FontRenderContext-">TextLayout</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> string, <a href="../../../java/awt/Font.html" title="class in java.awt">Font</a> font, <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</code>
+<div class="block">
+<span>构造一个<code>TextLayout</code>从<code>String</code>和<a href="../../../java/awt/Font.html" title="java.awt中的类"><code>Font</code></a> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#TextLayout-java.lang.String-java.util.Map-java.awt.font.FontRenderContext-">TextLayout</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> string, <a href="../../../java/util/Map.html" title="interface in java.util">Map</a>&lt;? extends <a href="../../../java/text/AttributedCharacterIterator.Attribute.html" title="class in java.text">AttributedCharacterIterator.Attribute</a>,?&gt; attributes, <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</code>
+<div class="block">
+              构造一个 
+             <code>TextLayout</code>从 
+             <code>String</code> ，并设置一个属性。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>protected <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#clone--">clone</a></span>()</code>
+<div class="block">
+              创建一个这个 
+             <code>TextLayout</code>的副本。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#draw-java.awt.Graphics2D-float-float-">draw</a></span>(<a href="../../../java/awt/Graphics2D.html" title="class in java.awt">Graphics2D</a> g2, float x, float y)</code>
+<div class="block">
+<span>在指定的<a href="../../../java/awt/Graphics2D.html" title="java.awt中的类"><code>Graphics2D</code></a>上下文中指定的位置呈现此<code>TextLayout</code> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#equals-java.lang.Object-">equals</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              返回 
+             <code>true</code>如果指定的 
+             <code>Object</code>是 
+             <code>TextLayout</code>对象，如果指定的 
+             <code>Object</code>等于这个 
+             <code>TextLayout</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#equals-java.awt.font.TextLayout-">equals</a></span>(<a href="../../../java/awt/font/TextLayout.html" title="class in java.awt.font">TextLayout</a> rhs)</code>
+<div class="block">
+              如果两个布局相等，则返回 
+             <code>true</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>float</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getAdvance--">getAdvance</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>TextLayout</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>float</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getAscent--">getAscent</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>TextLayout</code>的上升。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>byte</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getBaseline--">getBaseline</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>TextLayout</code>的基准。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>float[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getBaselineOffsets--">getBaselineOffsets</a></span>()</code>
+<div class="block">
+              返回用于此 
+             <code>TextLayout</code>的基线的偏移数组。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getBlackBoxBounds-int-int-">getBlackBoxBounds</a></span>(int firstEndpoint, int secondEndpoint)</code>
+<div class="block">
+              返回指定范围内的字符的黑框边界。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getBounds--">getBounds</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>TextLayout</code>的范围。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>float[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getCaretInfo-java.awt.font.TextHitInfo-">getCaretInfo</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</code>
+<div class="block">
+              返回与hit对应的插入符号的 
+             <code>hit</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>float[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getCaretInfo-java.awt.font.TextHitInfo-java.awt.geom.Rectangle2D-">getCaretInfo</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit, <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</code>
+<div class="block">
+              返回与hit对应的插入符号的 
+             <code>hit</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getCaretShape-java.awt.font.TextHitInfo-">getCaretShape</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</code>
+<div class="block">
+              返回 
+             <code>Shape</code>代表在指定的打这个的自然边界中插入符号 
+             <code>TextLayout</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getCaretShape-java.awt.font.TextHitInfo-java.awt.geom.Rectangle2D-">getCaretShape</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit, <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</code>
+<div class="block">
+<span>返回一个<a href="../../../java/awt/Shape.html" title="java.awt中的接口"><code>Shape</code>，</a>表示指定边界内<a href="../../../java/awt/Shape.html" title="java.awt中的接口">指定</a>点的插入符号。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getCaretShapes-int-">getCaretShapes</a></span>(int offset)</code>
+<div class="block">
+              返回对应于强和弱插入符号的两个路径。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getCaretShapes-int-java.awt.geom.Rectangle2D-">getCaretShapes</a></span>(int offset, <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</code>
+<div class="block">
+              返回对应于强和弱插入符号的两个路径。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getCaretShapes-int-java.awt.geom.Rectangle2D-java.awt.font.TextLayout.CaretPolicy-">getCaretShapes</a></span>(int offset, <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds, <a href="../../../java/awt/font/TextLayout.CaretPolicy.html" title="class in java.awt.font">TextLayout.CaretPolicy</a> policy)</code>
+<div class="block">
+              返回对应于强和弱插入符号的两个路径。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getCharacterCount--">getCharacterCount</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>TextLayout</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>byte</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getCharacterLevel-int-">getCharacterLevel</a></span>(int index)</code>
+<div class="block">
+              返回index处的 
+             <code>index</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>float</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getDescent--">getDescent</a></span>()</code>
+<div class="block">
+              返回这个 
+             <code>TextLayout</code>的下降。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextLayout.html" title="class in java.awt.font">TextLayout</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getJustifiedLayout-float-">getJustifiedLayout</a></span>(float justificationWidth)</code>
+<div class="block">
+              创建一个这个 
+             <code>TextLayout</code>对齐到指定宽度的副本。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code><a href="../../../java/awt/font/LayoutPath.html" title="class in java.awt.font">LayoutPath</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getLayoutPath--">getLayoutPath</a></span>()</code>
+<div class="block">
+              返回LayoutPath，如果布局路径是默认路径，则为null（x映射到advance，y映射到offset）。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>float</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getLeading--">getLeading</a></span>()</code>
+<div class="block">
+              返回 
+             <code>TextLayout</code>的领先。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getLogicalHighlightShape-int-int-">getLogicalHighlightShape</a></span>(int firstEndpoint, int secondEndpoint)</code>
+<div class="block">
+              返回一个 
+             <code>Shape</code>将逻辑选择包围在指定的范围内，扩展到此 
+             <code>TextLayout</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getLogicalHighlightShape-int-int-java.awt.geom.Rectangle2D-">getLogicalHighlightShape</a></span>(int firstEndpoint, int secondEndpoint, <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</code>
+<div class="block">
+              返回一个 
+             <code>Shape</code>将逻辑选择包含在指定的范围内，扩展到指定的 
+             <code>bounds</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code>int[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getLogicalRangesForVisualSelection-java.awt.font.TextHitInfo-java.awt.font.TextHitInfo-">getLogicalRangesForVisualSelection</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> firstEndpoint, <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> secondEndpoint)</code>
+<div class="block">
+              返回与视觉选择对应的文本的逻辑范围。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getNextLeftHit-int-">getNextLeftHit</a></span>(int offset)</code>
+<div class="block">
+<span>返回左侧（顶部）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getNextLeftHit-int-java.awt.font.TextLayout.CaretPolicy-">getNextLeftHit</a></span>(int offset, <a href="../../../java/awt/font/TextLayout.CaretPolicy.html" title="class in java.awt.font">TextLayout.CaretPolicy</a> policy)</code>
+<div class="block">
+<span>返回左侧（顶部）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getNextLeftHit-java.awt.font.TextHitInfo-">getNextLeftHit</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</code>
+<div class="block">
+<span>返回左侧（顶部）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getNextRightHit-int-">getNextRightHit</a></span>(int offset)</code>
+<div class="block">
+<span>返回右侧（下）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i30">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getNextRightHit-int-java.awt.font.TextLayout.CaretPolicy-">getNextRightHit</a></span>(int offset, <a href="../../../java/awt/font/TextLayout.CaretPolicy.html" title="class in java.awt.font">TextLayout.CaretPolicy</a> policy)</code>
+<div class="block">
+<span>返回右侧（下）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i31">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getNextRightHit-java.awt.font.TextHitInfo-">getNextRightHit</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</code>
+<div class="block">
+<span>返回右侧（下）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i32">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getOutline-java.awt.geom.AffineTransform-">getOutline</a></span>(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> tx)</code>
+<div class="block">
+              返回一个 
+             <code>Shape</code>代表这个 
+             <code>TextLayout</code>的大纲。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i33">
+<td class="colFirst"><code><a href="../../../java/awt/Rectangle.html" title="class in java.awt">Rectangle</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getPixelBounds-java.awt.font.FontRenderContext-float-float-">getPixelBounds</a></span>(<a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc, float x, float y)</code>
+<div class="block">
+              在给定位置的给定 
+             <code>FontRenderContext</code>的图形中渲染时返回此 
+             <code>TextLayout</code>的像素边界。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i34">
+<td class="colFirst"><code>float</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getVisibleAdvance--">getVisibleAdvance</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>TextLayout</code>的提前，减去尾随空格。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i35">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getVisualHighlightShape-java.awt.font.TextHitInfo-java.awt.font.TextHitInfo-">getVisualHighlightShape</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> firstEndpoint, <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> secondEndpoint)</code>
+<div class="block">
+              返回一个 
+             <code>Shape</code>将视觉选择包围在指定的范围内，扩展到边界。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i36">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getVisualHighlightShape-java.awt.font.TextHitInfo-java.awt.font.TextHitInfo-java.awt.geom.Rectangle2D-">getVisualHighlightShape</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> firstEndpoint, <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> secondEndpoint, <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</code>
+<div class="block">
+              返回包含指定范围内的视觉选择的路径，扩展为 
+             <code>bounds</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i37">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#getVisualOtherHit-java.awt.font.TextHitInfo-">getVisualOtherHit</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</code>
+<div class="block">
+              返回指定命中的插入符号对面的命中。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i38">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#handleJustify-float-">handleJustify</a></span>(float justificationWidth)</code>
+<div class="block">
+              证明这个布局。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i39">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>TextLayout</code>的哈希码。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i40">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#hitTestChar-float-float-">hitTestChar</a></span>(float x, float y)</code>
+<div class="block">
+              返回 
+             <code>TextHitInfo</code>对应于指定点。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i41">
+<td class="colFirst"><code><a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#hitTestChar-float-float-java.awt.geom.Rectangle2D-">hitTestChar</a></span>(float x, float y, <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</code>
+<div class="block">
+              返回 
+             <code>TextHitInfo</code>对应于指定点。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i42">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#hitToPoint-java.awt.font.TextHitInfo-java.awt.geom.Point2D-">hitToPoint</a></span>(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit, <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> point)</code>
+<div class="block">
+              将命中转换为标准坐标中的一个点。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i43">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#isLeftToRight--">isLeftToRight</a></span>()</code>
+<div class="block">
+              返回 
+             <code>true</code>如果这 
+             <code>TextLayout</code>有一个左到右的基本方向或 
+             <code>false</code>如果它有一个从右到左的基本方向。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i44">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#isVertical--">isVertical</a></span>()</code>
+<div class="block">
+              如果这个 
+             <code>TextLayout</code>是垂直的，则返回 
+             <code>true</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i45">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/TextLayout.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>TextLayout</code> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="DEFAULT_CARET_POLICY">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>DEFAULT_CARET_POLICY</h4> <pre>public static final <a href="../../../java/awt/font/TextLayout.CaretPolicy.html" title="class in java.awt.font">TextLayout.CaretPolicy</a> DEFAULT_CARET_POLICY</pre>
+<div class="block">
+<span>当客户端未指定策略时，将使用此<code>CaretPolicy</code> 。</span>
+<span>有了这个策略，对方向与线方向相同的角色的打击比反向角色的命中强。</span>
+<span>如果角色的方向相同，则角色前缘的命中要强于角色后缘的命中。</span>
+</div> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="TextLayout-java.lang.String-java.awt.Font-java.awt.font.FontRenderContext-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TextLayout</h4> <pre>public TextLayout(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> string,
+                  <a href="../../../java/awt/Font.html" title="class in java.awt">Font</a> font,
+                  <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</pre>
+<div class="block">
+<span>构造一个<code>TextLayout</code>从<code>String</code>和<a href="../../../java/awt/Font.html" title="java.awt中的类"><code>Font</code></a> 。</span>
+<span>所有文本都使用指定的Font进行样式<code>Font</code> 。</span>
+<p> <span><code>String</code>必须指定一段文字，因为双向算法需要整个段落。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>string</code> - 要显示的文字 
+           </dd>
+<dd>
+<code>font</code> - a 
+            <code>Font</code>用于样式文本 
+           </dd>
+<dd>
+<span><code>frc</code> - 包含有关正确测量文本所需的图形设备信息。</span>
+<span>文本测量可能会根据设备分辨率和抗锯齿等属性略有不同。</span>
+<span>该参数不指定<code>TextLayout</code>与用户空间之间的<code>TextLayout</code> 。</span>
+</dd>
+</dl> </li>
+</ul> <a name="TextLayout-java.lang.String-java.util.Map-java.awt.font.FontRenderContext-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TextLayout</h4> <pre>public TextLayout(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> string,
+                  <a href="../../../java/util/Map.html" title="interface in java.util">Map</a>&lt;? extends <a href="../../../java/text/AttributedCharacterIterator.Attribute.html" title="class in java.text">AttributedCharacterIterator.Attribute</a>,?&gt; attributes,
+                  <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</pre>
+<div class="block">
+<span>构造一个<code>TextLayout</code>从<code>String</code> ，并设置一个属性。</span>
+<p> <span>所有文本都使用提供的属性进行风格化。</span> </p>
+<p> <span><code>string</code>必须指定一段文字，因为双向算法需要整个段落。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>string</code> - 要显示的文字 
+           </dd>
+<dd>
+<code>attributes</code> - 用于对文本进行样式的属性 
+           </dd>
+<dd>
+<span><code>frc</code> - 包含有关正确测量文本所需的图形设备的信息。</span>
+<span>文本测量可能会根据设备分辨率和抗锯齿等属性略有不同。</span>
+<span>该参数不指定<code>TextLayout</code>与用户空间之间的<code>TextLayout</code> 。</span>
+</dd>
+</dl> </li>
+</ul> <a name="TextLayout-java.text.AttributedCharacterIterator-java.awt.font.FontRenderContext-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>TextLayout</h4> <pre>public TextLayout(<a href="../../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> text,
+                  <a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc)</pre>
+<div class="block">
+<span>从样式文本的迭代器构造一个<code>TextLayout</code> 。</span>
+<p> <span>迭代器必须指定单个文本段落，因为双向算法需要整个段落。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>text</code> - 要显示的样式文本 
+           </dd>
+<dd>
+<span><code>frc</code> - 包含有关正确测量文本所需的图形设备的信息。</span>
+<span>文本测量可能会根据设备分辨率和抗锯齿等属性略有不同。</span>
+<span>该参数不指定<code>TextLayout</code>与用户空间之间的<code>TextLayout</code> 。</span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="clone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>clone</h4> <pre>protected <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> clone()</pre>
+<div class="block">
+            创建一个这个 
+           <code>TextLayout</code>的副本。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#clone--">clone</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个实例的一个克隆。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/Cloneable.html" title="java.lang中的接口"><code>Cloneable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getJustifiedLayout-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getJustifiedLayout</h4> <pre>public <a href="../../../java/awt/font/TextLayout.html" title="class in java.awt.font">TextLayout</a> getJustifiedLayout(float justificationWidth)</pre>
+<div class="block">
+<span>创建一个这个<code>TextLayout</code>对齐到指定宽度的副本。</span>
+<p> <span>如果这个<code>TextLayout</code>已经被证明是正当的，就会抛出异常。</span> <span>如果此<code>TextLayout</code>对象的调整率为零，一个<code>TextLayout</code>相同此<code>TextLayout</code>被返回。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>justificationWidth</code> - 当对齐线时使用的宽度。</span>
+<span>为了获得最佳效果，它不应该与当前的进展情况有太大的不同。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>TextLayout</code>对齐到指定的宽度。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Error.html" title="class in java.lang">Error</a></code> - 如果这个布局已经被证明是对的，那么会抛出一个错误。 
+           </dd>
+</dl> </li>
+</ul> <a name="handleJustify-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>handleJustify</h4> <pre>protected void handleJustify(float justificationWidth)</pre>
+<div class="block">
+<span>证明这个布局。</span>
+<span>被子类别覆盖以控制对齐（如果有子类，那就是...）如果段落属性（源文本，可能由布局属性默认）表示非零对齐比，布局将只能证明。</span>
+<span>文本将被对齐到指定的宽度。</span>
+<span>当前的实现还会调整悬挂的标点符号和尾随空格以超出对齐宽度。</span>
+<span>一旦有理由，布局可能不会被重新调整。</span>
+<p> <span>一些代码可能依赖于不可更改的布局。</span> <span>子类不应该直接调用它，而应该调用getJustifiedLayout，这将在此布局的克隆上调用此方法，保留原始。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>justificationWidth</code> - 调整<code>justificationWidth</code>使用的宽度。</span>
+<span>为了获得最佳效果，它不应该与当前的进展情况有太大的不同。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/TextLayout.html#getJustifiedLayout-float-"><code>getJustifiedLayout(float)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getBaseline--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getBaseline</h4> <pre>public byte getBaseline()</pre>
+<div class="block">
+<span>返回此<code>TextLayout</code>的基准。</span>
+<span>基线是<code>Font</code>中定义的值<code>Font</code> ，罗马，中心和悬挂。</span>
+<span>上升和下降是相对于这个基线。</span>
+<span><code>baselineOffsets</code>也是相对于这个基线。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个基准是 
+            <code>TextLayout</code> 。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/awt/font/TextLayout.html#getBaselineOffsets--"><code>getBaselineOffsets()</code></a> ， <a href="../../../java/awt/Font.html" title="java.awt中的类"><code>Font</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getBaselineOffsets--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getBaselineOffsets</h4> <pre>public float[] getBaselineOffsets()</pre>
+<div class="block">
+<span>返回用于此<code>TextLayout</code>的基线的偏移数组。</span>
+<p> <span>该数组由<code>Font</code>中定义的值之一进行索引，这些值是罗马，中心和挂起。</span> <span>这些值是相对于这个<code>TextLayout</code>对象的基线，所以<code>getBaselineOffsets[getBaseline()] == 0</code> 。</span> <span>将偏移量添加到<code>TextLayout</code>对象的基线的位置，以获取新基线的位置。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该偏移数组包含用于此 
+            <code>TextLayout</code> 。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/awt/font/TextLayout.html#getBaseline--"><code>getBaseline()</code></a> ， <a href="../../../java/awt/Font.html" title="java.awt中的类"><code>Font</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getAdvance--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAdvance</h4> <pre>public float getAdvance()</pre>
+<div class="block">
+<span>返回此<code>TextLayout</code> 。</span>
+<span>提前是从原始到最右边（最下方）字符前进的距离。</span>
+<span>这是在基线相对坐标。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个 
+            <code>TextLayout</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getVisibleAdvance--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getVisibleAdvance</h4> <pre>public float getVisibleAdvance()</pre>
+<div class="block">
+<span>返回此<code>TextLayout</code> ，减去尾随空格。</span>
+<span>这是在基线相对坐标。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个 
+            <code>TextLayout</code>没有尾随的空格。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/TextLayout.html#getAdvance--"><code>getAdvance()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getAscent--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAscent</h4> <pre>public float getAscent()</pre>
+<div class="block">
+<span>返回此<code>TextLayout</code>的上升。</span>
+<span>上升是从<code>TextLayout</code>的顶部（右）到基线的距离。</span>
+<span>它始终为正或零。</span>
+<span>上升足以容纳上标的文本，并且是每个字形的上升，偏移和基线的总和的最大值。</span>
+<span>上升是TextLayout中所有文本基线的最大上升。</span>
+<span>它在基线相对坐标。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个 
+            <code>TextLayout</code>的上升。 
+           </dd>
+</dl> </li>
+</ul> <a name="getDescent--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDescent</h4> <pre>public float getDescent()</pre>
+<div class="block">
+<span>返回此<code>TextLayout</code>的下降。</span>
+<span>下降是从基线到<code>TextLayout</code>的底部（左）的<code>TextLayout</code> 。</span>
+<span>它始终为正或零。</span>
+<span>下降足以适应下标文本，并且是每个字形的下降，偏移和基线之和的最大值。</span>
+<span>这是TextLayout中所有文本基线的最大下降。</span>
+<span>它在基线相对坐标。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个 
+            <code>TextLayout</code>的下降。 
+           </dd>
+</dl> </li>
+</ul> <a name="getLeading--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLeading</h4> <pre>public float getLeading()</pre>
+<div class="block">
+<span>返回<code>TextLayout</code>的领先。</span>
+<span>领先的是这个建议的行间距<code>TextLayout</code> 。</span>
+<span>这是在基线相对坐标。</span>
+<p> <span>领先的是从领先的血统，并在所有字形向量的计算基准<code>TextLayout</code> 。</span> <span>算法大致如下：</span> </p>
+<blockquote>
+<span><pre>
+ maxD = 0;
+ maxDL = 0;
+ for (GlyphVector g in all glyphvectors) {
+    maxD = max(maxD, g.getDescent() + offsets[g.getBaseline()]);
+    maxDL = max(maxDL, g.getDescent() + g.getLeading() +
+                       offsets[g.getBaseline()]);
+ }
+ return maxDL - maxD;
+ </pre></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个领先的 
+            <code>TextLayout</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getBounds--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getBounds</h4> <pre>public <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> getBounds()</pre>
+<div class="block">
+<span>返回此<code>TextLayout</code>的范围。</span>
+<span>边界是标准坐标。</span>
+<p> <span>由于光栅化效果，此边界可能不会包含TextLayout渲染的所有像素。</span> </p>
+<span>这可能与<code>TextLayout</code>的上升，下降，起源或进步<code>TextLayout</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<a href="../../../java/awt/geom/Rectangle2D.html" title="java.awt.geom中的类"><code>Rectangle2D</code></a>这是这个<code>TextLayout</code>的界限。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getPixelBounds-java.awt.font.FontRenderContext-float-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPixelBounds</h4> <pre>public <a href="../../../java/awt/Rectangle.html" title="class in java.awt">Rectangle</a> getPixelBounds(<a href="../../../java/awt/font/FontRenderContext.html" title="class in java.awt.font">FontRenderContext</a> frc,
+                                float x,
+                                float y)</pre>
+<div class="block">
+<span>在给定位置的给定<code>FontRenderContext</code>的图形中渲染时，返回此<code>TextLayout</code>的像素边界。</span>
+<span>图形渲染方面不一定是一样的<code>FontRenderContext</code>用于创建此<code>TextLayout</code> ，并且可以为null。</span>
+<span>如果为空，则<code>FontRenderContext</code>如此<code>TextLayout</code>使用。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>frc</code> - 
+            <code>FontRenderContext</code>的 
+            <code>Graphics</code> 。 
+           </dd>
+<dd>
+<code>x</code> - 要呈现这个 
+            <code>TextLayout</code>的x 
+            <code>TextLayout</code> 。 
+           </dd>
+<dd>
+<code>y</code> - 渲染这个 
+            <code>TextLayout</code>的y 
+            <code>TextLayout</code> 。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Rectangle</code>限制将受影响的像素。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/GlyphVector.html#getPixelBounds-java.awt.font.FontRenderContext-float-float-"><code>GlyphVector.getPixelBounds(java.awt.font.FontRenderContext, float, float)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isLeftToRight--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isLeftToRight</h4> <pre>public boolean isLeftToRight()</pre>
+<div class="block">
+<span>返回<code>true</code>如果这<code>TextLayout</code>有一个左到右的基本方向或<code>false</code>如果它有一个从右到左的基本方向。</span>
+<span><code>TextLayout</code>具有从左到右（LTR）或从右到左（RTL）的基本方向。</span>
+<span>基本方向与线上文本的实际方向无关，可能是LTR，RTL或混合。</span>
+<span>从左到右的布局默认情况下应该向左摆放。</span>
+<span>如果布局在选项卡上，则选项卡从左到右运行，以便逻辑上连续的布局从左到右定位。</span>
+<span>RTL布局也是如此。</span>
+<span>默认情况下，它们应该向左定位，并且选项卡从左到右运行。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果这个<code>TextLayout</code>的基本方向是从左到右;</span>
+<span><code>false</code>否则。</span>
+</dd>
+</dl> </li>
+</ul> <a name="isVertical--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isVertical</h4> <pre>public boolean isVertical()</pre>
+<div class="block">
+            如果 
+           <code>TextLayout</code>是垂直的，则返回 
+           <code>true</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果这<code>TextLayout</code>是垂直的;</span>
+<span><code>false</code>另外。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getCharacterCount--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCharacterCount</h4> <pre>public int getCharacterCount()</pre>
+<div class="block">
+            返回此 
+           <code>TextLayout</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个 
+            <code>TextLayout</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getCaretInfo-java.awt.font.TextHitInfo-java.awt.geom.Rectangle2D-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCaretInfo</h4> <pre>public float[] getCaretInfo(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit,
+                            <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</pre>
+<div class="block">
+<span>返回与hit对应的插入符号的<code>hit</code> 。</span>
+<span>数组的第一个元素是插入符号与基线的交集，作为基线的距离。</span>
+<span>数组的第二个元素是相对于该点的基线测量的插入符号的反斜率（运行/上升）。</span>
+<p> <span>此方法用于信息使用。</span> <span>要显示<code>getCaretShapes</code> ，最好使用<code>getCaretShapes</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hit</code> - 这个 
+            <code>TextLayout</code>一个角色的 
+            <code>TextLayout</code>
+</dd>
+<dd>
+<span><code>bounds</code> - <code>bounds</code>插入符号信息的界限。</span>
+<span>边界在基线相对坐标。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个包含插入符位置和斜率的双元素数组。</span>
+<span>返回的插入符号信息在基线相对坐标中。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/TextLayout.html#getCaretShapes-int-java.awt.geom.Rectangle2D-java.awt.font.TextLayout.CaretPolicy-"><code>getCaretShapes(int, Rectangle2D, TextLayout.CaretPolicy)</code></a> ， 
+            <a href="../../../java/awt/Font.html#getItalicAngle--"><code>Font.getItalicAngle()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getCaretInfo-java.awt.font.TextHitInfo-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCaretInfo</h4> <pre>public float[] getCaretInfo(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</pre>
+<div class="block">
+<span>返回与hit相对应的插入符的<code>hit</code> 。</span>
+<span>此方法是一个方便过载<code>getCaretInfo</code> ，并使用此的自然边界<code>TextLayout</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hit</code> - 在这个 
+            <code>TextLayout</code>一个字符的 
+            <code>TextLayout</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>关于与命中对应的插入符号的信息。</span>
+<span>返回的插入符号信息在基线相对坐标中。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getNextRightHit-java.awt.font.TextHitInfo-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNextRightHit</h4> <pre>public <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> getNextRightHit(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</pre>
+<div class="block">
+<span>返回右侧（下）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+<span>如果命中字符索引超出范围，则抛出<a href="../../../java/lang/IllegalArgumentException.html" title="java.lang中的类"><code>IllegalArgumentException</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hit</code> - 这个布局中一个角色的命中 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个命中，其插入符号出现在提供的命中的插入符号右侧（底部）的下一个位置或 
+            <code>null</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getNextRightHit-int-java.awt.font.TextLayout.CaretPolicy-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNextRightHit</h4> <pre>public <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> getNextRightHit(int offset,
+                                   <a href="../../../java/awt/font/TextLayout.CaretPolicy.html" title="class in java.awt.font">TextLayout.CaretPolicy</a> policy)</pre>
+<div class="block">
+<span>返回右侧（下）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+<span>按照指定的策略确定，指定的偏移量处于右侧的强插销符号。</span>
+<span>返回的命中是指定策略确定的两个可能命中之一。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>offset</code> - 在此<code>TextLayout</code>插入偏移量。</span>
+<span>不能小于0或大于此<code>TextLayout</code>对象的字符数。</span>
+</dd>
+<dd>
+<code>policy</code> - 用于选择强 
+            <code>policy</code>的策略 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个命中，其插入符号出现在提供的命中的插入符号右侧（底部）的下一个位置，或 
+            <code>null</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getNextRightHit-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNextRightHit</h4> <pre>public <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> getNextRightHit(int offset)</pre>
+<div class="block">
+<span>返回右侧（下）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+<span>按照默认策略确定的指定偏移量，右侧的强插头位于右侧。</span>
+<span>返回的命中是由默认策略确定的两个可能的命中中更强的。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>offset</code> - 在这个<code>TextLayout</code>插入偏移量。</span>
+<span>不能小于0或大于<code>TextLayout</code>对象的字符数。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个命中，其插入符号出现在提供的命中的插入符号右侧（底部）的下一个位置，或 
+            <code>null</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getNextLeftHit-java.awt.font.TextHitInfo-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNextLeftHit</h4> <pre>public <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> getNextLeftHit(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</pre>
+<div class="block">
+<span>返回左侧（顶部）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+<span>如果命中字符索引超出范围，则抛出<code>IllegalArgumentException</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hit</code> - 这个 
+            <code>TextLayout</code>一个字符的 
+            <code>TextLayout</code> 。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个命中，其插入符号出现在提供的命中的插入符号左侧（顶部）的下一个位置，或 
+            <code>null</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getNextLeftHit-int-java.awt.font.TextLayout.CaretPolicy-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNextLeftHit</h4> <pre>public <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> getNextLeftHit(int offset,
+                                  <a href="../../../java/awt/font/TextLayout.CaretPolicy.html" title="class in java.awt.font">TextLayout.CaretPolicy</a> policy)</pre>
+<div class="block">
+<span>返回左侧（顶部）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+<span>击打位于指定偏移处的强插销符号的左侧，由指定的策略确定。</span>
+<span>返回的命中是指定策略确定的两个可能命中之一。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>offset</code> -一个插入在该偏移<code>TextLayout</code> 。</span>
+<span>不能小于0或大于此<code>TextLayout</code>对象的字符数。</span>
+</dd>
+<dd>
+<code>policy</code> - 用于选择强 
+            <code>policy</code>的策略 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个命中，其插入符号出现在提供的命中的插入符号左侧（顶部）的下一个位置，或 
+            <code>null</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getNextLeftHit-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNextLeftHit</h4> <pre>public <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> getNextLeftHit(int offset)</pre>
+<div class="block">
+<span>返回左侧（顶部）的下一个插入符号的命中;</span>
+<span>如果没有这样的命中，返回<code>null</code> 。</span>
+<span>击打位于指定偏移量的强插销符号左侧，由默认策略确定。</span>
+<span>返回的命中是由默认策略确定的两个可能的命中中更强的。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>offset</code> -一个插入在该偏移<code>TextLayout</code> 。</span>
+<span>不能小于0或大于此<code>TextLayout</code>对象的字符数。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个命中，其插入符号出现在提供的命中的插入符号左侧（顶部）的下一个位置，或 
+            <code>null</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getVisualOtherHit-java.awt.font.TextHitInfo-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getVisualOtherHit</h4> <pre>public <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> getVisualOtherHit(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</pre>
+<div class="block">
+            返回指定命中的插入符号对面的命中。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hit</code> - 指定的命中 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在指定的命中的插入符号的对面的一个打击。 
+           </dd>
+</dl> </li>
+</ul> <a name="getCaretShape-java.awt.font.TextHitInfo-java.awt.geom.Rectangle2D-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCaretShape</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> getCaretShape(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit,
+                           <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</pre>
+<div class="block">
+<span>返回一个<a href="../../../java/awt/Shape.html" title="java.awt中的接口"><code>Shape</code>，</a>表示指定边界内<a href="../../../java/awt/Shape.html" title="java.awt中的接口">指定</a>点的插入符号。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hit</code> - 生成插入符号的命中 
+           </dd>
+<dd>
+<span><code>bounds</code> - 用于生成插入符号的<code>TextLayout</code>的范围。</span>
+<span>边界在基线相对坐标。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<code>Shape</code>代表插入符号。</span>
+<span>返回的形状是标准坐标。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getCaretShape-java.awt.font.TextHitInfo-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCaretShape</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> getCaretShape(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit)</pre>
+<div class="block">
+            返回 
+           <code>Shape</code>代表在指定的打这个的自然边界中插入符号 
+           <code>TextLayout</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>hit</code> - 生成插入符号的命中 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<code>Shape</code>代表插入符号。</span>
+<span>返回的形状是标准坐标。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getCharacterLevel-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCharacterLevel</h4> <pre>public byte getCharacterLevel(int index)</pre>
+<div class="block">
+<span>在<code>index</code>返回字符的<code>index</code> 。</span>
+<span>指数-1和<code>characterCount</code>被分配了这个<code>TextLayout</code>的基准水平。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>index</code> - 从中获取级别的角色的索引 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在指定索引处的字符级别。 
+           </dd>
+</dl> </li>
+</ul> <a name="getCaretShapes-int-java.awt.geom.Rectangle2D-java.awt.font.TextLayout.CaretPolicy-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCaretShapes</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a>[] getCaretShapes(int offset,
+                              <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds,
+                              <a href="../../../java/awt/font/TextLayout.CaretPolicy.html" title="class in java.awt.font">TextLayout.CaretPolicy</a> policy)</pre>
+<div class="block">
+            返回对应于强和弱插入符号的两个路径。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>offset</code> - 在这 
+            <code>TextLayout</code>一个抵消 
+           </dd>
+<dd>
+<span><code>bounds</code> - 扩展<code>bounds</code>的范围。</span>
+<span>边界在基线相对坐标。</span>
+</dd>
+<dd>
+<code>policy</code> - 指定的 
+            <code>CaretPolicy</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>两个路径的数组。</span>
+<span>元素零是强插支符号。</span>
+<span>如果有两个插入符号，元素是弱插入符号，否则为<code>null</code> 。</span>
+<span>返回的形状是标准坐标。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getCaretShapes-int-java.awt.geom.Rectangle2D-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCaretShapes</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a>[] getCaretShapes(int offset,
+                              <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</pre>
+<div class="block">
+<span>返回对应于强和弱插入符号的两个路径。</span>
+<span>此方法是使用默认脱字符策略的<code>getCaretShapes</code>的方便超载。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>offset</code> - 这个 
+            <code>TextLayout</code>一个抵消 
+           </dd>
+<dd>
+<span><code>bounds</code> - 扩展<code>bounds</code>的范围。</span>
+<span>这是在基线相对坐标。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>两个路径对应于强和弱插入符由限定<code>DEFAULT_CARET_POLICY</code> 。</span>
+<span>这些是标准坐标。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getCaretShapes-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCaretShapes</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a>[] getCaretShapes(int offset)</pre>
+<div class="block">
+<span>返回对应于强和弱插入符号的两个路径。</span>
+<span>这种方法的便捷用法<code>getCaretShapes</code>使用默认插入符策略和此<code>TextLayout</code>对象的自然边界。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>offset</code> - 在这 
+            <code>TextLayout</code>一个抵消 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>两个路径对应于强和弱插入符由限定<code>DEFAULT_CARET_POLICY</code> 。</span>
+<span>这些是标准坐标。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getLogicalRangesForVisualSelection-java.awt.font.TextHitInfo-java.awt.font.TextHitInfo-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLogicalRangesForVisualSelection</h4> <pre>public int[] getLogicalRangesForVisualSelection(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> firstEndpoint,
+                                                <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> secondEndpoint)</pre>
+<div class="block">
+            返回与视觉选择对应的文本的逻辑范围。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>firstEndpoint</code> - 视觉范围的终点 
+           </dd>
+<dd>
+<span><code>secondEndpoint</code> - 视觉范围的另一端点。</span>
+<span>该端点可以小于<code>firstEndpoint</code> 。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一组整数，表示所选范围的起始/极限对。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/TextLayout.html#getVisualHighlightShape-java.awt.font.TextHitInfo-java.awt.font.TextHitInfo-java.awt.geom.Rectangle2D-"><code>getVisualHighlightShape(TextHitInfo, TextHitInfo, Rectangle2D)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getVisualHighlightShape-java.awt.font.TextHitInfo-java.awt.font.TextHitInfo-java.awt.geom.Rectangle2D-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getVisualHighlightShape</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> getVisualHighlightShape(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> firstEndpoint,
+                                     <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> secondEndpoint,
+                                     <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</pre>
+<div class="block">
+<span>返回包含指定范围内的视觉选择的路径，扩展为<code>bounds</code> 。</span>
+<p> <span>如果选择包括最左边的（最上面的）位置时，该选择被扩展到的左侧（顶部） <code>bounds</code> 。</span> <span>如果选择包括最右边（最下）位置，则选择将扩展到边界的右侧（底部）。</span> <span>选择的高度（垂直线宽度）始终扩展为<code>bounds</code> 。</span> </p>
+<p> <span>虽然选择始终是连续的，但逻辑选择的文本在具有混合方向文本的行上可能是不连续的。</span> <span>可以使用<code>getLogicalRangesForVisualSelection</code>所选文本的逻辑范围。</span> <span>例如，考虑文本“ABCdef”，大写字母表示从右到左的文本，从右到左的行显示，从0L的视觉选择（“A”的前沿）到3T（尾随'd'的边缘）。</span> <span>文本显示如下，粗体下划线区域表示选择：</span> <br/></p>
+<pre>  <span>d<u><b>efCBA </b></u></span> </pre>
+<span>逻辑选择范围为0-3,4-6（ABC，ef），因为视觉上连续的文本在逻辑上是不连续的。</span>
+<span>还要注意的是，由于布局上的最右边的位置（在'A'的右边）被选中，所以选择被扩展到边界的右边。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>firstEndpoint</code> - 视觉选择的一端 
+           </dd>
+<dd>
+<code>secondEndpoint</code> - 视觉选择的另一端 
+           </dd>
+<dd>
+<span><code>bounds</code> - 扩展选择的边界矩形。</span>
+<span>这是在基线相对坐标。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<code>Shape</code>封闭选择。</span>
+<span>这是在标准坐标。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/TextLayout.html#getLogicalRangesForVisualSelection-java.awt.font.TextHitInfo-java.awt.font.TextHitInfo-"><code>getLogicalRangesForVisualSelection(TextHitInfo, TextHitInfo)</code></a> ， 
+            <a href="../../../java/awt/font/TextLayout.html#getLogicalHighlightShape-int-int-java.awt.geom.Rectangle2D-"><code>getLogicalHighlightShape(int, int, Rectangle2D)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getVisualHighlightShape-java.awt.font.TextHitInfo-java.awt.font.TextHitInfo-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getVisualHighlightShape</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> getVisualHighlightShape(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> firstEndpoint,
+                                     <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> secondEndpoint)</pre>
+<div class="block">
+<span>返回一个<code>Shape</code>在指定范围内的视觉选择的Shape，扩展到边界。</span>
+<span>此方法是一个方便过载<code>getVisualHighlightShape</code>使用此的自然边界<code>TextLayout</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>firstEndpoint</code> - 视觉选择的一端 
+           </dd>
+<dd>
+<code>secondEndpoint</code> - 视觉选择的另一端 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<code>Shape</code>封闭选择。</span>
+<span>这是在标准坐标。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getLogicalHighlightShape-int-int-java.awt.geom.Rectangle2D-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLogicalHighlightShape</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> getLogicalHighlightShape(int firstEndpoint,
+                                      int secondEndpoint,
+                                      <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</pre>
+<div class="block">
+<span>返回一个<code>Shape</code>将逻辑选择包含在指定的范围内，扩展到指定的<code>bounds</code> 。</span>
+<p> <span>如果选择范围包括所述第一逻辑字符，则选择被扩展到的所述部分<code>bounds</code>此开始前<code>TextLayout</code> 。</span> <span>如果该范围包括最后的逻辑字符，选择被扩展到的所述部分<code>bounds</code>此结束后<code>TextLayout</code> 。</span> <span>选择的高度（垂直线上的宽度）始终扩展为<code>bounds</code> 。</span> </p>
+<p> <span>在具有混合方向文本的行上，选择可以是不连续的。</span> <span>只有开始和关闭之间逻辑范围内的这些字符才会显示出来。</span> <span>例如，考虑文本“ABCdef”，其中大写字母表示从右到左的文本，以从右到左的行显示，逻辑选择从0到4（“ABCd”）。</span> <span>文字显示如下，粗体字用于选择，下划线为扩展名：</span> <br/></p>
+<pre>  <span><u><b>d</b></u>ef<u><b>CBA </b></u></span> </pre>
+<span>选择是不连续的，因为所选择的字符在视觉上是不连续的。</span>
+<span>还要注意的是，由于该范围包括所述第一逻辑字符（A），选择被扩展到的所述部分<code>bounds</code>的布局，这在这种情况下（右到左线）的右侧部分的开始前<code>bounds</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>firstEndpoint</code> - 要选择的字符范围内的端点 
+           </dd>
+<dd>
+<span><code>secondEndpoint</code> - 要选择的其他端点的字符范围。</span>
+<span>可以低于<code>firstEndpoint</code> 。</span>
+<span>范围包括min（firstEndpoint，secondEndpoint）的字符，但不包括max（firstEndpoint，secondEndpoint）。</span>
+</dd>
+<dd>
+<span><code>bounds</code> - 用于扩展选择的边界矩形。</span>
+<span>这是在基线相对坐标。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>包围选区的区域。</span>
+<span>这是在标准坐标。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/TextLayout.html#getVisualHighlightShape-java.awt.font.TextHitInfo-java.awt.font.TextHitInfo-java.awt.geom.Rectangle2D-"><code>getVisualHighlightShape(TextHitInfo, TextHitInfo, Rectangle2D)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getLogicalHighlightShape-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLogicalHighlightShape</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> getLogicalHighlightShape(int firstEndpoint,
+                                      int secondEndpoint)</pre>
+<div class="block">
+<span>返回一个<code>Shape</code>将逻辑选择包含在指定范围内，扩展到此<code>TextLayout</code> 。</span>
+<span>此方法是一个方便过载<code>getLogicalHighlightShape</code>使用此的自然边界<code>TextLayout</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>firstEndpoint</code> - 要选择的字符范围内的端点 
+           </dd>
+<dd>
+<span><code>secondEndpoint</code> - 要选择的字符范围的另一个端点。</span>
+<span>可以少于<code>firstEndpoint</code> 。</span>
+<span>范围包括min（firstEndpoint，secondEndpoint）的字符，但不包括max（firstEndpoint，secondEndpoint）。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<code>Shape</code>封闭选择。</span>
+<span>这是在标准坐标。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getBlackBoxBounds-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getBlackBoxBounds</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> getBlackBoxBounds(int firstEndpoint,
+                               int secondEndpoint)</pre>
+<div class="block">
+<span>返回指定范围内的字符的黑框边界。</span>
+<span>黑框边界是由对应于开始和限制之间的字符的所有字形的边界框的并集组成的区域。</span>
+<span>这个区域可以是不相交的。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>firstEndpoint</code> - 字符范围的一端 
+           </dd>
+<dd>
+<span><code>secondEndpoint</code> - 另一端的字符范围。</span>
+<span>可以小于<code>firstEndpoint</code> 。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<code>Shape</code>封闭黑盒边界。</span>
+<span>这是在标准坐标。</span>
+</dd>
+</dl> </li>
+</ul> <a name="hitTestChar-float-float-java.awt.geom.Rectangle2D-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hitTestChar</h4> <pre>public <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hitTestChar(float x,
+                               float y,
+                               <a href="../../../java/awt/geom/Rectangle2D.html" title="class in java.awt.geom">Rectangle2D</a> bounds)</pre>
+<div class="block">
+<span>返回<code>TextHitInfo</code>对应于指定点。</span>
+<span>在<code>TextLayout</code>映射的范围之外的<code>TextLayout</code>地在第一个逻辑字符的前沿或最后一个逻辑字符的后沿，而不管该字符在行中的位置。</span>
+<span>只有沿着基准线的方向才被用来做这个评估。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>x</code> - 从这个<code>TextLayout</code>的起点的x偏移。</span>
+<span>这是在标准坐标。</span>
+</dd>
+<dd>
+<span><code>y</code> - 从这个<code>TextLayout</code>的起点的y偏移。</span>
+<span>这是在标准坐标。</span>
+</dd>
+<dd>
+<span><code>bounds</code> -的的界限<code>TextLayout</code> 。</span>
+<span>这是在基线相对坐标。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             描述指定点下的字符和边缘（前导或尾部）的命中。 
+           </dd>
+</dl> </li>
+</ul> <a name="hitTestChar-float-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hitTestChar</h4> <pre>public <a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hitTestChar(float x,
+                               float y)</pre>
+<div class="block">
+<span>返回<code>TextHitInfo</code>对应于指定点。</span>
+<span>此方法是一个方便过载<code>hitTestChar</code>使用此的自然边界<code>TextLayout</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>x</code> - 从这个<code>TextLayout</code>的起点的x偏移。</span>
+<span>这是在标准坐标。</span>
+</dd>
+<dd>
+<span><code>y</code> - 从这个<code>TextLayout</code>的起点的y偏移。</span>
+<span>这是在标准坐标。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             描述指定点下的字符和边缘（前导或尾部）的命中。 
+           </dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+            返回此 
+           <code>TextLayout</code>的哈希码。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>类 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个 
+            <code>TextLayout</code>的哈希码。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+            返回 
+           <code>true</code>如果指定的 
+           <code>Object</code>是 
+           <code>TextLayout</code>对象，如果指定的 
+           <code>Object</code>等于这个 
+           <code>TextLayout</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>类 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 一个 
+            <code>Object</code>以测试平等 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果指定的<code>Object</code>等于这个<code>TextLayout</code> ;</span>
+<span><code>false</code>否则。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="equals-java.awt.font.TextLayout-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../../java/awt/font/TextLayout.html" title="class in java.awt.font">TextLayout</a> rhs)</pre>
+<div class="block">
+<span>如果两个布局相等，则返回<code>true</code> 。</span>
+<span>如果两个布局以相同的顺序包含相等的符号，则两个布局相等。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>rhs</code> - 
+            <code>TextLayout</code>与此 
+            <code>TextLayout</code>进行比较 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果指定的 
+            <code>TextLayout</code>等于这个 
+            <code>TextLayout</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+            返回此 
+           <code>TextLayout</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#toString--">toString</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该 
+            <code>textLine</code>为 
+            <code>TextLayout</code>为 
+            <code>String</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="draw-java.awt.Graphics2D-float-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>draw</h4> <pre>public void draw(<a href="../../../java/awt/Graphics2D.html" title="class in java.awt">Graphics2D</a> g2,
+                 float x,
+                 float y)</pre>
+<div class="block">
+<span>在指定的<a href="../../../java/awt/Graphics2D.html" title="java.awt中的类"><code>Graphics2D</code></a>上下文中指定位置呈现此<code>TextLayout</code> 。</span>
+<span>布局的起点位于x，y处。</span>
+<span>呈现可能会触及该位置<code>getBounds()</code>内的任何一点。</span>
+<span>这使<code>g2</code>不变。</span>
+<span>文本沿基线路径呈现。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>g2</code> - 要渲染布局的 
+            <code>Graphics2D</code>上下文 
+           </dd>
+<dd>
+<code>x</code> - 这个TextLayout的原点的X 
+            <code>TextLayout</code>
+</dd>
+<dd>
+<code>y</code> - 这个TextLayout的起点的Y 
+            <code>TextLayout</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/font/TextLayout.html#getBounds--"><code>getBounds()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getOutline-java.awt.geom.AffineTransform-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getOutline</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> getOutline(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> tx)</pre>
+<div class="block">
+            返回代表 
+           <code>Shape</code> TextLayout的大纲的 
+           <code>TextLayout</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>tx</code> - 一个可选的<a href="../../../java/awt/geom/AffineTransform.html" title="java.awt.geom中的类"><code>AffineTransform</code></a>适用于这个<code>TextLayout</code>的大纲。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<code>Shape</code>是这个<code>TextLayout</code>的大纲。</span>
+<span>这是在标准坐标。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getLayoutPath--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLayoutPath</h4> <pre>public <a href="../../../java/awt/font/LayoutPath.html" title="class in java.awt.font">LayoutPath</a> getLayoutPath()</pre>
+<div class="block">
+            返回LayoutPath，如果布局路径是默认路径，则为null（x映射到advance，y映射到offset）。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             布局路径 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="hitToPoint-java.awt.font.TextHitInfo-java.awt.geom.Point2D-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>hitToPoint</h4> <pre>public void hitToPoint(<a href="../../../java/awt/font/TextHitInfo.html" title="class in java.awt.font">TextHitInfo</a> hit,
+                       <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> point)</pre>
+<div class="block">
+<span>将命中转换为标准坐标中的一个点。</span>
+<span>该点在字符的前后边缘的基线上，如果合适的话。</span>
+<span>如果路径在由击中所代表的角色的侧面断开，该点将与该角色相邻。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>hit</code> - 打击检查。</span>
+<span>这必须是TextLayout上的有效命中。</span>
+</dd>
+<dd>
+<span><code>point</code> - 返回点。</span>
+<span>点在标准坐标。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果命中对TextLayout无效。 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果命中或点为空。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

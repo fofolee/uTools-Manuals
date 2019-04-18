@@ -1,0 +1,618 @@
+<div class="header">
+<div class="subTitle">
+     java.awt.image 
+   </div>
+<h2 class="title" title="Class VolatileImage">Class VolatileImage</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../java/awt/Image.html" title="class in java.awt">java.awt.Image</a></li>
+<li>
+<ul class="inheritance">
+<li>java.awt.image.VolatileImage</li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/awt/Transparency.html" title="java.awt中的接口">Transparency</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">VolatileImage</span>
+extends <a href="../../../java/awt/Image.html" title="class in java.awt">Image</a>
+implements <a href="../../../java/awt/Transparency.html" title="interface in java.awt">Transparency</a></pre>
+<div class="block">
+<span>VolatileImage是由于超出应用程序控制的情况（例如由操作系统或其他应用程序引起的情况），可能随时丢失其内容的映像。</span>
+<span>由于具有硬件加速的潜力，因此在某些平台上，VolatileImage对象可以获得显着的性能优势。</span>
+<p> <span>图像（图像内容实际存在的存储器）的绘图面可能会丢失或无效，导致该内存的内容消失。</span> <span>因此，绘图表面需要被恢复或重建，并且需要重新渲染该表面的内容。</span> <span>VolatileImage提供了一个界面，允许用户检测这些问题，并在发生这些问题时对其进行修复。</span> </p>
+<p> <span>当创建VolatileImage对象时，可以分配诸如视频存储器（VRAM）的有限系统资源以支持图像。</span> <span>当不再使用VolatileImage对象时，它可能是垃圾回收的，那些系统资源将被返回，但是这个过程在保证的时候不会发生。</span> <span>创建许多VolatileImage对象的应用程序（例如，调整大小的窗口可能会随着大小的变化而强制重新启动其后端缓冲区）可能会因为旧的对象尚未从系统中删除而耗尽新的VolatileImage对象的最佳系统资源。</span> <span>（新的VolatileImage对象可能仍然可以创建，但它们可能不如在加速内存中创建的对象）。</span> <span>可以随时调用flush方法来主动释放由VolatileImage使用的资源，以防止后续的VolatileImage对象被加速。</span> <span>以这种方式，应用程序可以更好地控制由过时的VolatileImage对象占用的资源的状态。</span> </p>
+<p> <span>该图像不应该直接子类化，而应该使用<a href="../../../java/awt/Component.html#createVolatileImage-int-int-"><code>Component.createVolatileImage</code></a>或<a href="../../../java/awt/GraphicsConfiguration.html#createCompatibleVolatileImage-int-int-"><code>GraphicsConfiguration.createCompatibleVolatileImage(int, int)</code></a>方法创建。</span> </p>
+<p> <span>使用VolatileImage对象的示例如下：</span> </p>
+<pre>  <span>// image creation
+ VolatileImage vImg = createVolatileImage(w, h);
+
+
+ // rendering to the image
+ void renderOffscreen() {
+      do {
+          if (vImg.validate(getGraphicsConfiguration()) ==
+              VolatileImage.IMAGE_INCOMPATIBLE)
+          {
+              // old vImg doesn't work with new GraphicsConfig; re-create it
+              vImg = createVolatileImage(w, h);
+          }
+          Graphics2D g = vImg.createGraphics();
+          //
+          // miscellaneous rendering commands...
+          //
+          g.dispose();
+      } while (vImg.contentsLost());
+ }
+
+
+ // copying from the image (here, gScreen is the Graphics
+ // object for the onscreen window)
+ do {
+      int returnCode = vImg.validate(getGraphicsConfiguration());
+      if (returnCode == VolatileImage.IMAGE_RESTORED) {
+          // Contents need to be restored
+          renderOffscreen();      // restore contents
+      } else if (returnCode == VolatileImage.IMAGE_INCOMPATIBLE) {
+          // old vImg doesn't work with new GraphicsConfig; re-create it
+          vImg = createVolatileImage(w, h);
+          renderOffscreen();
+      }
+      gScreen.drawImage(vImg, 0, 0, this);
+ } while (vImg.contentsLost());</span> </pre>
+<p> <span>请注意，此类的子类从<a href="../../../java/awt/Image.html" title="java.awt中的类"><code>Image</code></a>类，其包括采取方法<a href="../../../java/awt/image/ImageObserver.html" title="java.awt.image中的接口"><code>ImageObserver</code></a>作为信息从一个潜在的接收到的参数为异步通知<a href="../../../java/awt/image/ImageProducer.html" title="java.awt.image中的接口"><code>ImageProducer</code></a> 。</span> <span>由于这<code>VolatileImage</code>不是从异步源加载，即采取的各种方法<code>ImageObserver</code>参数的行为，如果数据已经被从所获得的作为<code>ImageProducer</code> 。</span> <span>具体来说，这意味着来自这些方法的返回值将永远不会指示该信息尚不可用，并且在这种方法中使用的<code>ImageObserver</code>将永远不需要被记录用于异步回调通知。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#IMAGE_INCOMPATIBLE">IMAGE_INCOMPATIBLE</a></span></code>
+<div class="block">
+              验证的图像与提供的 
+             <code>GraphicsConfiguration</code>对象不兼容，并应根据需要重新创建。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#IMAGE_OK">IMAGE_OK</a></span></code>
+<div class="block">
+              经过验证的图像可以按原样使用。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#IMAGE_RESTORED">IMAGE_RESTORED</a></span></code>
+<div class="block">
+              已验证的图像已恢复，现在可以使用。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#transparency">transparency</a></span></code>
+<div class="block">
+              创建此图像的透明度值。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.java.awt.Image">
+<!-- --> </a> <h3>Fields inherited from class java.awt.<a href="../../../java/awt/Image.html" title="class in java.awt">Image</a></h3> <code><a href="../../../java/awt/Image.html#accelerationPriority">accelerationPriority</a>, <a href="../../../java/awt/Image.html#SCALE_AREA_AVERAGING">SCALE_AREA_AVERAGING</a>, <a href="../../../java/awt/Image.html#SCALE_DEFAULT">SCALE_DEFAULT</a>, <a href="../../../java/awt/Image.html#SCALE_FAST">SCALE_FAST</a>, <a href="../../../java/awt/Image.html#SCALE_REPLICATE">SCALE_REPLICATE</a>, <a href="../../../java/awt/Image.html#SCALE_SMOOTH">SCALE_SMOOTH</a>, <a href="../../../java/awt/Image.html#UndefinedProperty">UndefinedProperty</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.java.awt.Transparency">
+<!-- --> </a> <h3>Fields inherited from interface java.awt.<a href="../../../java/awt/Transparency.html" title="interface in java.awt">Transparency</a></h3> <code><a href="../../../java/awt/Transparency.html#BITMASK">BITMASK</a>, <a href="../../../java/awt/Transparency.html#OPAQUE">OPAQUE</a>, <a href="../../../java/awt/Transparency.html#TRANSLUCENT">TRANSLUCENT</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#VolatileImage--">VolatileImage</a></span>()</code> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>abstract boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#contentsLost--">contentsLost</a></span>()</code>
+<div class="block">
+              如果自最近 
+             <code>validate</code>调用以来，如果渲染数据丢失，则返回 
+             <code>true</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>abstract <a href="../../../java/awt/Graphics2D.html" title="class in java.awt">Graphics2D</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#createGraphics--">createGraphics</a></span>()</code>
+<div class="block">
+              创建一个 
+             <code>Graphics2D</code> ，可以用来绘制这个 
+             <code>VolatileImage</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>abstract <a href="../../../java/awt/ImageCapabilities.html" title="class in java.awt">ImageCapabilities</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#getCapabilities--">getCapabilities</a></span>()</code>
+<div class="block">
+              返回一个ImageCapabilities对象，可以查询该VolatileImage的具体功能。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../java/awt/Graphics.html" title="class in java.awt">Graphics</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#getGraphics--">getGraphics</a></span>()</code>
+<div class="block">
+<span>此方法返回<a href="../../../java/awt/Graphics2D.html" title="java.awt中的类"><code>Graphics2D</code></a> ，但此处为向后兼容性。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>abstract int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#getHeight--">getHeight</a></span>()</code>
+<div class="block">
+              返回 
+             <code>VolatileImage</code>的高度。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>abstract <a href="../../../java/awt/image/BufferedImage.html" title="class in java.awt.image">BufferedImage</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#getSnapshot--">getSnapshot</a></span>()</code>
+<div class="block">
+              返回此对象的静态快照图像。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../java/awt/image/ImageProducer.html" title="interface in java.awt.image">ImageProducer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#getSource--">getSource</a></span>()</code>
+<div class="block">
+              这将为此VolatileImage返回ImageProducer。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#getTransparency--">getTransparency</a></span>()</code>
+<div class="block">
+              返回透明度。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>abstract int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#getWidth--">getWidth</a></span>()</code>
+<div class="block">
+              返回 
+             <code>VolatileImage</code>的宽度。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>abstract int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/image/VolatileImage.html#validate-java.awt.GraphicsConfiguration-">validate</a></span>(<a href="../../../java/awt/GraphicsConfiguration.html" title="class in java.awt">GraphicsConfiguration</a> gc)</code>
+<div class="block">
+              如果表面自上一次 
+             <code>validate</code>调用以来丢失，则尝试恢复图像的绘图面。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.awt.Image">
+<!-- --> </a> <h3>Methods inherited from class java.awt.<a href="../../../java/awt/Image.html" title="class in java.awt">Image</a></h3> <code><a href="../../../java/awt/Image.html#flush--">flush</a>, <a href="../../../java/awt/Image.html#getAccelerationPriority--">getAccelerationPriority</a>, <a href="../../../java/awt/Image.html#getCapabilities-java.awt.GraphicsConfiguration-">getCapabilities</a>, <a href="../../../java/awt/Image.html#getHeight-java.awt.image.ImageObserver-">getHeight</a>, <a href="../../../java/awt/Image.html#getProperty-java.lang.String-java.awt.image.ImageObserver-">getProperty</a>, <a href="../../../java/awt/Image.html#getScaledInstance-int-int-int-">getScaledInstance</a>, <a href="../../../java/awt/Image.html#getWidth-java.awt.image.ImageObserver-">getWidth</a>, <a href="../../../java/awt/Image.html#setAccelerationPriority-float-">setAccelerationPriority</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="IMAGE_OK">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>IMAGE_OK</h4> <pre>public static final int IMAGE_OK</pre>
+<div class="block">
+            经过验证的图像可以按原样使用。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.image.VolatileImage.IMAGE_OK">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="IMAGE_RESTORED">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>IMAGE_RESTORED</h4> <pre>public static final int IMAGE_RESTORED</pre>
+<div class="block">
+<span>已验证的图像已恢复，现在可以使用。</span>
+<span>请注意，恢复会导致图像内容丢失。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.image.VolatileImage.IMAGE_RESTORED">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="IMAGE_INCOMPATIBLE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>IMAGE_INCOMPATIBLE</h4> <pre>public static final int IMAGE_INCOMPATIBLE</pre>
+<div class="block">
+<span>验证的图像与提供的<code>GraphicsConfiguration</code>对象不兼容，并应根据需要重新创建。</span>
+<span>从<code>validate</code>收到此返回码后，图像按<code>validate</code>是未定义的。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.image.VolatileImage.IMAGE_INCOMPATIBLE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="transparency">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>transparency</h4> <pre>protected int transparency</pre>
+<div class="block">
+            创建此图像的透明度值。 
+          </div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/awt/GraphicsConfiguration.html#createCompatibleVolatileImage-int-int-int-"><code>GraphicsConfiguration.createCompatibleVolatileImage(int, int,int)</code></a> ， <a href="../../../java/awt/GraphicsConfiguration.html#createCompatibleVolatileImage-int-int-java.awt.ImageCapabilities-int-"><code>GraphicsConfiguration.createCompatibleVolatileImage(int, int,ImageCapabilities,int)</code></a> ， <a href="../../../java/awt/Transparency.html" title="java.awt中的接口"><code>Transparency</code></a></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="VolatileImage--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>VolatileImage</h4> <pre>public VolatileImage()</pre> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getSnapshot--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSnapshot</h4> <pre>public abstract <a href="../../../java/awt/image/BufferedImage.html" title="class in java.awt.image">BufferedImage</a> getSnapshot()</pre>
+<div class="block">
+<span>返回此对象的静态快照图像。</span>
+<span><code>BufferedImage</code>返回的只是当前的<code>VolatileImage</code>在请求时，不会更新与任何将来的更改<code>VolatileImage</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<a href="../../../java/awt/image/BufferedImage.html" title="java.awt.image中的类"><code>BufferedImage</code></a>表示这个<code>VolatileImage</code></span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/awt/image/BufferedImage.html" title="java.awt.image中的类"><code>BufferedImage</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getWidth--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getWidth</h4> <pre>public abstract int getWidth()</pre>
+<div class="block">
+            返回 
+           <code>VolatileImage</code>的宽度。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个宽度是 
+            <code>VolatileImage</code> 。 
+           </dd>
+</dl> </li>
+</ul> <a name="getHeight--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getHeight</h4> <pre>public abstract int getHeight()</pre>
+<div class="block">
+            返回 
+           <code>VolatileImage</code>的高度。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个 
+            <code>VolatileImage</code>的高度。 
+           </dd>
+</dl> </li>
+</ul> <a name="getSource--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSource</h4> <pre>public <a href="../../../java/awt/image/ImageProducer.html" title="interface in java.awt.image">ImageProducer</a> getSource()</pre>
+<div class="block">
+<span>这将为此VolatileImage返回ImageProducer。</span>
+<span>请注意，VolatileImage对象针对渲染操作进行了优化，并将其划分到屏幕或其他VolatileImage对象上，而不是读取图像的像素。</span>
+<span>因此，像getSource这样的<code>getSource</code>可能不如不依赖于读取像素的操作那样快。</span>
+<span>还要注意，从图像读取的像素值与图像中的像素值仅在它们被检索时才是最新的。</span>
+<span>此方法在创建请求时获取映像的快照，并且返回的ImageProducer对象可与该静态快照映像（不是原始的VolatileImage）配合使用。</span>
+<span>调用getSource（）相当于调用getSnapshot（）。getSource（）。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/awt/Image.html#getSource--">getSource</a></code>在 
+            <code><a href="../../../java/awt/Image.html" title="class in java.awt">Image</a></code>类 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<a href="../../../java/awt/image/ImageProducer.html" title="java.awt.image中的接口"><code>ImageProducer</code></a> ，可用于生成此图像的<code>BufferedImage</code>表示的像素。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/awt/image/ImageProducer.html" title="java.awt.image中的接口"><code>ImageProducer</code></a> ， <a href="../../../java/awt/image/VolatileImage.html#getSnapshot--"><code>getSnapshot()</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getGraphics--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getGraphics</h4> <pre>public <a href="../../../java/awt/Graphics.html" title="class in java.awt">Graphics</a> getGraphics()</pre>
+<div class="block">
+<span>此方法返回<a href="../../../java/awt/Graphics2D.html" title="java.awt中的类"><code>Graphics2D</code></a> ，但此处为向后兼容性。</span>
+<span><a href="../../../java/awt/image/VolatileImage.html#createGraphics--"><code>createGraphics</code></a>更方便，因为它被宣布返回<code>Graphics2D</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/awt/Image.html#getGraphics--">getGraphics</a></code>在 
+            <code><a href="../../../java/awt/Image.html" title="class in java.awt">Image</a></code>类 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Graphics2D</code> ，可以用来绘制这个图像。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/awt/Graphics.html" title="java.awt中的类"><code>Graphics</code></a> ， <a href="../../../java/awt/Component.html#createImage-int-int-"><code>Component.createImage(int, int)</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="createGraphics--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createGraphics</h4> <pre>public abstract <a href="../../../java/awt/Graphics2D.html" title="class in java.awt">Graphics2D</a> createGraphics()</pre>
+<div class="block">
+            创建一个 
+           <code>Graphics2D</code> ，可以用来绘制这个 
+           <code>VolatileImage</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Graphics2D</code> ，用于绘制这个图像。 
+           </dd>
+</dl> </li>
+</ul> <a name="validate-java.awt.GraphicsConfiguration-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>validate</h4> <pre>public abstract int validate(<a href="../../../java/awt/GraphicsConfiguration.html" title="class in java.awt">GraphicsConfiguration</a> gc)</pre>
+<div class="block">
+<span>如果表面自上次<code>validate</code>调用以来丢失，则尝试恢复图像的绘图面。</span>
+<span>还可以根据给定的GraphicsConfiguration参数验证此映像，以查看从此映像到GraphicsConfiguration的操作是否兼容。</span>
+<span>不兼容组合的示例可能是在一个图形设备上创建VolatileImage对象，然后用于呈现到其他图形设备的情况。</span>
+<span>由于VolatileImage对象往往是非常具体的设备，因此此操作可能无法正常工作，因此来自此验证调用的返回代码将注意到不兼容。</span>
+<span>gc的空值或不正确的值可能会导致从<code>validate</code>返回不<code>validate</code>值，并可能导致后续的渲染问题。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>gc</code> - 要<code>GraphicsConfiguration</code>此图像的<code>GraphicsConfiguration</code>对象。</span>
+<span>null gc意味着validate方法应该跳过兼容性测试。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>IMAGE_OK</code>如果图像不需要验证</span>
+<br/>
+<span><code>IMAGE_RESTORED</code>如果图像需要恢复。</span>
+<span>恢复意味着图像的内容可能已经受到影响，并且可能需要重新渲染图像。</span>
+<br/>
+<span><code>IMAGE_INCOMPATIBLE</code>如果图像与传递给<code>validate</code>方法的<code>GraphicsConfiguration</code>对象不<code>validate</code> 。</span>
+<span>不相容性意味着图像可能需要使用新的<code>Component</code>或<code>GraphicsConfiguration</code> ，以获得可以成功使用此<code>GraphicsConfiguration</code> 。</span>
+<span>不检查不兼容的图像是否需要恢复，因此在返回值为IMAGE_INCOMPATIBLE之后图像的状态<code>IMAGE_INCOMPATIBLE</code> ，并且此返回值对于是否需要还原图像无关。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/awt/GraphicsConfiguration.html" title="java.awt中的类"><code>GraphicsConfiguration</code></a> ， <a href="../../../java/awt/Component.html" title="java.awt中的类"><code>Component</code></a> ， <a href="../../../java/awt/image/VolatileImage.html#IMAGE_OK"><code>IMAGE_OK</code></a> ， <a href="../../../java/awt/image/VolatileImage.html#IMAGE_RESTORED"><code>IMAGE_RESTORED</code></a> ， <a href="../../../java/awt/image/VolatileImage.html#IMAGE_INCOMPATIBLE"><code>IMAGE_INCOMPATIBLE</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="contentsLost--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>contentsLost</h4> <pre>public abstract boolean contentsLost()</pre>
+<div class="block">
+<span>如果自上次<code>validate</code>调用以来，如果渲染数据丢失，则返回<code>true</code> 。</span>
+<span>应该在应用程序的任何一系列渲染操作结束时从图像调用该方法，以查看图像是否需要被验证并且重现渲染。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果绘图表面需要恢复;</span>
+<span><code>false</code>否则。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getCapabilities--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCapabilities</h4> <pre>public abstract <a href="../../../java/awt/ImageCapabilities.html" title="class in java.awt">ImageCapabilities</a> getCapabilities()</pre>
+<div class="block">
+<span>返回一个ImageCapabilities对象，可以查询该VolatileImage的具体功能。</span>
+<span>这将允许程序员找到关于他们创建的特定VolatileImage对象的更多运行时信息。</span>
+<span>例如，用户可能会创建一个VolatileImage，但系统可能没有可用于创建该大小图像的视频内存，因此尽管该对象是一个VolatileImage，但它并不像该平台上的其他VolatileImage对象那样加速。</span>
+<span>用户可能希望该信息找到其他解决方案的问题。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>ImageCapabilities</code>对象包含此的能力 
+            <code>VolatileImage</code> 。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="getTransparency--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>getTransparency</h4> <pre>public int getTransparency()</pre>
+<div class="block">
+<span>返回透明度。</span>
+<span>返回OPAQUE，BITMASK或TRANSLUCENT。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/awt/Transparency.html#getTransparency--">getTransparency</a></code>在接口 
+            <code><a href="../../../java/awt/Transparency.html" title="interface in java.awt">Transparency</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             透明度为 
+            <code>VolatileImage</code> 。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/Transparency.html#OPAQUE"><code>Transparency.OPAQUE</code></a> ， 
+            <a href="../../../java/awt/Transparency.html#BITMASK"><code>Transparency.BITMASK</code></a> ， 
+            <a href="../../../java/awt/Transparency.html#TRANSLUCENT"><code>Transparency.TRANSLUCENT</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

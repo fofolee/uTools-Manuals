@@ -1,0 +1,2002 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.text 
+   </div>
+<h2 class="title" title="Class DecimalFormat">Class DecimalFormat</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../java/text/Format.html" title="class in java.text">java.text.Format</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../java/text/NumberFormat.html" title="class in java.text">java.text.NumberFormat</a></li>
+<li>
+<ul class="inheritance">
+<li>java.text.DecimalFormat</li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../java/lang/Cloneable.html" title="java.lang中的接口">Cloneable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">DecimalFormat</span>
+extends <a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></pre>
+<div class="block">
+<span><code>DecimalFormat</code>是格式为十进制数的<code>NumberFormat</code>的具体子类。</span>
+<span>它具有各种功能，旨在使任何地区的数字解析和格式化，包括支持西方，阿拉伯语和印度数字。</span>
+<span>它还支持不同类型的数字，包括整数（123），定点数（123.4），科学记数法（1.23E4），百分比（12％）和货币金额（123美元）。</span>
+<span>所有这些都可以进行本地化。</span>
+<p> <span>为了获得<code>NumberFormat</code>特定区域设置，包括默认语言环境，调用一个<code>NumberFormat</code>的工厂的方法，如<code>getInstance()</code> 。</span> <span>一般来说，不要直接调用<code>DecimalFormat</code>函数，因为<code>NumberFormat</code>工厂方法可能会返回除DecimalFormat以外的<code>DecimalFormat</code> 。</span> <span>如果您需要自定义格式对象，请执行以下操作：</span> </p>
+<blockquote>
+<span><pre>
+ NumberFormat f = NumberFormat.getInstance(loc);
+ if (f instanceof DecimalFormat) {
+     ((DecimalFormat) f).setDecimalSeparatorAlwaysShown(true);
+ }
+ </pre></span>
+</blockquote>
+<p> <span>A <code>DecimalFormat</code>包括<em>图案</em>和一组<em>符号</em> 。</span> <span>可以使用<code>applyPattern()</code>直接设置模式，或间接使用API方法。</span> <span>符号存储在一个<code>DecimalFormatSymbols</code>对象中。</span> <span>当使用<code>NumberFormat</code>工厂方法时，模式和符号从本地化<code>ResourceBundle</code>读取。</span> </p>
+<h3> <span>模式</span> </h3>
+<span><code>DecimalFormat</code>模式具有以下语法：</span>
+<blockquote>
+<span><pre>
+ <i>Pattern:</i>
+         <i>PositivePattern</i>
+         <i>PositivePattern</i> ; <i>NegativePattern</i>
+ <i>PositivePattern:</i>
+         <i>Prefix<sub>opt</sub></i> <i>Number</i> <i>Suffix<sub>opt</sub></i>
+ <i>NegativePattern:</i>
+         <i>Prefix<sub>opt</sub></i> <i>Number</i> <i>Suffix<sub>opt</sub></i>
+ <i>Prefix:</i>
+         any Unicode characters except \uFFFE, \uFFFF, and special characters
+ <i>Suffix:</i>
+         any Unicode characters except \uFFFE, \uFFFF, and special characters
+ <i>Number:</i>
+         <i>Integer</i> <i>Exponent<sub>opt</sub></i>
+         <i>Integer</i> . <i>Fraction</i> <i>Exponent<sub>opt</sub></i>
+ <i>Integer:</i>
+         <i>MinimumInteger</i>
+         #
+         # <i>Integer</i>
+         # , <i>Integer</i>
+ <i>MinimumInteger:</i>
+         0
+         0 <i>MinimumInteger</i>
+         0 , <i>MinimumInteger</i>
+ <i>Fraction:</i>
+         <i>MinimumFraction<sub>opt</sub></i> <i>OptionalFraction<sub>opt</sub></i>
+ <i>MinimumFraction:</i>
+         0 <i>MinimumFraction<sub>opt</sub></i>
+ <i>OptionalFraction:</i>
+         # <i>OptionalFraction<sub>opt</sub></i>
+ <i>Exponent:</i>
+         E <i>MinimumExponent</i>
+ <i>MinimumExponent:</i>
+         0 <i>MinimumExponent<sub>opt</sub></i>
+ </pre></span>
+</blockquote>
+<p> <span><code>DecimalFormat</code>模式包含一个正和负子模式，例如<code>"#,##0.00;(#,##0.00)"</code> 。</span> <span>每个子模式都有一个前缀，数字部分和后缀。</span> <span>负子模式是可选的;</span> <span>如果不存在，则使用以局部减号（ <code>'-'</code>在大多数语言环境中）前缀的正子模式作为负子模式。</span> <span>也就是说， <code>"0.00"</code>单独就相当于<code>"0.00;-0.00"</code> 。</span> <span>如果存在显式的负子模式，则仅用于指定负前缀和后缀;</span> <span>位数，最小数字和其他特征与正图案完全相同。</span> <span>这意味着<code>"#,##0.0#;(#)"</code>产生的行为与<code>"#,##0.0#;(#,##0.0#)"</code> 。</span> </p>
+<p> <span>用于无穷大，数字，数千个分隔符，十进制分隔符等的前缀，后缀和各种符号可以设置为任意值，并且在格式化期间它们将正确显示。</span> <span>但是，必须注意符号和字符串不冲突，否则解析将不可靠。</span> <span>例如，对于<code>DecimalFormat.parse()</code> ，正负号前缀或后缀必须是不同的，以便能够区分正值和负值。</span> <span>（如果它们相同，则<code>DecimalFormat</code>将表现为没有指定负子模式。）另一个例子是，小数分隔符和千位分隔符应该是不同的字符，否则解析是不可能的。</span> </p>
+<p> <span>分组分隔符通常用于数千个，但在一些国家，它分隔成万。</span> <span>分组大小是分组字符之间的常数数字，例如3个为100,000,000或4为1,0000,0000。</span> <span>如果您提供具有多个分组字符的模式，则最后一个和整数结束之间的间隔是使用的模式。</span> <span>所以<code>"#,##,###,####"</code> == <code>"######,####"</code> == <code>"##,####,####"</code> 。</span> </p>
+<h4> <span>特殊图案字符</span> </h4>
+<p> <span>一个模式中的许多人物都是字面上的;</span> <span>在格式化期间，它们在解析期间匹配，输出不变。</span> <span>另一方面，特殊字符代表其他字符，字符串或字符类。</span> <span>除非另有说明，否则必须引用它们，如果它们以字面值的形式出现在前缀或后缀中。</span> </p>
+<p> <span>这里列出的字符用于非本地化模式。</span> <span>本地化模式使用从格式化程序的<code>DecimalFormatSymbols</code>对象取得的<code>DecimalFormatSymbols</code> ，这些字符丢失其特殊状态。</span> <span>货币符号和报价两个例外都不是本地化的。</span> </p>
+<blockquote>
+<span>
+<table border="0" cellpadding="0" cellspacing="3" summary="Chart showing symbol,
+  location, localized, and meaning.">
+<tbody>
+<tr style="background-color: rgb(204, 204, 255);">
+<th align="left">Symbol </th>
+<th align="left">Location </th>
+<th align="left">Localized? </th>
+<th align="left">Meaning </th>
+</tr>
+<tr valign="top">
+<td><code>0</code> </td>
+<td>Number </td>
+<td>Yes </td>
+<td>Digit </td>
+</tr>
+<tr style="vertical-align: top; background-color: rgb(238, 238, 255);">
+<td><code>#</code> </td>
+<td>Number </td>
+<td>Yes </td>
+<td>Digit, zero shows as absent </td>
+</tr>
+<tr valign="top">
+<td><code>.</code> </td>
+<td>Number </td>
+<td>Yes </td>
+<td>Decimal separator or monetary decimal separator </td>
+</tr>
+<tr style="vertical-align: top; background-color: rgb(238, 238, 255);">
+<td><code>-</code> </td>
+<td>Number </td>
+<td>Yes </td>
+<td>Minus sign </td>
+</tr>
+<tr valign="top">
+<td><code>,</code> </td>
+<td>Number </td>
+<td>Yes </td>
+<td>Grouping separator </td>
+</tr>
+<tr style="vertical-align: top; background-color: rgb(238, 238, 255);">
+<td><code>E</code> </td>
+<td>Number </td>
+<td>Yes </td>
+<td>Separates mantissa and exponent in scientific notation. <em>Need not be quoted in prefix or suffix.</em> </td>
+</tr>
+<tr valign="top">
+<td><code>;</code> </td>
+<td>Subpattern boundary </td>
+<td>Yes </td>
+<td>Separates positive and negative subpatterns </td>
+</tr>
+<tr style="vertical-align: top; background-color: rgb(238, 238, 255);">
+<td><code>%</code> </td>
+<td>Prefix or suffix </td>
+<td>Yes </td>
+<td>Multiply by 100 and show as percentage </td>
+</tr>
+<tr valign="top">
+<td><code>\u2030</code> </td>
+<td>Prefix or suffix </td>
+<td>Yes </td>
+<td>Multiply by 1000 and show as per mille value </td>
+</tr>
+<tr style="vertical-align: top; background-color: rgb(238, 238, 255);">
+<td><code>¤</code> (<code>\u00A4</code>) </td>
+<td>Prefix or suffix </td>
+<td>No </td>
+<td>Currency sign, replaced by currency symbol. If doubled, replaced by international currency symbol. If present in a pattern, the monetary decimal separator is used instead of the decimal separator. </td>
+</tr>
+<tr valign="top">
+<td><code>'</code> </td>
+<td>Prefix or suffix </td>
+<td>No </td>
+<td>Used to quote special characters in a prefix or suffix, for example, <code>"'#'#"</code> formats 123 to <code>"#123"</code>. To create a single quote itself, use two in a row: <code>"# o''clock"</code>. </td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+<h4> <span>科学计数法</span> </h4>
+<p> <span>科学符号中的数字表示为尾数和幂的乘积，例如，1234可以表示为1.234×10 ^ 3。</span> <span>尾数通常在1.0‰x &lt;10.0的范围内，但不一定是。</span> <span><code>DecimalFormat</code>可以指示<em>只能通过模式</em>格式化和分析科学符号;</span> <span>目前没有工厂方法创建科学的符号格式。</span> <span>在一个模式中，紧随着一个或多个数字字符的指数字符表示科学符号。</span> <span>例如： <code>"0.###E0"</code>将1234号码格式化为<code>"1.234E3"</code> 。</span> </p>
+<ul>
+<li> <span>指数字符后的数字字符数给出最小指数数字计数。</span> <span>没有最大值。</span> <span>负指数使用局部减号进行格式化， <em>而不是模式</em>的前缀和后缀。</span> <span>这允许模式如<code>"0.###E0 m/s"</code> 。</span> </li>
+<li> <span>整数数字的最小和最大数字一起解释：</span>
+<ul>
+<li> <span>如果整数数字的最大数目大于其最小数目并大于1，则强制指数为整数数字的最大数目的倍数，并将最小数字解释为1.最常见使用这个是生成<em>工程符号</em> ，其中指数是三的倍数，例如<code>"##0.#####E0"</code> 。</span> <span>使用此模式，数字12345格式为<code>"12.345E3"</code> ，而123456格式为<code>"123.456E3"</code> 。</span> </li>
+<li> <span>否则，通过调整指数来实现最小数字的整数。</span> <span>示例：0.00123格式化为<code>"00.###E0"</code>产量为<code>"12.3E-4"</code> 。</span> </li>
+</ul></li>
+<li> <span>尾数中的有效位数是<em>最小整数</em>和<em>最大小数</em>位数之和，不受最大整数数字的影响。</span> <span>例如，用<code>"##0.##E0"</code> 12345是<code>"12.3E3"</code> 。</span> <span>要显示所有数字，将有效数字计数设置为零。</span> <span>有效数字的数量不会影响解析。</span> </li>
+<li> <span>指数图案可能不包含分组分隔符。</span> </li>
+</ul>
+<h4> <span>四舍五入</span> </h4>
+<span><code>DecimalFormat</code>提供了<a href="../../java/math/RoundingMode.html" title="枚举在java.math中"><code>RoundingMode</code></a>中格式化定义的舍入模式。</span>
+<span>默认情况下，它使用<a href="../../java/math/RoundingMode.html#HALF_EVEN"><code>RoundingMode.HALF_EVEN</code></a> 。</span>
+<h4> <span>数字</span> </h4>
+<span>对于格式化， <code>DecimalFormat</code>使用从<code>DecimalFormatSymbols</code>对象中定义的本地零位开始的十个连续字符作为数字。</span>
+<span>为了解析，这些数字以及由<a href="../../java/lang/Character.html#digit-char-int-"><code>Character.digit</code></a>定义的所有Unicode十进制数字被识别。</span>
+<h4> <span>特殊价值观</span> </h4>
+<p> <span><code>NaN</code>被格式化为字符串，通常具有单个字符<code>\uFFFD</code> 。</span> <span>该字符串由<code>DecimalFormatSymbols</code>对象确定。</span> <span>这是唯一未使用前缀和后缀的值。</span> </p>
+<p> <span>无限格式化为字符串，通常具有单个字符<code>\u221E</code> ，其中应用正或负前缀和后缀。</span> <span>无限字符串由<code>DecimalFormatSymbols</code>对象确定。</span> </p>
+<p> <span>负零（ <code>"-0"</code> ）解析</span> </p>
+<ul>
+<li> <span><code>BigDecimal(0)</code>如果<code>isParseBigDecimal()</code>是真的，</span> </li>
+<li> <span><code>Long(0)</code>如果<code>isParseBigDecimal()</code>是假的，而<code>isParseIntegerOnly()</code>是真的，</span> </li>
+<li> <span><code>Double(-0.0)</code>如果<code>isParseBigDecimal()</code>和<code>isParseIntegerOnly()</code>都是假的。</span> </li>
+</ul>
+<h4> <span><a name="synchronization">Synchronization</a></span> </h4>
+<p> <span>十进制格式通常不同步。</span> <span>建议为每个线程创建单独的格式实例。</span> <span>如果多个线程同时访问格式，则必须在外部进行同步。</span> </p>
+<h4> <span>例</span> </h4>
+<blockquote>
+<span><pre><code>
+ &lt;strong&gt;// Print out a number using the localized number, integer, currency,
+ // and percent format for each locale&lt;/strong&gt;
+ Locale[] locales = NumberFormat.getAvailableLocales();
+ double myNumber = -1234.56;
+ NumberFormat form;
+ for (int j = 0; j &lt; 4; ++j) {
+     System.out.println("FORMAT");
+     for (int i = 0; i &lt; locales.length; ++i) {
+         if (locales[i].getCountry().length() == 0) {
+            continue; // Skip language-only locales
+         }
+         System.out.print(locales[i].getDisplayName());
+         switch (j) {
+         case 0:
+             form = NumberFormat.getInstance(locales[i]); break;
+         case 1:
+             form = NumberFormat.getIntegerInstance(locales[i]); break;
+         case 2:
+             form = NumberFormat.getCurrencyInstance(locales[i]); break;
+         default:
+             form = NumberFormat.getPercentInstance(locales[i]); break;
+         }
+         if (form instanceof DecimalFormat) {
+             System.out.print(": " + ((DecimalFormat) form).toPattern());
+         }
+         System.out.print(" -&gt; " + form.format(myNumber));
+         try {
+             System.out.println(" -&gt; " + form.parse(form.format(myNumber)));
+         } catch (ParseException e) {}
+     }
+ }
+ </code></pre></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="http://docs.oracle.com/javase/tutorial/i18n/format/decimalFormat.html">Java Tutorial</a> ， <a href="../../java/text/NumberFormat.html" title="java.text中的类"><code>NumberFormat</code></a> ， <a href="../../java/text/DecimalFormatSymbols.html" title="java.text中的类"><code>DecimalFormatSymbols</code></a> ， <a href="../../java/text/ParsePosition.html" title="java.text中的类"><code>ParsePosition</code></a> ， <a href="../../serialized-form.html#java.text.DecimalFormat">Serialized Form</a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.java.text.NumberFormat">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class java.text.<a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></h3> <code><a href="../../java/text/NumberFormat.Field.html" title="class in java.text">NumberFormat.Field</a></code></li>
+</ul> </li>
+</ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.java.text.NumberFormat">
+<!-- --> </a> <h3>Fields inherited from class java.text.<a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></h3> <code><a href="../../java/text/NumberFormat.html#FRACTION_FIELD">FRACTION_FIELD</a>, <a href="../../java/text/NumberFormat.html#INTEGER_FIELD">INTEGER_FIELD</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#DecimalFormat--">DecimalFormat</a></span>()</code>
+<div class="block">
+              使用缺省模式和符号创建默认的 
+             <a href="../../java/util/Locale.Category.html#FORMAT"><code>FORMAT</code></a>区域设置的 
+             <a href="../../java/util/Locale.Category.html#FORMAT">DecimalFormat</a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#DecimalFormat-java.lang.String-">DecimalFormat</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</code>
+<div class="block">
+              使用给定的模式和默认的 
+             <a href="../../java/util/Locale.Category.html#FORMAT"><code>FORMAT</code></a>区域设置的符号创建一个DecimalFormat。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#DecimalFormat-java.lang.String-java.text.DecimalFormatSymbols-">DecimalFormat</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern, <a href="../../java/text/DecimalFormatSymbols.html" title="class in java.text">DecimalFormatSymbols</a> symbols)</code>
+<div class="block">
+              使用给定的模式和符号创建一个DecimalFormat。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#applyLocalizedPattern-java.lang.String-">applyLocalizedPattern</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</code>
+<div class="block">
+              将给定的模式应用于此Format对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#applyPattern-java.lang.String-">applyPattern</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</code>
+<div class="block">
+              将给定的模式应用于此Format对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#clone--">clone</a></span>()</code>
+<div class="block">
+<span>标准覆盖</span>
+<span>语义不变。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#equals-java.lang.Object-">equals</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              覆盖等于 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#format-double-java.lang.StringBuffer-java.text.FieldPosition-">format</a></span>(double number, <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> result, <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> fieldPosition)</code>
+<div class="block">
+              格式化为一个字符串。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#format-long-java.lang.StringBuffer-java.text.FieldPosition-">format</a></span>(long number, <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> result, <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> fieldPosition)</code>
+<div class="block">
+              格式化一个长的字符串。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#format-java.lang.Object-java.lang.StringBuffer-java.text.FieldPosition-">format</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> number, <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> toAppendTo, <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> pos)</code>
+<div class="block">
+              格式化一个数字，并将生成的文本附加到给定的字符串缓冲区。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#formatToCharacterIterator-java.lang.Object-">formatToCharacterIterator</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              格式化一个对象，生成一个 
+             <code>AttributedCharacterIterator</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../java/util/Currency.html" title="class in java.util">Currency</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getCurrency--">getCurrency</a></span>()</code>
+<div class="block">
+              在格式化货币值时获取此十进制格式使用的货币。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../java/text/DecimalFormatSymbols.html" title="class in java.text">DecimalFormatSymbols</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getDecimalFormatSymbols--">getDecimalFormatSymbols</a></span>()</code>
+<div class="block">
+              返回十进制格式符号的副本，通常程序员或用户不会更改它们。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getGroupingSize--">getGroupingSize</a></span>()</code>
+<div class="block">
+              返回分组大小。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getMaximumFractionDigits--">getMaximumFractionDigits</a></span>()</code>
+<div class="block">
+              获取数字小数部分中允许的最大位数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getMaximumIntegerDigits--">getMaximumIntegerDigits</a></span>()</code>
+<div class="block">
+              获取数字的整数部分允许的最大位数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getMinimumFractionDigits--">getMinimumFractionDigits</a></span>()</code>
+<div class="block">
+              获取数字小数部分中允许的最小位数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getMinimumIntegerDigits--">getMinimumIntegerDigits</a></span>()</code>
+<div class="block">
+              获取数字整数部分允许的最小位数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getMultiplier--">getMultiplier</a></span>()</code>
+<div class="block">
+              以百分比，每mille和类似格式获取乘数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getNegativePrefix--">getNegativePrefix</a></span>()</code>
+<div class="block">
+              获取负前缀。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getNegativeSuffix--">getNegativeSuffix</a></span>()</code>
+<div class="block">
+              得到负的后缀。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getPositivePrefix--">getPositivePrefix</a></span>()</code>
+<div class="block">
+              获取正面前缀。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getPositiveSuffix--">getPositiveSuffix</a></span>()</code>
+<div class="block">
+              获得积极的后缀。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code><a href="../../java/math/RoundingMode.html" title="enum in java.math">RoundingMode</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#getRoundingMode--">getRoundingMode</a></span>()</code>
+<div class="block">
+<span>获取此<a href="../../java/math/RoundingMode.html" title="枚举在java.math中">DecimalFormat中</a>使用的<code>RoundingMode</code>。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              覆盖hashCode 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#isDecimalSeparatorAlwaysShown--">isDecimalSeparatorAlwaysShown</a></span>()</code>
+<div class="block">
+              允许您使用整数获取小数分隔符的行为。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#isParseBigDecimal--">isParseBigDecimal</a></span>()</code>
+<div class="block">
+              返回 
+             <a href="../../java/text/DecimalFormat.html#parse-java.lang.String-java.text.ParsePosition-"><code>parse(java.lang.String, java.text.ParsePosition)</code></a>方法是否返回 
+             <code>BigDecimal</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code><a href="../../java/lang/Number.html" title="class in java.lang">Number</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#parse-java.lang.String-java.text.ParsePosition-">parse</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> text, <a href="../../java/text/ParsePosition.html" title="class in java.text">ParsePosition</a> pos)</code>
+<div class="block">
+              从字符串解析文本以产生一个 
+             <code>Number</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setCurrency-java.util.Currency-">setCurrency</a></span>(<a href="../../java/util/Currency.html" title="class in java.util">Currency</a> currency)</code>
+<div class="block">
+              设置格式化货币值时此数字格式使用的货币。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setDecimalFormatSymbols-java.text.DecimalFormatSymbols-">setDecimalFormatSymbols</a></span>(<a href="../../java/text/DecimalFormatSymbols.html" title="class in java.text">DecimalFormatSymbols</a> newSymbols)</code>
+<div class="block">
+              设置十进制格式符号，通常程序员或用户不会更改。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setDecimalSeparatorAlwaysShown-boolean-">setDecimalSeparatorAlwaysShown</a></span>(boolean newValue)</code>
+<div class="block">
+              允许您使用整数设置小数分隔符的行为。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setGroupingSize-int-">setGroupingSize</a></span>(int newValue)</code>
+<div class="block">
+              设置分组大小。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setGroupingUsed-boolean-">setGroupingUsed</a></span>(boolean newValue)</code>
+<div class="block">
+              设置是否以此格式使用分组。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i30">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setMaximumFractionDigits-int-">setMaximumFractionDigits</a></span>(int newValue)</code>
+<div class="block">
+              设置数字小数部分允许的最大位数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i31">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setMaximumIntegerDigits-int-">setMaximumIntegerDigits</a></span>(int newValue)</code>
+<div class="block">
+              设置数字的整数部分允许的最大位数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i32">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setMinimumFractionDigits-int-">setMinimumFractionDigits</a></span>(int newValue)</code>
+<div class="block">
+              设置数字小数部分允许的最小位数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i33">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setMinimumIntegerDigits-int-">setMinimumIntegerDigits</a></span>(int newValue)</code>
+<div class="block">
+              设置数字的整数部分允许的最小位数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i34">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setMultiplier-int-">setMultiplier</a></span>(int newValue)</code>
+<div class="block">
+              设置以百分比，每mille和类似格式使用的乘数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i35">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setNegativePrefix-java.lang.String-">setNegativePrefix</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> newValue)</code>
+<div class="block">
+              设置负前缀。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i36">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setNegativeSuffix-java.lang.String-">setNegativeSuffix</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> newValue)</code>
+<div class="block">
+              设置负后缀。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i37">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setParseBigDecimal-boolean-">setParseBigDecimal</a></span>(boolean newValue)</code>
+<div class="block">
+              设置 
+             <a href="../../java/text/DecimalFormat.html#parse-java.lang.String-java.text.ParsePosition-"><code>parse(java.lang.String, java.text.ParsePosition)</code></a>方法是否返回 
+             <code>BigDecimal</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i38">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setPositivePrefix-java.lang.String-">setPositivePrefix</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> newValue)</code>
+<div class="block">
+              设置正前缀。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i39">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setPositiveSuffix-java.lang.String-">setPositiveSuffix</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> newValue)</code>
+<div class="block">
+              设置正后缀。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i40">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#setRoundingMode-java.math.RoundingMode-">setRoundingMode</a></span>(<a href="../../java/math/RoundingMode.html" title="enum in java.math">RoundingMode</a> roundingMode)</code>
+<div class="block">
+<span>设置此<a href="../../java/math/RoundingMode.html" title="枚举在java.math中">DecimalFormat中</a>使用的<code>RoundingMode</code>。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i41">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#toLocalizedPattern--">toLocalizedPattern</a></span>()</code>
+<div class="block">
+              合成表示此Format对象的当前状态的本地化模式字符串。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i42">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/text/DecimalFormat.html#toPattern--">toPattern</a></span>()</code>
+<div class="block">
+              合成表示此Format对象的当前状态的模式字符串。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.text.NumberFormat">
+<!-- --> </a> <h3>Methods inherited from class java.text.<a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></h3> <code><a href="../../java/text/NumberFormat.html#format-double-">format</a>, <a href="../../java/text/NumberFormat.html#format-long-">format</a>, <a href="../../java/text/NumberFormat.html#getAvailableLocales--">getAvailableLocales</a>, <a href="../../java/text/NumberFormat.html#getCurrencyInstance--">getCurrencyInstance</a>, <a href="../../java/text/NumberFormat.html#getCurrencyInstance-java.util.Locale-">getCurrencyInstance</a>, <a href="../../java/text/NumberFormat.html#getInstance--">getInstance</a>, <a href="../../java/text/NumberFormat.html#getInstance-java.util.Locale-">getInstance</a>, <a href="../../java/text/NumberFormat.html#getIntegerInstance--">getIntegerInstance</a>, <a href="../../java/text/NumberFormat.html#getIntegerInstance-java.util.Locale-">getIntegerInstance</a>, <a href="../../java/text/NumberFormat.html#getNumberInstance--">getNumberInstance</a>, <a href="../../java/text/NumberFormat.html#getNumberInstance-java.util.Locale-">getNumberInstance</a>, <a href="../../java/text/NumberFormat.html#getPercentInstance--">getPercentInstance</a>, <a href="../../java/text/NumberFormat.html#getPercentInstance-java.util.Locale-">getPercentInstance</a>, <a href="../../java/text/NumberFormat.html#isGroupingUsed--">isGroupingUsed</a>, <a href="../../java/text/NumberFormat.html#isParseIntegerOnly--">isParseIntegerOnly</a>, <a href="../../java/text/NumberFormat.html#parse-java.lang.String-">parse</a>, <a href="../../java/text/NumberFormat.html#parseObject-java.lang.String-java.text.ParsePosition-">parseObject</a>, <a href="../../java/text/NumberFormat.html#setParseIntegerOnly-boolean-">setParseIntegerOnly</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.text.Format">
+<!-- --> </a> <h3>Methods inherited from class java.text.<a href="../../java/text/Format.html" title="class in java.text">Format</a></h3> <code><a href="../../java/text/Format.html#format-java.lang.Object-">format</a>, <a href="../../java/text/Format.html#parseObject-java.lang.String-">parseObject</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#toString--">toString</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="DecimalFormat--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>DecimalFormat</h4> <pre>public DecimalFormat()</pre>
+<div class="block">
+<span>使用默认模式和默认<a href="../../java/util/Locale.Category.html#FORMAT"><code>FORMAT</code></a>区域设置的符号创建一个DecimalFormat。</span>
+<span>当国际化不是主要关注点时，这是获取一个十进制格式的方便方法。</span>
+<p> <span>为了获得标准格式定区域设置，使用NumberFormat工厂方法，如getNumberInstance。</span> <span>这些工厂将为给定的区域设置返回最合适的NumberFormat子类。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/NumberFormat.html#getInstance--"><code>NumberFormat.getInstance()</code></a> ， 
+            <a href="../../java/text/NumberFormat.html#getNumberInstance--"><code>NumberFormat.getNumberInstance()</code></a> ， 
+            <a href="../../java/text/NumberFormat.html#getCurrencyInstance--"><code>NumberFormat.getCurrencyInstance()</code></a> ， 
+            <a href="../../java/text/NumberFormat.html#getPercentInstance--"><code>NumberFormat.getPercentInstance()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="DecimalFormat-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>DecimalFormat</h4> <pre>public DecimalFormat(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</pre>
+<div class="block">
+<span>使用给定的模式和默认的<a href="../../java/util/Locale.Category.html#FORMAT"><code>FORMAT</code></a>语言环境的符号创建一个DecimalFormat。</span>
+<span>当国际化不是主要关注点时，这是获取一个十进制格式的方便方法。</span>
+<p> <span>为了获得标准格式定区域设置，使用NumberFormat工厂方法，如getNumberInstance。</span> <span>这些工厂将为给定的区域设置返回最合适的NumberFormat子类。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pattern</code> - 非本地化模式字符串。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>pattern</code>为空 
+           </dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果给定的模式无效。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/NumberFormat.html#getInstance--"><code>NumberFormat.getInstance()</code></a> ， 
+            <a href="../../java/text/NumberFormat.html#getNumberInstance--"><code>NumberFormat.getNumberInstance()</code></a> ， 
+            <a href="../../java/text/NumberFormat.html#getCurrencyInstance--"><code>NumberFormat.getCurrencyInstance()</code></a> ， 
+            <a href="../../java/text/NumberFormat.html#getPercentInstance--"><code>NumberFormat.getPercentInstance()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="DecimalFormat-java.lang.String-java.text.DecimalFormatSymbols-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>DecimalFormat</h4> <pre>public DecimalFormat(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern,
+                     <a href="../../java/text/DecimalFormatSymbols.html" title="class in java.text">DecimalFormatSymbols</a> symbols)</pre>
+<div class="block">
+<span>使用给定的模式和符号创建一个DecimalFormat。</span>
+<span>当您需要完全自定义格式的行为时，请使用此构造函数。</span>
+<p> <span>要获取给定语言环境的标准格式，请使用NumberFormat上的工厂方法，例如getInstance或getCurrencyInstance。</span> <span>如果您只需要对标准格式进行微调，您可以修改NumberFormat工厂方法返回的格式。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pattern</code> - 非本地化模式字符串 
+           </dd>
+<dd>
+<code>symbols</code> - 要使用的符号集合 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任何给定的参数为空 
+           </dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果给定的模式无效 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/text/NumberFormat.html#getInstance--"><code>NumberFormat.getInstance()</code></a> ， <a href="../../java/text/NumberFormat.html#getNumberInstance--"><code>NumberFormat.getNumberInstance()</code></a> ， <a href="../../java/text/NumberFormat.html#getCurrencyInstance--"><code>NumberFormat.getCurrencyInstance()</code></a> ， <a href="../../java/text/NumberFormat.html#getPercentInstance--"><code>NumberFormat.getPercentInstance()</code></a> ， <a href="../../java/text/DecimalFormatSymbols.html" title="java.text中的类"><code>DecimalFormatSymbols</code></a></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="format-java.lang.Object-java.lang.StringBuffer-java.text.FieldPosition-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>format</h4> <pre>public final <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> format(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> number,
+                                 <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> toAppendTo,
+                                 <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> pos)</pre>
+<div class="block">
+<span>格式化一个数字，并将生成的文本附加到给定的字符串缓冲区。</span>
+<span>该号码可以是任何<a href="../../java/lang/Number.html" title="java.lang中的类"><code>Number</code>的</a>子类。</span>
+<p> <span>此实现使用允许的最大精度。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#format-java.lang.Object-java.lang.StringBuffer-java.text.FieldPosition-">format</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>number</code> - 要格式化的号码 
+           </dd>
+<dd>
+<code>toAppendTo</code> -所述 
+            <code>StringBuffer</code>到的格式化的文本将被所附 
+           </dd>
+<dd>
+<span><code>pos</code> - 在输入端：一个对齐字段，如果需要的话。</span>
+<span>输出：对齐字段的偏移量。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该值传递为 
+            <code>toAppendTo</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>number</code>为null或不是 
+            <code>Number</code>的实例。 
+           </dd>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>toAppendTo</code>或 
+            <code>pos</code>为空 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果舍入方式设置为RoundingMode.UNNECESSARY，则需要舍入 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/text/FieldPosition.html" title="java.text中的类"><code>FieldPosition</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="format-double-java.lang.StringBuffer-java.text.FieldPosition-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>format</h4> <pre>public <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> format(double number,
+                           <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> result,
+                           <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> fieldPosition)</pre>
+<div class="block">
+            格式化为一个字符串。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#format-double-java.lang.StringBuffer-java.text.FieldPosition-">format</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>类 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>number</code> - 双格式 
+           </dd>
+<dd>
+<code>result</code> - 要附加文本 
+           </dd>
+<dd>
+<span><code>fieldPosition</code> - 在输入：对齐字段，如果需要。</span>
+<span>输出：对齐字段的偏移量。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             格式化的数字字符串 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果舍入方式设置为RoundingMode.UNNECESSARY，则需要舍入 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/text/FieldPosition.html" title="java.text中的类"><code>FieldPosition</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="format-long-java.lang.StringBuffer-java.text.FieldPosition-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>format</h4> <pre>public <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> format(long number,
+                           <a href="../../java/lang/StringBuffer.html" title="class in java.lang">StringBuffer</a> result,
+                           <a href="../../java/text/FieldPosition.html" title="class in java.text">FieldPosition</a> fieldPosition)</pre>
+<div class="block">
+            格式化一个长的字符串。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#format-long-java.lang.StringBuffer-java.text.FieldPosition-">format</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>number</code> - 长格式 
+           </dd>
+<dd>
+<code>result</code> - 要附加文本 
+           </dd>
+<dd>
+<span><code>fieldPosition</code> - 在输入：如果需要的对齐字段。</span>
+<span>输出：对齐字段的偏移量。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             格式化的数字字符串 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果舍入方式设置为RoundingMode.UNNECESSARY，则需要舍入 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/text/FieldPosition.html" title="java.text中的类"><code>FieldPosition</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="formatToCharacterIterator-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>formatToCharacterIterator</h4> <pre>public <a href="../../java/text/AttributedCharacterIterator.html" title="interface in java.text">AttributedCharacterIterator</a> formatToCharacterIterator(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+<span>格式化一个对象，生成一个<code>AttributedCharacterIterator</code> 。</span>
+<span>您可以使用返回的<code>AttributedCharacterIterator</code>构建生成的字符串，以及确定有关生成的字符串的信息。</span>
+<p> <span>AttributedCharacterIterator的每个属性键将为<code>NumberFormat.Field</code> ，其属性值与属性键相同。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/Format.html#formatToCharacterIterator-java.lang.Object-">formatToCharacterIterator</a></code>在 
+            <code><a href="../../java/text/Format.html" title="class in java.text">Format</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 要格式化的对象 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             AttributedCharacterIterator描述格式化的值。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果obj为空。 
+           </dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 格式化格式化给定对象时。 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果舍入方式设置为RoundingMode.UNNECESSARY，则需要舍入 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="parse-java.lang.String-java.text.ParsePosition-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>parse</h4> <pre>public <a href="../../java/lang/Number.html" title="class in java.lang">Number</a> parse(<a href="../../java/lang/String.html" title="class in java.lang">String</a> text,
+                    <a href="../../java/text/ParsePosition.html" title="class in java.text">ParsePosition</a> pos)</pre>
+<div class="block">
+<span>从字符串中解析文本以产生一个<code>Number</code> 。</span>
+<p> <span>该方法尝试从<code>pos</code>给出的索引开始解析文本。</span> <span>如果解析成功，那么<code>pos</code>的索引将更新为使用最后一个字符后的索引（解析不一定使用字符串末尾的所有字符），并返回解析的数字。</span> <span>更新的<code>pos</code>可用于指示下一次调用此方法的起始点。</span> <span>如果发生错误，则<code>pos</code>的索引不会更改， <code>pos</code>的错误索引设置为发生错误的<code>pos</code>的索引，返回null。</span> </p>
+<p> <span>返回的子类取决于<a href="../../java/text/DecimalFormat.html#isParseBigDecimal--"><code>isParseBigDecimal()</code></a>的值以及要解析的字符串。</span> </p>
+<ul>
+<li> <span>如果<code>isParseBigDecimal()</code>为false（默认值），大多数整数值返回为<code>Long</code>对象，无论它们如何写： <code>"17"</code>和<code>"17.000"</code>都解析为<code>Long(17)</code> 。</span> <span>不适合<code>Long</code>的值返回为<code>Double</code> 。</span> <span>这包括具有小数部分，无限值<code>NaN</code>和值-0.0的值。</span> <span><code>DecimalFormat</code> <em>没有</em>决定是否返回一个<code>Double</code>或<code>Long</code>基于小数点分隔符的源字符串中的存在。</span> <span>这样做可以防止溢出<code>"-9,223,372,036,854,775,808.00"</code>尾数的整数（例如<code>"-9,223,372,036,854,775,808.00"</code> ）被准确解析。</span> <p> <span>呼叫者可以使用<code>Number</code>方法<code>doubleValue</code> ， <code>longValue</code> ，等等，以获得他们想要的类型。</span> </p></li>
+<li> <span>如果<code>isParseBigDecimal()</code>为true，则返回<code>BigDecimal</code>对象。</span> <span>这些值是由<a href="../../java/math/BigDecimal.html#BigDecimal-java.lang.String-"><code>BigDecimal.BigDecimal(String)</code>构建的</a> ，与区域设置无关的格式的相应字符串。</span> <span>特殊情况为负和正无穷大和NaN返回为<code>Double</code>实例，保存相应的Double <code>Double</code>的值。</span> </li>
+</ul>
+<p> <span><code>DecimalFormat</code>解析代表十进制数字的所有Unicode字符，由<code>Character.digit()</code>定义。</span> <span>此外， <code>DecimalFormat</code>还可以识别为<code>DecimalFormatSymbols</code>对象中定义的本地化零数字开头的十个连续字符的数字。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#parse-java.lang.String-java.text.ParsePosition-">parse</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>text</code> - 要解析的字符串 
+           </dd>
+<dd>
+<code>pos</code> - 
+            <code>ParsePosition</code>具有上述索引和错误索引信息的对象。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             解析值，如果解析失败， 
+            <code>null</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>text</code>或 
+            <code>pos</code>为空。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/NumberFormat.html#isParseIntegerOnly--"><code>NumberFormat.isParseIntegerOnly()</code></a> ， 
+            <a href="../../java/text/Format.html#parseObject-java.lang.String-java.text.ParsePosition-"><code>Format.parseObject(java.lang.String, java.text.ParsePosition)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getDecimalFormatSymbols--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDecimalFormatSymbols</h4> <pre>public <a href="../../java/text/DecimalFormatSymbols.html" title="class in java.text">DecimalFormatSymbols</a> getDecimalFormatSymbols()</pre>
+<div class="block">
+            返回十进制格式符号的副本，通常程序员或用户不会更改它们。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所需的DecimalFormatSymbols的副本 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/text/DecimalFormatSymbols.html" title="java.text中的类"><code>DecimalFormatSymbols</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="setDecimalFormatSymbols-java.text.DecimalFormatSymbols-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setDecimalFormatSymbols</h4> <pre>public void setDecimalFormatSymbols(<a href="../../java/text/DecimalFormatSymbols.html" title="class in java.text">DecimalFormatSymbols</a> newSymbols)</pre>
+<div class="block">
+            设置十进制格式符号，通常程序员或用户不会更改。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newSymbols</code> - 所需的DecimalFormatSymbols 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/text/DecimalFormatSymbols.html" title="java.text中的类"><code>DecimalFormatSymbols</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getPositivePrefix--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPositivePrefix</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getPositivePrefix()</pre>
+<div class="block">
+<span>获取正面前缀。</span>
+<p> <span>示例：+123，$ 123，sFr123</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             正面前缀 
+           </dd>
+</dl> </li>
+</ul> <a name="setPositivePrefix-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setPositivePrefix</h4> <pre>public void setPositivePrefix(<a href="../../java/lang/String.html" title="class in java.lang">String</a> newValue)</pre>
+<div class="block">
+<span>设置正前缀。</span>
+<p> <span>示例：+123，$ 123，sFr123</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newValue</code> - 新的正前缀 
+           </dd>
+</dl> </li>
+</ul> <a name="getNegativePrefix--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNegativePrefix</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getNegativePrefix()</pre>
+<div class="block">
+<span>获取负前缀。</span>
+<p> <span>示例：-123，（$ 123）（带负号后缀），sFr-123</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             负前缀 
+           </dd>
+</dl> </li>
+</ul> <a name="setNegativePrefix-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setNegativePrefix</h4> <pre>public void setNegativePrefix(<a href="../../java/lang/String.html" title="class in java.lang">String</a> newValue)</pre>
+<div class="block">
+<span>设置负前缀。</span>
+<p> <span>示例：-123，（$ 123）（带负号后缀），sFr-123</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newValue</code> - 新的负前缀 
+           </dd>
+</dl> </li>
+</ul> <a name="getPositiveSuffix--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPositiveSuffix</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getPositiveSuffix()</pre>
+<div class="block">
+<span>获得积极的后缀。</span>
+<p> <span>示例：123％</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             正后缀 
+           </dd>
+</dl> </li>
+</ul> <a name="setPositiveSuffix-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setPositiveSuffix</h4> <pre>public void setPositiveSuffix(<a href="../../java/lang/String.html" title="class in java.lang">String</a> newValue)</pre>
+<div class="block">
+<span>设置正后缀。</span>
+<p> <span>示例：123％</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newValue</code> - 新的正后缀 
+           </dd>
+</dl> </li>
+</ul> <a name="getNegativeSuffix--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getNegativeSuffix</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getNegativeSuffix()</pre>
+<div class="block">
+<span>得到负的后缀。</span>
+<p> <span>示例：-123％，（$ 123）（带正后缀）</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             负后缀 
+           </dd>
+</dl> </li>
+</ul> <a name="setNegativeSuffix-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setNegativeSuffix</h4> <pre>public void setNegativeSuffix(<a href="../../java/lang/String.html" title="class in java.lang">String</a> newValue)</pre>
+<div class="block">
+<span>设置负后缀。</span>
+<p> <span>示例：123％</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newValue</code> - 新的负后缀 
+           </dd>
+</dl> </li>
+</ul> <a name="getMultiplier--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMultiplier</h4> <pre>public int getMultiplier()</pre>
+<div class="block">
+            以百分比，每mille和类似格式获取乘数。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             乘数 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#setMultiplier-int-"><code>setMultiplier(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setMultiplier-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setMultiplier</h4> <pre>public void setMultiplier(int newValue)</pre>
+<div class="block">
+<span>设置以百分比，每mille和类似格式使用的乘数。</span>
+<span>对于百分比格式，将乘数设置为100，后缀为'％'（对于阿拉伯语，使用阿拉伯数字符号）。</span>
+<span>对于每格式，将乘数设置为1000，后缀为'\ u2030'。</span>
+<p> <span>示例：乘法器100,1.23被格式化为“123”，“123”被解析为1.23。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newValue</code> - 新的乘数 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#getMultiplier--"><code>getMultiplier()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setGroupingUsed-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setGroupingUsed</h4> <pre>public void setGroupingUsed(boolean newValue)</pre>
+<div class="block">
+            设置是否以此格式使用分组。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#setGroupingUsed-boolean-">setGroupingUsed</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newValue</code> - <code>true</code>如果使用分组;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/NumberFormat.html#isGroupingUsed--"><code>NumberFormat.isGroupingUsed()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getGroupingSize--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getGroupingSize</h4> <pre>public int getGroupingSize()</pre>
+<div class="block">
+<span>返回分组大小。</span>
+<span>分组大小是数字整数部分中分组分隔符之间的位数。</span>
+<span>例如，在号码“123,456.78”中，分组大小为3。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             分组大小 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#setGroupingSize-int-"><code>setGroupingSize(int)</code></a> ， 
+            <a href="../../java/text/NumberFormat.html#isGroupingUsed--"><code>NumberFormat.isGroupingUsed()</code></a> ， 
+            <a href="../../java/text/DecimalFormatSymbols.html#getGroupingSeparator--"><code>DecimalFormatSymbols.getGroupingSeparator()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setGroupingSize-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setGroupingSize</h4> <pre>public void setGroupingSize(int newValue)</pre>
+<div class="block">
+<span>设置分组大小。</span>
+<span>分组大小是数字整数部分中分组分隔符之间的位数。</span>
+<span>例如，在号码“123,456.78”中，分组大小为3。</span>
+<br/>
+<span>传入的值被转换为一个字节，这可能会丢失信息。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newValue</code> - 新的分组大小 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#getGroupingSize--"><code>getGroupingSize()</code></a> ， 
+            <a href="../../java/text/NumberFormat.html#setGroupingUsed-boolean-"><code>NumberFormat.setGroupingUsed(boolean)</code></a> ， 
+            <a href="../../java/text/DecimalFormatSymbols.html#setGroupingSeparator-char-"><code>DecimalFormatSymbols.setGroupingSeparator(char)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isDecimalSeparatorAlwaysShown--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isDecimalSeparatorAlwaysShown</h4> <pre>public boolean isDecimalSeparatorAlwaysShown()</pre>
+<div class="block">
+<span>允许您使用整数获取小数分隔符的行为。</span>
+<span>（小数分隔符将始终显示为小数。）</span>
+<p> <span>示例：十进制ON：12345â'12345。</span> <span>OFF：12345†'12345</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果总是显示小数分隔符;</span>
+<span><code>false</code>否则</span>
+</dd>
+</dl> </li>
+</ul> <a name="setDecimalSeparatorAlwaysShown-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setDecimalSeparatorAlwaysShown</h4> <pre>public void setDecimalSeparatorAlwaysShown(boolean newValue)</pre>
+<div class="block">
+<span>允许您使用整数设置小数分隔符的行为。</span>
+<span>（小数分隔符将始终显示为小数。）</span>
+<p> <span>示例：十进制ON：12345â'12345。</span> <span>OFF：12345†'12345</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newValue</code> - <code>true</code>如果始终显示小数分隔符;</span>
+<span><code>false</code>否则</span>
+</dd>
+</dl> </li>
+</ul> <a name="isParseBigDecimal--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isParseBigDecimal</h4> <pre>public boolean isParseBigDecimal()</pre>
+<div class="block">
+<span>返回<a href="../../java/text/DecimalFormat.html#parse-java.lang.String-java.text.ParsePosition-"><code>parse(java.lang.String, java.text.ParsePosition)</code></a>方法是否返回<code>BigDecimal</code> 。</span>
+<span>默认值为false。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果解析方法返回BigDecimal;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#setParseBigDecimal-boolean-"><code>setParseBigDecimal(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setParseBigDecimal-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setParseBigDecimal</h4> <pre>public void setParseBigDecimal(boolean newValue)</pre>
+<div class="block">
+            设置 
+           <a href="../../java/text/DecimalFormat.html#parse-java.lang.String-java.text.ParsePosition-"><code>parse(java.lang.String, java.text.ParsePosition)</code></a>方法是否返回 
+           <code>BigDecimal</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newValue</code> - <code>true</code>如果解析方法返回BigDecimal;</span>
+<span><code>false</code>否则</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#isParseBigDecimal--"><code>isParseBigDecimal()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="clone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>clone</h4> <pre>public <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> clone()</pre>
+<div class="block">
+<span>标准覆盖</span>
+<span>语义不变。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#clone--">clone</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个实例的一个克隆。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/Cloneable.html" title="java.lang中的接口"><code>Cloneable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+            覆盖等于 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#equals-java.lang.Object-">equals</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 用于比较的参考对象。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果此对象与obj参数相同;</span>
+<span><code>false</code>否则。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+            覆盖hashCode 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该对象的哈希码值。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="toPattern--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toPattern</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toPattern()</pre>
+<div class="block">
+            合成表示此Format对象的当前状态的模式字符串。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个模式字符串 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#applyPattern-java.lang.String-"><code>applyPattern(java.lang.String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="toLocalizedPattern--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toLocalizedPattern</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toLocalizedPattern()</pre>
+<div class="block">
+            合成表示此Format对象的当前状态的本地化模式字符串。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个本地化模式字符串 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#applyPattern-java.lang.String-"><code>applyPattern(java.lang.String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="applyPattern-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>applyPattern</h4> <pre>public void applyPattern(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</pre>
+<div class="block">
+<span>将给定的模式应用于此Format对象。</span>
+<span>模式是各种格式化属性的简短说明。</span>
+<span>这些属性也可以通过各种设置方法单独更改。</span>
+<p> <span>这个例程设置的整数数字没有限制，因为这是典型的最终用户期望;</span> <span>如果要设置实际值，请使用setMaximumInteger。</span> <span>对于负数，使用第二个模式，用分号分隔</span> </p>
+<p> <span>示例<code>"#,#00.0#"</code></span> </p>
+<p> <span>这意味着至少2个整数数字，1个分数，最多2个小数位数。</span> </p>
+<p> <span>示例： <code>"#,#00.0#;(#,#00.0#)"</code> ，用于括号中的否定。</span> </p>
+<p> <span>在负模式中，忽略最小和最大计数;</span> <span>这些被假定设置为正模式。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pattern</code> - 一个新的模式 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>pattern</code>为空 
+           </dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果给定的模式无效。 
+           </dd>
+</dl> </li>
+</ul> <a name="applyLocalizedPattern-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>applyLocalizedPattern</h4> <pre>public void applyLocalizedPattern(<a href="../../java/lang/String.html" title="class in java.lang">String</a> pattern)</pre>
+<div class="block">
+<span>将给定的模式应用于此Format对象。</span>
+<span>该模式被假定为局部符号。</span>
+<span>模式是各种格式化属性的简短说明。</span>
+<span>这些属性也可以通过各种设置方法单独更改。</span>
+<p> <span>这个例程设置的整数数字没有限制，因为这是典型的最终用户期望;</span> <span>如果要设置实际值，请使用setMaximumInteger。</span> <span>对于负数，使用第二个模式，用分号分隔</span> </p>
+<p> <span>示例<code>"#,#00.0#"</code></span> </p>
+<p> <span>这意味着至少2个整数数字，1个分数，最多2个小数位数。</span> </p>
+<p> <span>例如： <code>"#,#00.0#;(#,#00.0#)"</code>为括号中的负数。</span> </p>
+<p> <span>在负模式中，忽略最小和最大计数;</span> <span>这些被假定设置为正模式。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pattern</code> - 一种新的模式 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>pattern</code>为空 
+           </dd>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果给定的模式无效。 
+           </dd>
+</dl> </li>
+</ul> <a name="setMaximumIntegerDigits-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setMaximumIntegerDigits</h4> <pre>public void setMaximumIntegerDigits(int newValue)</pre>
+<div class="block">
+<span>设置数字的整数部分允许的最大位数。</span>
+<span>对于不是<code>BigInteger</code>和<code>BigDecimal</code>对象的格式化数字，使用<code>newValue</code>和309的较低者。</span>
+<span>负输入值被替换为0。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#setMaximumIntegerDigits-int-">setMaximumIntegerDigits</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newValue</code> - 要显示的最大整数位数;</span>
+<span>如果小于零，则使用零。</span>
+<span>具体的子类可能会强制适用于正在格式化的数字类型的此值的上限。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/NumberFormat.html#setMaximumIntegerDigits-int-"><code>NumberFormat.setMaximumIntegerDigits(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setMinimumIntegerDigits-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setMinimumIntegerDigits</h4> <pre>public void setMinimumIntegerDigits(int newValue)</pre>
+<div class="block">
+<span>设置数字的整数部分允许的最小位数。</span>
+<span>对于格式化不同于<code>BigInteger</code>和<code>BigDecimal</code>对象的数字，使用<code>newValue</code>和309的较低者。</span>
+<span>负输入值被替换为0。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#setMinimumIntegerDigits-int-">setMinimumIntegerDigits</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newValue</code> - 要显示的最小整数数字;</span>
+<span>如果小于零，则使用零。</span>
+<span>具体的子类可能会强制适用于正在格式化的数字类型的此值的上限。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/NumberFormat.html#setMinimumIntegerDigits-int-"><code>NumberFormat.setMinimumIntegerDigits(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setMaximumFractionDigits-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setMaximumFractionDigits</h4> <pre>public void setMaximumFractionDigits(int newValue)</pre>
+<div class="block">
+<span>设置数字小数部分允许的最大位数。</span>
+<span>对于不是<code>BigInteger</code>和<code>BigDecimal</code>对象的格式化数字，使用<code>newValue</code>和340的较低者。</span>
+<span>负输入值被替换为0。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#setMaximumFractionDigits-int-">setMaximumFractionDigits</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newValue</code> - 要显示的最小数字位数;</span>
+<span>如果小于零，则使用零。</span>
+<span>具体的子类可能会强制适用于正在格式化的数字类型的此值的上限。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/NumberFormat.html#setMaximumFractionDigits-int-"><code>NumberFormat.setMaximumFractionDigits(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setMinimumFractionDigits-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setMinimumFractionDigits</h4> <pre>public void setMinimumFractionDigits(int newValue)</pre>
+<div class="block">
+<span>设置数字小数部分允许的最小位数。</span>
+<span>对于不是<code>BigInteger</code>和<code>BigDecimal</code>对象的格式化数字，使用<code>newValue</code>和340的较低者。</span>
+<span>负输入值被替换为0。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#setMinimumFractionDigits-int-">setMinimumFractionDigits</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>newValue</code> - 要显示的最小数字数字;</span>
+<span>如果小于零，则使用零。</span>
+<span>具体的子类可能会强制适用于正在格式化的数字类型的此值的上限。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/NumberFormat.html#setMinimumFractionDigits-int-"><code>NumberFormat.setMinimumFractionDigits(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMaximumIntegerDigits--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMaximumIntegerDigits</h4> <pre>public int getMaximumIntegerDigits()</pre>
+<div class="block">
+<span>获取数字的整数部分允许的最大位数。</span>
+<span>用于格式化比其它数量<code>BigInteger</code>个<code>BigDecimal</code>对象，返回值的下限和309被使用。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#getMaximumIntegerDigits--">getMaximumIntegerDigits</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             最大位数 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#setMaximumIntegerDigits-int-"><code>setMaximumIntegerDigits(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMinimumIntegerDigits--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMinimumIntegerDigits</h4> <pre>public int getMinimumIntegerDigits()</pre>
+<div class="block">
+<span>获取数字整数部分允许的最小位数。</span>
+<span>对于不是<code>BigInteger</code>和<code>BigDecimal</code>对象的格式化数字，使用返回值的下限和309。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#getMinimumIntegerDigits--">getMinimumIntegerDigits</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             最小位数 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#setMinimumIntegerDigits-int-"><code>setMinimumIntegerDigits(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMaximumFractionDigits--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMaximumFractionDigits</h4> <pre>public int getMaximumFractionDigits()</pre>
+<div class="block">
+<span>获取数字小数部分中允许的最大位数。</span>
+<span>对于不是<code>BigInteger</code>和<code>BigDecimal</code>对象的格式化数字，使用的是较低的返回值和340。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#getMaximumFractionDigits--">getMaximumFractionDigits</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             最大位数。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#setMaximumFractionDigits-int-"><code>setMaximumFractionDigits(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMinimumFractionDigits--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMinimumFractionDigits</h4> <pre>public int getMinimumFractionDigits()</pre>
+<div class="block">
+<span>获取数字小数部分中允许的最小位数。</span>
+<span>对于不是<code>BigInteger</code>和<code>BigDecimal</code>对象的格式化数字，使用较低的返回值和340。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#getMinimumFractionDigits--">getMinimumFractionDigits</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             最小位数 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#setMinimumFractionDigits-int-"><code>setMinimumFractionDigits(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getCurrency--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCurrency</h4> <pre>public <a href="../../java/util/Currency.html" title="class in java.util">Currency</a> getCurrency()</pre>
+<div class="block">
+<span>在格式化货币值时获取此十进制格式使用的货币。</span>
+<span>货币是通过调用<a href="../../java/text/DecimalFormatSymbols.html#getCurrency--"><code>DecimalFormatSymbols.getCurrency</code></a>这个数字格式的符号获得的。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#getCurrency--">getCurrency</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这种十进制格式使用的货币，或 
+            <code>null</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="setCurrency-java.util.Currency-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setCurrency</h4> <pre>public void setCurrency(<a href="../../java/util/Currency.html" title="class in java.util">Currency</a> currency)</pre>
+<div class="block">
+<span>设置格式化货币值时此数字格式使用的货币。</span>
+<span>这不会更新数字格式使用的小数位数的最小或最大数量。</span>
+<span>货币是通过调用<a href="../../java/text/DecimalFormatSymbols.html#setCurrency-java.util.Currency-"><code>DecimalFormatSymbols.setCurrency</code></a>这个数字格式的符号设置的。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#setCurrency-java.util.Currency-">setCurrency</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>currency</code> - 此十进制格式使用的新货币 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>currency</code>为空 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="getRoundingMode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRoundingMode</h4> <pre>public <a href="../../java/math/RoundingMode.html" title="enum in java.math">RoundingMode</a> getRoundingMode()</pre>
+<div class="block">
+<span>获取此<a href="../../java/math/RoundingMode.html" title="枚举在java.math中">DecimalFormat中</a>使用的<code>RoundingMode</code>。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#getRoundingMode--">getRoundingMode</a></code>在类 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>RoundingMode</code>用于这个DecimalFormat。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#setRoundingMode-java.math.RoundingMode-"><code>setRoundingMode(RoundingMode)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setRoundingMode-java.math.RoundingMode-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>setRoundingMode</h4> <pre>public void setRoundingMode(<a href="../../java/math/RoundingMode.html" title="enum in java.math">RoundingMode</a> roundingMode)</pre>
+<div class="block">
+<span>设置此<a href="../../java/math/RoundingMode.html" title="枚举在java.math中">DecimalFormat中</a>使用的<code>RoundingMode</code>。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/text/NumberFormat.html#setRoundingMode-java.math.RoundingMode-">setRoundingMode</a></code>在 
+            <code><a href="../../java/text/NumberFormat.html" title="class in java.text">NumberFormat</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>roundingMode</code> - 要使用的 
+            <code>RoundingMode</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>roundingMode</code>为空。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/text/DecimalFormat.html#getRoundingMode--"><code>getRoundingMode()</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

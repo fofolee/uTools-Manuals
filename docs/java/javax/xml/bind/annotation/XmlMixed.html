@@ -1,0 +1,94 @@
+<div class="header">
+<div class="subTitle">
+     javax.xml.bind.annotation 
+   </div>
+<h2 class="title" title="Annotation Type XmlMixed">Annotation Type XmlMixed</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre><a href="../../../../java/lang/annotation/Retention.html" title="annotation in java.lang.annotation">@Retention</a>(<a href="../../../../java/lang/annotation/Retention.html#value--">value</a>=<a href="../../../../java/lang/annotation/RetentionPolicy.html#RUNTIME">RUNTIME</a>)
+ <a href="../../../../java/lang/annotation/Target.html" title="annotation in java.lang.annotation">@Target</a>(<a href="../../../../java/lang/annotation/Target.html#value--">value</a>={<a href="../../../../java/lang/annotation/ElementType.html#FIELD">字段</a>,<a href="../../../../java/lang/annotation/ElementType.html#METHOD">METHOD</a>})
+public @interface <span class="memberNameLabel">XmlMixed</span></pre>
+<div class="block">
+<p> <span>注释JavaBean多值属性以支持混合内容。</span> </p>
+<p> <span>用法受以下限制：</span> </p>
+<ul>
+<li> <span>可以与@XmlElementRef，@XmlElementRefs或@XmlAnyElement一起使用</span> </li>
+</ul>
+<p> <span>以下内容可以插入到@XmlMixed注释的多值属性中</span> </p>
+<ul>
+<li> <span>XML文本信息项被添加为java.lang.String的值。</span> </li>
+<li> <span>子元素信息项被添加为<code>JAXBElement</code>的<a href="../../../../javax/xml/bind/JAXBElement.html" title="javax.xml.bind中的类">实例，</a>或具有使用@XmlRootElement注释的类的实例。</span> </li>
+<li> <span>未绑定到JAXB映射类的未知内容将插入为<a href="../../../../org/w3c/dom/Element.html" title="界面在org.w3c.dom"><code>Element</code></a> 。</span> <span>（假定用@XmlAnyElement注释的属性）</span> </li>
+</ul>
+<span>以下是混合内容的绑定和创建的示例。</span>
+<pre>  <span>&lt;!-- schema fragment having  mixed content --&gt;
+  &lt;xs:complexType name="letterBody" mixed="true"&gt;
+    &lt;xs:sequence&gt;
+      &lt;xs:element name="name" type="xs:string"/&gt;
+      &lt;xs:element name="quantity" type="xs:positiveInteger"/&gt;
+      &lt;xs:element name="productName" type="xs:string"/&gt;
+      &lt;!-- etc. --&gt;
+    &lt;/xs:sequence&gt;
+  &lt;/xs:complexType&gt;
+  &lt;xs:element name="letterBody" type="letterBody"/&gt;
+
+ // Schema-derived Java code:
+ // (Only annotations relevant to mixed content are shown below,
+ //  others are ommitted.)
+ import java.math.BigInteger;
+ public class ObjectFactory {
+      // element instance factories
+      JAXBElement&lt;LetterBody&gt; createLetterBody(LetterBody value);
+      JAXBElement&lt;String&gt;     createLetterBodyName(String value);
+      JAXBElement&lt;BigInteger&gt; createLetterBodyQuantity(BigInteger value);
+      JAXBElement&lt;String&gt;     createLetterBodyProductName(String value);
+      // type instance factory
+      LetterBody&gt; createLetterBody();
+ }</span> </pre>
+<pre>  <span>public class LetterBody {
+      // Mixed content can contain instances of Element classes
+      // Name, Quantity and ProductName. Text data is represented as
+      // java.util.String for text.
+      @XmlMixed
+      @XmlElementRefs({
+              @XmlElementRef(name="productName", type=JAXBElement.class),
+              @XmlElementRef(name="quantity", type=JAXBElement.class),
+              @XmlElementRef(name="name", type=JAXBElement.class)})
+      List getContent(){...}
+ }</span> </pre>
+<span>以下是具有混合内容的XML实例文档</span>
+<pre>  <span>&lt;letterBody&gt;
+ Dear Mr.&lt;name&gt;Robert Smith&lt;/name&gt;
+ Your order of &lt;quantity&gt;1&lt;/quantity&gt; &lt;productName&gt;Baby
+ Monitor&lt;/productName&gt; shipped from our warehouse. ....
+ &lt;/letterBody&gt;</span> </pre>
+<span>可以使用以下JAXB API调用构建。</span>
+<pre>  <span>LetterBody lb = ObjectFactory.createLetterBody();
+ JAXBElement&lt;LetterBody&gt; lbe = ObjectFactory.createLetterBody(lb);
+ List gcl = lb.getContent();  //add mixed content to general content property.
+ gcl.add("Dear Mr.");  // add text information item as a String.
+
+ // add child element information item
+ gcl.add(ObjectFactory.createLetterBodyName("Robert Smith"));
+ gcl.add("Your order of "); // add text information item as a String
+
+ // add children element information items
+ gcl.add(ObjectFactory.
+                      createLetterBodyQuantity(new BigInteger("1")));
+ gcl.add(ObjectFactory.createLetterBodyProductName("Baby Monitor"));
+ gcl.add("shipped from our warehouse");  // add text information item</span> </pre>
+<p> <span>有关其他常见信息，请参阅javax.xml.bind.package javadoc中的“Package Specification”。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         JAXB2.0 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+</div>

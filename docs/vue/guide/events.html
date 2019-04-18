@@ -1,0 +1,259 @@
+<div class="content guide with-sidebar events-guide">
+<h1>事件处理</h1>
+<h2 id="监听事件"><a class="headerlink" href="#监听事件" title="监听事件"></a>监听事件</h2><p>可以用 <code>v-on</code> 指令监听 DOM 事件，并在触发时运行一些 JavaScript 代码。</p>
+<p>示例：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"example-1"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">v-on:click</span>=<span class="hljs-string">"counter += 1"</span>&gt;</span>Add 1<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>The button above has been clicked {{ counter }} times.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> example1 = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#example-1'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">counter</span>: <span class="hljs-number">0</span>
+  }
+})</code></pre>
+<p>结果：</p>
+<div class="demo" id="example-1">
+<button v-on:click="counter += 1">Add 1</button>
+<p>The button above has been clicked {{ counter }} times.</p>
+</div>
+<script>
+var example1 = new Vue({
+  el: '#example-1',
+  data: {
+    counter: 0
+  }
+})
+</script>
+<h2 id="事件处理方法"><a class="headerlink" href="#事件处理方法" title="事件处理方法"></a>事件处理方法</h2><p>然而许多事件处理逻辑会更为复杂，所以直接把 JavaScript 代码写在 <code>v-on</code> 指令中是不可行的。因此 <code>v-on</code> 还可以接收一个需要调用的方法名称。</p>
+<p>示例：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"example-2"</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- `greet` 是在下面定义的方法名 --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">v-on:click</span>=<span class="hljs-string">"greet"</span>&gt;</span>Greet<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> example2 = <span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#example-2'</span>,
+  <span class="hljs-attr">data</span>: {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">'Vue.js'</span>
+  },
+  <span class="hljs-comment">// 在 `methods` 对象中定义方法</span>
+  methods: {
+    <span class="hljs-attr">greet</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">event</span>) </span>{
+      <span class="hljs-comment">// `this` 在方法里指向当前 Vue 实例</span>
+      alert(<span class="hljs-string">'Hello '</span> + <span class="hljs-keyword">this</span>.name + <span class="hljs-string">'!'</span>)
+      <span class="hljs-comment">// `event` 是原生 DOM 事件</span>
+      <span class="hljs-keyword">if</span> (event) {
+        alert(event.target.tagName)
+      }
+    }
+  }
+})
+
+<span class="hljs-comment">// 也可以用 JavaScript 直接调用方法</span>
+example2.greet() <span class="hljs-comment">// =&gt; 'Hello Vue.js!'</span></code></pre>
+<p>结果：</p>
+<div class="demo" id="example-2">
+<button v-on:click="greet">Greet</button>
+</div>
+<script>
+var example2 = new Vue({
+  el: '#example-2',
+  data: {
+    name: 'Vue.js'
+  },
+  methods: {
+    greet: function (event) {
+      alert('Hello ' + this.name + '!')
+      if (event) {
+        alert(event.target.tagName)
+      }
+    }
+  }
+})
+</script>
+<h2 id="内联处理器中的方法"><a class="headerlink" href="#内联处理器中的方法" title="内联处理器中的方法"></a>内联处理器中的方法</h2><p>除了直接绑定到一个方法，也可以在内联 JavaScript 语句中调用方法：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"example-3"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">v-on:click</span>=<span class="hljs-string">"say('hi')"</span>&gt;</span>Say hi<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">v-on:click</span>=<span class="hljs-string">"say('what')"</span>&gt;</span>Say what<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#example-3'</span>,
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-attr">say</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">message</span>) </span>{
+      alert(message)
+    }
+  }
+})</code></pre>
+<p>结果：</p>
+<div class="demo" id="example-3">
+<button v-on:click="say('hi')">Say hi</button>
+<button v-on:click="say('what')">Say what</button>
+</div>
+<script>
+new Vue({
+  el: '#example-3',
+  methods: {
+    say: function (message) {
+      alert(message)
+    }
+  }
+})
+</script>
+<p>有时也需要在内联语句处理器中访问原始的 DOM 事件。可以用特殊变量 <code>$event</code> 把它传入方法：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">v-on:click</span>=<span class="hljs-string">"warn('Form cannot be submitted yet.', $event)"</span>&gt;</span>
+  Submit
+<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-comment">// ...</span>
+methods: {
+  <span class="hljs-attr">warn</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">message, event</span>) </span>{
+    <span class="hljs-comment">// 现在我们可以访问原生事件对象</span>
+    <span class="hljs-keyword">if</span> (event) event.preventDefault()
+    alert(message)
+  }
+}</code></pre>
+<h2 id="事件修饰符"><a class="headerlink" href="#事件修饰符" title="事件修饰符"></a>事件修饰符</h2><p>在事件处理程序中调用 <code>event.preventDefault()</code> 或 <code>event.stopPropagation()</code> 是非常常见的需求。尽管我们可以在方法中轻松实现这点，但更好的方式是：方法只有纯粹的数据逻辑，而不是去处理 DOM 事件细节。</p>
+<p>为了解决这个问题，Vue.js 为 <code>v-on</code> 提供了<strong>事件修饰符</strong>。之前提过，修饰符是由点开头的指令后缀来表示的。</p>
+<ul>
+<li><code>.stop</code></li>
+<li><code>.prevent</code></li>
+<li><code>.capture</code></li>
+<li><code>.self</code></li>
+<li><code>.once</code></li>
+<li><code>.passive</code></li>
+</ul>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 阻止单击事件继续传播 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">v-on:click.stop</span>=<span class="hljs-string">"doThis"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 提交事件不再重载页面 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">form</span> <span class="hljs-attr">v-on:submit.prevent</span>=<span class="hljs-string">"onSubmit"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">form</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 修饰符可以串联 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">v-on:click.stop.prevent</span>=<span class="hljs-string">"doThat"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 只有修饰符 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">form</span> <span class="hljs-attr">v-on:submit.prevent</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">form</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 添加事件监听器时使用事件捕获模式 --&gt;</span>
+<span class="hljs-comment">&lt;!-- 即元素自身触发的事件先在此处理，然后才交由内部元素进行处理 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-on:click.capture</span>=<span class="hljs-string">"doThis"</span>&gt;</span>...<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 只当在 event.target 是当前元素自身时触发处理函数 --&gt;</span>
+<span class="hljs-comment">&lt;!-- 即事件不是从内部元素触发的 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-on:click.self</span>=<span class="hljs-string">"doThat"</span>&gt;</span>...<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p class="tip">使用修饰符时，顺序很重要；相应的代码会以同样的顺序产生。因此，用 <code>v-on:click.prevent.self</code> 会阻止<strong>所有的点击</strong>，而 <code>v-on:click.self.prevent</code> 只会阻止对元素自身的点击。</p>
+<blockquote>
+<p>2.1.4 新增</p>
+</blockquote>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 点击事件将只会触发一次 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">v-on:click.once</span>=<span class="hljs-string">"doThis"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span></code></pre>
+<p>不像其它只能对原生的 DOM 事件起作用的修饰符，<code>.once</code> 修饰符还能被用到自定义的<a href="components-custom-events.html">组件事件</a>上。如果你还没有阅读关于组件的文档，现在大可不必担心。</p>
+<blockquote>
+<p>2.3.0 新增</p>
+</blockquote>
+<p>Vue 还对应 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#Parameters" rel="noopener" target="_blank"><code>addEventListener</code> 中的 <code>passive</code> 选项</a>提供了 <code>.passive</code> 修饰符。</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 滚动事件的默认行为 (即滚动行为) 将会立即触发 --&gt;</span>
+<span class="hljs-comment">&lt;!-- 而不会等待 `onScroll` 完成  --&gt;</span>
+<span class="hljs-comment">&lt;!-- 这其中包含 `event.preventDefault()` 的情况 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-on:scroll.passive</span>=<span class="hljs-string">"onScroll"</span>&gt;</span>...<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>这个 <code>.passive</code> 修饰符尤其能够提升移动端的性能。</p>
+<p class="tip">不要把 <code>.passive</code> 和 <code>.prevent</code> 一起使用，因为 <code>.prevent</code> 将会被忽略，同时浏览器可能会向你展示一个警告。请记住，<code>.passive</code> 会告诉浏览器你<em>不</em>想阻止事件的默认行为。</p>
+<h2 id="按键修饰符"><a class="headerlink" href="#按键修饰符" title="按键修饰符"></a>按键修饰符</h2><p>在监听键盘事件时，我们经常需要检查详细的按键。Vue 允许为 <code>v-on</code> 在监听键盘事件时添加按键修饰符：</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 只有在 `key` 是 `Enter` 时调用 `vm.submit()` --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-on:keyup.enter</span>=<span class="hljs-string">"submit"</span>&gt;</span></code></pre>
+<p>你可以直接将 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values" rel="noopener" target="_blank"><code>KeyboardEvent.key</code></a> 暴露的任意有效按键名转换为 kebab-case 来作为修饰符。</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-on:keyup.page-down</span>=<span class="hljs-string">"onPageDown"</span>&gt;</span></code></pre>
+<p>在上述示例中，处理函数只会在 <code>$event.key</code> 等于 <code>PageDown</code> 时被调用。</p>
+<h3 id="按键码"><a class="headerlink" href="#按键码" title="按键码"></a>按键码</h3><p class="tip"><code>keyCode</code> 的事件用法<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode" rel="noopener" target="_blank">已经被废弃了</a>并可能不会被最新的浏览器支持。</p>
+<p>使用 <code>keyCode</code> 特性也是允许的：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-on:keyup.13</span>=<span class="hljs-string">"submit"</span>&gt;</span></code></pre>
+<p>为了在必要的情况下支持旧浏览器，Vue 提供了绝大多数常用的按键码的别名：</p>
+<ul>
+<li><code>.enter</code></li>
+<li><code>.tab</code></li>
+<li><code>.delete</code> (捕获“删除”和“退格”键)</li>
+<li><code>.esc</code></li>
+<li><code>.space</code></li>
+<li><code>.up</code></li>
+<li><code>.down</code></li>
+<li><code>.left</code></li>
+<li><code>.right</code></li>
+</ul>
+<p class="tip">有一些按键 (<code>.esc</code> 以及所有的方向键) 在 IE9 中有不同的 <code>key</code> 值, 如果你想支持 IE9，这些内置的别名应该是首选。</p>
+<p>你还可以通过全局 <code>config.keyCodes</code> 对象<a href="../api/#keyCodes">自定义按键修饰符别名</a>：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// 可以使用 `v-on:keyup.f1`</span>
+Vue.config.keyCodes.f1 = <span class="hljs-number">112</span></code></pre>
+<h2 id="系统修饰键"><a class="headerlink" href="#系统修饰键" title="系统修饰键"></a>系统修饰键</h2><blockquote>
+<p>2.1.0 新增</p>
+</blockquote>
+<p>可以用如下修饰符来实现仅在按下相应按键时才触发鼠标或键盘事件的监听器。</p>
+<ul>
+<li><code>.ctrl</code></li>
+<li><code>.alt</code></li>
+<li><code>.shift</code></li>
+<li><code>.meta</code></li>
+</ul>
+<blockquote>
+<p>注意：在 Mac 系统键盘上，meta 对应 command 键 (⌘)。在 Windows 系统键盘 meta 对应 Windows 徽标键 (⊞)。在 Sun 操作系统键盘上，meta 对应实心宝石键 (◆)。在其他特定键盘上，尤其在 MIT 和 Lisp 机器的键盘、以及其后继产品，比如 Knight 键盘、space-cadet 键盘，meta 被标记为“META”。在 Symbolics 键盘上，meta 被标记为“META”或者“Meta”。</p>
+</blockquote>
+<p>例如：</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- Alt + C --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">input</span> @<span class="hljs-attr">keyup.alt.67</span>=<span class="hljs-string">"clear"</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- Ctrl + Click --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> @<span class="hljs-attr">click.ctrl</span>=<span class="hljs-string">"doSomething"</span>&gt;</span>Do something<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p class="tip">请注意修饰键与常规按键不同，在和 <code>keyup</code> 事件一起用时，事件触发时修饰键必须处于按下状态。换句话说，只有在按住 <code>ctrl</code> 的情况下释放其它按键，才能触发 <code>keyup.ctrl</code>。而单单释放 <code>ctrl</code> 也不会触发事件。如果你想要这样的行为，请为 <code>ctrl</code> 换用 <code>keyCode</code>：<code>keyup.17</code>。</p>
+<h3 id="exact-修饰符"><a class="headerlink" href="#exact-修饰符" title=".exact 修饰符"></a><code>.exact</code> 修饰符</h3><blockquote>
+<p>2.5.0 新增</p>
+</blockquote>
+<p><code>.exact</code> 修饰符允许你控制由精确的系统修饰符组合触发的事件。</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 即使 Alt 或 Shift 被一同按下时也会触发 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">button</span> @<span class="hljs-attr">click.ctrl</span>=<span class="hljs-string">"onClick"</span>&gt;</span>A<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 有且只有 Ctrl 被按下的时候才触发 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">button</span> @<span class="hljs-attr">click.ctrl.exact</span>=<span class="hljs-string">"onCtrlClick"</span>&gt;</span>A<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 没有任何系统修饰符被按下的时候才触发 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">button</span> @<span class="hljs-attr">click.exact</span>=<span class="hljs-string">"onClick"</span>&gt;</span>A<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+<h3 id="鼠标按钮修饰符"><a class="headerlink" href="#鼠标按钮修饰符" title="鼠标按钮修饰符"></a>鼠标按钮修饰符</h3><blockquote>
+<p>2.2.0 新增</p>
+</blockquote>
+<ul>
+<li><code>.left</code></li>
+<li><code>.right</code></li>
+<li><code>.middle</code></li>
+</ul>
+<p>这些修饰符会限制处理函数仅响应特定的鼠标按钮。</p>
+<h2 id="为什么在-HTML-中监听事件"><a class="headerlink" href="#为什么在-HTML-中监听事件" title="为什么在 HTML 中监听事件?"></a>为什么在 HTML 中监听事件?</h2><p>你可能注意到这种事件监听的方式违背了关注点分离 (separation of concern) 这个长期以来的优良传统。但不必担心，因为所有的 Vue.js 事件处理方法和表达式都严格绑定在当前视图的 ViewModel 上，它不会导致任何维护上的困难。实际上，使用 <code>v-on</code> 有几个好处：</p>
+<ol>
+<li><p>扫一眼 HTML 模板便能轻松定位在 JavaScript 代码里对应的方法。</p>
+</li>
+<li><p>因为你无须在 JavaScript 里手动绑定事件，你的 ViewModel 代码可以是非常纯粹的逻辑，和 DOM 完全解耦，更易于测试。</p>
+</li>
+<li><p>当一个 ViewModel 被销毁时，所有的事件处理器都会自动被删除。你无须担心如何清理它们。</p>
+</li>
+</ol>
+<div class="guide-links">
+<span>← <a href="list.html">列表渲染</a></span>
+<span style="float: right;"><a href="forms.html">表单输入绑定</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srcevents.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

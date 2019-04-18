@@ -1,0 +1,208 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong><code>throw</code>语句</strong>用来抛出一个用户自定义的异常。当前函数的执行将被停止（<code>throw</code>之后的语句将不会执行），并且控制将被传递到调用堆栈中的第一个<a href="Reference/Statements/try...catch"><code>catch</code></a>块。如果调用者函数中没有<code>catch</code>块，程序将会终止。</p>
+<p><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/statement-throw.html" width="100%"></iframe></p>
+<div class="hidden">
+<p>The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+</div>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox">throw <em>expression</em>; </pre>
+<dl>
+<dt><code>expression</code></dt>
+<dd>要抛出的表达式。</dd>
+</dl>
+<h2 id="描述">描述</h2>
+<p>使用<code>throw</code>语句来抛出一个异常。当你抛出异常时，<code>expression</code> 指定了异常的内容。下面的每行都抛出了一个异常：</p>
+<pre class="brush: js">throw "Error2"; // 抛出了一个值为字符串的异常
+throw 42;       // 抛出了一个值为整数42的异常
+throw true;     // 抛出了一个值为true的异常</pre>
+<p>注意<code>throw</code>语句同样受到<a href="/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Automatic_semicolon_insertion">自动分号插入（ASI</a>）机制的控制，在<code>throw</code>关键字和值之间不允许有行终止符。</p>
+<h2 id="示例">示例</h2>
+<h3 id="抛出一个对象">抛出一个对象</h3>
+<p>你可以在抛出异常时指定一个对象。然后可以在<code>catch</code>块中引用对象的属性。以下示例创建一个类型为<code>UserException</code>的对象，并在<code>throw</code>语句中使用它。</p>
+<pre class="brush: js">function UserException(message) {
+   this.message = message;
+   this.name = "UserException";
+}
+function getMonthName(mo) {
+   mo = mo-1; // 调整月份数字到数组索引 (1=Jan, 12=Dec)
+   var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+      "Aug", "Sep", "Oct", "Nov", "Dec"];
+   if (months[mo] !== undefined) {
+      return months[mo];
+   } else {
+      throw new UserException("InvalidMonthNo");
+   }
+}
+
+try {
+   // statements to try
+   var myMonth = 15; // 15 超出边界并引发异常
+   var monthName = getMonthName(myMonth);
+} catch (e) {
+   var monthName = "unknown";
+   console.log(e.message, e.name); // 传递异常对象到错误处理
+}
+</pre>
+<h3 id="另一个抛出异常对象的示例">另一个抛出异常对象的示例</h3>
+<p>下面的示例中测试一个字符串是否是美国邮政编码。如果邮政编码是无效的，那么<code>throw</code>语句将会抛出一个类型为 <code>ZipCodeFormatException</code>的异常对象实例。</p>
+<pre class="brush: js">/*
+ * 创建 ZipCode 示例.
+ *
+ * 可被接受的邮政编码格式:
+ *    12345
+ *    12345-6789
+ *    123456789
+ *    12345 6789
+ *
+ * 如果构造函数参数传入的格式不符合以上任何一个格式，将会抛出异常。
+ */
+
+function ZipCode(zip) {
+   zip = new String(zip);
+   pattern = /[0-9]{5}([- ]?[0-9]{4})?/;
+   if (pattern.test(zip)) {
+      // zip code value will be the first match in the string
+      this.value = zip.match(pattern)[0];
+      this.valueOf = function() {
+         return this.value
+      };
+      this.toString = function() {
+         return String(this.value)
+      };
+   } else {
+      throw new ZipCodeFormatException(zip);
+   }
+}
+
+function ZipCodeFormatException(value) {
+   this.value = value;
+   this.message = "不是正确的邮政编码";
+   this.toString = function() {
+      return this.value + this.message
+   };
+}
+
+/*
+ * 这可能是一个验证美国地区中的脚本
+ */
+
+const ZIPCODE_INVALID = -1;
+const ZIPCODE_UNKNOWN_ERROR = -2;
+
+function verifyZipCode(z) {
+   try {
+      z = new ZipCode(z);
+   } catch (e) {
+      if (e instanceof ZipCodeFormatException) {
+         return ZIPCODE_INVALID;
+      } else {
+         return ZIPCODE_UNKNOWN_ERROR;
+      }
+   }
+   return z;
+}
+
+a = verifyZipCode(95060);         // 返回 95060
+b = verifyZipCode(9560);          // 返回 -1
+c = verifyZipCode("a");           // 返回 -1
+d = verifyZipCode("95060");       // 返回 95060
+e = verifyZipCode("95060 1234");  // 返回 95060 1234
+</pre>
+<h3 id="重新抛出异常">重新抛出异常</h3>
+<p>你可以使用<code>throw</code>来抛出异常。下面的例子捕捉了一个异常值为数字的异常，并在其值大于50后重新抛出异常。重新抛出的异常传播到闭包函数或顶层，以便用户看到它。</p>
+<pre class="brush: js">try {
+   throw n; // 抛出一个数值异常
+} catch (e) {
+   if (e &lt;= 50) {
+      // 异常在 1-50 之间时，直接处理
+   } else {
+      // 异常无法处理，重新抛出
+      throw e;
+   }
+}
+</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%203rd%20edition,%20December%201999.pdf" hreflang="en" lang="en" rel="noopener" title="ECMAScript 3rd Edition (ECMA-262)">ECMAScript 3rd Edition (ECMA-262)</a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition. Implemented in JavaScript 1.4</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-12.13" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">throw statement</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-throw-statement" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">throw statement</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-throw-statement" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">throw statement</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容">浏览器兼容</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>throw</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="/en-US/docs/Web/JavaScript/Reference/Statements/try...catch"><code>try...catch</code></a></li>
+</ul>
+</article>

@@ -1,0 +1,942 @@
+<div class="header">
+<div class="subTitle">
+     javax.swing.undo 
+   </div>
+<h2 class="title" title="Class UndoManager">Class UndoManager</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../javax/swing/undo/AbstractUndoableEdit.html" title="class in javax.swing.undo">javax.swing.undo.AbstractUndoableEdit</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">javax.swing.undo.CompoundEdit</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.swing.undo.UndoManager</li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../../java/util/EventListener.html" title="java.util中的接口">EventListener</a> ， <a href="../../../javax/swing/event/UndoableEditListener.html" title="javax.swing.event中的接口">UndoableEditListener</a> ， <a href="../../../javax/swing/undo/UndoableEdit.html" title="javax.swing.undo中的接口">UndoableEdit</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">UndoManager</span>
+extends <a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a>
+implements <a href="../../../javax/swing/event/UndoableEditListener.html" title="interface in javax.swing.event">UndoableEditListener</a></pre>
+<div class="block">
+<span><code>UndoManager</code>管理列表<code>UndoableEdits</code> ，提供了一种方法来撤消或恢复适当的编辑。</span>
+<span>有两种方法可以向<code>UndoManager</code>添加编辑。</span>
+<span>使用<code>addEdit</code>方法直接添加编辑，或者将<code>UndoManager</code>添加到支持<code>UndoableEditListener</code>的bean。</span>
+<span>以下示例创建一个<code>UndoManager</code> ，并将其添加为<code>UndoableEditListener</code>至<code>JTextField</code> ：</span>
+<pre>  <span>UndoManager undoManager = new UndoManager();
+   JTextField tf = ...;
+   tf.getDocument().addUndoableEditListener(undoManager);</span> </pre>
+<p> <span><code>UndoManager</code>维护编辑的有序列表和该列表中下一个编辑的索引。</span> <span>下一个编辑的索引或者编辑当前列表的大小，或者如果<code>undo</code>已被调用它对应于被撤销的最后显著编辑的索引。</span> <span>当调用<code>undo</code>时，所有从下一个编辑的索引到最后一个有效编辑的编辑将以相反的顺序撤消。</span> <span>例如，考虑由<code>UndoManager</code>编辑组成的UndoManager： <b>A</b> <i>b</i> <span>D。</span></span> <span>粗体大写字母的编辑是重要的，小写和斜体的编辑是微不足道的。</span> </p>
+<p> <span><a name="figure1"></a></span> </p>
+<span> <img alt="" src="doc-files/UndoManager-1.gif"/>    Figure 1   </span>
+<table border="0" summary="">
+</table>
+<p> <span>如<a href="#figure1">figure 1</a>所示，如果刚刚添加了<b>D</b> ，则下一次编辑的索引将为4.调用<code>undo</code>导致在<b>D</b>上调用<code>undo</code> ，并将下一个编辑的索引设置为3（编辑<i>c</i> ），如下图所示。</span> </p>
+<p> <span><a name="figure2"></a></span> </p>
+<span> <img alt="" src="doc-files/UndoManager-2.gif"/>    Figure 2   </span>
+<table border="0" summary="">
+</table>
+<p> <span>最后一个重要的编辑是<b>A</b> ，所以调用<code>undo</code>再次调用<i>c</i> ， 和<span>A</span>上的<code>undo</code> ，将下一个编辑的索引设置为0，如下图所示。</span> </p>
+<p> <span><a name="figure3"></a></span> </p>
+<span> <img alt="" src="doc-files/UndoManager-3.gif"/>    Figure 3   </span>
+<table border="0" summary="">
+</table>
+<p> <span>调用<code>redo</code>导致对下一个编辑的索引和下一个重要编辑（或列表的结尾）之间的所有编辑调用<code>redo</code> 。</span> <span>继续前面的例子，如果<code>redo</code>被调用， <code>redo</code>将依次在<b>A</b> ， <i>b</i>和<i>c</i>上被调用。</span> <span>另外下一个编辑的索引设置为3（如<a href="#figure2">figure 2</a>所示）。</span> </p>
+<p> <span>将编辑添加到<code>UndoManager</code>会导致将下一次编辑的索引中的所有编辑从列表的末尾删除。</span> <span>继续前面的例子，如果添加了一个新的编辑 ，则编辑<span>D</span>从列表中删除（在其<code>die</code>调用<code>die</code>之后）。</span> <span>如果下一个编辑没有并入<i>c</i> （ <code><i>c</i>.addEdit(<i>e</i>)</code>返回true），或者替换为（ <code><i>e</i>.replaceEdit(<i>c</i>)</code>返回true），则在<i>c</i>之后添加新的编辑，如下图所示。</span> </p>
+<p> <span><a name="figure4"></a></span> </p>
+<span> <img alt="" src="doc-files/UndoManager-4.gif"/>    Figure 4   </span>
+<table border="0" summary="">
+</table>
+<p> <span>一旦<code>end</code>被调用了一个<code>UndoManager</code>超级行为被用于所有<code>UndoableEdit</code>方法。</span> <span>有关其行为的更多细节，请参阅<code>CompoundEdit</code> 。</span> </p>
+<p> <span>与其他Swing不同，这个类是线程安全的。</span> </p>
+<p> <span><strong>警告：</strong>此类的序列化对象与将来的Swing版本不兼容。</span> <span>当前的序列化支持适用于运行相同版本的Swing的应用程序之间的短期存储或RMI。</span> <span>从1.4开始，对所有JavaBeans的长期存储的支持已经添加到<code>java.beans</code>包中。</span> <span>请参阅<a href="../../../java/beans/XMLEncoder.html" title="java.beans中的类"><code>XMLEncoder</code></a> 。</span> </p>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.javax.swing.undo.CompoundEdit">
+<!-- --> </a> <h3>Fields inherited from class javax.swing.undo.<a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></h3> <code><a href="../../../javax/swing/undo/CompoundEdit.html#edits">edits</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.javax.swing.undo.AbstractUndoableEdit">
+<!-- --> </a> <h3>Fields inherited from class javax.swing.undo.<a href="../../../javax/swing/undo/AbstractUndoableEdit.html" title="class in javax.swing.undo">AbstractUndoableEdit</a></h3> <code><a href="../../../javax/swing/undo/AbstractUndoableEdit.html#RedoName">RedoName</a>, <a href="../../../javax/swing/undo/AbstractUndoableEdit.html#UndoName">UndoName</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#UndoManager--">UndoManager</a></span>()</code>
+<div class="block">
+              创建一个新的 
+             <code>UndoManager</code> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#addEdit-javax.swing.undo.UndoableEdit-">addEdit</a></span>(<a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a> anEdit)</code>
+<div class="block">
+              添加一个 
+             <code>UndoableEdit</code>到这个 
+             <code>UndoManager</code> ，如果可能的话。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#canRedo--">canRedo</a></span>()</code>
+<div class="block">
+              如果编辑可能会重做，则返回true。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#canUndo--">canUndo</a></span>()</code>
+<div class="block">
+              如果编辑可能被撤销，则返回true。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#canUndoOrRedo--">canUndoOrRedo</a></span>()</code>
+<div class="block">
+              如果可以调用 
+             <code>undo</code>或 
+             <code>redo</code>则返回true。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#discardAllEdits--">discardAllEdits</a></span>()</code>
+<div class="block">
+              清空撤销管理器，发送每个编辑一个 
+             <code>die</code>消息的过程。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>protected <a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#editToBeRedone--">editToBeRedone</a></span>()</code>
+<div class="block">
+              返回如果要重做的下一个显著编辑 
+             <code>redo</code>被调用。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>protected <a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#editToBeUndone--">editToBeUndone</a></span>()</code>
+<div class="block">
+              返回如果要撤消的显著编辑 
+             <code>undo</code>被调用。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#end--">end</a></span>()</code>
+<div class="block">
+              把这 
+             <code>UndoManager</code>变成一个正常的 
+             <code>CompoundEdit</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#getLimit--">getLimit</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>UndoManager</code>保留的最大编辑 
+             <code>UndoManager</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#getRedoPresentationName--">getRedoPresentationName</a></span>()</code>
+<div class="block">
+              返回此修改的可重写形式的描述。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#getUndoOrRedoPresentationName--">getUndoOrRedoPresentationName</a></span>()</code>
+<div class="block">
+              方便方法返回 
+             <code>getUndoPresentationName</code>或 
+             <code>getRedoPresentationName</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#getUndoPresentationName--">getUndoPresentationName</a></span>()</code>
+<div class="block">
+              返回此修改的可撤销形式的描述。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#redo--">redo</a></span>()</code>
+<div class="block">
+              重新进行适当的编辑。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#redoTo-javax.swing.undo.UndoableEdit-">redoTo</a></span>(<a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a> edit)</code>
+<div class="block">
+              将下一次编辑索引的所有更改重新设置为 
+             <code>edit</code> ， 
+             <code>edit</code>更新下一次编辑的索引。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#setLimit-int-">setLimit</a></span>(int l)</code>
+<div class="block">
+              设置 
+             <code>UndoManager</code>所持 
+             <code>UndoManager</code>最大编辑 
+             <code>UndoManager</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回显示和标识此对象属性的字符串。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#trimEdits-int-int-">trimEdits</a></span>(int from, int to)</code>
+<div class="block">
+              删除指定范围内的编辑。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#trimForLimit--">trimForLimit</a></span>()</code>
+<div class="block">
+              将排队的编辑数减少到大小限制的范围，以下一个编辑的索引为中心。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#undo--">undo</a></span>()</code>
+<div class="block">
+              撤消相应的编辑。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#undoableEditHappened-javax.swing.event.UndoableEditEvent-">undoableEditHappened</a></span>(<a href="../../../javax/swing/event/UndoableEditEvent.html" title="class in javax.swing.event">UndoableEditEvent</a> e)</code>
+<div class="block">
+              一个 
+             <code>UndoableEditListener</code>方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#undoOrRedo--">undoOrRedo</a></span>()</code>
+<div class="block">
+              调用 
+             <code>undo</code>或 
+             <code>redo</code>之一的方便方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/undo/UndoManager.html#undoTo-javax.swing.undo.UndoableEdit-">undoTo</a></span>(<a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a> edit)</code>
+<div class="block">
+              将下一次编辑索引的所有更改从 
+             <code>edit</code> ，更新下一次编辑的索引。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.undo.CompoundEdit">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.undo.<a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></h3> <code><a href="../../../javax/swing/undo/CompoundEdit.html#die--">die</a>, <a href="../../../javax/swing/undo/CompoundEdit.html#getPresentationName--">getPresentationName</a>, <a href="../../../javax/swing/undo/CompoundEdit.html#isInProgress--">isInProgress</a>, <a href="../../../javax/swing/undo/CompoundEdit.html#isSignificant--">isSignificant</a>, <a href="../../../javax/swing/undo/CompoundEdit.html#lastEdit--">lastEdit</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.undo.AbstractUndoableEdit">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.undo.<a href="../../../javax/swing/undo/AbstractUndoableEdit.html" title="class in javax.swing.undo">AbstractUndoableEdit</a></h3> <code><a href="../../../javax/swing/undo/AbstractUndoableEdit.html#replaceEdit-javax.swing.undo.UndoableEdit-">replaceEdit</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="UndoManager--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>UndoManager</h4> <pre>public UndoManager()</pre>
+<div class="block">
+            创建一个新的 
+           <code>UndoManager</code> 。 
+          </div> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getLimit--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLimit</h4> <pre>public int getLimit()</pre>
+<div class="block">
+<span>返回此<code>UndoManager</code>所持<code>UndoManager</code>最大编辑<code>UndoManager</code> 。</span>
+<span>小于0的值表示编辑次数不受限制。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个 
+            <code>UndoManager</code>拥有的最大编辑 
+            <code>UndoManager</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/UndoManager.html#addEdit-javax.swing.undo.UndoableEdit-"><code>addEdit(javax.swing.undo.UndoableEdit)</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#setLimit-int-"><code>setLimit(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="discardAllEdits--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>discardAllEdits</h4> <pre>public void discardAllEdits()</pre>
+<div class="block">
+            在 
+           <code>die</code>管理器中清空发送每个编辑 
+           <code>die</code>消息的过程。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/AbstractUndoableEdit.html#die--"><code>AbstractUndoableEdit.die()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="trimForLimit--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>trimForLimit</h4> <pre>protected void trimForLimit()</pre>
+<div class="block">
+            将排队的编辑数减少到大小限制的范围，以下一个编辑的索引为中心。 
+          </div> </li>
+</ul> <a name="trimEdits-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>trimEdits</h4> <pre>protected void trimEdits(int from,
+                         int to)</pre>
+<div class="block">
+<span>删除指定范围内的编辑。</span>
+<span>给定范围内的所有编辑（包括和相反的顺序）将调用<code>die</code>并从编辑列表中删除。</span>
+<span>如果<code>from</code> &gt; <code>to</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>from</code> - 要移除的最小索引 
+           </dd>
+<dd>
+<code>to</code> - 要删除的最大索引 
+           </dd>
+</dl> </li>
+</ul> <a name="setLimit-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setLimit</h4> <pre>public void setLimit(int l)</pre>
+<div class="block">
+<span>设置此<code>UndoManager</code>保留的最大编辑数。</span>
+<span>小于0的值表示编辑次数不受限制。</span>
+<span>如果编辑需要丢弃以缩小限制， <code>die</code>将按照它们添加的相反顺序被调用。</span>
+<span>默认值为100。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>l</code> - 新的限制 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/RuntimeException.html" title="class in java.lang">RuntimeException</a></code> - 如果这个 
+            <code>UndoManager</code>未在进行中（ 
+            <code>end</code>已被调用） 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/CompoundEdit.html#isInProgress--"><code>CompoundEdit.isInProgress()</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#end--"><code>end()</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#addEdit-javax.swing.undo.UndoableEdit-"><code>addEdit(javax.swing.undo.UndoableEdit)</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#getLimit--"><code>getLimit()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="editToBeUndone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>editToBeUndone</h4> <pre>protected <a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a> editToBeUndone()</pre>
+<div class="block">
+<span>返回如果要撤消的显著编辑<code>undo</code>被调用。</span>
+<span>如果没有编辑被撤销，则返回<code>null</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             下一个重要的编辑将被撤销 
+           </dd>
+</dl> </li>
+</ul> <a name="editToBeRedone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>editToBeRedone</h4> <pre>protected <a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a> editToBeRedone()</pre>
+<div class="block">
+<span>如果调用<code>redo</code> ，则返回下一个要重做的重要编辑。</span>
+<span>如果没有编辑重做，则返回<code>null</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             下一个要重做的重要编辑 
+           </dd>
+</dl> </li>
+</ul> <a name="undoTo-javax.swing.undo.UndoableEdit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>undoTo</h4> <pre>protected void undoTo(<a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a> edit)
+               throws <a href="../../../javax/swing/undo/CannotUndoException.html" title="class in javax.swing.undo">CannotUndoException</a></pre>
+<div class="block">
+            将下一次编辑索引的所有更改从 
+           <code>edit</code> ，更新下一次编辑的索引。 
+          </div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CannotUndoException.html" title="class in javax.swing.undo">CannotUndoException</a></code> - 如果其中一个编辑投掷 
+            <code>CannotUndoException</code>
+</dd>
+</dl> </li>
+</ul> <a name="redoTo-javax.swing.undo.UndoableEdit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>redoTo</h4> <pre>protected void redoTo(<a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a> edit)
+               throws <a href="../../../javax/swing/undo/CannotRedoException.html" title="class in javax.swing.undo">CannotRedoException</a></pre>
+<div class="block">
+            将下一个编辑索引的所有更改重新设置为 
+           <code>edit</code> ， 
+           <code>edit</code>更新下一个编辑的索引。 
+          </div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CannotRedoException.html" title="class in javax.swing.undo">CannotRedoException</a></code> - 如果其中一个编辑投掷 
+            <code>CannotRedoException</code>
+</dd>
+</dl> </li>
+</ul> <a name="undoOrRedo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>undoOrRedo</h4> <pre>public void undoOrRedo()
+                throws <a href="../../../javax/swing/undo/CannotRedoException.html" title="class in javax.swing.undo">CannotRedoException</a>,
+                       <a href="../../../javax/swing/undo/CannotUndoException.html" title="class in javax.swing.undo">CannotUndoException</a></pre>
+<div class="block">
+<span>调用<code>undo</code>或<code>redo</code>之一的方便方法。</span>
+<span>如果任何编辑已被撤销（下一个编辑的索引小于编辑列表的长度），则调用<code>redo</code> ，否则调用<code>undo</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CannotUndoException.html" title="class in javax.swing.undo">CannotUndoException</a></code> - 如果其中一个编辑投掷 
+            <code>CannotUndoException</code>
+</dd>
+<dd>
+<code><a href="../../../javax/swing/undo/CannotRedoException.html" title="class in javax.swing.undo">CannotRedoException</a></code> - 如果其中一个编辑投掷 
+            <code>CannotRedoException</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/UndoManager.html#canUndoOrRedo--"><code>canUndoOrRedo()</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#getUndoOrRedoPresentationName--"><code>getUndoOrRedoPresentationName()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="canUndoOrRedo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>canUndoOrRedo</h4> <pre>public boolean canUndoOrRedo()</pre>
+<div class="block">
+            如果可以调用 
+           <code>undo</code>或 
+           <code>redo</code>则返回true。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果调用 
+            <code>canUndoOrRedo</code>有效，则为true 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/UndoManager.html#undoOrRedo--"><code>undoOrRedo()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="undo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>undo</h4> <pre>public void undo()
+          throws <a href="../../../javax/swing/undo/CannotUndoException.html" title="class in javax.swing.undo">CannotUndoException</a></pre>
+<div class="block">
+<span>撤消相应的编辑。</span>
+<span>如果<code>end</code>已援引这一要求贯穿到超，否则该调用<code>undo</code>上的下一个编辑的索引和最后显著编辑之间的所有编辑，适当地更新下一个编辑的索引。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/UndoableEdit.html#undo--">undo</a></code>在接口 
+            <code><a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CompoundEdit.html#undo--">undo</a></code>在 
+            <code><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CannotUndoException.html" title="class in javax.swing.undo">CannotUndoException</a></code> - 如果其中一个编辑投掷 
+            <code>CannotUndoException</code>或没有编辑被撤销 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/CompoundEdit.html#end--"><code>CompoundEdit.end()</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#canUndo--"><code>canUndo()</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#editToBeUndone--"><code>editToBeUndone()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="canUndo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>canUndo</h4> <pre>public boolean canUndo()</pre>
+<div class="block">
+<span>如果编辑可能被撤销，则返回true。</span>
+<span>如果调用了<code>end</code> ，则返回超值的值。</span>
+<span>否则，如果有任何编辑被撤销，则返回true（ <code>editToBeUndone</code>返回非<code>null</code> ）。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/UndoableEdit.html#canUndo--">canUndo</a></code>在接口 
+            <code><a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CompoundEdit.html#canUndo--">canUndo</a></code>在 
+            <code><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果编辑被撤销，则为true 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/CompoundEdit.html#canUndo--"><code>CompoundEdit.canUndo()</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#editToBeUndone--"><code>editToBeUndone()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="redo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>redo</h4> <pre>public void redo()
+          throws <a href="../../../javax/swing/undo/CannotRedoException.html" title="class in javax.swing.undo">CannotRedoException</a></pre>
+<div class="block">
+<span>重新进行适当的编辑。</span>
+<span>如果调用了<code>end</code> ，则调用该超类。</span>
+<span>否则，将对下一个编辑的索引和下一个重要编辑之间的所有编辑调用<code>redo</code> ，适当地更新下一个编辑的索引。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/UndoableEdit.html#redo--">redo</a></code>在界面 
+            <code><a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CompoundEdit.html#redo--">redo</a></code>在类 
+            <code><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CannotRedoException.html" title="class in javax.swing.undo">CannotRedoException</a></code> - 如果其中一个编辑投掷 
+            <code>CannotRedoException</code>或没有编辑重做 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/CompoundEdit.html#end--"><code>CompoundEdit.end()</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#canRedo--"><code>canRedo()</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#editToBeRedone--"><code>editToBeRedone()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="canRedo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>canRedo</h4> <pre>public boolean canRedo()</pre>
+<div class="block">
+<span>如果编辑可能会重做，则返回true。</span>
+<span>如果调用了<code>end</code> ，则返回超值的值。</span>
+<span>否则，如果有任何编辑要重做，则返回true（ <code>editToBeRedone</code>返回非<code>null</code> ）。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/UndoableEdit.html#canRedo--">canRedo</a></code>在接口 
+            <code><a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CompoundEdit.html#canRedo--">canRedo</a></code>在 
+            <code><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果编辑被重做，则为true 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/CompoundEdit.html#canRedo--"><code>CompoundEdit.canRedo()</code></a> ， 
+            <a href="../../../javax/swing/undo/UndoManager.html#editToBeRedone--"><code>editToBeRedone()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="addEdit-javax.swing.undo.UndoableEdit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addEdit</h4> <pre>public boolean addEdit(<a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a> anEdit)</pre>
+<div class="block">
+<span>添加<code>UndoableEdit</code>到这个<code>UndoManager</code> ，如果可能的话。</span>
+<span>这会将下一次编辑的索引中的所有编辑从编辑列表的末尾删除。</span>
+<span>如果调用了<code>end</code> ，则不会添加编辑，并返回<code>false</code> 。</span>
+<span>如果<code>end</code>尚未被调用，则返回<code>true</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/UndoableEdit.html#addEdit-javax.swing.undo.UndoableEdit-">addEdit</a></code>在界面 
+            <code><a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CompoundEdit.html#addEdit-javax.swing.undo.UndoableEdit-">addEdit</a></code>在 
+            <code><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>anEdit</code> - 要添加的编辑 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果 
+            <code>anEdit</code>可以并入此编辑，则为true 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/CompoundEdit.html#end--"><code>CompoundEdit.end()</code></a> ， 
+            <a href="../../../javax/swing/undo/CompoundEdit.html#addEdit-javax.swing.undo.UndoableEdit-"><code>CompoundEdit.addEdit(javax.swing.undo.UndoableEdit)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="end--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>end</h4> <pre>public void end()</pre>
+<div class="block">
+<span>把这<code>UndoManager</code>变成一个正常的<code>CompoundEdit</code> 。</span>
+<span>这将删除所有已被撤销的编辑。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CompoundEdit.html#end--">end</a></code>在 
+            <code><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/CompoundEdit.html#end--"><code>CompoundEdit.end()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getUndoOrRedoPresentationName--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getUndoOrRedoPresentationName</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> getUndoOrRedoPresentationName()</pre>
+<div class="block">
+<span>方便方法返回<code>getUndoPresentationName</code>或<code>getRedoPresentationName</code> 。</span>
+<span>如果下一个编辑的索引等于编辑列表的大小， <code>getUndoPresentationName</code>返回，否则<code>getRedoPresentationName</code>返回。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             撤消或重做名称 
+           </dd>
+</dl> </li>
+</ul> <a name="getUndoPresentationName--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getUndoPresentationName</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> getUndoPresentationName()</pre>
+<div class="block">
+<span>返回此修改的可撤销形式的描述。</span>
+<span>如果<code>end</code>被调用，这个调用进入超级。</span>
+<span>否则，如果编辑被撤销，则返回下一个将被撤消的重要编辑的值。</span>
+<span>如果没有编辑被<code>end</code>并且没有调用<code>end</code> ，则返回<code>UIManager</code>属性“AbstractUndoableEdit.undoText”的值。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/UndoableEdit.html#getUndoPresentationName--">getUndoPresentationName</a></code>在接口 
+            <code><a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CompoundEdit.html#getUndoPresentationName--">getUndoPresentationName</a></code>在 
+            <code><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该编辑的可撤销形式的描述 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/UndoManager.html#undo--"><code>undo()</code></a> ， 
+            <a href="../../../javax/swing/undo/CompoundEdit.html#getUndoPresentationName--"><code>CompoundEdit.getUndoPresentationName()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getRedoPresentationName--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRedoPresentationName</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> getRedoPresentationName()</pre>
+<div class="block">
+<span>返回此修改的可重写形式的描述。</span>
+<span>如果<code>end</code>被调用，这个调用进入超级。</span>
+<span>否则，如果编辑被重做，则返回重新编辑的下一个重要编辑的值。</span>
+<span>如果没有重做编辑，并且未调用<code>end</code> ，则返回<code>UIManager</code>属性“AbstractUndoableEdit.redoText”的值。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/UndoableEdit.html#getRedoPresentationName--">getRedoPresentationName</a></code>在接口 
+            <code><a href="../../../javax/swing/undo/UndoableEdit.html" title="interface in javax.swing.undo">UndoableEdit</a></code>
+</dd>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CompoundEdit.html#getRedoPresentationName--">getRedoPresentationName</a></code>在 
+            <code><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             对该编辑的可重写形式的描述 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/UndoManager.html#redo--"><code>redo()</code></a> ， 
+            <a href="../../../javax/swing/undo/CompoundEdit.html#getRedoPresentationName--"><code>CompoundEdit.getRedoPresentationName()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="undoableEditHappened-javax.swing.event.UndoableEditEvent-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>undoableEditHappened</h4> <pre>public void undoableEditHappened(<a href="../../../javax/swing/event/UndoableEditEvent.html" title="class in javax.swing.event">UndoableEditEvent</a> e)</pre>
+<div class="block">
+<span>一个<code>UndoableEditListener</code>方法。</span>
+<span>这将调用<code>addEdit</code>与<code>e.getEdit()</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/event/UndoableEditListener.html#undoableEditHappened-javax.swing.event.UndoableEditEvent-">undoableEditHappened</a></code>在接口 
+            <code><a href="../../../javax/swing/event/UndoableEditListener.html" title="interface in javax.swing.event">UndoableEditListener</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>e</code> - 
+            <code>UndoableEditEvent</code>的 
+            <code>UndoableEditEvent</code>将从 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/undo/UndoManager.html#addEdit-javax.swing.undo.UndoableEdit-"><code>addEdit(javax.swing.undo.UndoableEdit)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+            返回显示和标识此对象属性的字符串。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/undo/CompoundEdit.html#toString--">toString</a></code>在 
+            <code><a href="../../../javax/swing/undo/CompoundEdit.html" title="class in javax.swing.undo">CompoundEdit</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该对象的字符串表示形式 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

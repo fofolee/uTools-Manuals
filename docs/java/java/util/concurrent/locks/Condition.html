@@ -1,0 +1,372 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.concurrent.locks 
+   </div>
+<h2 class="title" title="Interface Condition">Interface Condition</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+        所有已知实现类：
+       </dt>
+<dd>
+<span><a href="../../../../java/util/concurrent/locks/AbstractQueuedLongSynchronizer.ConditionObject.html" title="java.util.concurrent.locks中的类">AbstractQueuedLongSynchronizer.ConditionObject</a> ， <a href="../../../../java/util/concurrent/locks/AbstractQueuedSynchronizer.ConditionObject.html" title="java.util.concurrent.locks中的类">AbstractQueuedSynchronizer.ConditionObject</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">Condition</span></pre>
+<div class="block">
+<span><code>Condition</code>因素出<code>Object</code>监视器方法（ <a href="../../../../java/lang/Object.html#wait--"><code>wait</code></a> ， <a href="../../../../java/lang/Object.html#notify--"><code>notify</code></a>和<a href="../../../../java/lang/Object.html#notifyAll--"><code>notifyAll</code></a> ）成不同的对象，以得到具有多个等待集的每个对象，通过将它们与使用任意的组合的效果<a href="../../../../java/util/concurrent/locks/Lock.html" title="java.util.concurrent.locks中的接口"><code>Lock</code>个</a>实现。</span>
+<span><code>Lock</code>替换<code>synchronized</code>方法和语句的使用， <code>Condition</code>取代了对象监视器方法的使用。</span>
+<p> <span>条件（也称为<em>条件队列</em>或<em>条件变量</em> ）为一个线程暂停执行（“等待”）提供了一种方法，直到另一个线程通知某些状态现在可能为真。</span> <span>因为访问此共享状态信息发生在不同的线程中，所以它必须被保护，因此某种形式的锁与该条件相关联。</span> <span>等待条件的关键属性是它<em>原子地</em>释放相关的锁并挂起当前线程，就像<code>Object.wait</code> 。</span> </p>
+<p> <span>一个<code>Condition</code>实例本质上绑定到一个锁。</span> <span>要获得特定<code>Condition</code>实例的<a href="../../../../java/util/concurrent/locks/Lock.html" title="java.util.concurrent.locks中的接口">Condition</a>实例，请使用其<a href="../../../../java/util/concurrent/locks/Lock.html#newCondition--"><code>newCondition()</code></a>方法。</span> </p>
+<p> <span>例如，假设我们有一个有限的缓冲区，它支持<code>put</code>和<code>take</code>方法。</span> <span>如果在一个空的缓冲区尝试一个<code>take</code> ，则线程将阻塞直到一个项目可用;</span> <span>如果<code>put</code>试图在一个完整的缓冲区，那么线程将阻塞，直到空间变得可用。</span> <span>我们希望在单独的等待集中等待<code>put</code>线程和<code>take</code>线程，以便我们可以在缓冲区中的项目或空间可用的时候使用仅通知单个线程的优化。</span> <span>这可以使用两个<a href="../../../../java/util/concurrent/locks/Condition.html" title="java.util.concurrent.locks中的接口"><code>Condition</code></a>实例来实现。</span> </p>
+<pre>  <span>class BoundedBuffer {
+   <b>final Lock lock = new ReentrantLock();</b>
+   final Condition notFull  = <b>lock.newCondition(); </b>
+   final Condition notEmpty = <b>lock.newCondition(); </b>
+
+   final Object[] items = new Object[100];
+   int putptr, takeptr, count;
+
+   public void put(Object x) throws InterruptedException {
+     <b>lock.lock(); try {</b>
+       while (count == items.length)
+         <b>notFull.await();</b>
+       items[putptr] = x;
+       if (++putptr == items.length) putptr = 0;
+       ++count;
+       <b>notEmpty.signal();</b>
+     <b>} finally { lock.unlock(); }</b>
+   }
+
+   public Object take() throws InterruptedException {
+     <b>lock.lock(); try {</b>
+       while (count == 0)
+         <b>notEmpty.await();</b>
+       Object x = items[takeptr];
+       if (++takeptr == items.length) takeptr = 0;
+       --count;
+       <b>notFull.signal();</b>
+       return x;
+     <b>} finally { lock.unlock(); }</b>
+   }
+ }</span> </pre>
+<span>（ <a href="../../../../java/util/concurrent/ArrayBlockingQueue.html" title="java.util.concurrent中的类"><code>ArrayBlockingQueue</code></a>类提供此功能，因此没有理由实现此示例使用类。）</span>
+<p> <span><code>Condition</code>实现可以提供<code>Object</code>监视器方法的行为和语义，例如有保证的通知顺序，或者在执行通知时不需要锁定。</span> <span>如果一个实现提供了这样的专门的语义，那么实现必须记录这些语义。</span> </p>
+<p> <span>需要注意的是<code>Condition</code>实例只是普通的对象，其本身作为一个目标<code>synchronized</code>语句，可以有自己的监视器<a href="../../../../java/lang/Object.html#wait-long-"><code>wait</code></a>和<a href="../../../../java/lang/Object.html#notify--"><code>notification</code>个</a>方法调用。</span> <span>获取<code>Condition</code>实例的监视器锁或使用其监视方法与获取与该<a href="../../../../java/util/concurrent/locks/Lock.html" title="java.util.concurrent.locks中的接口">Condition</a>相关联的<code>Condition</code>或使用其<a href="../../../../java/util/concurrent/locks/Condition.html#await--">waiting</a>和<a href="../../../../java/util/concurrent/locks/Condition.html#signal--">signalling</a>方法没有特定关系。</span> <span>建议为避免混淆，您永远不会以这种方式使用<code>Condition</code>实例，除了可能在自己的实现之内。</span> </p>
+<p> <span>除非另有说明，传递任何参数的<code>null</code>值将导致<a href="../../../../java/lang/NullPointerException.html" title="java.lang中的类"><code>NullPointerException</code></a>被抛出。</span> </p>
+<h3> <span>实施注意事项</span> </h3>
+<p> <span>当等待<code>Condition</code>时，允许发生“ <em>虚假唤醒</em> ”，一般来说，作为对底层平台语义的让步。</span> <span>这对大多数应用程序几乎没有实际的影响，因为<code>Condition</code>应该始终在循环中等待，测试正在等待的状态谓词。</span> <span>一个实现可以免除虚假唤醒的可能性，但建议应用程序员总是假定它们可以发生，因此总是等待循环。</span> </p>
+<p> <span>条件等待（可中断，不可中断和定时）的三种形式在一些平台上的易用性和性能特征可能不同。</span> <span>特别地，可能难以提供这些特征并保持特定的语义，例如排序保证。</span> <span>此外，中断线程实际挂起的能力可能并不总是在所有平台上实现。</span> </p>
+<p> <span>因此，不需要一个实现来为所有三种形式的等待定义完全相同的保证或语义，也不需要支持中断线程的实际暂停。</span> </p>
+<p> <span>需要一个实现来清楚地记录每个等待方法提供的语义和保证，并且当一个实现确实支持线程挂起中断时，它必须遵守该接口中定义的中断语义。</span> </p>
+<p> <span>由于中断通常意味着取消，并且检查中断通常是不频繁的，所以实现可以有利于通过正常方法返回来响应中断。</span> <span>即使可以显示中断发生在另一个可能解除阻塞线程的动作之后，这一点也是如此。</span> <span>一个实现应该记录这个行为。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.5 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/Condition.html#await--">await</a></span>()</code>
+<div class="block">
+              导致当前线程等到发信号或 
+             <a href="../../../../java/lang/Thread.html#interrupt--">interrupted</a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/Condition.html#await-long-java.util.concurrent.TimeUnit-">await</a></span>(long time, <a href="../../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              使当前线程等待直到发出信号或中断，或指定的等待时间过去。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/Condition.html#awaitNanos-long-">awaitNanos</a></span>(long nanosTimeout)</code>
+<div class="block">
+              使当前线程等待直到发出信号或中断，或指定的等待时间过去。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/Condition.html#awaitUninterruptibly--">awaitUninterruptibly</a></span>()</code>
+<div class="block">
+              使当前线程等待直到发出信号。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/Condition.html#awaitUntil-java.util.Date-">awaitUntil</a></span>(<a href="../../../../java/util/Date.html" title="class in java.util">Date</a> deadline)</code>
+<div class="block">
+              使当前线程等待直到发出信号或中断，或者指定的最后期限过去。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/Condition.html#signal--">signal</a></span>()</code>
+<div class="block">
+              唤醒一个等待线程。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../java/util/concurrent/locks/Condition.html#signalAll--">signalAll</a></span>()</code>
+<div class="block">
+              唤醒所有等待线程。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="await--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>await</h4> <pre>void await()
+    throws <a href="../../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>导致当前线程等到发信号或<a href="../../../../java/lang/Thread.html#interrupt--">interrupted</a> 。</span>
+<p> <span>与此相关的锁<code>Condition</code>以原子方式释放，并且当前线程的线程调度目的就退出，一直处于休眠状态的四两件事<em>发生对象</em> ：</span> </p>
+<ul>
+<li> <span>一些其它线程调用<a href="../../../../java/util/concurrent/locks/Condition.html#signal--"><code>signal()</code></a>方法本<code>Condition</code>和当前线程碰巧被选择作为被唤醒线程;</span> <span>要么</span> </li>
+<li> <span>一些其他的线程调用<a href="../../../../java/util/concurrent/locks/Condition.html#signalAll--">88452369060832</a>方法<code>Condition</code> ;</span> <span>要么</span> </li>
+<li> <span>一些其他线程<a href="../../../../java/lang/Thread.html#interrupt--">interrupts</a>当前线程，并中断线程挂起;</span> <span>要么</span> </li>
+<li> <span>发生“ <em>虚假唤醒</em> ”。</span> </li>
+</ul>
+<p> <span>在所有情况下，在此方法返回之前，当前线程必须重新获取与此条件相关的锁。</span> <span>当线程返回时，它<em>保证</em>保持此锁。</span> </p>
+<p> <span>如果当前线程：</span> </p>
+<ul>
+<li> <span>在进入该方法时设置了中断状态;</span> <span>要么</span> </li>
+<li> <span>是<a href="../../../../java/lang/Thread.html#interrupt--">interrupted</a>等待和中断螺纹悬挂支持，</span> </li>
+</ul>
+<span>然后<a href="../../../../java/lang/InterruptedException.html" title="java.lang中的类"><code>InterruptedException</code></a>被关上，当前线程的中断状态被清除。</span>
+<span>在第一种情况下，没有规定在释放锁之前是否发生中断测试。</span>
+<p> <span><b>实施注意事项</b></span> </p>
+<p> <span>当调用此方法时，假定当前线程保持与此<code>Condition</code>的锁。</span> <span>由执行决定是否是这种情况，如果没有，应如何回应。</span> <span>通常，将抛出异常（例如<a href="../../../../java/lang/IllegalMonitorStateException.html" title="java.lang中的类"><code>IllegalMonitorStateException</code></a> ），并且实现必须记录该事实。</span> </p>
+<p> <span>响应于信号，实现可以有利于响应正常方法返回的中断。</span> <span>在这种情况下，实现必须确保信号被重定向到另一个等待的线程（如果有的话）。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果当前线程中断（支持线程中断） 
+           </dd>
+</dl> </li>
+</ul> <a name="awaitUninterruptibly--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>awaitUninterruptibly</h4> <pre>void awaitUninterruptibly()</pre>
+<div class="block">
+<span>使当前线程等待直到发出信号。</span>
+<p> <span>与此条件相关的锁以原子方式释放，并且当前线程的线程调度目的就退出，一直处于休眠状态的三种情况<em>之一</em>发生：</span> </p>
+<ul>
+<li> <span>一些其他的线程调用<a href="../../../../java/util/concurrent/locks/Condition.html#signal--"><code>signal()</code></a>方法，这个<code>Condition</code>和当前线程恰好被选择为被唤醒的线程;</span> <span>要么</span> </li>
+<li> <span>一些其他的线程调用<a href="../../../../java/util/concurrent/locks/Condition.html#signalAll--"><code>signalAll()</code></a>方法为这<code>Condition</code> ;</span> <span>要么</span> </li>
+<li> <span>发生“ <em>虚假唤醒</em> ”。</span> </li>
+</ul>
+<p> <span>在所有情况下，在此方法返回之前，当前线程必须重新获取与此条件相关的锁。</span> <span>当线程返回时，它<em>保证</em>保持此锁。</span> </p>
+<p> <span>如果当前线程的中断状态在进入此方法时设置，或者等待时为<a href="../../../../java/lang/Thread.html#interrupt--">interrupted</a> ，则会继续等待直到发信号。</span> <span>当它最终从该方法返回时，它的中断状态将仍然被设置。</span> </p>
+<p> <span><b>实施注意事项</b></span> </p>
+<p> <span>当调用此方法时，假定当前线程保持与此<code>Condition</code>的锁定。</span> <span>由执行决定是否是这种情况，如果没有，应如何回应。</span> <span>通常，将抛出异常（如<a href="../../../../java/lang/IllegalMonitorStateException.html" title="java.lang中的类"><code>IllegalMonitorStateException</code></a> ），实现必须记录该事实。</span> </p>
+</div> </li>
+</ul> <a name="awaitNanos-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>awaitNanos</h4> <pre>long awaitNanos(long nanosTimeout)
+         throws <a href="../../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>使当前线程等待直到发出信号或中断，或指定的等待时间过去。</span>
+<p> <span>与此条件相关的锁以原子方式释放，并且当前线程的线程调度目的就退出，一直处于休眠状态的五件事情<em>发生对象</em> ：</span> </p>
+<ul>
+<li> <span>一些其它线程调用<a href="../../../../java/util/concurrent/locks/Condition.html#signal--"><code>signal()</code></a>方法本<code>Condition</code>和当前线程碰巧被选择作为被唤醒线程;</span> <span>要么</span> </li>
+<li> <span>一些其他的线程调用<a href="../../../../java/util/concurrent/locks/Condition.html#signalAll--"><code>signalAll()</code></a>方法为这<code>Condition</code> ;</span> <span>要么</span> </li>
+<li> <span>一些其他线程<a href="../../../../java/lang/Thread.html#interrupt--">interrupts</a>当前线程，并且支持线程中断的中断;</span> <span>要么</span> </li>
+<li> <span>指定的等待时间过去了;</span> <span>要么</span> </li>
+<li> <span>发生“ <em>虚假唤醒</em> ”。</span> </li>
+</ul>
+<p> <span>在所有情况下，在此方法返回之前，当前线程必须重新获取与此条件相关的锁。</span> <span>当线程返回时，它<em>保证</em>保持此锁。</span> </p>
+<p> <span>如果当前线程：</span> </p>
+<ul>
+<li> <span>在进入该方法时设置了中断状态;</span> <span>要么</span> </li>
+<li> <span>是<a href="../../../../java/lang/Thread.html#interrupt--">interrupted</a> ，等待和中断螺纹悬挂支持，</span> </li>
+</ul>
+<span>然后<a href="../../../../java/lang/InterruptedException.html" title="java.lang中的类"><code>InterruptedException</code></a>被关上，当前线程的中断状态被清除。</span>
+<span>在第一种情况下，没有规定在释放锁之前是否发生中断测试。</span>
+<p> <span>该方法在返回时返回给出所提供的<code>nanosTimeout</code>值时剩余的纳秒数的估计，或者如果超时，小于或等于零的值。</span> <span>该值可用于确定等待返回但待机状态仍然不成立的情况下是否以及等待多长时间。</span> <span>此方法的典型用途如下：</span> </p>
+<pre>  <span><code> boolean aMethod(long timeout, TimeUnit unit) { long nanos = unit.toNanos(timeout); lock.lock(); try { while (!conditionBeingWaitedFor()) { if (nanos &lt;= 0L) return false; nanos = theCondition.awaitNanos(nanos); } // ... } finally { lock.unlock(); } }</code></span> </pre>
+<p> <span>设计说明：此方法需要一个纳秒参数，以避免报告剩余时间中的截断错误。</span> <span>这样的精度损失将使程序员难以确保在重新等待时总的等待时间不会比指定时间短。</span> </p>
+<p> <span><b>实施注意事项</b></span> </p>
+<p> <span>当调用此方法时，假定当前线程保持与此<code>Condition</code>的锁定。</span> <span>由执行决定是否是这种情况，如果没有，应如何回应。</span> <span>通常，将抛出异常（例如<a href="../../../../java/lang/IllegalMonitorStateException.html" title="java.lang中的类"><code>IllegalMonitorStateException</code></a> ），并且实现必须记录该事实。</span> </p>
+<p> <span>一个实现可以有助于响应于信号响应正常方法返回的中断，或者指示经过指定的等待时间。</span> <span>在任一情况下，实现必须确保信号被重定向到另一个等待线程（如果有的话）。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>nanosTimeout</code> - 等待的最长时间，以纳秒为单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>估计<code>nanosTimeout</code>值减去等待从此方法返回的时间。</span>
+<span>可以使用正值作为随后调用此方法的参数，以完成等待所需时间。</span>
+<span>小于或等于零的值表示没有时间。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果当前线程被中断（并且支持线程中断） 
+           </dd>
+</dl> </li>
+</ul> <a name="await-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>await</h4> <pre>boolean await(long time,
+              <a href="../../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)
+       throws <a href="../../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>使当前线程等待直到发出信号或中断，或指定的等待时间过去。</span>
+<span>这种方法在行为上等同于：</span>
+<pre>  <span><code> awaitNanos(unit.toNanos(time)) &gt; 0</code></span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>time</code> - 等待的最长时间 
+           </dd>
+<dd>
+<code>unit</code> - 
+            <code>time</code>参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>false</code>如果等待时间可以从方法返回前经过，否则 
+            <code>true</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果当前线程被中断（并且支持线程中断的中断） 
+           </dd>
+</dl> </li>
+</ul> <a name="awaitUntil-java.util.Date-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>awaitUntil</h4> <pre>boolean awaitUntil(<a href="../../../../java/util/Date.html" title="class in java.util">Date</a> deadline)
+            throws <a href="../../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>使当前线程等待直到发出信号或中断，或者指定的最后期限过去。</span>
+<p> <span>与此条件相关的锁以原子方式释放，并且当前线程的线程调度目的就退出，一直处于休眠状态的五件事情<em>发生对象</em> ：</span> </p>
+<ul>
+<li> <span>一些其它线程调用<a href="../../../../java/util/concurrent/locks/Condition.html#signal--"><code>signal()</code></a>方法本<code>Condition</code>和当前线程碰巧被选择作为被唤醒线程;</span> <span>要么</span> </li>
+<li> <span>一些其他线程调用<a href="../../../../java/util/concurrent/locks/Condition.html#signalAll--"><code>signalAll()</code></a>方法为这<code>Condition</code> ;</span> <span>要么</span> </li>
+<li> <span>一些其他线程<a href="../../../../java/lang/Thread.html#interrupt--">interrupts</a>当前线程，并且支持线程中断的中断;</span> <span>要么</span> </li>
+<li> <span>规定的期限过去了;</span> <span>要么</span> </li>
+<li> <span>发生“ <em>虚假唤醒</em> ”。</span> </li>
+</ul>
+<p> <span>在所有情况下，在此方法返回之前，当前线程必须重新获取与此条件相关的锁。</span> <span>当线程返回时，它<em>保证</em>保持此锁。</span> </p>
+<p> <span>如果当前线程：</span> </p>
+<ul>
+<li> <span>在进入该方法时设置了中断状态;</span> <span>要么</span> </li>
+<li> <span>是<a href="../../../../java/lang/Thread.html#interrupt--">interrupted</a>在等待和中断螺纹悬挂支持，</span> </li>
+</ul>
+<span>然后<a href="../../../../java/lang/InterruptedException.html" title="java.lang中的类"><code>InterruptedException</code></a>被关上，当前线程的中断状态被清除。</span>
+<span>在第一种情况下，没有规定在释放锁之前是否发生中断测试。</span>
+<p> <span>返回值表示截止期限是否过去，可以如下使用：</span> </p>
+<pre>  <span><code> boolean aMethod(Date deadline) { boolean stillWaiting = true; lock.lock(); try { while (!conditionBeingWaitedFor()) { if (!stillWaiting) return false; stillWaiting = theCondition.awaitUntil(deadline); } // ... } finally { lock.unlock(); } }</code></span> </pre>
+<p> <span><b>实施注意事项</b></span> </p>
+<p> <span>当调用此方法时，假定当前线程保持与此<code>Condition</code>的锁定。</span> <span>由执行决定是否是这种情况，如果没有，应如何回应。</span> <span>通常，将抛出异常（如<a href="../../../../java/lang/IllegalMonitorStateException.html" title="java.lang中的类"><code>IllegalMonitorStateException</code></a> ），实现必须记录该事实。</span> </p>
+<p> <span>一个实现可以有助于响应于信号响应正常方法返回的中断，或者指示通过指定的期限。</span> <span>在任一情况下，实现必须确保信号被重定向到另一个等待线程（如果有的话）。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>deadline</code> - 绝对等待的时间 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>false</code>如果退货期限已过，否则 
+            <code>true</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果当前线程被中断（并且支持线程中断的中断） 
+           </dd>
+</dl> </li>
+</ul> <a name="signal--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>signal</h4> <pre>void signal()</pre>
+<div class="block">
+<span>唤醒一个等待线程。</span>
+<p> <span>如果任何线程正在等待此条件，则选择一个线程进行唤醒。</span> <span>那个线程必须在从<code>await</code>之前重新获取锁。</span> </p>
+<p> <span><b>实施注意事项</b></span> </p>
+<p> <span>当调用此方法时，实现可能（通常是）要求当前线程保存与此<code>Condition</code>的锁。</span> <span>执行必须记录此前提条件，如果不保持锁定，则采取任何措施。</span> <span>通常情况下，一个异常如<a href="../../../../java/lang/IllegalMonitorStateException.html" title="java.lang中的类"><code>IllegalMonitorStateException</code></a>将被抛出。</span> </p>
+</div> </li>
+</ul> <a name="signalAll--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>signalAll</h4> <pre>void signalAll()</pre>
+<div class="block">
+<span>唤醒所有等待线程。</span>
+<p> <span>如果任何线程正在等待这个条件，那么它们都被唤醒。</span> <span>每个线程必须重新获取锁，才能从<code>await</code>返回。</span> </p>
+<p> <span><b>实施注意事项</b></span> </p>
+<p> <span>当调用此方法时，实现可能（通常是）要求当前线程保持与此<code>Condition</code>的锁。</span> <span>执行必须记录此前提条件，如果不保持锁定，则采取任何措施。</span> <span>通常情况下，一个异常如<a href="../../../../java/lang/IllegalMonitorStateException.html" title="java.lang中的类"><code>IllegalMonitorStateException</code></a>将被抛出。</span> </p>
+</div> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

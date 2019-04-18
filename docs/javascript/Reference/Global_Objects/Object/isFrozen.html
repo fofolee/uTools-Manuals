@@ -1,0 +1,171 @@
+<article id="wikiArticle">
+<div></div>
+<p><code><strong>Object.isFrozen()</strong></code>方法判断一个对象是否被<a href="Reference/Global_Objects/Object/freeze" title="Object.freeze() 方法可以冻结一个对象。一个被冻结的对象再也不能被修改；冻结了一个对象则不能向这个对象添加新的属性，不能删除已有属性，不能修改该对象已有属性的可枚举性、可配置性、可写性，以及不能修改已有属性的值。此外，冻结一个对象后该对象的原型也不能被修改。freeze() 返回和传入的参数相同的对象。">冻结</a>。</p>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre class="syntaxbox"><code>Object.isFrozen(<var>obj</var>)</code></pre>
+<h3 id="Parameters" name="Parameters">参数</h3>
+<dl>
+<dt><code>obj</code></dt>
+<dd>被检测的对象。</dd>
+<dt>
+<h3 id="返回值">返回值</h3>
+</dt>
+<dd>表示给定对象是否被冻结的<a href="Reference/Boolean" title="此页面仍未被本地化, 期待您的翻译!"><code>Boolean</code></a>。</dd>
+</dl>
+<h2 id="Description" name="Description">描述</h2>
+<p>一个对象是冻结的是指它不可<a href="Reference/Global_Objects/Object/isExtensible" title="Object.isExtensible() 方法判断一个对象是否是可扩展的（是否可以在它上面添加新的属性）。"><code>扩展</code></a>，所有属性都是不可配置的，且所有数据属性（即没有getter或setter组件的访问器的属性）都是不可写的。</p>
+<h2 id="Examples" name="Examples">例子</h2>
+<pre class="brush: js">// 一个对象默认是可扩展的,所以它也是非冻结的.
+Object.isFrozen({}); // === false
+
+// 一个不可扩展的空对象同时也是一个冻结对象.
+var vacuouslyFrozen = Object.preventExtensions({});
+Object.isFrozen(vacuouslyFrozen) //=== true;
+
+// 一个非空对象默认也是非冻结的.
+var oneProp = { p: 42 };
+Object.isFrozen(oneProp) //=== false
+
+// 让这个对象变的不可扩展,并不意味着这个对象变成了冻结对象,
+// 因为p属性仍然是可以配置的(而且可写的).
+Object.preventExtensions(oneProp);
+Object.isFrozen(oneProp) //=== false
+
+// ...如果删除了这个属性,则它会成为一个冻结对象.
+delete oneProp.p;
+Object.isFrozen(oneProp) //=== true
+
+// 一个不可扩展的对象,拥有一个不可写但可配置的属性,则它仍然是非冻结的.
+var nonWritable = { e: "plep" };
+Object.preventExtensions(nonWritable);
+Object.defineProperty(nonWritable, "e", { writable: false }); // 变得不可写
+Object.isFrozen(nonWritable) //=== false
+
+// 把这个属性改为不可配置,会让这个对象成为冻结对象.
+Object.defineProperty(nonWritable, "e", { configurable: false }); // 变得不可配置
+Object.isFrozen(nonWritable) //=== true
+
+// 一个不可扩展的对象,拥有一个不可配置但可写的属性,则它仍然是非冻结的.
+var nonConfigurable = { release: "the kraken!" };
+Object.preventExtensions(nonConfigurable);
+Object.defineProperty(nonConfigurable, "release", { configurable: false });
+Object.isFrozen(nonConfigurable) //=== false
+
+// 把这个属性改为不可写,会让这个对象成为冻结对象.
+Object.defineProperty(nonConfigurable, "release", { writable: false });
+Object.isFrozen(nonConfigurable) //=== true
+
+// 一个不可扩展的对象,值拥有一个访问器属性,则它仍然是非冻结的.
+var accessor = { get food() { return "yum"; } };
+Object.preventExtensions(accessor);
+Object.isFrozen(accessor) //=== false
+
+// ...但把这个属性改为不可配置,会让这个对象成为冻结对象.
+Object.defineProperty(accessor, "food", { configurable: false });
+Object.isFrozen(accessor) //=== true
+
+// 使用Object.freeze是冻结一个对象最方便的方法.
+var frozen = { 1: 81 };
+Object.isFrozen(frozen) //=== false
+Object.freeze(frozen);
+Object.isFrozen(frozen) //=== true
+
+// 一个冻结对象也是一个密封对象.
+Object.isSealed(frozen) //=== true
+
+// 当然,更是一个不可扩展的对象.
+Object.isExtensible(frozen) //=== false
+
+</pre>
+<h2 id="注意">注意</h2>
+<p>在 ES5 中，如果参数不是一个对象类型，将抛出一个<a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a>异常。在 ES2015 中，非对象参数将被视为一个冻结的普通对象，因此会返回<code>true</code>。</p>
+<pre class="brush: js">Object.isFrozen(1);
+// TypeError: 1 is not an object (ES5 code)
+
+Object.isFrozen(1);
+// true                          (ES2015 code)
+</pre>
+<h2 id="规范" style="margin-bottom: 20px; line-height: 30px;">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-15.2.3.12" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">Object.isFrozen</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Initial definition.<br/>
+    Implemented in JavaScript 1.8.5</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-object.isfrozen" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Object.isFrozen</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-object.isfrozen" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Object.isFrozen</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容">浏览器兼容</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>isFrozen</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.1</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+<h2 id="See_also" name="See_also">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Object/freeze" title="Object.freeze() 方法可以冻结一个对象。一个被冻结的对象再也不能被修改；冻结了一个对象则不能向这个对象添加新的属性，不能删除已有属性，不能修改该对象已有属性的可枚举性、可配置性、可写性，以及不能修改已有属性的值。此外，冻结一个对象后该对象的原型也不能被修改。freeze() 返回和传入的参数相同的对象。"><code>Object.freeze()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/preventExtensions" title="Object.preventExtensions()方法让一个对象变的不可扩展，也就是永远不能再添加新的属性。"><code>Object.preventExtensions()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/isExtensible" title="Object.isExtensible() 方法判断一个对象是否是可扩展的（是否可以在它上面添加新的属性）。"><code>Object.isExtensible()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/seal" title="The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>Object.seal()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/isSealed" title="Object.isSealed() 方法判断一个对象是否被密封。"><code>Object.isSealed()</code></a></li>
+</ul>
+</article>

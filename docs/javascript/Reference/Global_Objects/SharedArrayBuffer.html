@@ -1,0 +1,419 @@
+<article id="wikiArticle">
+<div></div>
+<p><strong><code>SharedArrayBuffer</code></strong> 对象用来表示一个通用的，固定长度的原始二进制数据缓冲区，类似于 <a href="Reference/Global_Objects/ArrayBuffer" title="The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>ArrayBuffer</code></a> 对象，它们都可以用来在共享内存（shared memory）上创建视图。与 <code>ArrayBuffer</code> 不同的是，<code><strong>SharedArrayBuffer</strong></code> 不能被分离。</p>
+<div class="warning">
+<p>请注意，由于能够轻易地利用《<a class="external" href="https://googleprojectzero.blogspot.com/2018/01/reading-privileged-memory-with-side.html" rel="noopener">边信道（side-channel）读取未授权内存的攻击技术</a>》中提到的<a class="external" href="https://spectreattack.com/" rel="noopener">Spectre</a>漏洞——一种利用现代 CPU 使用的执行优化功能的新攻击技术， <code>SharedArrayBuffer</code> 功能将在 Chrome 和 FireFox 的新版本中禁用，并将逐渐被所有浏览器禁用。</p>
+<p>但该API并不会被废弃，chrome团队声明在未来解决因web时钟导致的安全问题后，该API将会恢复。</p>
+</div>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox">new SharedArrayBuffer(length)
+</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>length</code></dt>
+<dd>所创建的数组缓冲区的大小，以字节(byte)为单位。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>一个大小指定的新 <code>SharedArrayBuffer</code> 对象。其内容被初始化为 0。</p>
+<h2 id="描述">描述</h2>
+<h3 id="分配及共享内存">分配及共享内存</h3>
+<p>为了将一个<a href="Reference/Global_Objects/SharedArrayBuffer" title="SharedArrayBuffer 对象用来表示一个通用的，固定长度的原始二进制数据缓冲区，类似于 ArrayBuffer 对象，它们都可以用来在共享内存（shared memory）上创建视图。与 ArrayBuffer 不同的是，SharedArrayBuffer 不能被分离。"><code>SharedArrayBuffer</code></a> 对象从一个用户代理共享到另一个用户代理（另一个页面的主进程或者当前页面的一个 <code>worker</code> ）从而实现共享内存，我们需要运用 <code><a href="/en-US/docs/Web/API/Worker/postMessage">postMessage</a></code> 和结构化克隆算法（ <a href="/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm">structured cloning</a> ）。</p>
+<p>结构化克隆算法接收被映射到一个新的 <code>SharedArrayBuffers</code> 对象上的 <code>SharedArrayBuffers</code> 对象与 <code>TypedArrays</code> 对象。在这两种映射下，这个新的 <code>SharedArrayBuffer</code> 对象会被传递到目标用户代理的接收函数上，导致在目标用户代理产生了一个新的私有 <code>SharedArrayBuffer</code> 对象（正如 <a href="Reference/Global_Objects/ArrayBuffer" title="The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>ArrayBuffer</code></a> 一样）。然而，这两个 <code>SharedArrayBuffer</code> 对象指向的共享数据块其实是同一个，并且在某一代理中的一个块的副作用将最终导致另一个代理具有可见性。</p>
+<pre class="brush: js">let sab = new SharedArrayBuffer(1024);
+worker.postMessage(sab);
+</pre>
+<p>在早期版本的特性中，结构化克隆期间 <code>SharedArrayBuffers</code> 需要被精确转化。然而，从HTML的意义上来讲，<code>SharedArrayBuffer</code>s 并非一个 <a href="/en-US/docs/Web/API/Transferable"><code>Transferable object</code></a>。因此，如果一个 <code>SharedArrayBuffer</code> 对象位于转化队列，<code>postMessage</code> 将会抛出一个 <code>DataCloneError</code> 或 一个 <code>DOMException</code> ：</p>
+<pre class="brush: js">var sab = new SharedArrayBuffer(1024);
+worker.postMessage(sab, [sab]); 
+// Uncaught DOMException: Failed to execute 'postMessage' on 'Worker': A SharedArrayBuffer could not be cloned.</pre>
+<h3 id="通过原子操作更新及同步来共享内存">通过原子操作更新及同步来共享内存</h3>
+<p>共享内存能被同时创建和更新于工作者线程或主线程。依赖于系统（CPU，操作系统，浏览器），变化传递给环境需要一段时间。需要通过 <a href="Reference/Global_Objects/Atomics" title="Atomics 对象提供了一组静态方法用来对 SharedArrayBuffer 对象进行原子操作。">atomic</a> 操作来进行同步。</p>
+<h3 id="接受_SharedArrayBuffer_对象的API"><font face="Open Sans, Arial, sans-serif">接受 </font><code>SharedArrayBuffer</code> 对象的API</h3>
+<ul>
+<li><a href="/zh-CN/docs/Web/API/WebGLRenderingContext/bufferData" title="WebGL API 的WebGLRenderingContext.bufferData()方法创建并初始化了Buffer对象的数据存储区。"><code>WebGLRenderingContext.bufferData()</code></a></li>
+<li><a class="new" href="/zh-CN/docs/Web/API/WebGLRenderingContext/bufferSubData" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!"><code>WebGLRenderingContext.bufferSubData()</code></a></li>
+<li><a class="new" href="/zh-CN/docs/Web/API/WebGL2RenderingContext/getBufferSubData" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!"><code>WebGL2RenderingContext.getBufferSubData()</code></a></li>
+</ul>
+<h3 id="需要_new_运算符来构造">需要 <code>new</code> 运算符来构造</h3>
+<p><code>SharedArrayBuffer</code> 需要 <a href="Reference/Operators/new" title="new 运算符创建一个用户定义的对象类型的实例或具有构造函数的内置对象的实例。"><code>new</code></a> 运算符来构造一个构造函数. 作为函数来调用一个 <code>SharedArrayBuffer</code> 构造函数时，如果不用 <code>new</code> 运算符，将会抛出一个 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> 异常。</p>
+<pre class="brush: js example-bad">var sab = SharedArrayBuffer(1024);
+// TypeError: calling a builtin SharedArrayBuffer constructor 
+// 必须用 new 来构造</pre>
+<pre class="brush: js example-good">var sab = new SharedArrayBuffer(1024);</pre>
+<h2 id="属性">属性</h2>
+<dl>
+<dt><code>SharedArrayBuffer.length</code></dt>
+<dd><code>SharedArrayBuffer</code> 构造函数的 length 属性值为1。 </dd>
+<dt><a href="Reference/Global_Objects/SharedArrayBuffer/prototype" title="SharedArrayBuffer.prototype  属性表示 SharedArrayBuffer  对象的原型。"><code>SharedArrayBuffer.prototype</code></a></dt>
+<dd>允许所有 <code>SharedArrayBuffer</code> 对象的附加属性。</dd>
+</dl>
+<h2 id="SharedArrayBuffer_原型对象"><code>SharedArrayBuffer</code> 原型对象</h2>
+<p>所有 <code>SharedArrayBuffer</code> 实例继承自 <a href="Reference/Global_Objects/SharedArrayBuffer/prototype" title="SharedArrayBuffer.prototype  属性表示 SharedArrayBuffer  对象的原型。"><code>SharedArrayBuffer.prototype</code></a>。</p>
+<h3 id="属性_2">属性</h3>
+<p></p><dl>
+<dt>SharedArrayBuffer.prototype.constructor</dt>
+<dd>Specifies the function that creates an object's prototype. The initial value is the standard built-in <code>SharedArrayBuffer</code> constructor.</dd>
+<dt><a href="Reference/Global_Objects/SharedArrayBuffer/byteLength" title="byteLength 访问器属性表示以字节为单位的一个SharedArrayBuffer的长度。"><code>SharedArrayBuffer.prototype.byteLength</code></a> <span class="inlineIndicator readOnly readOnlyInline" title="该属性的值无法更改">只读 </span></dt>
+<dd>The size, in bytes, of the array. This is established when the array is constructed and cannot be changed. <strong>Read only.</strong></dd>
+</dl><p></p>
+<h3 id="方法">方法</h3>
+<p></p><dl>
+<dt><a href="Reference/Global_Objects/SharedArrayBuffer/slice" title="SharedArrayBuffer.prototype.slice() 方法返回一个新的SharedArrayBuffer 其内容是该SharedArrayBuffer的字节从开始包含，直到结束，独占的副本。如果开始或结束是负的，它指的是从数组末尾开始的索引。此方法与 Array.prototype.slice() 具有相同的算法。"><code>SharedArrayBuffer.prototype.slice(begin, end)</code></a></dt>
+<dd>Returns a new <code>SharedArrayBuffer</code> whose contents are a copy of this <code>SharedArrayBuffer</code>'s bytes from <code>begin</code>, inclusive, up to <code>end</code>, exclusive. If either <code>begin</code> or <code>end</code> is negative, it refers to an index from the end of the array, as opposed to from the beginning.</dd>
+</dl><p></p>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规范</th>
+<th scope="col">状态</th>
+<th scope="col">备注</th>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-sharedarraybuffer-objects" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">SharedArrayBuffer</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td>Initial definition in ES2017.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/8.0/#sec-sharedarraybuffer-objects" hreflang="en" lang="en" rel="noopener">ECMAScript 2017 (ECMA-262)<br/><small lang="zh-CN">SharedArrayBuffer</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>SharedArrayBuffer</code></th><td class="bc-supports-yes bc-browser-chrome bc-has-history"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div><section class="bc-history" id="sect1"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This was a temporary removal while mitigations were put in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-edge bc-has-history"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>16 — 17<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect2"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>16 — 17<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was removed to mitigate <a class="external" href="https://blogs.windows.com/msedgedev/2018/01/03/speculative-execution-mitigations-microsoft-edge-internet-explorer" rel="noopener">speculative execution side-channel attacks (Windows blog)</a>.</dd></dl></section></td><td class="bc-supports-yes bc-browser-firefox bc-has-history"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect3"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>10.1 — ?</td><td class="bc-supports-no bc-browser-webview_android bc-has-history"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect4"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-chrome_android bc-has-history"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect5"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-unknown bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-firefox_android bc-has-history"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect6"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8.10.0</td></tr><tr><th scope="row"><code>SharedArrayBuffer</code> in <code>DataView</code></th><td class="bc-supports-yes bc-browser-chrome bc-has-history"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div><section class="bc-history" id="sect7"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This was a temporary removal while mitigations were put in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox bc-has-history"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect8"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>10.1 — ?</td><td class="bc-supports-no bc-browser-webview_android bc-has-history"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect9"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-chrome_android bc-has-history"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect10"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-unknown bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-firefox_android bc-has-history"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect11"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td></tr><tr><th scope="row"><a href="Reference/Global_Objects/SharedArrayBuffer/prototype"><code>prototype</code></a></th><td class="bc-supports-yes bc-browser-chrome bc-has-history"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div><section class="bc-history" id="sect12"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This was a temporary removal while mitigations were put in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-edge bc-has-history"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>16 — 17<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect13"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>16 — 17<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was removed to mitigate <a class="external" href="https://blogs.windows.com/msedgedev/2018/01/03/speculative-execution-mitigations-microsoft-edge-internet-explorer" rel="noopener">speculative execution side-channel attacks (Windows blog)</a>.</dd></dl></section></td><td class="bc-supports-yes bc-browser-firefox bc-has-history"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect14"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>10.1 — ?</td><td class="bc-supports-no bc-browser-webview_android bc-has-history"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect15"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-chrome_android bc-has-history"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect16"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-unknown bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-firefox_android bc-has-history"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect17"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td></tr><tr><th scope="row"><a href="Reference/Global_Objects/SharedArrayBuffer/byteLength"><code>byteLength</code></a></th><td class="bc-supports-yes bc-browser-chrome bc-has-history"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div><section class="bc-history" id="sect18"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This was a temporary removal while mitigations were put in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-edge bc-has-history"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>16 — 17<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect19"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>16 — 17<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was removed to mitigate <a class="external" href="https://blogs.windows.com/msedgedev/2018/01/03/speculative-execution-mitigations-microsoft-edge-internet-explorer" rel="noopener">speculative execution side-channel attacks (Windows blog)</a>.</dd></dl></section></td><td class="bc-supports-yes bc-browser-firefox bc-has-history"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect20"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>10.1 — ?</td><td class="bc-supports-no bc-browser-webview_android bc-has-history"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect21"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-chrome_android bc-has-history"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect22"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-unknown bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-firefox_android bc-has-history"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect23"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8.10.0</td></tr><tr><th scope="row"><a href="Reference/Global_Objects/SharedArrayBuffer/slice"><code>slice</code></a></th><td class="bc-supports-yes bc-browser-chrome bc-has-history"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div><section class="bc-history" id="sect24"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              68<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This was a temporary removal while mitigations were put in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-edge bc-has-history"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>16 — 17<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect25"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>16 — 17<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was removed to mitigate <a class="external" href="https://blogs.windows.com/msedgedev/2018/01/03/speculative-execution-mitigations-microsoft-edge-internet-explorer" rel="noopener">speculative execution side-channel attacks (Windows blog)</a>.</dd></dl></section></td><td class="bc-supports-yes bc-browser-firefox bc-has-history"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect26"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>10.1 — ?</td><td class="bc-supports-no bc-browser-webview_android bc-has-history"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect27"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-no bc-browser-chrome_android bc-has-history"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div><section class="bc-history" id="sect28"><dl><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>60 — 63<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Chrome disabled SharedArrayBuffer on January 5, 2018 to help reduce the efficacy of <a class="external" href="https://www.chromium.org/Home/chromium-security/ssca" rel="noopener">speculative side-channel attacks</a>. This is intended as a temporary measure until other mitigations are in place.</dd></dl></section></td><td class="bc-supports-unknown bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-firefox_android bc-has-history"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div><section class="bc-history" id="sect29"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              57<div class="bc-icons"><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> <abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="See implementation notes"><span>Notes</span><i class="ic-footnote"></i></abbr> Support was disabled by default to mitigate <a class="external" href="https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/" rel="noopener">speculative execution side-channel attacks (Mozilla Security Blog)</a>.</dd><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 57: this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>55 — 57<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-no bc-supports"><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>46 — 55<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 46 until version 55 (exclusive): this feature is behind the <code>javascript.options.shared_memory</code> preference (needs to be set to <code>true</code>). To change preferences in Firefox, visit about:config.</dd></dl></section></td><td class="bc-supports-no bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8.10.0</td></tr></tbody></table><section class="bc-legend" id="sect30"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><span class="bc-supports-unknown bc-supports">
+<abbr class="bc-level bc-level-unknown only-icon" title="Compatibility unknown">
+<span>Compatibility unknown</span>
+                  
+                </abbr></span></dt><dd>Compatibility unknown</dd><dt><abbr class="only-icon" title="See implementation notes."><span>See implementation notes.</span><i class="ic-footnote"></i></abbr></dt><dd>See implementation notes.</dd><dt><abbr class="only-icon" title="User must explicitly enable this feature."><span>User must explicitly enable this feature.</span><i class="ic-disabled"></i></abbr></dt><dd>User must explicitly enable this feature.</dd></dl></section></div><p></p>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Atomics" title="Atomics 对象提供了一组静态方法用来对 SharedArrayBuffer 对象进行原子操作。"><code>Atomics</code></a></li>
+<li><a href="Reference/Global_Objects/ArrayBuffer" title="The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>ArrayBuffer</code></a></li>
+<li><a href="/en-US/docs/Web/JavaScript/Typed_arrays">JavaScript typed arrays</a></li>
+<li><a href="/en-US/docs/Web/API/Web_Workers_API">Web Workers</a></li>
+<li><a class="external" href="https://github.com/lars-t-hansen/parlib-simple" rel="noopener">parlib-simple </a>– a simple library providing synchronization and work distribution abstractions.</li>
+<li><a class="external" href="https://github.com/tc39/ecmascript_sharedmem/blob/master/TUTORIAL.md" rel="noopener">Shared Memory – a brief tutorial</a></li>
+<li>
+<p><a class="external" href="https://hacks.mozilla.org/2016/05/a-taste-of-javascripts-new-parallel-primitives/" rel="noopener">A Taste of JavaScript’s New Parallel Primitives – Mozilla Hacks</a></p>
+</li>
+</ul>
+</article>

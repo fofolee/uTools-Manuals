@@ -1,0 +1,236 @@
+<div class="header">
+<div class="subTitle">
+     javax.xml.bind.annotation 
+   </div>
+<h2 class="title" title="Annotation Type XmlAnyElement">Annotation Type XmlAnyElement</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre><a href="../../../../java/lang/annotation/Retention.html" title="annotation in java.lang.annotation">@Retention</a>(<a href="../../../../java/lang/annotation/Retention.html#value--">value</a>=<a href="../../../../java/lang/annotation/RetentionPolicy.html#RUNTIME">RUNTIME</a>)
+ <a href="../../../../java/lang/annotation/Target.html" title="annotation in java.lang.annotation">@Target</a>(<a href="../../../../java/lang/annotation/Target.html#value--">value</a>={<a href="../../../../java/lang/annotation/ElementType.html#FIELD">字段</a>,<a href="../../../../java/lang/annotation/ElementType.html#METHOD">METHOD</a>})
+public @interface <span class="memberNameLabel">XmlAnyElement</span></pre>
+<div class="block">
+<span>将JavaBean属性映射到XML信息集表示和/或JAXB元素。</span>
+<p> <span>当将xml内容解组到JAXB注释类的实例中时，此注释用作“全部”属性。</span> <span>它通常会注释多值JavaBean属性，但它可以发生在单值JavaBean属性上。</span> <span>在解组时，与该类上其他JavaBean属性的静态@XmlElement或@XmlElementRef注释不匹配的每个xml元素都添加到此“catch-all”属性中。</span> </p>
+<p></p>
+<h2> <span>用途：</span> </h2>
+<pre>  <span>@XmlAnyElement
+ public <a href="../../../../org/w3c/dom/Element.html" title="interface in org.w3c.dom"><code>Element</code></a>[] others;
+
+ // Collection of <a href="../../../../org/w3c/dom/Element.html" title="interface in org.w3c.dom"><code>Element</code></a> or JAXB elements.
+ @XmlAnyElement(lax="true")
+ public <a href="../../../../java/lang/Object.html" title="class in java.lang"><code>Object</code></a>[] others;
+
+ @XmlAnyElement
+ private List&lt;<a href="../../../../org/w3c/dom/Element.html" title="interface in org.w3c.dom"><code>Element</code></a>&gt; nodes;
+
+ @XmlAnyElement
+ private <a href="../../../../org/w3c/dom/Element.html" title="interface in org.w3c.dom"><code>Element</code></a> node;</span> </pre>
+<h2> <span>限制使用限制</span> </h2>
+<p> <span>此注释是互斥<a href="../../../../javax/xml/bind/annotation/XmlElement.html" title="javax.xml.bind.annotation中的注释"><code>XmlElement</code></a> ， <a href="../../../../javax/xml/bind/annotation/XmlAttribute.html" title="javax.xml.bind.annotation中的注释"><code>XmlAttribute</code></a> ， <a href="../../../../javax/xml/bind/annotation/XmlValue.html" title="javax.xml.bind.annotation中的注释"><code>XmlValue</code></a> ， <a href="../../../../javax/xml/bind/annotation/XmlElements.html" title="javax.xml.bind.annotation中的注释"><code>XmlElements</code></a> ， <a href="../../../../javax/xml/bind/annotation/XmlID.html" title="javax.xml.bind.annotation中的注释"><code>XmlID</code></a>和<a href="../../../../javax/xml/bind/annotation/XmlIDREF.html" title="javax.xml.bind.annotation中的注释"><code>XmlIDREF</code></a> 。</span> </p>
+<p> <span>一个类中只能有一个<a href="../../../../javax/xml/bind/annotation/XmlAnyElement.html" title="javax.xml.bind.annotation中的注释"><code>XmlAnyElement</code></a>注释的JavaBean属性及其超类。</span> </p>
+<h2> <span>与其他注释的关系</span> </h2>
+<p> <span>该注释可以与<a href="../../../../javax/xml/bind/annotation/adapters/XmlJavaTypeAdapter.html" title="javax.xml.bind.annotation.adapters中的注释"><code>XmlJavaTypeAdapter</code></a>一起使用，以便用户可以将自己的数据结构映射到DOM，而DOM又可以组成XML。</span> </p>
+<p> <span>这个注释可以和<a href="../../../../javax/xml/bind/annotation/XmlMixed.html" title="javax.xml.bind.annotation中的注释"><code>XmlMixed</code></a>一起使用：</span> </p>
+<pre>  <span>// List of java.lang.String or DOM nodes.
+ @XmlAnyElement @XmlMixed
+ List&lt;Object&gt; others;</span> </pre>
+<h2> <span>模式到Java示例</span> </h2>
+<span>以下模式将生成以下Java类：</span>
+<pre>  <span>&lt;xs:complexType name="foo"&gt;
+   &lt;xs:sequence&gt;
+     &lt;xs:element name="a" type="xs:int" /&gt;
+     &lt;xs:element name="b" type="xs:int" /&gt;
+     &lt;xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" /&gt;
+   &lt;/xs:sequence&gt;
+ &lt;/xs:complexType&gt;</span> </pre>
+<pre>  <span>class Foo {
+   int a;
+   int b;
+   @<a href="../../../../javax/xml/bind/annotation/XmlAnyElement.html" title="annotation in javax.xml.bind.annotation"><code>XmlAnyElement</code></a>
+   List&lt;Element&gt; any;
+ }</span> </pre>
+<span>它可以解散实例</span>
+<pre>  <span>&lt;foo xmlns:e="extra"&gt;
+   &lt;a&gt;1
+   &lt;e:other /&gt;  // this will be bound to DOM, because unmarshalling is orderless
+   &lt;b&gt;3
+   &lt;e:other /&gt;
+   &lt;c&gt;5     // this will be bound to DOM, because the annotation doesn't remember namespaces.
+ &lt;/foo&gt;</span> </pre>
+<span>以下模式将生成以下Java类：</span>
+<pre>  <span>&lt;xs:complexType name="bar"&gt;
+   &lt;xs:complexContent&gt;
+   &lt;xs:extension base="foo"&gt;
+     &lt;xs:sequence&gt;
+       &lt;xs:element name="c" type="xs:int" /&gt;
+       &lt;xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" /&gt;
+     &lt;/xs:sequence&gt;
+   &lt;/xs:extension&gt;
+ &lt;/xs:complexType&gt;</span> </pre>
+<pre>  <span>class Bar extends Foo {
+   int c;
+   // Foo.getAny() also represents wildcard content for type definition bar.
+ }</span> </pre>
+<span>它可以解散实例</span>
+<pre>  <span>&lt;bar xmlns:e="extra"&gt;
+   &lt;a&gt;1
+   &lt;e:other /&gt;  // this will be bound to DOM, because unmarshalling is orderless
+   &lt;b&gt;3
+   &lt;e:other /&gt;
+   &lt;c&gt;5     // this now goes to Bar.c
+   &lt;e:other /&gt;  // this will go to Foo.any
+ &lt;/bar&gt;</span> </pre>
+<h2> <span>使用<a href="../../../../javax/xml/bind/annotation/XmlAnyElement.html" title="javax.xml.bind.annotation中的注释"><code>XmlAnyElement</code></a>与<a href="../../../../javax/xml/bind/annotation/XmlElementRef.html" title="javax.xml.bind.annotation中的注释"><code>XmlElementRef</code></a></span> </h2>
+<p> <span><a href="../../../../javax/xml/bind/annotation/XmlAnyElement.html" title="javax.xml.bind.annotation中的注释"><code>XmlAnyElement</code></a>注释可以与<a href="../../../../javax/xml/bind/annotation/XmlElementRef.html" title="javax.xml.bind.annotation中的注释"><code>XmlElementRef</code></a> s一起使用，以指定可以参与内容树的其他元素。</span> </p>
+<p> <span>以下模式将生成以下Java类：</span> </p>
+<pre>  <span>&lt;xs:complexType name="foo"&gt;
+   &lt;xs:choice maxOccurs="unbounded" minOccurs="0"&gt;
+     &lt;xs:element name="a" type="xs:int" /&gt;
+     &lt;xs:element name="b" type="xs:int" /&gt;
+     &lt;xs:any namespace="##other" processContents="lax" /&gt;
+   &lt;/xs:choice&gt;
+ &lt;/xs:complexType&gt;</span> </pre>
+<pre>  <span>class Foo {
+   @<a href="../../../../javax/xml/bind/annotation/XmlAnyElement.html" title="annotation in javax.xml.bind.annotation"><code>XmlAnyElement</code></a>(lax="true")
+   @<a href="../../../../javax/xml/bind/annotation/XmlElementRefs.html" title="annotation in javax.xml.bind.annotation"><code>XmlElementRefs</code></a>({
+     @<a href="../../../../javax/xml/bind/annotation/XmlElementRef.html" title="annotation in javax.xml.bind.annotation"><code>XmlElementRef</code></a>(name="a", type="JAXBElement.class")
+     @<a href="../../../../javax/xml/bind/annotation/XmlElementRef.html" title="annotation in javax.xml.bind.annotation"><code>XmlElementRef</code></a>(name="b", type="JAXBElement.class")
+   })
+   <a href="../../../../java/util/List.html" title="interface in java.util"><code>List</code></a>&lt;<a href="../../../../java/lang/Object.html" title="class in java.lang"><code>Object</code></a>&gt; others;
+ }
+
+ @XmlRegistry
+ class ObjectFactory {
+   ...
+   @XmlElementDecl(name = "a", namespace = "", scope = Foo.class)
+   <a href="../../../../javax/xml/bind/JAXBElement.html" title="class in javax.xml.bind"><code>JAXBElement</code></a>&lt;Integer&gt; createFooA( Integer i ) { ... }
+
+   @XmlElementDecl(name = "b", namespace = "", scope = Foo.class)
+   <a href="../../../../javax/xml/bind/JAXBElement.html" title="class in javax.xml.bind"><code>JAXBElement</code></a>&lt;Integer&gt; createFooB( Integer i ) { ... }</span> </pre>
+<span>它可以解散实例</span>
+<pre>  <span>&lt;foo xmlns:e="extra"&gt;
+   &lt;a&gt;1     // this will unmarshal to a <a href="../../../../javax/xml/bind/JAXBElement.html" title="class in javax.xml.bind"><code>JAXBElement</code></a> instance whose value is 1.
+   &lt;e:other /&gt;  // this will unmarshal to a DOM <a href="../../../../org/w3c/dom/Element.html" title="interface in org.w3c.dom"><code>Element</code></a>.
+   &lt;b&gt;3     // this will unmarshal to a <a href="../../../../javax/xml/bind/JAXBElement.html" title="class in javax.xml.bind"><code>JAXBElement</code></a> instance whose value is 1.
+ &lt;/foo&gt;</span> </pre>
+<h2> <span>W3C XML Schema“lax”通配符仿真</span> </h2>
+<span>注释的松散元素能够模拟“松散”通配符语义。</span>
+<span>例如，Java源代码如下注释：</span>
+<pre>  <span>@<a href="../../../../javax/xml/bind/annotation/XmlRootElement.html" title="annotation in javax.xml.bind.annotation"><code>XmlRootElement</code></a>
+ class Foo {
+   @XmlAnyElement(lax=true)
+   public <a href="../../../../java/lang/Object.html" title="class in java.lang"><code>Object</code></a>[] others;
+ }</span> </pre>
+<span>那么以下文档将如下解密：</span>
+<pre>  <span>&lt;foo&gt;
+   &lt;unknown /&gt;
+   &lt;foo /&gt;
+ &lt;/foo&gt;
+
+ Foo foo = unmarshal();
+ // 1 for 'unknown', another for 'foo'
+ assert foo.others.length==2;
+ // 'unknown' unmarshals to a DOM element
+ assert foo.others[0] instanceof Element;
+ // because of lax=true, the 'foo' element eagerly
+ // unmarshals to a Foo object.
+ assert foo.others[1] instanceof Foo;</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         JAXB2.0 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== ANNOTATION TYPE OPTIONAL MEMBER SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="annotation.type.optional.element.summary">
+<!-- --> </a> <h3>Optional Element Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Optional Element Summary table, listing optional elements, and an explanation">
+<caption>
+<span>Optional Elements</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Optional Element and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/xml/bind/annotation/XmlAnyElement.html#lax--">lax</a></span></code>
+<div class="block">
+<span>当它看到当前<a href="../../../../javax/xml/bind/JAXBContext.html" title="javax.xml.bind中的类"><code>JAXBContext</code></a>已知的元素时，控制解组器行为。</span>
+</div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code><a href="../../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;? extends <a href="../../../../javax/xml/bind/annotation/DomHandler.html" title="interface in javax.xml.bind.annotation">DomHandler</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../javax/xml/bind/annotation/XmlAnyElement.html#value--">value</a></span></code>
+<div class="block">
+<span>指定<a href="../../../../javax/xml/bind/annotation/DomHandler.html" title="javax.xml.bind.annotation中的接口"><code>DomHandler</code></a> ，它负责将XML从/转换为类似DOM的数据结构。</span>
+</div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ ANNOTATION TYPE MEMBER DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="annotation.type.element.detail">
+<!-- --> </a> <h3>Element Detail</h3> <a name="lax--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>lax</h4> <pre>public abstract boolean lax</pre>
+<div class="block">
+<span>当它看到当前<a href="../../../../javax/xml/bind/JAXBContext.html" title="javax.xml.bind中的类"><code>JAXBContext</code></a>已知的元素时，控制解组器行为。</span>
+<h3> <span>当假的</span> </h3>
+<p> <span>如果为false，则与DOM属性匹配的所有元素将被取消组织到DOM，该属性将仅包含DOM元素。</span> </p>
+<h3> <span>当真的</span> </h3>
+<p> <span>如果为true，当一个元素匹配标有<a href="../../../../javax/xml/bind/annotation/XmlAnyElement.html" title="javax.xml.bind.annotation中的注释"><code>XmlAnyElement</code></a>的属性是已知的<a href="../../../../javax/xml/bind/JAXBContext.html" title="javax.xml.bind中的类"><code>JAXBContext</code></a> （例如，有一个类与<a href="../../../../javax/xml/bind/annotation/XmlRootElement.html" title="javax.xml.bind.annotation中的注释"><code>XmlRootElement</code></a>具有相同的标签名称，或有<a href="../../../../javax/xml/bind/annotation/XmlElementDecl.html" title="javax.xml.bind.annotation中的注释"><code>XmlElementDecl</code></a>具有相同的标签名称），解组器将热切地解散这个元素到JAXB对象，而不是将其解组到DOM。</span> <span>另外，如果元素未知但是具有已知的xsi：type，则unmarshaller会将元素<a href="../../../../javax/xml/bind/JAXBElement.html" title="javax.xml.bind中的类">强制解组</a>为<a href="../../../../javax/xml/bind/JAXBElement.html" title="javax.xml.bind中的类"><code>JAXBElement</code></a> ，其中未知元素名称和JAXBElement值设置为已知xsi：type的JAXB映射的实例。</span> </p>
+<p> <span>结果，在解组之后，财产可能变得异质性;</span> <span>它可以同时拥有DOM节点和一些JAXB对象。</span> </p>
+<p> <span>这可以用来模拟W3C XML Schema的“宽松”通配符语义。</span> </p>
+</div>
+<dl>
+<dt>
+             Default: 
+           </dt>
+<dd>
+             假 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="value--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>value</h4> <pre>public abstract <a href="../../../../java/lang/Class.html" title="class in java.lang">类</a>&lt;? extends <a href="../../../../javax/xml/bind/annotation/DomHandler.html" title="interface in javax.xml.bind.annotation">DomHandler</a>&gt; value</pre>
+<div class="block">
+<span>指定<a href="../../../../javax/xml/bind/annotation/DomHandler.html" title="javax.xml.bind.annotation中的接口"><code>DomHandler</code></a> ，它负责将XML从/转换为类似DOM的数据结构。</span>
+</div>
+<dl>
+<dt>
+             Default: 
+           </dt>
+<dd>
+             javax.xml.bind.annotation.W3CDomHandler.class 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

@@ -1,0 +1,131 @@
+<div class="header">
+<div class="subTitle">
+     javax.print 
+   </div>
+<h2 class="title" title="Interface MultiDoc">Interface MultiDoc</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">MultiDoc</span></pre>
+<div class="block">
+<span>界面MultiDoc指定为打印作业提供多个打印数据的对象的接口。</span>
+<span>“Doc”是一个简短易懂的术语，意思是“一张打印数据”，“多点”是一组多个文档。</span>
+<span>客户端将打印作业传递给实现接口MultiDoc的对象，打印作业调用该对象上的方法来获取打印数据。</span>
+<p> <span>界面MultiDoc提供了类似于docs的“链接列表”的抽象。</span> <span>多点对象就像链表中的一个节点，包含列表中的当前文档和列表中下一个节点（多点）的指针。</span> <span>打印作业可以调用多点的<a href="../../javax/print/MultiDoc.html#getDoc--"><code>getDoc()</code></a>方法来获取当前的文档。</span> <span>当准备继续下一个文档时，打印作业可以调用多点的<a href="../../javax/print/MultiDoc.html#next--"><code>next()</code></a>方法来获取下一个多点，其中包含下一个文档。</span> <span>所以打印访问多窗口的作业代码可能如下所示：</span> </p>
+<pre>  <span>void processMultiDoc(MultiDoc theMultiDoc) {
+
+          MultiDoc current = theMultiDoc;
+
+          while (current != null) {
+              processDoc (current.getDoc());
+              current = current.next();
+          }
+      }</span> </pre>
+<p> <span>当然，MultiDoc接口可以以任何方式实现合同;</span> <span>它不必在实现中使用链表。</span> </p>
+<p> <span>要获取多点打印作业的所有打印数据，打印服务代理可以使用以下两种模式之一：</span> </p>
+<ol type="1">
+<li> <span><b>交错</b>模式：从当前的多点获取文档。</span> <span>从当前文档获取打印数据表示对象。</span> <span>从打印数据表示对象获取所有打印数据。</span> <span>从当前的多窗口获取下一个多点，并重复，直到没有更多。</span> <span>（上面的代码示例使用交织模式。）</span> <p></p></li>
+<li> <span><b>一次性</b>模式：从当前的多节点获取文档，并将文档保存在列表中。</span> <span>从当前的多窗口获取下一个多点，并重复，直到没有更多。</span> <span>然后遍历保存的文档列表。</span> <span>从当前文档获取打印数据表示对象。</span> <span>从打印数据表示对象获取所有打印数据。</span> <span>转到列表中的下一个文档，然后重复，直到没有更多。</span> </li>
+</ol>
+<span>现在，考虑一个正在生成打印数据的打印客户端，并且没有资源一次存储多个打印数据。</span>
+<span>如果打印服务代理使用一次性模式来获取打印数据，则会对此类客户端造成问题;</span>
+<span>客户端将不得不保留所有文档的打印数据，直到打印服务代理回来并要求它们，客户端无法执行此操作。</span>
+<span>要使用这样的客户端，打印服务代理必须使用交错模式。</span>
+<p> <span>为了解决这个问题，并且为了简化向打印作业提供多个文档的客户端的设计，需要使用交叉模式访问支持多点打印作业的每个打印服务代理来访问MultiDoc对象。</span> <span>也就是说，给定一个MultiDoc对象，打印服务代理将一次或多次调用<a href="../../javax/print/MultiDoc.html#getDoc--"><code>getDoc()</code></a> ，直到它成功获取当前的Doc对象。</span> <span>然后，打印服务代理将获得当前文档的打印数据，直到获得所有打印数据或发生不可恢复的错误为止。</span> <span>如果能够继续，则打印服务代理将一次或多次调用<a href="../../javax/print/MultiDoc.html#next--"><code>next()</code></a> ，直到它成功获取下一个MultiDoc对象或没有更多的指示。</span> <span>接口MultiDoc的实现可以假设打印服务代理将遵循该交织模式;</span> <span>对于任何其他使用模式，MultiDoc实现的行为是未指定的。</span> </p>
+<p> <span>对可能同时访问同一个多点的客户端线程的数量没有限制。</span> <span>因此，接口MultiDoc的所有实现必须设计为多线程安全。</span> <span>实际上，一个客户端线程可能会在（概念）列表的末尾添加文档，而打印作业线程同时从列表的开头获取文档;</span> <span>如果多点对象正确同步线程，则两个线程将不会相互干扰</span> </p>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../javax/print/Doc.html" title="interface in javax.print">Doc</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/print/MultiDoc.html#getDoc--">getDoc</a></span>()</code>
+<div class="block">
+              获取当前的doc对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../javax/print/MultiDoc.html" title="interface in javax.print">MultiDoc</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/print/MultiDoc.html#next--">next</a></span>()</code>
+<div class="block">
+              转到包含doc对象序列中的下一个doc对象的多对象对象。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getDoc--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDoc</h4> <pre><a href="../../javax/print/Doc.html" title="interface in javax.print">Doc</a> getDoc()
+    throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            获取当前的doc对象。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前文档对象。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 读取文档时发生错误时抛出。 
+           </dd>
+</dl> </li>
+</ul> <a name="next--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>next</h4> <pre><a href="../../javax/print/MultiDoc.html" title="interface in javax.print">MultiDoc</a> next()
+       throws <a href="../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            转到包含doc对象序列中的下一个doc对象的多对象对象。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             包含下一个doc对象的Multidoc对象，如果没有其他doc对象，则为null。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果找到下一个文档发生错误，则抛出 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

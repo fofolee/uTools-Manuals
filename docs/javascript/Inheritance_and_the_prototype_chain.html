@@ -1,0 +1,267 @@
+<article id="wikiArticle">
+<div></div>
+<p id="对于有基于类的语言经验的开发人员来说，JavaScript_有点令人困惑_(如Java或C_)_，因为它是动态的，并且本身不提供一个类实现。(在ES2015ES6中引入了class关键字，但只是语法糖，JavaScript_仍然是基于原型的)。">对于有基于类的语言经验 (如 Java 或 C++) 的开发人员来说，JavaScript 有点令人困惑，因为它是动态的，并且本身不提供一个 <code>class</code> 实现。（在 ES2015/ES6 中引入了 <code>class</code> 关键字，但只是语法糖，JavaScript 仍然是基于原型的）。</p>
+<p>当谈到继承时，JavaScript 只有一种结构：对象。每个实例对象（ object ）都有一个私有属性（称之为 __proto__ ）指向它的原型对象（ <strong>prototype </strong>）。该原型对象也有一个自己的原型对象( __proto__ ) ，层层向上直到一个对象的原型对象为 <code>null</code>。根据定义，<code>null</code> 没有原型，并作为这个<strong>原型链</strong>中的最后一个环节。</p>
+<p>几乎所有 JavaScript 中的对象都是位于原型链顶端的 <a href="Reference/Global_Objects/Object" title="Object 构造函数创建一个对象包装器。"><code>Object</code></a> 的实例。</p>
+<p>尽管这种原型继承通常被认为是 JavaScript 的弱点之一，但是原型继承模型本身实际上比经典模型更强大。例如，在原型模型的基础上构建经典模型相当简单。</p>
+<h2 id="基于原型链的继承">基于原型链的继承</h2>
+<h3 id="继承属性">继承属性</h3>
+<p>JavaScript 对象是动态的属性“包”（指其自己的属性）。JavaScript 对象有一个指向一个原型对象的链。当试图访问一个对象的属性时，它不仅仅在该对象上搜寻，还会搜寻该对象的原型，以及该对象的原型的原型，依次层层向上搜索，直到找到一个名字匹配的属性或到达原型链的末尾。</p>
+<div class="note">
+<p>遵循ECMAScript标准，<code>someObject.[[Prototype]]</code> 符号是用于指向 <code>someObject</code>的原型。从 ECMAScript 6 开始，<code>[[Prototype]]</code> 可以通过 <a href="Reference/Global_Objects/Object/getPrototypeOf" title="Object.getPrototypeOf() 方法返回指定对象的原型（内部[[Prototype]]属性的值）。"><code>Object.getPrototypeOf()</code></a> 和 <a href="Reference/Global_Objects/Object/setPrototypeOf" title="如果对象的[[Prototype]]被修改成不可扩展(通过 Object.isExtensible()查看)，就会抛出 TypeError异常。如果prototype参数不是一个对象或者null(例如，数字，字符串，boolean，或者 undefined)，则什么都不做。否则，该方法将obj的[[Prototype]]修改为新的值。"><code>Object.setPrototypeOf()</code></a> 访问器来访问。这个等同于 JavaScript 的非标准但许多浏览器实现的属性 <code>__proto__</code>。</p>
+<p>但它不应该与构造函数 <code>func</code> 的 <code>prototype</code> 属性相混淆。被构造函数创建的实例对象的 <code>[[prototype]]</code> 指向 <code>func</code> 的 <code>prototype</code> 属性。<strong><code>Object.prototype</code> </strong>属性表示 <a href="Reference/Global_Objects/Object" title="Object 构造函数创建一个对象包装器。"><code>Object</code></a> 的原型对象。</p>
+</div>
+<p>这里演示当尝试访问属性时会发生什么：</p>
+<pre class="brush: js">// 让我们从一个自身拥有属性a和b的函数里创建一个对象o：
+<code>let f = function () {
+   this.a = 1;
+   this.b = 2;
+}
+/* 你要这么写也没区别
+function f(){
+  this.a = 1;
+  this.b = 2;
+}
+*/
+let o = new f(); // {a: 1, b: 2}
+// 在f函数的原型上定义属性
+f.prototype.b = 3;
+f.prototype.c = 4;
+
+// 不要在f函数的原型上直接定义 f.prototype = {b:3,c:4};这样会直接打破原型链
+// o.[[Prototype]] 有属性 b 和 c   (其实就是o.__proto__或者o.constructor.prototype)
+
+// o.[[Prototype]].[[Prototype]] 是 Object.prototype.
+// 最后o.[[Prototype]].[[Prototype]].[[Prototype]]是null
+// 这就是原型链的末尾，即 null，
+// 根据定义，null 没有[[Prototype]].
+// 综上，整个原型链如下: 
+// {a:1, b:2} ---&gt; {b:3, c:4} ---&gt; Object.prototype---&gt; null
+
+console.log(o.a); // 1
+// a是o的自身属性吗？是的，该属性的值为1
+
+console.log(o.b); // 2
+// b是o的自身属性吗？是的，该属性的值为2
+// 原型上也有一个'b'属性,但是它不会被访问到.这种情况称为"属性遮蔽 (property shadowing)"
+
+console.log(o.c); // 4
+// c是o的自身属性吗？不是，那看看原型上有没有
+// c是o.[[Prototype]]的属性吗？是的，该属性的值为4
+
+console.log(o.d); // undefined
+// d是o的自身属性吗？不是,那看看原型上有没有
+// d是o.[[Prototype]]的属性吗？不是，那看看它的原型上有没有
+// o.[[Prototype]].[[Prototype]] 为 null，停止搜索
+// 没有d属性，返回undefined</code></pre>
+<p> </p>
+<p>给对象设置属性会创建自有属性。<span id="noHighlight_0.4686938907945236">获取和设置属性的唯一限制是内置 getter 或 setter 的属性。</span></p>
+<h3 id="继承方法">继承方法</h3>
+<p>JavaScript 并没有其他基于类的语言所定义的“方法”。在 JavaScript 里，任何函数都可以添加到对象上作为对象的属性。函数的继承与其他的属性继承没有差别，包括上面的“属性遮蔽”（这种情况相当于其他语言的方法重写）。</p>
+<p>当继承的函数被调用时，<a href="Reference/Operators/this" title="this">this</a> 指向的是当前继承的对象，而不是继承的函数所在的原型对象。</p>
+<pre class="brush: js"><code>
+var o = {
+  a: 2,
+  m: function(){
+    return this.a + 1;
+  }
+};
+
+console.log(o.m()); // 3
+// 当调用 o.m 时,'this'指向了o.
+
+var p = Object.create(o);
+// p是一个继承自 o 的对象
+
+p.a = 4; // 创建 p 的自身属性 a
+console.log(p.m()); // 5
+// 调用 p.m 时, 'this'指向 p. 
+// 又因为 p 继承 o 的 m 函数
+// 此时的'this.a' 即 p.a，即 p 的自身属性 'a' 
+</code></pre>
+<h2 id="使用不同的方法来创建对象和生成原型链">使用不同的方法来创建对象和生成原型链</h2>
+<h3 id="语法结构创建的对象">语法结构创建的对象</h3>
+<pre class="brush: js"><code>
+var o = {a: 1};
+
+// o 这个对象继承了 Object.prototype 上面的所有属性
+// o 自身没有名为 hasOwnProperty 的属性
+// hasOwnProperty 是 Object.prototype 的属性
+// 因此 o 继承了 Object.prototype 的 hasOwnProperty
+// Object.prototype 的原型为 null
+// 原型链如下:
+// o ---&gt; Object.prototype ---&gt; null
+
+var a = ["yo", "whadup", "?"];
+
+// 数组都继承于 Array.prototype 
+// (Array.prototype 中包含 indexOf, forEach 等方法)
+// 原型链如下:
+// a ---&gt; Array.prototype ---&gt; Object.prototype ---&gt; null
+
+function f(){
+  return 2;
+}
+
+// 函数都继承于 Function.prototype
+// (Function.prototype 中包含 call, bind等方法)
+// 原型链如下:
+// f ---&gt; Function.prototype ---&gt; Object.prototype ---&gt; null
+</code></pre>
+<h3 id="构造器创建的对象">构造器创建的对象</h3>
+<p>在 JavaScript 中，构造器其实就是一个普通的函数。当使用 <a href="Reference/Operators/new">new 操作符</a> 来作用这个函数时，它就可以被称为构造方法（构造函数）。</p>
+<pre class="brush: js"><code>
+function Graph() {
+  this.vertices = [];
+  this.edges = [];
+}
+
+Graph.prototype = {
+  addVertex: function(v){
+    this.vertices.push(v);
+  }
+};
+
+var g = new Graph();
+// g是生成的对象,他的自身属性有'vertices'和'edges'.
+// 在g被实例化时,g.[[Prototype]]指向了Graph.prototype.
+</code></pre>
+<h3 id="Object.create_创建的对象"><code>Object.create</code> 创建的对象</h3>
+<p>ECMAScript 5 中引入了一个新方法：<a href="Reference/Global_Objects/Object/create" title="Object.create()方法创建一个新对象，使用现有的对象来提供新创建的对象的__proto__。 （请打开浏览器控制台以查看运行结果。）"><code>Object.create()</code></a>。可以调用这个方法来创建一个新对象。新对象的原型就是调用 create 方法时传入的第一个参数：</p>
+<pre class="brush: js"><code>
+var a = {a: 1}; 
+// a ---&gt; Object.prototype ---&gt; null
+
+var b = Object.create(a);
+// b ---&gt; a ---&gt; Object.prototype ---&gt; null
+console.log(b.a); // 1 (继承而来)
+
+var c = Object.create(b);
+// c ---&gt; b ---&gt; a ---&gt; Object.prototype ---&gt; null
+
+var d = Object.create(null);
+// d ---&gt; null
+console.log(d.hasOwnProperty); // undefined, 因为d没有继承Object.prototype
+</code></pre>
+<h3 id="class_关键字创建的对象"><code>class</code> 关键字创建的对象</h3>
+<p>ECMAScript6 引入了一套新的关键字用来实现 <a href="Reference/Classes">class</a>。使用基于类语言的开发人员会对这些结构感到熟悉，但它们是不同的。JavaScript 仍然基于原型。这些新的关键字包括 <a href="Reference/Statements/class" title="class 声明创建一个基于原型继承的具有给定名称的新类。"><code>class</code></a>, <a href="Reference/Classes/constructor" title=" constructor 是一种用于创建和初始化class创建的对象的特殊方法。"><code>constructor</code></a>，<a href="Reference/Classes/static" title="类（class）通过 static 关键字定义静态方法。不能在类的实例上调用静态方法，而应该通过类本身调用。这些通常是实用程序方法，例如创建或克隆对象的功能。"><code>static</code></a>，<a href="Reference/Classes/extends" title="extends关键字用于类声明或者类表达式中，以创建一个类，该类是另一个类的子类。"><code>extends</code></a> 和 <a href="Reference/Operators/super" title="super关键字用于访问和调用一个对象的父对象上的函数。"><code>super</code></a>。</p>
+<pre class="brush: js"><code>
+"use strict";
+
+class Polygon {
+  constructor(height, width) {
+    this.height = height;
+    this.width = width;
+  }
+}
+
+class Square extends Polygon {
+  constructor(sideLength) {
+    super(sideLength, sideLength);
+  }
+  get area() {
+    return this.height * this.width;
+  }
+  set sideLength(newLength) {
+    this.height = newLength;
+    this.width = newLength;
+  }
+}
+
+var square = new Square(2);</code></pre>
+<h3 id="性能">性能</h3>
+<p>在原型链上查找属性比较耗时，对性能有副作用，这在性能要求苛刻的情况下很重要。另外，试图访问不存在的属性时会遍历整个原型链。</p>
+<p>遍历对象的属性时，原型链上的<strong>每个</strong>可枚举属性都会被枚举出来。要检查对象是否具有自己定义的属性，而不是其原型链上的某个属性，则必须使用所有对象从 Object.prototype 继承的 <a class="new" href="/zh-CN/docs/JavaScript/Reference/Global_Objects/Object/hasOwnProperty" rel="nofollow">hasOwnProperty</a> 方法。下面给出一个具体的例子来说明它：</p>
+<pre class="brush: js"><code>
+console.log(g.hasOwnProperty('vertices'));
+// true
+
+console.log(g.hasOwnProperty('nope'));
+// false
+
+console.log(g.hasOwnProperty('addVertex'));
+// false
+
+console.log(g.__proto__.hasOwnProperty('addVertex'));
+// true
+</code></pre>
+<p><a class="new" href="/zh-CN/docs/JavaScript/Reference/Global_Objects/Object/hasOwnProperty" rel="nofollow">hasOwnProperty</a> 是 JavaScript 中处理属性并且不会遍历原型链的方法之一。(另一种方法: <a href="Reference/Global_Objects/Object/keys">Object.keys()</a>)</p>
+<p>注意：检查属性是否 <a href="Reference/Global_Objects/undefined">undefined</a> 还不够。该属性可能存在，但其值恰好设置为 undefined。</p>
+<h3 id="错误实践：扩展原生对象的原型">错误实践：扩展原生对象的原型</h3>
+<p>经常使用的一个错误实践是扩展 Object.prototype 或其他内置原型。</p>
+<p>这种技术被称为猴子补丁并且会破坏封装。尽管一些流行的框架（如 Prototype.js）在使用该技术，但仍然没有足够好的理由使用附加的非标准方法来混入内置原型。</p>
+<p>扩展内置原型的<strong>唯一</strong>理由是支持 JavaScript 引擎的新特性，如 Array.forEach。</p>
+<h2 id="示例">示例</h2>
+<p><code><code>B</code> 继承自 <code>A</code>：</code></p>
+<pre class="brush: js"><code>
+function A(a){
+  this.varA = a;
+}
+
+// 以上函数 A 的定义中，既然 A.prototype.varA 总是会被 this.varA 遮蔽，
+// 那么将 varA 加入到原型（prototype）中的目的是什么？
+A.prototype = {
+  varA : null,  
+/*
+既然它没有任何作用，干嘛不将 varA 从原型（prototype）去掉 ? 
+也许作为一种在隐藏类中优化分配空间的考虑 ?
+https://developers.google.com/speed/articles/optimizing-javascript 
+如果varA并不是在每个实例中都被初始化，那这样做将是有效果的。
+*/
+  doSomething : function(){
+    // ...
+  }
+}
+
+function B(a, b){
+  A.call(this, a);
+  this.varB = b;
+}
+B.prototype = Object.create(A.prototype, {
+  varB : {
+    value: null, 
+    enumerable: true, 
+    configurable: true, 
+    writable: true 
+  },
+  doSomething : { 
+    value: function(){ // override
+      A.prototype.doSomething.apply(this, arguments); 
+      // call super
+      // ...
+    },
+    enumerable: true,
+    configurable: true, 
+    writable: true
+  }
+});
+B.prototype.constructor = B;
+
+var b = new B();
+b.doSomething();</code></pre>
+<p>最重要的部分是：</p>
+<ul>
+<li>类型被定义在 <code>.prototype</code> 中</li>
+<li>用 <code>Object.create()</code> 来继承</li>
+</ul>
+<h2 id="prototype_和_Object.getPrototypeOf"><code>prototype</code> 和 <code>Object.getPrototypeOf</code></h2>
+<p>对于从 Java 或 C++ 转过来的开发人员来说 JavaScript 会有点让人困惑，因为它全部都是动态的，都是运行时，而且不存在类（classes）。所有的都是实例（对象）。即使我们模拟出的 “类（classes）”，也只是一个函数对象。</p>
+<p>你可能已经注意到我们的 function A 有一个叫做 prototype 的特殊属性。该特殊属性可与 JavaScript 的 new 操作符一起使用。对原型对象的引用被复制到新实例的内部 [[Prototype]] 属性。例如，当执行 var a1 = new A() 时，JavaScript（在内存中创建对象之后，和在运行函数 A() 把 this 指向对象之前）设置 a1.[[Prototype]] = A.prototype。然后当您访问实例的属性时，JavaScript 首先会检查它们是否直接存在于该对象上，如果不存在，则会 [[Prototype]] 中查找。这意味着你在prototype中定义的所有内容都可以由所有实例有效共享，你甚至可以稍后更改部分 prototype，并在所有现有实例中显示更改（如果需要）。</p>
+<p>像上面的例子中，如果你执行 var a1 = new A(); var a2 = new A(); 那么 a1.doSomething 事实上会指向 Object.getPrototypeOf(a1).doSomething，它就是你在 A.prototype.doSomething 中定义的内容。也就是说：Object.getPrototypeOf(a1).doSomething == Object.getPrototypeOf(a2).doSomething == A.prototype.doSomething。【补充：实际上当执行a1.doSomething() 相当于执行Object.getPrototypeOf(a1).doSomething.call(a1)==A.prototype.doSomething.call(a1)】</p>
+<p>简而言之， prototype 是用于类的，而 Object.getPrototypeOf() 是用于实例的（instances），两者功能一致。</p>
+<p>[[Prototype]] 看起来就像<strong>递归</strong>引用， 如 a1.doSomething<font face="Open Sans, Arial, sans-serif">，</font>Object.getPrototypeOf(a1).doSomething<font face="Open Sans, Arial, sans-serif">，</font>Object.getPrototypeOf(Object.getPrototypeOf(a1)).doSomething 等等等， 直到它被找到或Object.getPrototypeOf 返回 null。</p>
+<p>因此，当你执行：</p>
+<pre class="brush: js"><code>
+var o = new Foo();</code></pre>
+<p>JavaScript 实际上执行的是：</p>
+<pre class="brush: js"><code>
+var o = new Object();
+o.__proto__ = Foo.prototype;
+Foo.call(o);</code></pre>
+<p>（或者类似上面这样的），然后当你执行：</p>
+<pre class="brush: js"><code>
+o.someProp;</code></pre>
+<p>它检查 o 是否具有 someProp 属性。如果没有，它会查找 Object.getPrototypeOf(o).someProp，如果仍旧没有，它会继续查找 Object.getPrototypeOf(Object.getPrototypeOf(o)).someProp。</p>
+<h2 id="结论">结论</h2>
+<p>在编写使用它的复杂代码之前，理解原型继承模型是至关<strong>重要</strong>的。此外，请注意代码中原型链的长度，并在必要时将其分解，以避免可能的性能问题。此外，原生原型<strong>不应该</strong>被扩展，除非它是为了与新的 JavaScript 特性兼容。</p>
+</article>

@@ -1,0 +1,610 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.concurrent 
+   </div>
+<h2 class="title" title="Interface ExecutorService">Interface ExecutorService</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Superinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/util/concurrent/Executor.html" title="java.util.concurrent中的接口">Executor</a></span>
+</dd>
+</dl>
+<dl>
+<dt>
+         All Known Subinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/util/concurrent/ScheduledExecutorService.html" title="java.util.concurrent中的接口">ScheduledExecutorService</a></span>
+</dd>
+</dl>
+<dl>
+<dt>
+        所有已知实现类：
+       </dt>
+<dd>
+<span><a href="../../../java/util/concurrent/AbstractExecutorService.html" title="java.util.concurrent中的类">AbstractExecutorService</a> ， <a href="../../../java/util/concurrent/ForkJoinPool.html" title="java.util.concurrent中的类">ForkJoinPool</a> ， <a href="../../../java/util/concurrent/ScheduledThreadPoolExecutor.html" title="java.util.concurrent中的类">ScheduledThreadPoolExecutor</a> ， <a href="../../../java/util/concurrent/ThreadPoolExecutor.html" title="java.util.concurrent中的类">ThreadPoolExecutor</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">ExecutorService</span>
+extends <a href="../../../java/util/concurrent/Executor.html" title="interface in java.util.concurrent">Executor</a></pre>
+<div class="block">
+<span>一个<a href="../../../java/util/concurrent/Executor.html" title="java.util.concurrent中的接口"><code>Executor</code></a> ，提供方法来管理终端和方法，可以产生<a href="../../../java/util/concurrent/Future.html" title="java.util.concurrent中的接口"><code>Future</code></a>为跟踪一个或多个异步任务执行。</span>
+<p> <span>一个<code>ExecutorService</code>可以关闭，这将导致它拒绝新的任务。</span> <span>提供了两种不同的方法来关闭<code>ExecutorService</code> 。</span> <span><a href="../../../java/util/concurrent/ExecutorService.html#shutdown--"><code>shutdown()</code></a>方法将允许先前提交的任务在终止之前执行，而<a href="../../../java/util/concurrent/ExecutorService.html#shutdownNow--"><code>shutdownNow()</code></a>方法可以防止等待任务启动并尝试停止当前正在执行的任务。</span> <span>一旦终止，执行者没有任务正在执行，没有任务正在等待执行，并且不能提交新的任务。</span> <span>应关闭未使用的<code>ExecutorService</code>以允许资源的回收。</span> </p>
+<p> <span>方法<code>submit</code>延伸的基方法<a href="../../../java/util/concurrent/Executor.html#execute-java.lang.Runnable-"><code>Executor.execute(Runnable)</code></a>通过创建并返回一个<a href="../../../java/util/concurrent/Future.html" title="java.util.concurrent中的接口"><code>Future</code></a>可用于取消执行和/或等待完成。</span> <span>方法<code>invokeAny</code>和<code>invokeAll</code>执行<code>invokeAll</code>执行最常用的形式，执行任务集合，然后等待至少一个或全部完成。</span> <span>（类别<a href="../../../java/util/concurrent/ExecutorCompletionService.html" title="java.util.concurrent中的类"><code>ExecutorCompletionService</code></a>可用于编写这些方法的自定义变体。）</span> </p>
+<p> <span><a href="../../../java/util/concurrent/Executors.html" title="java.util.concurrent中的类"><code>Executors</code></a>类为此包中提供的执行程序服务提供了工厂方法。</span> </p>
+<h3> <span>用法示例</span> </h3>
+<span>这是一个网络服务的草图，其中线程池中的线程服务传入请求。</span>
+<span>它使用预<a href="../../../java/util/concurrent/Executors.html#newFixedThreadPool-int-">配置的<code>Executors.newFixedThreadPool(int)</code></a>工厂方法：</span>
+<pre>  <span><code> class NetworkService implements Runnable { private final ServerSocket serverSocket; private final ExecutorService pool; public NetworkService(int port, int poolSize) throws IOException { serverSocket = new ServerSocket(port); pool = Executors.newFixedThreadPool(poolSize); } public void run() { // run the service try { for (;;) { pool.execute(new Handler(serverSocket.accept())); } } catch (IOException ex) { pool.shutdown(); } } } class Handler implements Runnable { private final Socket socket; Handler(Socket socket) { this.socket = socket; } public void run() { // read and service request on socket } }</code></span> </pre>
+<span>以下方法<code>ExecutorService</code>两个阶段关闭<code>ExecutorService</code> ，首先通过拨打<code>shutdown</code>拒绝接收任务，然后调用<code>shutdownNow</code> ，如有必要，可以取消任何延迟任务：</span>
+<pre>  <span><code> void shutdownAndAwaitTermination(ExecutorService pool) { pool.shutdown(); // Disable new tasks from being submitted try { // Wait a while for existing tasks to terminate if (!pool.awaitTermination(60, TimeUnit.SECONDS)) { pool.shutdownNow(); // Cancel currently executing tasks // Wait a while for tasks to respond to being cancelled if (!pool.awaitTermination(60, TimeUnit.SECONDS)) System.err.println("Pool did not terminate"); } } catch (InterruptedException ie) { // (Re-)Cancel if current thread also interrupted pool.shutdownNow(); // Preserve interrupt status Thread.currentThread().interrupt(); } }</code></span> </pre>
+<p> <span>内存一致性效果：操作在提交之前的螺纹<code>Runnable</code>或<code>Callable</code>任务到<code>ExecutorService</code> <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>由任务采取的任何行动，这反过来又<i>发生-之前</i>结果通过检索<code>Future.get()</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.5 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#awaitTermination-long-java.util.concurrent.TimeUnit-">awaitTermination</a></span>(long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              阻止所有任务在关闭请求完成后执行，或发生超时，或当前线程中断，以先到者为准。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>&lt;T&gt; <a href="../../../java/util/List.html" title="interface in java.util">List</a>&lt;<a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt;&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#invokeAll-java.util.Collection-">invokeAll</a></span>(<a href="../../../java/util/Collection.html" title="interface in java.util">Collection</a>&lt;? extends <a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt;&gt; tasks)</code>
+<div class="block">
+              执行给定的任务，返回持有他们的状态和结果的所有完成的期货列表。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>&lt;T&gt; <a href="../../../java/util/List.html" title="interface in java.util">List</a>&lt;<a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt;&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#invokeAll-java.util.Collection-long-java.util.concurrent.TimeUnit-">invokeAll</a></span>(<a href="../../../java/util/Collection.html" title="interface in java.util">Collection</a>&lt;? extends <a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt;&gt; tasks, long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              执行给定的任务，返回在所有完成或超时到期时持有其状态和结果的期货列表，以先发生者为准。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>&lt;T&gt; T</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#invokeAny-java.util.Collection-">invokeAny</a></span>(<a href="../../../java/util/Collection.html" title="interface in java.util">Collection</a>&lt;? extends <a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt;&gt; tasks)</code>
+<div class="block">
+              执行给定的任务，返回一个成功完成的结果（即没有抛出异常），如果有的话。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>&lt;T&gt; T</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#invokeAny-java.util.Collection-long-java.util.concurrent.TimeUnit-">invokeAny</a></span>(<a href="../../../java/util/Collection.html" title="interface in java.util">Collection</a>&lt;? extends <a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt;&gt; tasks, long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              执行给定的任务，返回一个已经成功完成的结果（即，不抛出异常），如果有的话在给定的超时之前过去。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#isShutdown--">isShutdown</a></span>()</code>
+<div class="block">
+              如果此执行者已关闭，则返回 
+             <code>true</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#isTerminated--">isTerminated</a></span>()</code>
+<div class="block">
+              如果所有任务在关闭后完成，则返回 
+             <code>true</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#shutdown--">shutdown</a></span>()</code>
+<div class="block">
+              启动有序关闭，其中先前提交的任务将被执行，但不会接受任何新任务。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../../java/util/List.html" title="interface in java.util">List</a>&lt;<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#shutdownNow--">shutdownNow</a></span>()</code>
+<div class="block">
+              尝试停止所有主动执行的任务，停止等待任务的处理，并返回正在等待执行的任务列表。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>&lt;T&gt; <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#submit-java.util.concurrent.Callable-">submit</a></span>(<a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt; task)</code>
+<div class="block">
+              提交值返回任务以执行，并返回代表任务待处理结果的Future。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#submit-java.lang.Runnable-">submit</a></span>(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> task)</code>
+<div class="block">
+              提交一个可运行的任务执行，并返回一个表示该任务的未来。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>&lt;T&gt; <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ExecutorService.html#submit-java.lang.Runnable-T-">submit</a></span>(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> task, T result)</code>
+<div class="block">
+              提交一个可运行的任务执行，并返回一个表示该任务的未来。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.util.concurrent.Executor">
+<!-- --> </a> <h3>Methods inherited from interface java.util.concurrent.<a href="../../../java/util/concurrent/Executor.html" title="interface in java.util.concurrent">Executor</a></h3> <code><a href="../../../java/util/concurrent/Executor.html#execute-java.lang.Runnable-">execute</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="shutdown--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shutdown</h4> <pre>void shutdown()</pre>
+<div class="block">
+<span>启动有序关闭，其中先前提交的任务将被执行，但不会接受任何新任务。</span>
+<span>如果已经关闭，调用没有额外的作用。</span>
+<p> <span>此方法不等待以前提交的任务完成执行。</span> <span>使用<a href="../../../java/util/concurrent/ExecutorService.html#awaitTermination-long-java.util.concurrent.TimeUnit-"><code>awaitTermination</code></a>做到这一点。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<span><code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在并关闭，则ExecutorService可能会操纵调用者不允许修改的线程，因为它不会保留<a href="../../../java/lang/RuntimePermission.html" title="java.lang中的类"><code>RuntimePermission</code></a> <code>("modifyThread")</code>或安全管理器的<code>checkAccess</code>方法拒绝访问。</span>
+</dd>
+</dl> </li>
+</ul> <a name="shutdownNow--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shutdownNow</h4> <pre><a href="../../../java/util/List.html" title="interface in java.util">List</a>&lt;<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a>&gt; shutdownNow()</pre>
+<div class="block">
+<span>尝试停止所有主动执行的任务，停止等待任务的处理，并返回正在等待执行的任务列表。</span>
+<p> <span>此方法不等待主动执行的任务终止。</span> <span>使用<a href="../../../java/util/concurrent/ExecutorService.html#awaitTermination-long-java.util.concurrent.TimeUnit-"><code>awaitTermination</code></a>做到这一点。</span> </p>
+<p> <span>除了努力尝试停止处理积极执行任务之外，没有任何保证。</span> <span>例如，典型的实现将通过<a href="../../../java/lang/Thread.html#interrupt--"><code>Thread.interrupt()</code></a>取消，所以无法响应中断的任何任务永远不会终止。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             从未开始执行的任务列表 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<span><code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果安全管理器存在并且关闭此ExecutorService可能会操纵调用者不允许修改的线程，因为它不保留<a href="../../../java/lang/RuntimePermission.html" title="java.lang中的类"><code>RuntimePermission</code></a> <code>("modifyThread")</code> ，或者安全管理器的<code>checkAccess</code>方法拒绝访问。</span>
+</dd>
+</dl> </li>
+</ul> <a name="isShutdown--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isShutdown</h4> <pre>boolean isShutdown()</pre>
+<div class="block">
+            如果这个执行者已被关闭，则返回 
+           <code>true</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果这个执行者已被关闭 
+           </dd>
+</dl> </li>
+</ul> <a name="isTerminated--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isTerminated</h4> <pre>boolean isTerminated()</pre>
+<div class="block">
+<span>如果所有任务在关闭后完成，则返回<code>true</code> 。</span>
+<span>请注意， <code>isTerminated</code>从不<code>true</code> ，除非<code>shutdown</code>或<code>shutdownNow</code>被称为第一。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果所有任务已经完成以后关闭 
+           </dd>
+</dl> </li>
+</ul> <a name="awaitTermination-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>awaitTermination</h4> <pre>boolean awaitTermination(long timeout,
+                         <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)
+                  throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+            阻止所有任务在关闭请求完成后执行，或发生超时，或当前线程中断，以先到者为准。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>timeout</code> - 等待的最长时间 
+           </dd>
+<dd>
+<code>unit</code> - 超时参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果此执行终止， 
+            <code>false</code> ，如果超时终止前经过 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果在等待时中断 
+           </dd>
+</dl> </li>
+</ul> <a name="submit-java.util.concurrent.Callable-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>submit</h4> <pre>&lt;T&gt; <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt; submit(<a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt; task)</pre>
+<div class="block">
+<span>提交值返回任务以执行，并返回代表任务待处理结果的Future。</span>
+<span>未来的<code>get</code>方法将在成功完成后返回任务的结果。</span>
+<p> <span>如果您想立即阻止等待任务，您可以使用result = exec.submit(aCallable).get();格式的<code>result = exec.submit(aCallable).get();</code></span> </p>
+<p> <span>注意： <a href="../../../java/util/concurrent/Executors.html" title="java.util.concurrent中的类"><code>Executors</code></a>类包括一组方法，可以将一些其他常见的类似对象的对象，例如<a href="../../../java/security/PrivilegedAction.html" title="java.security中的接口"><code>PrivilegedAction</code>转换</a>为<a href="../../../java/util/concurrent/Callable.html" title="java.util.concurrent中的接口"><code>Callable</code></a>表单，以便它们可以提交。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 任务结果的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>task</code> - 提交的任务 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个未来的代表，待完成任务 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务为空 
+           </dd>
+</dl> </li>
+</ul> <a name="submit-java.lang.Runnable-java.lang.Object-">
+<!-- --> </a><a name="submit-java.lang.Runnable-T-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>submit</h4> <pre>&lt;T&gt; <a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt; submit(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> task,
+                     T result)</pre>
+<div class="block">
+<span>提交一个可运行的任务执行，并返回一个表示该任务的未来。</span>
+<span>未来的<code>get</code>方法将在成功完成后返回给定的结果。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 结果的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>task</code> - 要提交的任务 
+           </dd>
+<dd>
+<code>result</code> - 结果返回 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个未来的代表，待完成任务 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务为空 
+           </dd>
+</dl> </li>
+</ul> <a name="submit-java.lang.Runnable-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>submit</h4> <pre><a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;?&gt; submit(<a href="../../../java/lang/Runnable.html" title="interface in java.lang">Runnable</a> task)</pre>
+<div class="block">
+<span>提交一个可运行的任务执行，并返回一个表示该任务的未来。</span>
+<span>未来的<code>get</code>方法将返回<code>null</code> <em>成功</em>完成时。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>task</code> - 要提交的任务 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个未来的代表，待完成任务 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任务无法安排执行 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务为空 
+           </dd>
+</dl> </li>
+</ul> <a name="invokeAll-java.util.Collection-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>invokeAll</h4> <pre>&lt;T&gt; <a href="../../../java/util/List.html" title="interface in java.util">List</a>&lt;<a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt;&gt; invokeAll(<a href="../../../java/util/Collection.html" title="interface in java.util">Collection</a>&lt;? extends <a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt;&gt; tasks)
+                       throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>执行给定的任务，返回持有他们的状态和结果的所有完成的期货列表。</span>
+<span><a href="../../../java/util/concurrent/Future.html#isDone--"><code>Future.isDone()</code></a>是返回列表的每个元素的<code>true</code> 。</span>
+<span>请注意， <em>完成的</em>任务可能会正常终止或抛出异常。</span>
+<span>如果在此操作正在进行中修改了给定的集合，则此方法的结果是未定义的。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 从任务返回的值的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>tasks</code> - 收集任务 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示任务的期货列表，按照给定任务列表的迭代器产生的顺序顺序，每个都已完成 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果在等待时中断，在这种情况下未完成的任务被取消 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务或其任何元素是 
+            <code>null</code>
+</dd>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任何任务无法安排执行 
+           </dd>
+</dl> </li>
+</ul> <a name="invokeAll-java.util.Collection-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>invokeAll</h4> <pre>&lt;T&gt; <a href="../../../java/util/List.html" title="interface in java.util">List</a>&lt;<a href="../../../java/util/concurrent/Future.html" title="interface in java.util.concurrent">Future</a>&lt;T&gt;&gt; invokeAll(<a href="../../../java/util/Collection.html" title="interface in java.util">Collection</a>&lt;? extends <a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt;&gt; tasks,
+                              long timeout,
+                              <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)
+                       throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>执行给定的任务，返回在所有完成或超时到期时持有其状态和结果的期货列表，以先发生者为准。</span>
+<span><a href="../../../java/util/concurrent/Future.html#isDone--"><code>Future.isDone()</code></a>是返回列表的每个元素的<code>true</code> 。</span>
+<span>退货后，尚未完成的任务将被取消。</span>
+<span>请注意， <em>完成的</em>任务可能会正常终止或抛出异常。</span>
+<span>如果在此操作正在进行中修改了给定的集合，则此方法的结果是未定义的。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 从任务返回的值的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>tasks</code> - 收集任务 
+           </dd>
+<dd>
+<code>timeout</code> - 等待的最长时间 
+           </dd>
+<dd>
+<code>unit</code> - 超时参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个表示任务的期货列表，按照给定任务列表的迭代器生成的顺序。</span>
+<span>如果操作没有超时，每个任务都会完成。</span>
+<span>如果超时，其中一些任务将不会完成。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果在等待时中断，在这种情况下未完成的任务将被取消 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务，其任何元素或单位是 
+            <code>null</code>
+</dd>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果任何任务无法安排执行 
+           </dd>
+</dl> </li>
+</ul> <a name="invokeAny-java.util.Collection-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>invokeAny</h4> <pre>&lt;T&gt; T invokeAny(<a href="../../../java/util/Collection.html" title="interface in java.util">Collection</a>&lt;? extends <a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt;&gt; tasks)
+         throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a>,
+                <a href="../../../java/util/concurrent/ExecutionException.html" title="class in java.util.concurrent">ExecutionException</a></pre>
+<div class="block">
+<span>执行给定的任务，返回一个成功完成的结果（即没有抛出异常），如果有的话。</span>
+<span>正常或异常退货后，尚未完成的任务将被取消。</span>
+<span>如果在此操作正在进行中修改了给定的集合，则此方法的结果是未定义的。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 从任务返回的值的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>tasks</code> - 收集任务 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             其中一个任务返回的结果 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果等待中断 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务或任何要执行的元素任务是 
+            <code>null</code>
+</dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果任务为空 
+           </dd>
+<dd>
+<code><a href="../../../java/util/concurrent/ExecutionException.html" title="class in java.util.concurrent">ExecutionException</a></code> - 如果没有任务成功完成 
+           </dd>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - 如果不能安排执行任务 
+           </dd>
+</dl> </li>
+</ul> <a name="invokeAny-java.util.Collection-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>invokeAny</h4> <pre>&lt;T&gt; T invokeAny(<a href="../../../java/util/Collection.html" title="interface in java.util">Collection</a>&lt;? extends <a href="../../../java/util/concurrent/Callable.html" title="interface in java.util.concurrent">Callable</a>&lt;T&gt;&gt; tasks,
+                long timeout,
+                <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)
+         throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a>,
+                <a href="../../../java/util/concurrent/ExecutionException.html" title="class in java.util.concurrent">ExecutionException</a>,
+                <a href="../../../java/util/concurrent/TimeoutException.html" title="class in java.util.concurrent">TimeoutException</a></pre>
+<div class="block">
+<span>执行给定的任务，返回一个已经成功完成的结果（即，不抛出异常），如果有的话在给定的超时之前过去。</span>
+<span>正常或异常退货后，尚未完成的任务将被取消。</span>
+<span>如果在此操作正在进行中修改了给定的集合，则此方法的结果是未定义的。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>T</code> - 从任务返回的值的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>tasks</code> - 任务的收集 
+           </dd>
+<dd>
+<code>timeout</code> - 等待的最长时间 
+           </dd>
+<dd>
+<code>unit</code> - 超时参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             其中一个任务返回的结果 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果在等待时中断 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果任务，单位或任何可执行的元素任务是 
+            <code>null</code>
+</dd>
+<dd>
+<code><a href="../../../java/util/concurrent/TimeoutException.html" title="class in java.util.concurrent">TimeoutException</a></code> - 如果在任务成功完成之前，给定的超时时间过去了 
+           </dd>
+<dd>
+<code><a href="../../../java/util/concurrent/ExecutionException.html" title="class in java.util.concurrent">ExecutionException</a></code> - 如果没有任务成功完成 
+           </dd>
+<dd>
+<code><a href="../../../java/util/concurrent/RejectedExecutionException.html" title="class in java.util.concurrent">RejectedExecutionException</a></code> - if tasks cannot be scheduled for execution 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

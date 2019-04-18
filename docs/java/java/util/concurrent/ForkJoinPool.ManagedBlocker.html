@@ -1,0 +1,118 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.concurrent 
+   </div>
+<h2 class="title" title="Interface ForkJoinPool.ManagedBlocker">Interface ForkJoinPool.ManagedBlocker</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         Enclosing class: 
+       </dt>
+<dd>
+<span><a href="../../../java/util/concurrent/ForkJoinPool.html" title="java.util.concurrent中的类">ForkJoinPool</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public static interface <span class="typeNameLabel">ForkJoinPool.ManagedBlocker</span></pre>
+<div class="block">
+<span>用于扩展管理并行性的接口，用于在<a href="../../../java/util/concurrent/ForkJoinPool.html" title="java.util.concurrent中的类"><code>ForkJoinPool</code>中</a>运行的任务。</span>
+<p> <span>A <code>ManagedBlocker</code>提供了两种方法。</span> <span>如果<code>true</code>阻塞，方法<code>isReleasable</code>必须返回true。</span> <span>如果需要，方法<code>block</code>阻止当前线程（可能在实际阻塞之前内部调用<code>isReleasable</code> ）。</span> <span>这些操作通过调用<a href="../../../java/util/concurrent/ForkJoinPool.html#managedBlock-java.util.concurrent.ForkJoinPool.ManagedBlocker-"><code>ForkJoinPool.managedBlock(ManagedBlocker)</code></a>的任何线程执行。</span> <span>此API中的不寻常方法适用于可能但通常不会长时间阻塞的同步器。</span> <span>同样，它们允许更有效的内部处理案件，在这种情况下，需要额外的工作人员，但通常不需要确保充分的并行性。</span> <span>为此，方法<code>isReleasable</code>必须适于重复调用。</span> </p>
+<p> <span>例如，这里是一个基于ReentrantLock的ManagedBlocker：</span> </p>
+<pre>  <span><code> class ManagedLocker implements ManagedBlocker { final ReentrantLock lock; boolean hasLock = false; ManagedLocker(ReentrantLock lock) { this.lock = lock; } public boolean block() { if (!hasLock) lock.lock(); return true; } public boolean isReleasable() { return hasLock || (hasLock = lock.tryLock()); } }</code></span> </pre>
+<p> <span>这是一个可能阻止等待给定队列上的项目的类：</span> </p>
+<pre>  <span><code> class QueueTaker&lt;E&gt; implements ManagedBlocker { final BlockingQueue&lt;E&gt; queue; volatile E item = null; QueueTaker(BlockingQueue&lt;E&gt; q) { this.queue = q; } public boolean block() throws InterruptedException { if (item == null) item = queue.take(); return true; } public boolean isReleasable() { return item != null || (item = queue.poll()) != null; } public E getItem() { // call after pool.managedBlock completes return item; } }</code></span> </pre>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ForkJoinPool.ManagedBlocker.html#block--">block</a></span>()</code>
+<div class="block">
+              可能阻止当前线程，例如等待锁或条件。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/ForkJoinPool.ManagedBlocker.html#isReleasable--">isReleasable</a></span>()</code>
+<div class="block">
+              如果 
+             <code>true</code>阻塞，则返回true。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="block--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>block</h4> <pre>boolean block()
+       throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+            可能阻止当前线程，例如等待锁或条件。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果不需要额外的阻塞（即，如果isReleasable将返回true） 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果在等待时中断（该方法不需要这样做，但允许） 
+           </dd>
+</dl> </li>
+</ul> <a name="isReleasable--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>isReleasable</h4> <pre>boolean isReleasable()</pre>
+<div class="block">
+            如果 
+           <code>true</code>阻塞，则返回true。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果阻塞是不必要的 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

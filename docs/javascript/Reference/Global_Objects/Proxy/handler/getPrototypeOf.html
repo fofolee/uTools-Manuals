@@ -1,0 +1,161 @@
+<article id="wikiArticle">
+<div></div>
+<h2 id="Summary" name="Summary">概述</h2>
+<p><strong><code>handler.getPrototypeOf()</code></strong> 是一个代理方法，当读取代理对象的原型时，该方法就会被调用。</p>
+<h2 id="Syntax" name="Syntax">语法</h2>
+<pre class="brush: js">var p = new Proxy(obj, {
+  getPrototypeOf(target) {
+  ...
+  }
+});
+</pre>
+<h3 id="Parameters" name="Parameters">参数</h3>
+<p>当 <code>getPrototypeOf</code> 方法被调用时，<code>this</code> 指向的是它所属的处理器对象。</p>
+<dl>
+<dt><code>target</code></dt>
+<dd>被代理的目标对象。</dd>
+</dl>
+<h3 id="Return_value" name="Return_value">返回值</h3>
+<p><code>getPrototypeOf</code> 方法必须返回一个对象值或者返回 <code>null，不能返回其它类型的原始值</code>。</p>
+<h2 id="描述">描述</h2>
+<p>在 JavaScript 中，有下面这五种操作（方法/属性/运算符）可以触发 JS 引擎读取一个对象的原型，也就是可以触发 <code>getPrototypeOf()</code> 代理方法的运行：</p>
+<ul>
+<li><a href="Reference/Global_Objects/Object/getPrototypeOf" title="Object.getPrototypeOf() 方法返回指定对象的原型（内部[[Prototype]]属性的值）。"><code>Object.getPrototypeOf()</code></a></li>
+<li><a href="Reference/Global_Objects/Reflect/getPrototypeOf" title="静态方法 Reflect.getPrototypeOf() 与 Object.getPrototypeOf() 方法是一样的。都是返回指定对象的原型（即，内部的 [[Prototype]] 属性的值）。"><code>Reflect.getPrototypeOf()</code></a></li>
+<li><a href="Reference/Global_Objects/Object/proto" title="Object.prototype 的 __proto__  属性是一个访问器属性（一个getter函数和一个setter函数）, 暴露了通过它访问的对象的内部[[Prototype]] (一个对象或 null)。"><code>__proto__</code></a></li>
+<li><a href="Reference/Global_Objects/Object/isPrototypeOf" title="isPrototypeOf() 方法用于测试一个对象是否存在于另一个对象的原型链上。"><code>Object.prototype.isPrototypeOf()</code></a></li>
+<li><a href="Reference/Operators/instanceof" title="instanceof运算符用于测试构造函数的prototype属性是否出现在对象的原型链中的任何位置"><code>instanceof</code></a></li>
+</ul>
+<p>如果遇到了下面两种情况，JS 引擎会抛出 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> 异常：</p>
+<ul>
+<li><code>getPrototypeOf()</code> 方法返回的不是对象也不是 <code>null。</code></li>
+<li>目标对象是不可扩展的，且 <code>getPrototypeOf()</code> 方法返回的原型不是目标对象本身的原型。</li>
+</ul>
+<h2 id="示例">示例</h2>
+<h3 id="例子：基本用法">例子：基本用法</h3>
+<pre class="brush: js">var obj = {};
+var proto = {};
+var handler = {
+    getPrototypeOf(target) {
+        console.log(target === obj);   // true
+        console.log(this === handler); // true
+        return proto;
+    }
+};
+
+var p = new Proxy(obj, handler);
+console.log(Object.getPrototypeOf(p) === proto);    // true
+</pre>
+<h3 id="例子：5_种触发_getPrototypeOf_代理方法的方式">例子：5 种触发 getPrototypeOf 代理方法的方式</h3>
+<pre class="brush: js">var obj = {};
+var p = new Proxy(obj, {
+    getPrototypeOf(target) {
+        return Array.prototype;
+    }
+});
+console.log(
+    Object.getPrototypeOf(p) === Array.prototype,  // true
+    Reflect.getPrototypeOf(p) === Array.prototype, // true
+    p.__proto__ === Array.prototype,               // true
+    Array.prototype.isPrototypeOf(p),              // true
+    p instanceof Array                             // true
+);
+</pre>
+<h3 id="例子：两种情况下的异常">例子：两种情况下的异常</h3>
+<pre class="brush: js">var obj = {};
+var p = new Proxy(obj, {
+    getPrototypeOf(target) {
+        return "foo";
+    }
+});
+Object.getPrototypeOf(p); // TypeError: "foo" is not an object or null
+
+var obj = Object.preventExtensions({});
+var p = new Proxy(obj, {
+    getPrototypeOf(target) {
+        return {};
+    }
+});
+Object.getPrototypeOf(p); // TypeError: expected same prototype value
+</pre>
+<h2 id="Specifications" name="Specifications">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规范名称</th>
+<th scope="col">规范状态</th>
+<th scope="col">备注</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-proxy-object-internal-methods-and-internal-slots-getprototypeof" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">[[GetPrototypeOf]]</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="Browser_compatibility" name="Browser_compatibility">浏览器兼容性</h2>
+<div><div class="blockIndicator warning"><strong><a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">We're converting our compatibility data into a machine-readable JSON format</a></strong>.
+            This compatibility table still uses the old format,
+            because we haven't yet converted the data it contains.
+            <strong><a class="new" href="/zh-CN/docs/MDN/Contribute/Structures/Compatibility_tables" rel="nofollow">Find out how you can help!</a></strong></div>
+<div class="htab">
+<a id="AutoCompatibilityTable" name="AutoCompatibilityTable"></a>
+<ul>
+<li class="selected"><a>Desktop</a></li>
+<li><a>Mobile</a></li>
+</ul>
+</div></div>
+<div id="compat-desktop">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>Feature</th>
+<th>Chrome</th>
+<th>Firefox (Gecko)</th>
+<th>Internet Explorer</th>
+<th>Opera</th>
+<th>Safari</th>
+</tr>
+<tr>
+<td>Basic support</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span> (<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=888969" rel="noopener" title="FIXED: Implement ES6 Proxy traps for getPrototypeOf and setPrototypeOf">bug 888969</a>)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="compat-mobile">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>Feature</th>
+<th>Android</th>
+<th>Chrome for Android</th>
+<th>Firefox Mobile (Gecko)</th>
+<th>IE Mobile</th>
+<th>Opera Mobile</th>
+<th>Safari Mobile</th>
+</tr>
+<tr>
+<td>Basic support</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span> (<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=888969" rel="noopener" title="FIXED: Implement ES6 Proxy traps for getPrototypeOf and setPrototypeOf">bug 888969</a>)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="See_also" name="See_also">相关链接</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Proxy" title="Proxy 对象用于定义基本操作的自定义行为（如属性查找，赋值，枚举，函数调用等）。"><code>Proxy</code></a></li>
+<li><a href="Reference/Global_Objects/Proxy/handler" title="处理器对象用来自定义代理对象的各种可代理操作。"><code>handler</code></a></li>
+<li><a href="Reference/Global_Objects/Object/getPrototypeOf" title="Object.getPrototypeOf() 方法返回指定对象的原型（内部[[Prototype]]属性的值）。"><code>Object.getPrototypeOf()</code></a></li>
+<li><a href="Reference/Global_Objects/Reflect/getPrototypeOf" title="静态方法 Reflect.getPrototypeOf() 与 Object.getPrototypeOf() 方法是一样的。都是返回指定对象的原型（即，内部的 [[Prototype]] 属性的值）。"><code>Reflect.getPrototypeOf()</code></a></li>
+</ul>
+</article>

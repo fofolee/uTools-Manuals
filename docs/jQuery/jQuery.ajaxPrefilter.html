@@ -1,0 +1,149 @@
+<article class="" id="post-">
+<header class="entry-header">
+<h1 class="entry-title">jQuery.ajaxPrefilter()</h1>
+<div class="entry-meta">
+						所属分类：<span class="category"><a href="/category/ajax/">Ajax</a> &gt; <a href="/category/ajax/low-level-interface/">底层接口</a></span>
+<span class="pull-right">英文文档：<a href="https://api.jquery123.com/jQuery.ajaxPrefilter/" target="_blank">jQuery.ajaxPrefilter()</a></span>
+</div><!-- .entry-meta -->
+</header><!-- .entry-header -->
+<!-- .entry-header -->
+<div class="entry-content">
+<article class="entry method" id="jQuery-ajaxPrefilter1"><h2 class="section-title">
+<span class="name">jQuery.ajaxPrefilter(  [dataTypes ], handler(options, originalOptions, jqXHR) )</span><span class="returns">返回: <a href="/Types/#undefined">undefined</a></span>
+</h2>
+<div class="entry-wrapper">
+<p class="desc"><strong>描述: </strong>在每个请求之前被发送和<code>$.ajax()</code>处理它们前处理，设置自定义Ajax选项或修改现有选项。</p>
+<ul class="signatures"><li class="signature" id="jQuery-ajaxPrefilter-dataTypes-handleroptions--originalOptions--jqXHR">
+<h4 class="name">
+<span class="version-details">添加的版本: <a href="/category/version/1.5/">1.5</a></span>jQuery.ajaxPrefilter(  [dataTypes ], handler(options, originalOptions, jqXHR) )</h4>
+<ul>
+<li>
+<div><strong>dataTypes</strong></div>
+<div>类型: <a href="/Types/#String">String</a>
+</div>
+<div>一个可选的字符串，其中包含一个或多个空格分隔的数据类型</div>
+</li>
+<li>
+<div><strong>handler(options, originalOptions, jqXHR)</strong></div>
+<div>类型: <a href="/Types/#Function">Function</a>()</div>
+<div>一个处理程序程序，用于设置未来的Ajax请求的默认值。</div>
+</li>
+</ul>
+</li></ul>
+<div class="longdesc" id="entry-longdesc">
+<p>
+			    注册一个典型使用<code>$.ajaxPrefilter()</code>的预过滤器，看起来像这样：</p>
+<div class="syntaxhighlighter javascript nogutter">
+<table>
+<tbody>
+<tr>
+<td class="gutter">
+<div class="line n1">1</div>
+<div class="line n2">2</div>
+<div class="line n3">3</div>
+</td>
+<td class="code">
+<pre><div class="container"><div class="line"><code>$.ajaxPrefilter( <span class="keyword">function</span>( options, originalOptions, jqXHR ) {</code></div></div><div class="container"><div class="line"><code>  <span class="comment">// Modify options, control originalOptions, store jqXHR, etc</span></code></div></div><div class="container"><div class="line"><code>});</code></div></div></pre>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>以下的情况下：</p>
+<ul>
+<li><code>options</code> 是请求的选项</li>
+<li><code>originalOptions</code> 值作为提供给Ajax方法未经修改的选项，因此，没有<code>ajaxSettings</code>设置中的默认值</li>
+<li><code>jqXHR</code> 是请求的jqXHR对象</li>
+</ul>
+<p>
+			当自定义选项，需要提前处理，预过滤器（Prefilters）是一个完美的选择。给定下面的代码，
+			例如，如果自定义<code>abortOnRetry</code>选项被设置为<code>true</code>，那么调用<code>$.ajax()</code>会自动中止请求相同的URL：</p>
+<div class="syntaxhighlighter javascript nogutter">
+<table>
+<tbody>
+<tr>
+<td class="gutter">
+<div class="line n1">1</div>
+<div class="line n2">2</div>
+<div class="line n3">3</div>
+<div class="line n4">4</div>
+<div class="line n5">5</div>
+<div class="line n6">6</div>
+<div class="line n7">7</div>
+<div class="line n8">8</div>
+<div class="line n9">9</div>
+<div class="line n10">10</div>
+</td>
+<td class="code">
+<pre><div class="container"><div class="line"><code><span class="keyword">var</span> currentRequests = {};</code></div></div><div class="container"><div class="line"><code> </code></div></div><div class="container"><div class="line"><code>$.ajaxPrefilter(<span class="keyword">function</span>( options, originalOptions, jqXHR ) {</code></div></div><div class="container"><div class="line"><code>  <span class="keyword">if</span> ( options.abortOnRetry ) {</code></div></div><div class="container"><div class="line"><code>    <span class="keyword">if</span> ( currentRequests[ options.url ] ) {</code></div></div><div class="container"><div class="line"><code>      currentRequests[ options.url ].abort();</code></div></div><div class="container"><div class="line"><code>    }</code></div></div><div class="container"><div class="line"><code>    currentRequests[ options.url ] = jqXHR;</code></div></div><div class="container"><div class="line"><code>  }</code></div></div><div class="container"><div class="line"><code>});</code></div></div></pre>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>预过滤器（Prefilters）也可以被用来修改已经存在的选项。例如，下面的代理服务器跨域请求http://mydomain.net/proxy/：</p>
+<div class="syntaxhighlighter javascript nogutter">
+<table>
+<tbody>
+<tr>
+<td class="gutter">
+<div class="line n1">1</div>
+<div class="line n2">2</div>
+<div class="line n3">3</div>
+<div class="line n4">4</div>
+<div class="line n5">5</div>
+<div class="line n6">6</div>
+</td>
+<td class="code">
+<pre><div class="container"><div class="line"><code>$.ajaxPrefilter( <span class="keyword">function</span>( options ) {</code></div></div><div class="container"><div class="line"><code>  <span class="keyword">if</span> ( options.crossDomain ) {</code></div></div><div class="container"><div class="line"><code>    options.url = <span class="string">"http://mydomain.net/proxy/"</span> + encodeURIComponent( options.url );</code></div></div><div class="container"><div class="line"><code>    options.crossDomain = <span class="literal">false</span>;</code></div></div><div class="container"><div class="line"><code>  }</code></div></div><div class="container"><div class="line"><code>});</code></div></div></pre>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>如果提供可选的<code>dataTypes</code>参数，那么预滤器（prefilter）将只会对满足指定 dataTypes 的请求有效。例如，
+			以下仅适用于JSON和 script 请求给定的预过滤器：
+			    </p>
+<div class="syntaxhighlighter javascript nogutter">
+<table>
+<tbody>
+<tr>
+<td class="gutter">
+<div class="line n1">1</div>
+<div class="line n2">2</div>
+<div class="line n3">3</div>
+</td>
+<td class="code">
+<pre><div class="container"><div class="line"><code>$.ajaxPrefilter( <span class="string">"json script"</span>, <span class="keyword">function</span>( options, originalOptions, jqXHR ) {</code></div></div><div class="container"><div class="line"><code>  <span class="comment">// Modify options, control originalOptions, store jqXHR, etc</span></code></div></div><div class="container"><div class="line"><code>});</code></div></div></pre>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>
+<code>$.ajaxPrefilter()</code>方法也可以将请求重定向到另一个数据类型，并且返回该数据类型。
+			 例如，如果 URL 中含有在 isActuallyScript() 函数中设定的指定属性，那么设置成一个“script”的请求：
+			    </p>
+<div class="syntaxhighlighter javascript nogutter">
+<table>
+<tbody>
+<tr>
+<td class="gutter">
+<div class="line n1">1</div>
+<div class="line n2">2</div>
+<div class="line n3">3</div>
+<div class="line n4">4</div>
+<div class="line n5">5</div>
+</td>
+<td class="code">
+<pre><div class="container"><div class="line"><code>$.ajaxPrefilter(<span class="keyword">function</span>( options ) {</code></div></div><div class="container"><div class="line"><code>  <span class="keyword">if</span> ( isActuallyScript( options.url ) ) {</code></div></div><div class="container"><div class="line"><code>    <span class="keyword">return</span> <span class="string">"script"</span>;</code></div></div><div class="container"><div class="line"><code>  }</code></div></div><div class="container"><div class="line"><code>});</code></div></div></pre>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>
+			    这将确保请求被认为是“script”类型的，而且也保证了所有对 script 数据类型有效的预前过滤器，也将被应用到它。</p>
+</div>
+</div></article> </div>
+</article>

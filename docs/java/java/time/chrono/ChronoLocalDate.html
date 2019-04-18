@@ -1,0 +1,1263 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.time.chrono 
+   </div>
+<h2 class="title" title="Interface ChronoLocalDate">Interface ChronoLocalDate</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Superinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/lang/Comparable.html" title="java.lang中的接口">Comparable</a> &lt; <a href="../../../java/time/chrono/ChronoLocalDate.html" title="java.time.chrono中的接口">ChronoLocalDate</a> &gt;， <a href="../../../java/time/temporal/Temporal.html" title="java.time.temporal中的接口">Temporal</a> ， <a href="../../../java/time/temporal/TemporalAccessor.html" title="java.time.temporal中的接口">TemporalAccessor</a> ， <a href="../../../java/time/temporal/TemporalAdjuster.html" title="java.time.temporal中的接口">TemporalAdjuster</a></span>
+</dd>
+</dl>
+<dl>
+<dt>
+        所有已知实现类：
+       </dt>
+<dd>
+<span><a href="../../../java/time/chrono/HijrahDate.html" title="java.time.chrono中的类">HijrahDate</a> ， <a href="../../../java/time/chrono/JapaneseDate.html" title="java.time.chrono中的类">JapaneseDate</a> ， <a href="../../../java/time/LocalDate.html" title="java.time中的类">LocalDate</a> ， <a href="../../../java/time/chrono/MinguoDate.html" title="java.time.chrono中的类">MinguoDate</a> ， <a href="../../../java/time/chrono/ThaiBuddhistDate.html" title="java.time.chrono中的类">ThaiBuddhistDate</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">ChronoLocalDate</span>
+extends <a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a>, <a href="../../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a>, <a href="../../../java/lang/Comparable.html" title="interface in java.lang">Comparable</a>&lt;<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a>&gt;</pre>
+<div class="block">
+<span>一个无时间，无时间的日期，用于任意年龄，用于高级全球化用例。</span>
+<p> <span><b>大多数应用程序应声明方法签名，字段和变量为<a href="../../../java/time/LocalDate.html" title="java.time中的类"><code>LocalDate</code></a> ，而不是此接口。</b></span> </p>
+<p> <span>A <code>ChronoLocalDate</code>是<code>Chronology chronology</code>或日历系统可插拔的日期的抽象表示。</span> <span>日期由<a href="../../../java/time/temporal/TemporalField.html" title="java.time.temporal中的接口"><code>TemporalField</code></a>表示的字段定义，其中大多数常见实现在<a href="../../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code></a>中定义。</span> <span>年表定义日历系统的运行方式和标准字段的含义。</span> </p>
+<h3> <span>何时使用此界面</span> </h3>
+<span>API的设计鼓励使用<code>LocalDate</code>而不是该接口，即使在应用程序需要处理多个日历系统的情况下。</span>
+<span>在以下文档中探讨了其理由。</span>
+<p> <span>应该使用此接口的主要用例是通用类型参数<code>&lt;D&gt;</code>完全定义为特定年表。</span> <span>在这种情况下，这个年表的假设在开发时是已知的，并在代码中指定。</span> </p>
+<p> <span>当时间顺序在通用类型参数中定义为？</span> <span>或在开发时以其他方式未知，下面讨论的其余部分适用。</span> </p>
+<p> <span>为了强调这一点，声明一个方法签名，字段或变量作为这个接口类型最初似乎是一个全局化应用程序的合理方式，但通常是错误的方法。</span> <span>因此，与LocalDate相反，它应该被认为是应用程序范围的架构决定来选择使用此<code>LocalDate</code> 。</span> </p>
+<h3> <span>要考虑的建筑问题</span> </h3>
+<span>这些是在整个应用程序中使用此界面之前必须考虑的一些要点。</span>
+<p> <span>1）使用这个界面的应用程序，而不是仅使用<code>LocalDate</code> ，面临着更高的错误概率。</span> <span>这是因为正在使用的日历系统在开发时不知道。</span> <span>错误的主要原因是开发人员将ISO日历系统日常知识的假设应用于旨在处理任意日历系统的代码。</span> <span>以下部分概述了这些假设如何导致问题。减少错误风险增加的主要机制是强大的代码审查流程。</span> <span>在代码生命周期中，这也应被视为维护的额外成本。</span> </p>
+<p> <span>2）此接口不强制执行不可变性。</span> <span>虽然实现说明表明所有实现都必须是不可变的，但代码或类型系统中没有任何内容来执行此操作。</span> <span>因此，声明接受<code>ChronoLocalDate</code>任何方法可能会被传递给恶意或恶意的可变实现。</span> </p>
+<p> <span>3）使用此界面的应用程序必须考虑到时代的影响。</span> <span><code>LocalDate</code>屏蔽用户的时代概念，通过确保<code>getYear()</code>返回光明年。</span> <span>该决定确保开发人员可以将<code>LocalDate</code>实例视为三个字段（年，月，日和月）。</span> <span>相比之下，这个界面的用户必须将日期视为由四个领域组成的 - 时代，年龄，月份和月份。</span> <span>额外的时代领域经常被遗忘，但是在任意的日历系统中是至关重要的。</span> <span>例如，在日历系统中，这个时代代表了皇帝的统治地位。</span> <span>每当一个统治结束，另一个开始时，年龄将重置为一个。</span> </p>
+<p> <span>4）在两个系统之间通过日期的唯一商定的国际标准是需要ISO日历系统的ISO-8601标准。</span> <span>在整个应用程序中使用此界面将不可避免地导致要求通过网络或组件边界传递日期，需要特定于应用程序的协议或格式。</span> </p>
+<p> <span>5）长期持续性，如数据库，几乎总是只接受ISO-8601日历系统（或相关的朱利安 - 格里高利）的日期。</span> <span>在其他日历系统中传播日期增加了与持久性相互作用的并发症。</span> </p>
+<p> <span>6）大部分时间，通过一个<code>ChronoLocalDate</code>程序ChronoLocalDate是不必要的，如下面最后一节所讨论的。</span> </p>
+<h3> <span>虚假假设导致多日历系统代码中的错误</span> </h3>
+<span>如上所述，尝试在任意日历系统中使用和操纵日期时，需要考虑许多问题。</span>
+<span>这些是一些关键问题。</span>
+<p> <span>查询月份的代码，并假定该值永远不会超过31，则无效。</span> <span>某些日历系统在几个月内有超过31天的时间。</span> </p>
+<p> <span>增加12个月的代码，并假设已经添加了一年是无效的。</span> <span>一些日历系统有不同的月份，例如科普特人或埃塞俄比亚的13个。</span> </p>
+<p> <span>增加一个月到日期的代码，并假设年月值增加一个或换到下一年是无效的。</span> <span>一些日历系统在一年中可能有几个月，例如希伯来语。</span> </p>
+<p> <span>增加一个月的代码，然后再增加一个月，并假设月日将保持接近其原始值是无效的。</span> <span>一些日历系统在最长月份的长度和最短的月份的长度之间有很大差异。</span> <span>例如，科普特人或埃塞俄比亚人有12个月30天，1个月5天。</span> </p>
+<p> <span>添加七天并假定一周已添加的代码无效。</span> <span>一些日历系统有七个星期的时间，如法国革命派。</span> </p>
+<p> <span>代码假设因为<code>date1</code>的年份大于<code>date2</code>年，那么<code>date1</code>之后是<code>date2</code>无效。</span> <span>对于所有的日历系统来说，这是对年龄的无效的，尤其是日后的日历系统，这个日历系统在每个新皇帝的统治时期重新启动。</span> </p>
+<p> <span>将月份中的一个月和一个月中的一个作为年初的代码无效。</span> <span>当月份值为1时，不是所有的日历系统开始。</span> </p>
+<p> <span>一般来说，操作日期，甚至查询日期，当日历系统在开发时是未知的时，广泛使用错误。</span> <span>这就是为什么使用此界面的代码必须经过其他代码审查的原因。</span> <span>这也是为什么避免这种接口类型的架构决策通常是正确的。</span> </p>
+<h3> <span>使用LocalDate代替</span> </h3>
+<span>在整个应用程序中使用此界面的主要替代方法如下。</span>
+<ul>
+<li> <span>声明所有方法签名参照日期来讲<code>LocalDate</code> 。</span> </li>
+<li> <span>请将用户配置文件中的年表（日历系统）存储或从用户区域设置查找年表</span> </li>
+<li> <span>在打印和解析期间将ISO <code>LocalDate</code>转换为用户首选日历系统</span> </li>
+</ul>
+<span>这种方法将全球化日历系统的问题视为本地化问题，并将其限制在UI层。</span>
+<span>这种方法与Java平台中的其他本地化问题保持一致。</span>
+<p> <span>如上所述，在日历系统的规则可插拔的日期执行计算需要技能，不推荐。</span> <span>幸运的是，在任意日历系统的日期执行计算的需求是极少数的。</span> <span>例如，图书馆租借计划的商业规则极不可能允许租金为一个月，其中月份的含义取决于用户的首选日历系统。</span> </p>
+<p> <span>在任意日历系统中的日期计算的关键用例是生成逐月显示和用户交互的日历。</span> <span>再次，这是一个UI问题，仅仅在UI层的几个方法中使用这个接口可能是合理的。</span> </p>
+<p> <span>在系统的任何其他部分，如果在除ISO之外的日历系统中必须操作日期，则用例通常会指定要使用的日历系统。</span> <span>例如，申请可能需要计算下一个可能需要操纵日期的伊斯兰教或希伯来节假日。</span> <span>这种用例可以如下处理：</span> </p>
+<ul>
+<li> <span>从ISO <code>LocalDate</code>开始传递给该方法</span> </li>
+<li> <span>将日期转换为备用日历系统，对于此用例而言，该日历系统是已知的而不是任意的</span> </li>
+<li> <span>执行计算</span> </li>
+<li> <span>转换回<code>LocalDate</code></span> </li>
+</ul>
+<span>编写低级框架或库的开发人员也应该避免这个接口。</span>
+<span>而应该使用两个通用接入接口之一。</span>
+<span>使用<a href="../../../java/time/temporal/TemporalAccessor.html" title="java.time.temporal中的接口"><code>TemporalAccessor</code></a>如果需要只读访问，或使用<a href="../../../java/time/temporal/Temporal.html" title="java.time.temporal中的接口"><code>Temporal</code></a>是否需要进行读写访问。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">实现要求：</span>
+</dt>
+<dd>
+<span>该接口必须小心实施，以确保其他类正确运行。</span>
+<span>可以实例化的所有实现必须是最终的，不可变的和线程安全的。</span>
+<span>子类应尽可能可序列化。</span>
+<p> <span>可以向系统添加其他日历系统。</span> <span>详见<a href="../../../java/time/chrono/Chronology.html" title="java.time.chrono中的接口"><code>Chronology</code></a> 。</span> </p>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.8 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t5"><span><a href="javascript:show(16);">Default Methods</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>default <a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#adjustInto-java.time.temporal.Temporal-">adjustInto</a></span>(<a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> temporal)</code>
+<div class="block">
+              调整指定的时间对象与此对象的日期相同。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>default <a href="../../../java/time/chrono/ChronoLocalDateTime.html" title="interface in java.time.chrono">ChronoLocalDateTime</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#atTime-java.time.LocalTime-">atTime</a></span>(<a href="../../../java/time/LocalTime.html" title="class in java.time">LocalTime</a> localTime)</code>
+<div class="block">
+              结合此日期与时间创建一个 
+             <code>ChronoLocalDateTime</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>default int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#compareTo-java.time.chrono.ChronoLocalDate-">compareTo</a></span>(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> other)</code>
+<div class="block">
+              将此日期与其他日期进行比较，包括年表。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#equals-java.lang.Object-">equals</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              检查这个日期是否等于另一个日期，包括年表。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>default <a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#format-java.time.format.DateTimeFormatter-">format</a></span>(<a href="../../../java/time/format/DateTimeFormatter.html" title="class in java.time.format">DateTimeFormatter</a> formatter)</code>
+<div class="block">
+              使用指定的格式化程序格式化此日期。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#from-java.time.temporal.TemporalAccessor-">from</a></span>(<a href="../../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a> temporal)</code>
+<div class="block">
+              从时间对象获取一个 
+             <code>ChronoLocalDate</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../java/time/chrono/Chronology.html" title="interface in java.time.chrono">Chronology</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#getChronology--">getChronology</a></span>()</code>
+<div class="block">
+              获得这个日期的年表。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>default <a href="../../../java/time/chrono/Era.html" title="interface in java.time.chrono">Era</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#getEra--">getEra</a></span>()</code>
+<div class="block">
+              获得时代，按年表定义。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              这个日期的哈希码。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>default boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#isAfter-java.time.chrono.ChronoLocalDate-">isAfter</a></span>(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> other)</code>
+<div class="block">
+              检查此日期是否在忽略年表的指定日期之后。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>default boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#isBefore-java.time.chrono.ChronoLocalDate-">isBefore</a></span>(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> other)</code>
+<div class="block">
+              检查此日期是否在忽略年表前的指定日期之前。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>default boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#isEqual-java.time.chrono.ChronoLocalDate-">isEqual</a></span>(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> other)</code>
+<div class="block">
+              检查这个日期是否等于忽略年表的指定日期。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>default boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#isLeapYear--">isLeapYear</a></span>()</code>
+<div class="block">
+              检查年份是否是日历系统定义的闰年。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>default boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#isSupported-java.time.temporal.TemporalField-">isSupported</a></span>(<a href="../../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</code>
+<div class="block">
+              检查指定的字段是否受支持。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>default boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#isSupported-java.time.temporal.TemporalUnit-">isSupported</a></span>(<a href="../../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              检查指定的单位是否受支持。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#lengthOfMonth--">lengthOfMonth</a></span>()</code>
+<div class="block">
+              返回由日历系统定义的由此日期表示的月份的长度。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>default int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#lengthOfYear--">lengthOfYear</a></span>()</code>
+<div class="block">
+              返回由日历系统定义的由此日期表示的年份的长度。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#minus-long-java.time.temporal.TemporalUnit-">minus</a></span>(long amountToSubtract, <a href="../../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              返回与该对象相同类型的对象，并减去指定的时间段。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#minus-java.time.temporal.TemporalAmount-">minus</a></span>(<a href="../../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amount)</code>
+<div class="block">
+              返回与该对象相同类型的对象，并减去一个数量。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#plus-long-java.time.temporal.TemporalUnit-">plus</a></span>(long amountToAdd, <a href="../../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              返回与此对象相同类型的对象，并添加指定的句点。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#plus-java.time.temporal.TemporalAmount-">plus</a></span>(<a href="../../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amount)</code>
+<div class="block">
+              返回与此对象相同类型的对象，并添加一个金额。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>default &lt;R&gt; R</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#query-java.time.temporal.TemporalQuery-">query</a></span>(<a href="../../../java/time/temporal/TemporalQuery.html" title="interface in java.time.temporal">TemporalQuery</a>&lt;R&gt; query)</code>
+<div class="block">
+              使用指定的查询查询此日期。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>static <a href="../../../java/util/Comparator.html" title="interface in java.util">Comparator</a>&lt;<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#timeLineOrder--">timeLineOrder</a></span>()</code>
+<div class="block">
+              获取一个比较器，比较 
+             <code>ChronoLocalDate</code>的时间顺序忽略年表。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>default long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#toEpochDay--">toEpochDay</a></span>()</code>
+<div class="block">
+              将此日期转换为大纪元日。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#toString--">toString</a></span>()</code>
+<div class="block">
+              将此日期输出为 
+             <code>String</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code><a href="../../../java/time/chrono/ChronoPeriod.html" title="interface in java.time.chrono">ChronoPeriod</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#until-java.time.chrono.ChronoLocalDate-">until</a></span>(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> endDateExclusive)</code>
+<div class="block">
+              将此日期和另一个日期之间的期间计算为 
+             <code>ChronoPeriod</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#until-java.time.temporal.Temporal-java.time.temporal.TemporalUnit-">until</a></span>(<a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> endExclusive, <a href="../../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</code>
+<div class="block">
+              根据指定的单位计算直到另一个日期的时间量。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#with-java.time.temporal.TemporalAdjuster-">with</a></span>(<a href="../../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a> adjuster)</code>
+<div class="block">
+              通过进行调整，返回与该对象相同类型的调整对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/time/chrono/ChronoLocalDate.html#with-java.time.temporal.TemporalField-long-">with</a></span>(<a href="../../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field, long newValue)</code>
+<div class="block">
+              返回与该对象具有相同类型的对象，并更改指定的字段。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.time.temporal.TemporalAccessor">
+<!-- --> </a> <h3>Methods inherited from interface java.time.temporal.<a href="../../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></h3> <code><a href="../../../java/time/temporal/TemporalAccessor.html#get-java.time.temporal.TemporalField-">get</a>, <a href="../../../java/time/temporal/TemporalAccessor.html#getLong-java.time.temporal.TemporalField-">getLong</a>, <a href="../../../java/time/temporal/TemporalAccessor.html#range-java.time.temporal.TemporalField-">range</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="timeLineOrder--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>timeLineOrder</h4> <pre>static <a href="../../../java/util/Comparator.html" title="interface in java.util">Comparator</a>&lt;<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a>&gt; timeLineOrder()</pre>
+<div class="block">
+<span>获取一个比较，比较<code>ChronoLocalDate</code>在时间顺序忽略年表。</span>
+<p> <span>这个比较器的不同之处的比较<a href="../../../java/time/chrono/ChronoLocalDate.html#compareTo-java.time.chrono.ChronoLocalDate-"><code>compareTo(java.time.chrono.ChronoLocalDate)</code></a>在于其只比较基础日期和不年表。</span> <span>这可以根据当地时间线上日期的位置来比较不同日历系统中的日期。</span> <span>潜在的比较相当于比较时代。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             比较器比较时间顺序忽略年表 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/time/chrono/ChronoLocalDate.html#isAfter-java.time.chrono.ChronoLocalDate-"><code>isAfter(java.time.chrono.ChronoLocalDate)</code></a> ， 
+            <a href="../../../java/time/chrono/ChronoLocalDate.html#isBefore-java.time.chrono.ChronoLocalDate-"><code>isBefore(java.time.chrono.ChronoLocalDate)</code></a> ， 
+            <a href="../../../java/time/chrono/ChronoLocalDate.html#isEqual-java.time.chrono.ChronoLocalDate-"><code>isEqual(java.time.chrono.ChronoLocalDate)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="from-java.time.temporal.TemporalAccessor-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>from</h4> <pre>static <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> from(<a href="../../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a> temporal)</pre>
+<div class="block">
+<span>从时间对象获取一个<code>ChronoLocalDate</code>的实例。</span>
+<p> <span>这将基于指定的时间获取本地日期。</span> <span>A <code>TemporalAccessor</code>代表日期和时间信息的任意集合，该工厂将其转换为<code>ChronoLocalDate</code>一个实例。</span> </p>
+<p> <span>转换提取并结合时间对象的年表和日期。</span> <span>该行为相当于使用<a href="../../../java/time/chrono/Chronology.html#date-java.time.temporal.TemporalAccessor-"><code>Chronology.date(TemporalAccessor)</code></a>与提取的年表。</span> <span>允许实现执行优化，例如访问与相关对象相当的那些字段。</span> </p>
+<p> <span>该方法中，功能接口的签名相匹配<a href="../../../java/time/temporal/TemporalQuery.html" title="java.time.temporal中的接口"><code>TemporalQuery</code></a>允许它被用作通过方法参考，查询<code>ChronoLocalDate::from</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>temporal</code> - 要转换的时间对象，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             日期，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法转换为 
+            <code>ChronoLocalDate</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/time/chrono/Chronology.html#date-java.time.temporal.TemporalAccessor-"><code>Chronology.date(TemporalAccessor)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getChronology--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getChronology</h4> <pre><a href="../../../java/time/chrono/Chronology.html" title="interface in java.time.chrono">Chronology</a> getChronology()</pre>
+<div class="block">
+<span>获得这个日期的年表。</span>
+<p> <span><code>Chronology</code>代表正在使用的日历系统。</span> <span><a href="../../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal"><code>ChronoField</code></a>中的时代和其他领域由<a href="../../../java/time/temporal/ChronoField.html" title="枚举在java.time.temporal">年表</a>定义。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             年表，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="getEra--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getEra</h4> <pre>default <a href="../../../java/time/chrono/Era.html" title="interface in java.time.chrono">Era</a> getEra()</pre>
+<div class="block">
+<span>获得时代，按年表定义。</span>
+<p> <span>时代在概念上是时间线上最大的一个部门。</span> <span>大多数日历系统具有将时间线划分为两个时代的单个时期。</span> <span>然而，有些有多个时代，比如每个领导人统治的时代。</span> <span>具体含义由<code>Chronology</code> 。</span> </p>
+<p> <span>所有正确实现的<code>Era</code>类都是单例，因此它是写有效的代码<code>date.getEra() == SomeChrono.ERA_NAME)</code> 。</span> </p>
+<p> <span>此默认实现使用<a href="../../../java/time/chrono/Chronology.html#eraOf-int-"><code>Chronology.eraOf(int)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在这个日期适用的年代特定时代常数不为零 
+           </dd>
+</dl> </li>
+</ul> <a name="isLeapYear--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isLeapYear</h4> <pre>default boolean isLeapYear()</pre>
+<div class="block">
+<span>检查年份是否是日历系统定义的闰年。</span>
+<p> <span>闰年是一个比正常长的一年。</span> <span>确切的意义是由年表确定的，其限制是闰年必须意味着比非闰年长一年的长度。</span> </p>
+<p> <span>此默认实现使用<a href="../../../java/time/chrono/Chronology.html#isLeapYear-long-"><code>Chronology.isLeapYear(long)</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果此日期在闰年，则为真，否则为false 
+           </dd>
+</dl> </li>
+</ul> <a name="lengthOfMonth--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>lengthOfMonth</h4> <pre>int lengthOfMonth()</pre>
+<div class="block">
+<span>返回由日历系统定义的由此日期表示的月份的长度。</span>
+<p> <span>这将以天为单位返回月份的长度。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             月的长度以天为单位 
+           </dd>
+</dl> </li>
+</ul> <a name="lengthOfYear--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>lengthOfYear</h4> <pre>default int lengthOfYear()</pre>
+<div class="block">
+<span>返回由日历系统定义的由此日期表示的年份的长度。</span>
+<p> <span>这返回一年中的天数。</span> </p>
+<p> <span>默认实现使用<a href="../../../java/time/chrono/ChronoLocalDate.html#isLeapYear--"><code>isLeapYear()</code></a>并返回365或366。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一年中的天数 
+           </dd>
+</dl> </li>
+</ul> <a name="isSupported-java.time.temporal.TemporalField-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isSupported</h4> <pre>default boolean isSupported(<a href="../../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field)</pre>
+<div class="block">
+<span>检查指定的字段是否受支持。</span>
+<p> <span>这将检查是否可以在此日期查询指定的字段。</span> <span>如果是假，然后调用<a href="../../../java/time/temporal/TemporalAccessor.html#range-java.time.temporal.TemporalField-"><code>range</code></a> ， <a href="../../../java/time/temporal/TemporalAccessor.html#get-java.time.temporal.TemporalField-"><code>get</code></a>和<a href="../../../java/time/chrono/ChronoLocalDate.html#with-java.time.temporal.TemporalField-long-"><code>with(TemporalField, long)</code></a>方法会抛出异常。</span> </p>
+<p> <span>一组支持的字段由年表定义，通常包括所有<code>ChronoField</code>日期字段。</span> </p>
+<p> <span>如果该字段不是<code>ChronoField</code> ，则该方法的结果是通过调用<code>TemporalField.isSupportedBy(TemporalAccessor)</code>通过<code>this</code>作为参数获得的。</span> <span>字段是否受支持由字段决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/TemporalAccessor.html#isSupported-java.time.temporal.TemporalField-">isSupported</a></code>在界面 
+            <code><a href="../../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要检查的字段，null返回false 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果可以查询该字段，则为true，否则为false 
+           </dd>
+</dl> </li>
+</ul> <a name="isSupported-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isSupported</h4> <pre>default boolean isSupported(<a href="../../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>检查指定的单位是否受支持。</span>
+<p> <span>这将检查是否可以从该日期添加或减去指定的单位。</span> <span>如果是false，那么调用<a href="../../../java/time/chrono/ChronoLocalDate.html#plus-long-java.time.temporal.TemporalUnit-"><code>plus(long, TemporalUnit)</code></a>和<a href="../../../java/time/chrono/ChronoLocalDate.html#minus-long-java.time.temporal.TemporalUnit-"><code>minus</code></a>方法会抛出异常。</span> </p>
+<p> <span>支持单位的集合由年表定义，通常包括除<code>FOREVER</code>之外的所有<code>ChronoUnit</code>日期单位。</span> </p>
+<p> <span>如果该单元不是<code>ChronoUnit</code> ，则此方法的结果是通过调用获得<code>TemporalUnit.isSupportedBy(Temporal)</code>传递<code>this</code>作为参数。</span> <span>设备是否受支持由本机决定。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/Temporal.html#isSupported-java.time.temporal.TemporalUnit-">isSupported</a></code>在界面 
+            <code><a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>unit</code> - 要检查的单位，null返回false 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果可以添加/减去单位，则为真，否则为false 
+           </dd>
+</dl> </li>
+</ul> <a name="with-java.time.temporal.TemporalAdjuster-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>with</h4> <pre>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> with(<a href="../../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a> adjuster)</pre>
+<div class="block">
+<span>通过进行调整，返回与该对象相同类型的调整对象。</span>
+<p> <span>这将根据指定的调整器的规则调整此日期时间。</span> <span>一个简单的调整器可能只是设置一个字段，如年份字段。</span> <span>更复杂的调整器可能会将日期设置为该月的最后一天。</span> <span><code>TemporalAdjuster</code>提供了一些常见的<a href="../../../java/time/temporal/TemporalAdjuster.html" title="java.time.temporal中的接口">调整</a> 。</span> <span>这些包括找到“月的最后一天”和“下周三”。</span> <span>调整员负责处理特殊情况，如月份和闰年的不同长度。</span> </p>
+<p> <span>一些示例代码，指示如何和为什么使用此方法：</span> </p>
+<pre>  <span>date = date.with(Month.JULY);        // most key classes implement TemporalAdjuster
+  date = date.with(lastDayOfMonth());  // static import from Adjusters
+  date = date.with(next(WEDNESDAY));   // static import from Adjusters and DayOfWeek</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalAdjuster-">with</a></code>在界面 
+            <code><a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>adjuster</code> - 调整器使用，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             具有指定调整的相同类型的对象，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行调整 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="with-java.time.temporal.TemporalField-long-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>with</h4> <pre>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> with(<a href="../../../java/time/temporal/TemporalField.html" title="interface in java.time.temporal">TemporalField</a> field,
+                             long newValue)</pre>
+<div class="block">
+<span>返回与该对象具有相同类型的对象，并更改指定的字段。</span>
+<p> <span>这将返回一个基于该对象的新对象，其中指定字段的值已更改。</span> <span>例如，在<code>LocalDate</code> ，这可以用于设置年，月或月的日期。</span> <span>返回的对象将具有与该对象相同的可观察类型。</span> </p>
+<p> <span>在某些情况下，更改字段尚未完全定义。</span> <span>例如，如果目标对象是代表1月31日的日期，则将月份更改为2月份将不清楚。</span> <span>在这种情况下，该领域负责解决结果。</span> <span>通常，它将选择先前的有效日期，这将是本例中最后一个有效的二月份。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalField-long-">with</a></code>在界面 
+            <code><a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>field</code> - 要在结果中设置的字段，不为null 
+           </dd>
+<dd>
+<code>newValue</code> - 结果中字段的新值 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与指定字段集相同类型的对象，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果该字段无法设置 
+           </dd>
+<dd>
+<code><a href="../../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果该字段不被支持 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="plus-java.time.temporal.TemporalAmount-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plus</h4> <pre>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> plus(<a href="../../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amount)</pre>
+<div class="block">
+<span>返回与此对象相同类型的对象，并添加一个金额。</span>
+<p> <span>这调整这个时间，根据指定量的规则添加。</span> <span>金额一般为<a href="../../../java/time/Period.html" title="java.time中的类"><code>Period</code>，</a>但可能是实现<a href="../../../java/time/temporal/TemporalAmount.html" title="java.time.temporal中的接口"><code>TemporalAmount</code></a>界面的任何其他类型，如<a href="../../../java/time/Duration.html" title="java.time中的类"><code>Duration</code></a> 。</span> </p>
+<p> <span>一些示例代码，指示如何和为什么使用此方法：</span> </p>
+<pre>  <span>date = date.plus(period);                // add a Period instance
+  date = date.plus(duration);              // add a Duration instance
+  date = date.plus(workingDays(6));        // example user-written workingDays method</span> </pre>
+<p> <span>请注意，呼叫<code>plus</code>后跟<code>minus</code>不保证返回相同的日期时间。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/Temporal.html#plus-java.time.temporal.TemporalAmount-">plus</a></code>在界面 
+            <code><a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amount</code> - 要添加的金额，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             具有指定调整的相同类型的对象，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能添加 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="plus-long-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>plus</h4> <pre>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> plus(long amountToAdd,
+                             <a href="../../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>返回与此对象相同类型的对象，并添加指定的句点。</span>
+<p> <span>此方法基于添加了指定句点的新对象。</span> <span>例如，在<code>LocalDate</code> ，这可以用来添加几年，几个月或几天。</span> <span>返回的对象将具有与该对象相同的可观察类型。</span> </p>
+<p> <span>在某些情况下，更改字段尚未完全定义。</span> <span>例如，如果目标对象是代表1月31日的日期，则添加一个月将不清楚。</span> <span>在这种情况下，该领域负责解决结果。</span> <span>通常，它将选择先前的有效日期，这将是本例中最后一个有效的二月份。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/Temporal.html#plus-long-java.time.temporal.TemporalUnit-">plus</a></code>在接口 
+            <code><a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToAdd</code> - 要添加的指定单位的数量，可能为负数 
+           </dd>
+<dd>
+<code>unit</code> - 要添加的单位，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与指定期间相同类型的对象添加，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法添加本机 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="minus-java.time.temporal.TemporalAmount-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minus</h4> <pre>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> minus(<a href="../../../java/time/temporal/TemporalAmount.html" title="interface in java.time.temporal">TemporalAmount</a> amount)</pre>
+<div class="block">
+<span>返回与该对象相同类型的对象，并减去一个数量。</span>
+<p> <span>这调整这个时间，根据指定量的规则减去。</span> <span>量通常为<a href="../../../java/time/Period.html" title="java.time中的类"><code>Period</code></a> ，而可以是任何其他类型的实现<a href="../../../java/time/temporal/TemporalAmount.html" title="java.time.temporal中的接口"><code>TemporalAmount</code></a>接口，如<a href="../../../java/time/Duration.html" title="java.time中的类"><code>Duration</code></a> 。</span> </p>
+<p> <span>一些示例代码，指示如何和为什么使用此方法：</span> </p>
+<pre>  <span>date = date.minus(period);               // subtract a Period instance
+  date = date.minus(duration);             // subtract a Duration instance
+  date = date.minus(workingDays(6));       // example user-written workingDays method</span> </pre>
+<p> <span>请注意，呼叫<code>plus</code>后跟<code>minus</code>不保证返回相同的日期时间。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/Temporal.html#minus-java.time.temporal.TemporalAmount-">minus</a></code>在接口 
+            <code><a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amount</code> - 减去量，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             具有指定调整的相同类型的对象，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行减法 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="minus-long-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>minus</h4> <pre>default <a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> minus(long amountToSubtract,
+                              <a href="../../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>返回与该对象相同类型的对象，并减去指定的时间段。</span>
+<p> <span>该方法返回一个基于该对象的新对象，减去指定的时间段。</span> <span>例如，在<code>LocalDate</code> ，这可以用来减去几年，几个月或几天。</span> <span>返回的对象将具有与该对象相同的可观察类型。</span> </p>
+<p> <span>在某些情况下，更改字段尚未完全定义。</span> <span>例如，如果目标对象是代表3月31日的日期，则减去一个月将不清楚。</span> <span>在这种情况下，该领域负责解决结果。</span> <span>通常，它将选择先前的有效日期，这将是本例中最后一个有效的二月份。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/Temporal.html#minus-long-java.time.temporal.TemporalUnit-">minus</a></code>中的 
+            <code><a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>amountToSubtract</code> - 减去指定单位的金额，可能为负数 
+           </dd>
+<dd>
+<code>unit</code> - 减去期间的单位，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与指定周期相同类型的对象减去，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能减去单位 
+           </dd>
+<dd>
+<code><a href="../../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="query-java.time.temporal.TemporalQuery-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>query</h4> <pre>default &lt;R&gt; R query(<a href="../../../java/time/temporal/TemporalQuery.html" title="interface in java.time.temporal">TemporalQuery</a>&lt;R&gt; query)</pre>
+<div class="block">
+<span>使用指定的查询查询此日期。</span>
+<p> <span>这使用指定的查询策略对象查询此日期。</span> <span><code>TemporalQuery</code>对象定义了用于获取结果的逻辑。</span> <span>阅读查询的文档，以了解该方法的结果。</span> </p>
+<p> <span>该方法的结果是通过在指定的查询<code>this</code>作为参数调用<a href="../../../java/time/temporal/TemporalQuery.html#queryFrom-java.time.temporal.TemporalAccessor-"><code>TemporalQuery.queryFrom(TemporalAccessor)</code></a>方法获得的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/TemporalAccessor.html#query-java.time.temporal.TemporalQuery-">query</a></code>在接口 
+            <code><a href="../../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>R</code> - 结果的类型 
+           </dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>query</code> - 要调用的查询，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             查询结果可能返回null（由查询定义） 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法查询（由查询定义） 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出（由查询定义） 
+           </dd>
+</dl> </li>
+</ul> <a name="adjustInto-java.time.temporal.Temporal-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>adjustInto</h4> <pre>default <a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> adjustInto(<a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> temporal)</pre>
+<div class="block">
+<span>调整指定的时间对象与此对象的日期相同。</span>
+<p> <span>这返回与日期改变为与之相同的输入的相同可观察类型的时间对象。</span> </p>
+<p> <span>该调整是相当于使用<a href="../../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalField-long-"><code>Temporal.with(TemporalField, long)</code></a>传递<a href="../../../java/time/temporal/ChronoField.html#EPOCH_DAY"><code>ChronoField.EPOCH_DAY</code></a>作为字段。</span> </p>
+<p> <span>在大多数情况下，通过使用<a href="../../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalAdjuster-"><code>Temporal.with(TemporalAdjuster)</code></a>来<a href="../../../java/time/temporal/Temporal.html#with-java.time.temporal.TemporalAdjuster-">更正</a>调用模式：</span> </p>
+<pre>  <span>// these two lines are equivalent, but the second approach is recommended
+   temporal = thisLocalDate.adjustInto(temporal);
+   temporal = temporal.with(thisLocalDate);</span> </pre>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/TemporalAdjuster.html#adjustInto-java.time.temporal.Temporal-">adjustInto</a></code>在界面 
+            <code><a href="../../../java/time/temporal/TemporalAdjuster.html" title="interface in java.time.temporal">TemporalAdjuster</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>temporal</code> - 要调整的目标对象，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             调整对象，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能进行调整 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="until-java.time.temporal.Temporal-java.time.temporal.TemporalUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>until</h4> <pre>long until(<a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a> endExclusive,
+           <a href="../../../java/time/temporal/TemporalUnit.html" title="interface in java.time.temporal">TemporalUnit</a> unit)</pre>
+<div class="block">
+<span>根据指定的单位计算直到另一个日期的时间量。</span>
+<p> <span>这样可以计算两个<code>ChronoLocalDate</code>对象之间的时间<code>ChronoLocalDate</code> ，单位为<code>TemporalUnit</code> 。</span> <span>起点和终点是<code>this</code>和指定的日期。</span> <span>如果结束在开始之前，结果将为负数。</span> <span>所述<code>Temporal</code>传递给此方法被转换为<code>ChronoLocalDate</code>使用<a href="../../../java/time/chrono/Chronology.html#date-java.time.temporal.TemporalAccessor-"><code>Chronology.date(TemporalAccessor)</code></a> 。</span> <span>计算返回一个整数，表示两个日期之间的完整单位数。</span> <span>例如，可以使用<code>startDate.until(endDate, DAYS)</code>两个日期之间的天数。</span> </p>
+<p> <span>使用这种方法有两种等效的方法。</span> <span>第一个是调用这个方法。</span> <span>二是使用<a href="../../../java/time/temporal/TemporalUnit.html#between-java.time.temporal.Temporal-java.time.temporal.Temporal-"><code>TemporalUnit.between(Temporal, Temporal)</code></a> ：</span> </p>
+<pre>  <span>// these two lines are equivalent
+   amount = start.until(end, MONTHS);
+   amount = MONTHS.between(start, end);</span> </pre>
+<span>应该根据这种做法进行选择，使代码更易读。</span>
+<p> <span>计算在<code>ChronoUnit</code>的这种方法中<a href="../../../java/time/temporal/ChronoUnit.html" title="枚举在java.time.temporal">实现</a> 。</span> <span>单位<code>DAYS</code> ， <code>WEEKS</code> ， <code>MONTHS</code> ， <code>YEARS</code> ， <code>DECADES</code> ， <code>CENTURIES</code> ， <code>MILLENNIA</code>和<code>ERAS</code>应该由所有的实现支持。</span> <span>其他<code>ChronoUnit</code>值会抛出异常。</span> </p>
+<p> <span>如果该单元不是<code>ChronoUnit</code> ，则此方法的结果是通过调用获得<code>TemporalUnit.between(Temporal, Temporal)</code>传递<code>this</code>作为第一个参数和转换后的输入时间作为第二个参数。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/temporal/Temporal.html#until-java.time.temporal.Temporal-java.time.temporal.TemporalUnit-">until</a></code>在接口 
+            <code><a href="../../../java/time/temporal/Temporal.html" title="interface in java.time.temporal">Temporal</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>endExclusive</code> -结束日期，排他的，其被转换为 
+            <code>ChronoLocalDate</code>在相同的时间顺序，而不是空 
+           </dd>
+<dd>
+<code>unit</code> - 衡量金额的单位，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此日期与结束日期之间的时间 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果不能计算金额，或者结束时间不能转换为 
+            <code>ChronoLocalDate</code>
+</dd>
+<dd>
+<code><a href="../../../java/time/temporal/UnsupportedTemporalTypeException.html" title="class in java.time.temporal">UnsupportedTemporalTypeException</a></code> - 如果不支持本机 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="until-java.time.chrono.ChronoLocalDate-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>until</h4> <pre><a href="../../../java/time/chrono/ChronoPeriod.html" title="interface in java.time.chrono">ChronoPeriod</a> until(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> endDateExclusive)</pre>
+<div class="block">
+<span>将此日期和其他日期之间的期间计算为<code>ChronoPeriod</code> 。</span>
+<p> <span>这计算两个日期之间的期间。</span> <span>所有提供的年表使用年，月和日计算周期，但是<code>ChronoPeriod</code> API允许使用其他单位来表示期间。</span> </p>
+<p> <span>起点和终点是<code>this</code>和指定的日期。</span> <span>如果结束在开始之前，结果将为负数。</span> <span>每年，每月的负号将相同。</span> </p>
+<p> <span>计算使用此日期的年表进行。</span> <span>如有必要，输入日期将被转换为匹配。</span> </p>
+<p> <span>此实例是不可变的，不受此方法调用的影响。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>endDateExclusive</code> - 结束日期，排他，可能在任何年代，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此日期与结束日期之间的期间不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果期间无法计算 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/ArithmeticException.html" title="class in java.lang">ArithmeticException</a></code> - 如果发生数字溢出 
+           </dd>
+</dl> </li>
+</ul> <a name="format-java.time.format.DateTimeFormatter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>format</h4> <pre>default <a href="../../../java/lang/String.html" title="class in java.lang">String</a> format(<a href="../../../java/time/format/DateTimeFormatter.html" title="class in java.time.format">DateTimeFormatter</a> formatter)</pre>
+<div class="block">
+<span>使用指定的格式化程序格式化此日期。</span>
+<p> <span>此日期将传递给格式化程序以生成一个字符串。</span> </p>
+<p> <span>默认实现必须如下所示：</span> </p>
+<pre>  <span>return formatter.format(this);</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>formatter</code> - 格式化程序使用，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             格式化的日期字符串，不为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 打印时是否发生错误 
+           </dd>
+</dl> </li>
+</ul> <a name="atTime-java.time.LocalTime-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>atTime</h4> <pre>default <a href="../../../java/time/chrono/ChronoLocalDateTime.html" title="interface in java.time.chrono">ChronoLocalDateTime</a>&lt;?&gt; atTime(<a href="../../../java/time/LocalTime.html" title="class in java.time">LocalTime</a> localTime)</pre>
+<div class="block">
+<span>结合这个日期与时间创建一个<code>ChronoLocalDateTime</code> 。</span>
+<p> <span>这将返回一个<code>ChronoLocalDateTime</code>从该日起在指定的时间形成的。</span> <span>日期和时间的所有可能的组合都是有效的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>localTime</code> - 本地使用时间，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             从该日期到指定时间形成的本地日期时间，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="toEpochDay--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toEpochDay</h4> <pre>default long toEpochDay()</pre>
+<div class="block">
+<span>将此日期转换为大纪元日。</span>
+<p> <span><a href="../../../java/time/temporal/ChronoField.html#EPOCH_DAY"><code>Epoch Day count</code></a>是第0天为1970-01-01（ISO）的简单递增计数。</span> <span>这个定义对于所有的年表都是一样的，可以进行转换。</span> </p>
+<p> <span>此默认实现查询<code>EPOCH_DAY</code>字段。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             大纪元日等于这个日期 
+           </dd>
+</dl> </li>
+</ul> <a name="compareTo-java.time.chrono.ChronoLocalDate-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compareTo</h4> <pre>default int compareTo(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> other)</pre>
+<div class="block">
+<span>将此日期与其他日期进行比较，包括年表。</span>
+<p> <span>比较首先是基于时间线日期，然后是时间顺序。</span> <span>它与“等于”一致，如<a href="../../../java/lang/Comparable.html" title="java.lang中的接口"><code>Comparable</code></a>所定义。</span> </p>
+<p> <span>例如，以下是比较器顺序：</span> </p>
+<ol>
+<li> <code>2012-12-03 (ISO)</code> </li>
+<li> <code>2012-12-04 (ISO)</code> </li>
+<li> <code>2555-12-04 (ThaiBuddhist)</code> </li>
+<li> <code>2012-12-05 (ISO)</code> </li>
+</ol>
+<span>值2和＃3表示时间线上相同的日期。</span>
+<span>当两个值表示相同的日期时，比较年表ID以区分它们。</span>
+<span>需要这一步才能使排序“等于”。</span>
+<p> <span>如果所有被比较的日期对象都在相同的年表中，则不需要额外的时间顺序，只使用本地日期。</span> <span>要比较两个<code>TemporalAccessor</code>实例的日期，包括两个<code>TemporalAccessor</code>年表中的日期，请使用<a href="../../../java/time/temporal/ChronoField.html#EPOCH_DAY"><code>ChronoField.EPOCH_DAY</code></a>作为比较。</span> </p>
+<p> <span>此默认实现执行上面定义的比较。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Comparable.html#compareTo-T-">compareTo</a></code>在界面 
+            <code><a href="../../../java/lang/Comparable.html" title="interface in java.lang">Comparable</a>&lt;<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>other</code> - 要比较的其他日期，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             比较器值为负，如果较小，则如果较大则为正 
+           </dd>
+</dl> </li>
+</ul> <a name="isAfter-java.time.chrono.ChronoLocalDate-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isAfter</h4> <pre>default boolean isAfter(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> other)</pre>
+<div class="block">
+<span>检查此日期是否在忽略年表的指定日期之后。</span>
+<p> <span>此方法不同于在比较<a href="../../../java/time/chrono/ChronoLocalDate.html#compareTo-java.time.chrono.ChronoLocalDate-"><code>compareTo(java.time.chrono.ChronoLocalDate)</code></a>在于其只比较基础日期和不年表。</span> <span>这允许根据时间线位置来比较不同日历系统中的日期。</span> <span>这相当于使用<code>date1.toEpochDay() &amp;gt; date2.toEpochDay()</code> 。</span> </p>
+<p> <span>此默认实现基于时间段执行比较。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>other</code> - 要比较的其他日期，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果这是在指定日期之后，则为true 
+           </dd>
+</dl> </li>
+</ul> <a name="isBefore-java.time.chrono.ChronoLocalDate-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isBefore</h4> <pre>default boolean isBefore(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> other)</pre>
+<div class="block">
+<span>检查此日期是否在忽略年表前的指定日期之前。</span>
+<p> <span>此方法不同于在比较<a href="../../../java/time/chrono/ChronoLocalDate.html#compareTo-java.time.chrono.ChronoLocalDate-"><code>compareTo(java.time.chrono.ChronoLocalDate)</code></a>在于其只比较基础日期和不年表。</span> <span>这允许根据时间线位置来比较不同日历系统中的日期。</span> <span>这相当于使用<code>date1.toEpochDay() &amp;lt; date2.toEpochDay()</code> 。</span> </p>
+<p> <span>此默认实现基于时间段执行比较。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>other</code> - 要比较的其他日期，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果这是在指定日期之前，则为true 
+           </dd>
+</dl> </li>
+</ul> <a name="isEqual-java.time.chrono.ChronoLocalDate-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isEqual</h4> <pre>default boolean isEqual(<a href="../../../java/time/chrono/ChronoLocalDate.html" title="interface in java.time.chrono">ChronoLocalDate</a> other)</pre>
+<div class="block">
+<span>检查这个日期是否等于忽略年表的指定日期。</span>
+<p> <span>此方法不同于在比较<a href="../../../java/time/chrono/ChronoLocalDate.html#compareTo-java.time.chrono.ChronoLocalDate-"><code>compareTo(java.time.chrono.ChronoLocalDate)</code></a>在于其只比较基础日期和不年表。</span> <span>这允许根据时间线位置来比较不同日历系统中的日期。</span> <span>这相当于使用<code>date1.toEpochDay() == date2.toEpochDay()</code> 。</span> </p>
+<p> <span>此默认实现基于时间段执行比较。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>other</code> - 要比较的其他日期，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果基础日期等于指定日期，则为true 
+           </dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>boolean equals(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+<span>检查这个日期是否等于另一个日期，包括年表。</span>
+<p> <span>将此日期与另一个日期进行比较，确保日期和年表相同。</span> </p>
+<p> <span>要比较两个<code>TemporalAccessor</code>实例的日期，包括两个<code>TemporalAccessor</code>年代的日期，请使用<a href="../../../java/time/temporal/ChronoField.html#EPOCH_DAY"><code>ChronoField.EPOCH_DAY</code></a>作为比较。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在类别 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 要检查的对象，null返回false 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果这等于其他日期，则为真 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>int hashCode()</pre>
+<div class="block">
+            这个日期的哈希码。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#hashCode--">hashCode</a></code>在类别 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个合适的哈希码 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre><a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>将此日期输出为<code>String</code> 。</span>
+<p> <span>输出将包括完整的本地日期。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#toString--">toString</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             格式化日期，不为null 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

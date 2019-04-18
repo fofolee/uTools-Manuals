@@ -1,0 +1,1486 @@
+<div class="header">
+<div class="subTitle">
+     javax.sound.sampled 
+   </div>
+<h2 class="title" title="Class AudioSystem">Class AudioSystem</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.sound.sampled.AudioSystem</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public class <span class="typeNameLabel">AudioSystem</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span><code>AudioSystem</code>类作为采样音频系统资源的入口点。</span>
+<span>此类允许您查询和访问系统上安装的混音器。</span>
+<span><code>AudioSystem</code>包括用于在不同格式之间转换音频数据以及用于在音频文件和流之间进行转换的多种方法。</span>
+<span>它还提供了一种从<code><a href="../../../javax/sound/sampled/Line.html" title="interface in javax.sound.sampled"><code>Line</code></a></code>直接获取<code>AudioSystem</code>而不用混合器<code>AudioSystem</code>处理的方法。</span>
+<p> <span>属性可用于指定特定行类型的默认调音台。</span> <span>考虑系统属性和属性文件。</span> <span>该<code>sound.properties</code>性文件从具体实现的位置读取（通常它是<code>lib</code>在Java安装目录的目录）。</span> <span>如果属性既作为系统属性又在属性文件中存在，则系统属性优先。</span> <span>如果没有指定，则在可用设备中选择合适的默认值。</span> <span>属性文件的语法在<code>Properties.load</code>中<a href="../../../java/util/Properties.html#load-java.io.InputStream-">指定</a> 。</span> <span>下表列出了可用的属性键和哪些方法考虑：</span> </p>
+<span> Audio System Property Keys    Property Key Interface Affected Method(s)   <code>javax.sound.sampled.Clip</code> <a href="../../../javax/sound/sampled/Clip.html" title="interface in javax.sound.sampled"><code>Clip</code></a> <a href="../../../javax/sound/sampled/AudioSystem.html#getLine-javax.sound.sampled.Line.Info-"><code>getLine(javax.sound.sampled.Line.Info)</code></a>, <a href="../../../javax/sound/sampled/AudioSystem.html#getClip--"><code>getClip()</code></a> <code>javax.sound.sampled.Port</code> <a href="../../../javax/sound/sampled/Port.html" title="interface in javax.sound.sampled"><code>Port</code></a> <a href="../../../javax/sound/sampled/AudioSystem.html#getLine-javax.sound.sampled.Line.Info-"><code>getLine(javax.sound.sampled.Line.Info)</code></a> <code>javax.sound.sampled.SourceDataLine</code> <a href="../../../javax/sound/sampled/SourceDataLine.html" title="interface in javax.sound.sampled"><code>SourceDataLine</code></a> <a href="../../../javax/sound/sampled/AudioSystem.html#getLine-javax.sound.sampled.Line.Info-"><code>getLine(javax.sound.sampled.Line.Info)</code></a>, <a href="../../../javax/sound/sampled/AudioSystem.html#getSourceDataLine-javax.sound.sampled.AudioFormat-"><code>getSourceDataLine(javax.sound.sampled.AudioFormat)</code></a> <code>javax.sound.sampled.TargetDataLine</code> <a href="../../../javax/sound/sampled/TargetDataLine.html" title="interface in javax.sound.sampled"><code>TargetDataLine</code></a> <a href="../../../javax/sound/sampled/AudioSystem.html#getLine-javax.sound.sampled.Line.Info-"><code>getLine(javax.sound.sampled.Line.Info)</code></a>, <a href="../../../javax/sound/sampled/AudioSystem.html#getTargetDataLine-javax.sound.sampled.AudioFormat-"><code>getTargetDataLine(javax.sound.sampled.AudioFormat)</code></a> </span>
+<table border="0">
+</table>
+<span>属性值由提供程序类名称和混合器名称组成，以哈希标记（“＃”）分隔。</span>
+<span>提供者类名是具体的<a href="../../../javax/sound/sampled/spi/MixerProvider.html" title="javax.sound.sampled.spi中的类"><code>mixer provider</code></a>类的完全限定名称。</span>
+<span>混音器名称与<code>String</code>的<code>getName</code>方法返回的<code>getName</code>相<code>Mixer.Info</code> 。</span>
+<span>可以省略类名称或混音器名称。</span>
+<span>如果仅指定了类名称，则尾部哈希标记是可选的。</span>
+<p> <span>如果指定了提供程序类，并且可以从已安装的提供程序成功检索，则可以从提供程序<code>Mixer.Info</code>对象的列表。</span> <span>否则，或者当这些混音器不提供后续匹配时，该列表将从<a href="../../../javax/sound/sampled/AudioSystem.html#getMixerInfo--"><code>getMixerInfo()</code>检索</a>到包含所有可用的<code>Mixer.Info</code>对象。</span> </p>
+<p> <span>如果指定了混音器名称，则会搜索所得到的<code>Mixer.Info</code>对象的列表：第一个具有匹配名称的对象，其<code>Mixer</code>提供相应的行界面将被返回。</span> <span>如果找不到匹配的<code>Mixer.Info</code>对象，或者未指定混合器名称，将返回提供相应行界面的结果列表中的第一个混合器。</span> <span>例如，财产<code>javax.sound.sampled.Clip</code>一个值<code>"com.sun.media.sound.MixerProvider#SunClip"</code>将产生以下后果时<code>getLine</code>被称为请求<code>Clip</code>实例：如果类<code>com.sun.media.sound.MixerProvider</code>在安装的混频器提供者列表存在，则第<code>Clip</code>从第一混频器与名<code>"SunClip"</code>将被退回。</span> <span>如果无法找到，第<code>Clip</code>从指定的供应商的第一混频器将被退回，无论名称。</span> <span>如果没有，第<code>Clip</code>从第一<code>Mixer</code>名称为<code>"SunClip"</code>在所有混合器（如返回列表<code>getMixerInfo</code> ）将被退回，或者，如果没有找到，第<code>Clip</code>第一<code>Mixer</code> ，可以在找到返回所有混音器的列表。</span> <span>如果失败，也会抛出一个<code>IllegalArgumentException</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.3 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/sound/sampled/AudioFormat.html" title="javax.sound.sampled中的类"><code>AudioFormat</code></a> ， <a href="../../../javax/sound/sampled/AudioInputStream.html" title="javax.sound.sampled中的类"><code>AudioInputStream</code></a> ， <a href="../../../javax/sound/sampled/Mixer.html" title="javax.sound.sampled中的接口"><code>Mixer</code></a> ， <a href="../../../javax/sound/sampled/Line.html" title="javax.sound.sampled中的接口"><code>Line</code></a> ， <a href="../../../javax/sound/sampled/Line.Info.html" title="javax.sound.sampled中的类"><code>Line.Info</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#NOT_SPECIFIED">NOT_SPECIFIED</a></span></code>
+<div class="block">
+              一个代表未知数值的整数。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioFileFormat.html" title="class in javax.sound.sampled">AudioFileFormat</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioFileFormat-java.io.File-">getAudioFileFormat</a></span>(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)</code>
+<div class="block">
+              获取指定的音频文件格式 
+             <code>File</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioFileFormat.html" title="class in javax.sound.sampled">AudioFileFormat</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioFileFormat-java.io.InputStream-">getAudioFileFormat</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)</code>
+<div class="block">
+              获取提供的输入流的音频文件格式。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioFileFormat.html" title="class in javax.sound.sampled">AudioFileFormat</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioFileFormat-java.net.URL-">getAudioFileFormat</a></span>(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)</code>
+<div class="block">
+              获取指定URL的音频文件格式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioFileTypes--">getAudioFileTypes</a></span>()</code>
+<div class="block">
+              获取系统提供文件写入支持的文件类型。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioFileTypes-javax.sound.sampled.AudioInputStream-">getAudioFileTypes</a></span>(<a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> stream)</code>
+<div class="block">
+              从指定的音频输入流获取系统可以写入的文件类型。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioInputStream-javax.sound.sampled.AudioFormat.Encoding-javax.sound.sampled.AudioInputStream-">getAudioInputStream</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a> targetEncoding, <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> sourceStream)</code>
+<div class="block">
+              通过转换所提供的音频输入流来获得所指示的编码的音频输入流。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioInputStream-javax.sound.sampled.AudioFormat-javax.sound.sampled.AudioInputStream-">getAudioInputStream</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> targetFormat, <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> sourceStream)</code>
+<div class="block">
+              通过转换所提供的音频输入流来获得指示格式的音频输入流。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioInputStream-java.io.File-">getAudioInputStream</a></span>(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)</code>
+<div class="block">
+              从提供的 
+             <code>File</code>获取音频输入流。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioInputStream-java.io.InputStream-">getAudioInputStream</a></span>(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)</code>
+<div class="block">
+              从提供的输入流中获取音频输入流。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getAudioInputStream-java.net.URL-">getAudioInputStream</a></span>(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)</code>
+<div class="block">
+              从提供的URL获取音频输入流。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/Clip.html" title="interface in javax.sound.sampled">Clip</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getClip--">getClip</a></span>()</code>
+<div class="block">
+              获取可用于播放音频文件或音频流的剪辑。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/Clip.html" title="interface in javax.sound.sampled">Clip</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getClip-javax.sound.sampled.Mixer.Info-">getClip</a></span>(<a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a> mixerInfo)</code>
+<div class="block">
+              从指定的混音器中获取可用于播放音频文件或音频流的剪辑。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/Line.html" title="interface in javax.sound.sampled">Line</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getLine-javax.sound.sampled.Line.Info-">getLine</a></span>(<a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a> info)</code>
+<div class="block">
+              获取与指定的 
+             <code>Line.Info</code>对象中的描述匹配的行。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/Mixer.html" title="interface in javax.sound.sampled">Mixer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getMixer-javax.sound.sampled.Mixer.Info-">getMixer</a></span>(<a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a> info)</code>
+<div class="block">
+              获得所要求的音频混音器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getMixerInfo--">getMixerInfo</a></span>()</code>
+<div class="block">
+              获取一组混合信息对象，表示系统当前安装的一组音频混合器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/SourceDataLine.html" title="interface in javax.sound.sampled">SourceDataLine</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getSourceDataLine-javax.sound.sampled.AudioFormat-">getSourceDataLine</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> format)</code>
+<div class="block">
+              获取可用于以 
+             <code>AudioFormat</code>对象指定的格式播放音频数据的源数据线。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/SourceDataLine.html" title="interface in javax.sound.sampled">SourceDataLine</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getSourceDataLine-javax.sound.sampled.AudioFormat-javax.sound.sampled.Mixer.Info-">getSourceDataLine</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> format, <a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a> mixerinfo)</code>
+<div class="block">
+              获得可用于在由指定的格式回放音频数据的源数据行 
+             <code>AudioFormat</code>对象，通过由指定的混频器提供 
+             <code>Mixer.Info</code>对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getSourceLineInfo-javax.sound.sampled.Line.Info-">getSourceLineInfo</a></span>(<a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a> info)</code>
+<div class="block">
+              获取有关所安装的混音器支持的特定类型的所有源行的信息。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/TargetDataLine.html" title="interface in javax.sound.sampled">TargetDataLine</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getTargetDataLine-javax.sound.sampled.AudioFormat-">getTargetDataLine</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> format)</code>
+<div class="block">
+              获取可用于以 
+             <code>AudioFormat</code>对象指定的格式录制音频数据的目标数据线。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/TargetDataLine.html" title="interface in javax.sound.sampled">TargetDataLine</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getTargetDataLine-javax.sound.sampled.AudioFormat-javax.sound.sampled.Mixer.Info-">getTargetDataLine</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> format, <a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a> mixerinfo)</code>
+<div class="block">
+              获得可用于在由指定的格式记录音频数据的目标数据行 
+             <code>AudioFormat</code>对象，通过由指定的混频器提供 
+             <code>Mixer.Info</code>对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getTargetEncodings-javax.sound.sampled.AudioFormat.Encoding-">getTargetEncodings</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a> sourceEncoding)</code>
+<div class="block">
+              获取系统可以使用一组已安装的格式转换器从具有指定编码的音频输入流中获取的编码。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getTargetEncodings-javax.sound.sampled.AudioFormat-">getTargetEncodings</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> sourceFormat)</code>
+<div class="block">
+              获取系统可以使用一组已安装的格式转换器从指定格式的音频输入流中获取的编码。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getTargetFormats-javax.sound.sampled.AudioFormat.Encoding-javax.sound.sampled.AudioFormat-">getTargetFormats</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a> targetEncoding, <a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> sourceFormat)</code>
+<div class="block">
+              获取具有特定编码的格式，并且系统可以使用一组已安装的格式转换器从指定格式的流中获取。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>static <a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#getTargetLineInfo-javax.sound.sampled.Line.Info-">getTargetLineInfo</a></span>(<a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a> info)</code>
+<div class="block">
+              获取有关所安装的混音器支持的特定类型的所有目标行的信息。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#isConversionSupported-javax.sound.sampled.AudioFormat.Encoding-javax.sound.sampled.AudioFormat-">isConversionSupported</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a> targetEncoding, <a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> sourceFormat)</code>
+<div class="block">
+              指示是否可以从具有指定格式的音频输入流获取指定编码的音频输入流。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#isConversionSupported-javax.sound.sampled.AudioFormat-javax.sound.sampled.AudioFormat-">isConversionSupported</a></span>(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> targetFormat, <a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> sourceFormat)</code>
+<div class="block">
+              指示是否可以从另一指定格式的音频输入流获取指定格式的音频输入流。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#isFileTypeSupported-javax.sound.sampled.AudioFileFormat.Type-">isFileTypeSupported</a></span>(<a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a> fileType)</code>
+<div class="block">
+              指示系统是否提供了对指定文件类型的文件写入支持。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#isFileTypeSupported-javax.sound.sampled.AudioFileFormat.Type-javax.sound.sampled.AudioInputStream-">isFileTypeSupported</a></span>(<a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a> fileType, <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> stream)</code>
+<div class="block">
+              指示是否可以从指定的音频输入流中写入指定的文件类型的音频文件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#isLineSupported-javax.sound.sampled.Line.Info-">isLineSupported</a></span>(<a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a> info)</code>
+<div class="block">
+              指示系统是否支持与指定的 
+             <code>Line.Info</code>对象匹配的任何行。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#write-javax.sound.sampled.AudioInputStream-javax.sound.sampled.AudioFileFormat.Type-java.io.File-">write</a></span>(<a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> stream, <a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a> fileType, <a href="../../../java/io/File.html" title="class in java.io">File</a> out)</code>
+<div class="block">
+              将指定文件类型的音频文件的字节流写入提供的外部文件。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i30">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/sound/sampled/AudioSystem.html#write-javax.sound.sampled.AudioInputStream-javax.sound.sampled.AudioFileFormat.Type-java.io.OutputStream-">write</a></span>(<a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> stream, <a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a> fileType, <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> out)</code>
+<div class="block">
+              将指定文件类型的音频文件的字节流写入提供的输出流。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="NOT_SPECIFIED">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>NOT_SPECIFIED</h4> <pre>public static final int NOT_SPECIFIED</pre>
+<div class="block">
+<span>一个代表未知数值的整数。</span>
+<span>该值仅适用于通常不采取负值的带符号数量。</span>
+<span>示例包括文件大小，帧大小，缓冲区大小和采样率。</span>
+<span>许多Java Sound构造方法接受的值<code>NOT_SPECIFIED</code>这样的参数。</span>
+<span>其他方法也可以接受或返回此值，如文件所示。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#javax.sound.sampled.AudioSystem.NOT_SPECIFIED">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getMixerInfo--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMixerInfo</h4> <pre>public static <a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a>[] getMixerInfo()</pre>
+<div class="block">
+            获取一组混合信息对象，表示系统当前安装的一组音频混合器。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一系列当前安装的混音器的信息对象。</span>
+<span>如果系统上没有可用的混音器，则返回长度为0的数组。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#getMixer-javax.sound.sampled.Mixer.Info-"><code>getMixer(javax.sound.sampled.Mixer.Info)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMixer-javax.sound.sampled.Mixer.Info-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMixer</h4> <pre>public static <a href="../../../javax/sound/sampled/Mixer.html" title="interface in javax.sound.sampled">Mixer</a> getMixer(<a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a> info)</pre>
+<div class="block">
+            获得所要求的音频混音器。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>info</code> - 表示所需混音器的 
+            <code>Mixer.Info</code>对象，或系统默认混音器的 
+            <code>null</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             请求的混音器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果请求的混音器由于安全限制而不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果info对象不表示系统上安装的混音器 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#getMixerInfo--"><code>getMixerInfo()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSourceLineInfo-javax.sound.sampled.Line.Info-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSourceLineInfo</h4> <pre>public static <a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a>[] getSourceLineInfo(<a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a> info)</pre>
+<div class="block">
+            获取有关所安装的混音器支持的特定类型的所有源行的信息。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>info</code> - 一个 
+            <code>Line.Info</code>对象，指定要求哪些信息的行的种类 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>描述符合所请求类型的源行的<code>Line.Info</code>对象数组。</span>
+<span>如果不支持匹配的源行，则返回长度为0的数组。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/Mixer.html#getSourceLineInfo-javax.sound.sampled.Line.Info-"><code>Mixer.getSourceLineInfo(Line.Info)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getTargetLineInfo-javax.sound.sampled.Line.Info-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTargetLineInfo</h4> <pre>public static <a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a>[] getTargetLineInfo(<a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a> info)</pre>
+<div class="block">
+            获取有关所安装的混音器支持的特定类型的所有目标行的信息。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>info</code> - 一个 
+            <code>Line.Info</code>对象，指定请求哪些信息的行的种类 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>描述符合所请求类型的目标行的<code>Line.Info</code>对象的数组。</span>
+<span>如果不支持匹配的目标行，则返回长度为0的数组。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/Mixer.html#getTargetLineInfo-javax.sound.sampled.Line.Info-"><code>Mixer.getTargetLineInfo(Line.Info)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isLineSupported-javax.sound.sampled.Line.Info-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isLineSupported</h4> <pre>public static boolean isLineSupported(<a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a> info)</pre>
+<div class="block">
+<span>指示系统是否支持与指定的<code>Line.Info</code>对象匹配的任何行。</span>
+<span>如果任何已安装的混音器支持该线路，则支持线路。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>info</code> - 一个 
+            <code>Line.Info</code>支持被查询的行的 
+            <code>Line.Info</code>对象 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果至少一个匹配线被支撑，否则 
+            <code>false</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/Mixer.html#isLineSupported-javax.sound.sampled.Line.Info-"><code>Mixer.isLineSupported(Line.Info)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getLine-javax.sound.sampled.Line.Info-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLine</h4> <pre>public static <a href="../../../javax/sound/sampled/Line.html" title="interface in javax.sound.sampled">Line</a> getLine(<a href="../../../javax/sound/sampled/Line.Info.html" title="class in javax.sound.sampled">Line.Info</a> info)
+                    throws <a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></pre>
+<div class="block">
+<span>获取与指定的<code>Line.Info</code>对象中的描述匹配的行。</span>
+<p> <span>如果<code>DataLine</code> DataLine，并且<code>info</code>是指定至少一个完全限定音频格式的<code>DataLine.Info</code>的实例，则最后一个将被用作返回的<code>DataLine</code>的默认格式。</span> </p>
+<p> <span>如果系统属性<code>javax.sound.sampled.Clip</code> ， <code>javax.sound.sampled.Port</code> ， <code>javax.sound.sampled.SourceDataLine</code>和<code>javax.sound.sampled.TargetDataLine</code>被定义或者在文件“sound.properties”定义的，它们被用来获取默认的行。</span> <span>详情请参考<a href="../../../javax/sound/sampled/AudioSystem.html" title="javax.sound.sampled中的类"><code>class description</code></a> 。</span> <span>如果没有设置相应的属性，或者没有安装属性中要求的混音器或不提供所请求的线路，则会根据请求的线路类型查询所有安装的混音器。</span> <span>一条线将从提供所请求线路类型的第一台混音器返回。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>info</code> - 
+            <code>Line.Info</code>所需类型的行的 
+            <code>Line.Info</code>对象 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一条要求的种类 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></code> - 如果由于资源限制，匹配的行不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果由于安全限制，匹配的行不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果系统不支持通过任何安装的混音器匹配指定的 
+            <code>Line.Info</code>对象的至少一行 
+           </dd>
+</dl> </li>
+</ul> <a name="getClip--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getClip</h4> <pre>public static <a href="../../../javax/sound/sampled/Clip.html" title="interface in javax.sound.sampled">Clip</a> getClip()
+                    throws <a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></pre>
+<div class="block">
+<span>获取可用于播放音频文件或音频流的剪辑。</span>
+<span>返回的剪辑将由默认的系统混音器提供，或者如果不可能，则由支持<code>Clip</code>对象的系统中安装的任何其他调音台提供。</span>
+<p> <span>必须使用<code>open(AudioFormat)</code>或<code>open(AudioInputStream)</code>方法打开返回的剪辑。</span> </p>
+<p> <span>这是一种在内部使用<code>getMixer</code>和<code>getLine</code>的高级方法。</span> </p>
+<p> <span>如果定义了系统属性<code>javax.sound.sampled.Clip</code> ，或者在文件“sound.properties”中定义了它，则用于检索默认剪辑。</span> <span>详情请参考<a href="../../../javax/sound/sampled/AudioSystem.html" title="javax.sound.sampled中的类"><code>class description</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所需的剪辑对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></code> - 如果由于资源限制，剪辑对象不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果由于安全限制，剪辑对象不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果系统通过任何安装的混音器不支持至少一个剪辑实例 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#getClip-javax.sound.sampled.Mixer.Info-"><code>getClip(Mixer.Info)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getClip-javax.sound.sampled.Mixer.Info-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getClip</h4> <pre>public static <a href="../../../javax/sound/sampled/Clip.html" title="interface in javax.sound.sampled">Clip</a> getClip(<a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a> mixerInfo)
+                    throws <a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></pre>
+<div class="block">
+<span>从指定的混音器中获取可用于播放音频文件或音频流的剪辑。</span>
+<p> <span>必须使用<code>open(AudioFormat)</code>或<code>open(AudioInputStream)</code>方法打开返回的剪辑。</span> </p>
+<p> <span>这是一种内部使用<code>getMixer</code>和<code>getLine</code>的高级方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>mixerInfo</code> - 表示所需混音器的 
+            <code>Mixer.Info</code>对象，或系统默认混音器的 
+            <code>null</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             来自指定混音器的剪辑对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></code> - 如果剪辑由于资源限制而无法从此混音器中使用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果由于安全限制，剪辑不可用于此混音器 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果系统不支持通过指定的混音器至少一个剪辑 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#getClip--"><code>getClip()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSourceDataLine-javax.sound.sampled.AudioFormat-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSourceDataLine</h4> <pre>public static <a href="../../../javax/sound/sampled/SourceDataLine.html" title="interface in javax.sound.sampled">SourceDataLine</a> getSourceDataLine(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> format)
+                                        throws <a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></pre>
+<div class="block">
+<span>获取可用于以<code>AudioFormat</code>对象指定的格式播放音频数据的源数据线。</span>
+<span>返回的行将由默认的系统调音台提供，或者如果不可能，则通过系统中安装的任何其他调音台来支持匹配的<code>SourceDataLine</code>对象。</span>
+<p> <span>返回的行应使用<code>open(AudioFormat)</code>或<code>open(AudioFormat, int)</code>方法打开。</span> </p>
+<p> <span>这是一种在内部使用<code>getMixer</code>和<code>getLine</code>的高级方法。</span> </p>
+<p> <span>返回的<code>SourceDataLine</code>的默认音频格式将使用format <code>format</code> 。</span> </p>
+<p> <span>如果系统属性<code>javax.sound.sampled.SourceDataLine</code>已被定义，或者在文件“sound.properties”中定义，则用于检索默认的源数据行。</span> <span>详情请参阅<a href="../../../javax/sound/sampled/AudioSystem.html" title="javax.sound.sampled中的类"><code>class description</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>format</code> - 指定所支持的返回行的音频格式的 
+            <code>AudioFormat</code>对象，或任何音频格式的 
+            <code>null</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所需的 
+            <code>SourceDataLine</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></code> - 如果匹配的源数据行由于资源限制而不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果由于安全限制，匹配的源数据行不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果系统不支持通过任何安装的混音器支持指定音频格式的至少一个源数据线 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#getSourceDataLine-javax.sound.sampled.AudioFormat-javax.sound.sampled.Mixer.Info-"><code>getSourceDataLine(AudioFormat, Mixer.Info)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getSourceDataLine-javax.sound.sampled.AudioFormat-javax.sound.sampled.Mixer.Info-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSourceDataLine</h4> <pre>public static <a href="../../../javax/sound/sampled/SourceDataLine.html" title="interface in javax.sound.sampled">SourceDataLine</a> getSourceDataLine(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> format,
+                                               <a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a> mixerinfo)
+                                        throws <a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></pre>
+<div class="block">
+<span>获得可用于在由指定的格式回放音频数据的源数据行<code>AudioFormat</code>对象，通过由指定的混频器提供<code>Mixer.Info</code>对象。</span>
+<p> <span>返回的行应使用<code>open(AudioFormat)</code>或<code>open(AudioFormat, int)</code>方法打开。</span> </p>
+<p> <span>这是一种在内部使用<code>getMixer</code>和<code>getLine</code>的高级方法。</span> </p>
+<p> <span>返回的<code>SourceDataLine</code>的默认音频格式将被初始化为<code>format</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>format</code> - 指定所支持的返回行的音频格式的 
+            <code>AudioFormat</code>对象，或任何音频格式的 
+            <code>null</code>
+</dd>
+<dd>
+<code>mixerinfo</code> - 表示所需混音器的 
+            <code>Mixer.Info</code>对象，或系统默认混音器的 
+            <code>null</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所需的 
+            <code>SourceDataLine</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></code> - 如果由于资源限制，匹配的源数据线不能从指定的调音台获得 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果由于安全限制，匹配的源数据线不能从指定的调音台获得 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果指定的混音器不支持至少一个支持指定音频格式的源数据线 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#getSourceDataLine-javax.sound.sampled.AudioFormat-"><code>getSourceDataLine(AudioFormat)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getTargetDataLine-javax.sound.sampled.AudioFormat-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTargetDataLine</h4> <pre>public static <a href="../../../javax/sound/sampled/TargetDataLine.html" title="interface in javax.sound.sampled">TargetDataLine</a> getTargetDataLine(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> format)
+                                        throws <a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></pre>
+<div class="block">
+<span>获取可用于以<code>AudioFormat</code>对象指定的格式录制音频数据的目标数据线。</span>
+<span>返回的行将由默认的系统混音器提供，或者如果不可能，则由系统中安装的任何其他调音台提供支持匹配的<code>TargetDataLine</code>对象。</span>
+<p> <span>返回的行应使用<code>open(AudioFormat)</code>或<code>open(AudioFormat, int)</code>打开。</span> </p>
+<p> <span>这是一种在内部使用<code>getMixer</code>和<code>getLine</code>的高级方法。</span> </p>
+<p> <span>返回的<code>TargetDataLine</code>的默认音频格式将被初始化为<code>format</code> 。</span> </p>
+<p> <span>如果定义了系统属性<code>javax.sound.sampled.TargetDataLine</code> ，或者在文件“sound.properties”中定义了它，则用于检索默认目标数据行。</span> <span>详情请参考<a href="../../../javax/sound/sampled/AudioSystem.html" title="javax.sound.sampled中的类"><code>class description</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>format</code> - 指定返回行支持的音频格式的 
+            <code>AudioFormat</code>对象，或任何音频格式的 
+            <code>null</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所需的 
+            <code>TargetDataLine</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></code> - 如果匹配的目标数据行由于资源限制而不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果由于安全限制，匹配的目标数据行不可用 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果系统不支持至少一个目标数据线，通过任何安装的混音器支持指定的音频格式 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/sound/sampled/AudioSystem.html#getTargetDataLine-javax.sound.sampled.AudioFormat-javax.sound.sampled.Mixer.Info-"><code>getTargetDataLine(AudioFormat, Mixer.Info)</code></a> ， <a href="../../../javax/sound/sampled/AudioPermission.html" title="javax.sound.sampled中的类"><code>AudioPermission</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getTargetDataLine-javax.sound.sampled.AudioFormat-javax.sound.sampled.Mixer.Info-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTargetDataLine</h4> <pre>public static <a href="../../../javax/sound/sampled/TargetDataLine.html" title="interface in javax.sound.sampled">TargetDataLine</a> getTargetDataLine(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> format,
+                                               <a href="../../../javax/sound/sampled/Mixer.Info.html" title="class in javax.sound.sampled">Mixer.Info</a> mixerinfo)
+                                        throws <a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></pre>
+<div class="block">
+<span>获得可用于在由指定的格式记录音频数据的目标数据行<code>AudioFormat</code>对象，通过由指定的混频器提供<code>Mixer.Info</code>对象。</span>
+<p> <span>返回行应使用<code>open(AudioFormat)</code>或<code>open(AudioFormat, int)</code>方法打开。</span> </p>
+<p> <span>这是一种在内部使用<code>getMixer</code>和<code>getLine</code>的高级方法。</span> </p>
+<p> <span>返回的<code>TargetDataLine</code>的默认音频格式将被初始化为<code>format</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>format</code> - 指定所支持的返回行的音频格式的 
+            <code>AudioFormat</code>对象，或任何音频格式的 
+            <code>null</code>
+</dd>
+<dd>
+<code>mixerinfo</code> - 表示所需混音器的 
+            <code>Mixer.Info</code>对象，或系统默认混音器的 
+            <code>null</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所需的 
+            <code>TargetDataLine</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/LineUnavailableException.html" title="class in javax.sound.sampled">LineUnavailableException</a></code> - 如果由于资源限制，匹配的目标数据线不能从指定的混合器获得 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/SecurityException.html" title="class in java.lang">SecurityException</a></code> - 如果由于安全限制，匹配的目标数据线不能从指定的调音台获得 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果指定的混音器不支持至少一个支持指定音频格式的目标数据线 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/sound/sampled/AudioSystem.html#getTargetDataLine-javax.sound.sampled.AudioFormat-"><code>getTargetDataLine(AudioFormat)</code></a> ， <a href="../../../javax/sound/sampled/AudioPermission.html" title="javax.sound.sampled中的类"><code>AudioPermission</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getTargetEncodings-javax.sound.sampled.AudioFormat.Encoding-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTargetEncodings</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a>[] getTargetEncodings(<a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a> sourceEncoding)</pre>
+<div class="block">
+            获取系统可以使用一组已安装的格式转换器从具有指定编码的音频输入流中获取的编码。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>sourceEncoding</code> - 查询转换支持的编码 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>编码数组。</span>
+<span>如果<code>sourceEncoding</code>不被支持，则返回长度为0的数组。</span>
+<span>否则，数组的长度至少为1，表示<code>sourceEncoding</code> （无转换）。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getTargetEncodings-javax.sound.sampled.AudioFormat-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTargetEncodings</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a>[] getTargetEncodings(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> sourceFormat)</pre>
+<div class="block">
+            获取系统可以使用一组已安装的格式转换器从指定格式的音频输入流中获取的编码。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>sourceFormat</code> - 查询转换的音频格式 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>编码数组。</span>
+<span>如果<code>sourceFormat</code>不被支持，则返回长度为0的数组。</span>
+<span>否则，该阵列将具有至少1的长度，表示所述编码<code>sourceFormat</code> （不转换）。</span>
+</dd>
+</dl> </li>
+</ul> <a name="isConversionSupported-javax.sound.sampled.AudioFormat.Encoding-javax.sound.sampled.AudioFormat-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isConversionSupported</h4> <pre>public static boolean isConversionSupported(<a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a> targetEncoding,
+                                            <a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> sourceFormat)</pre>
+<div class="block">
+            指示是否可以从具有指定格式的音频输入流获取指定编码的音频输入流。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>targetEncoding</code> - 转换后的所需编码 
+           </dd>
+<dd>
+<code>sourceFormat</code> - 转换前的音频格式 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果转换支持，否则 
+            <code>false</code>
+</dd>
+</dl> </li>
+</ul> <a name="getAudioInputStream-javax.sound.sampled.AudioFormat.Encoding-javax.sound.sampled.AudioInputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioInputStream</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> getAudioInputStream(<a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a> targetEncoding,
+                                                   <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> sourceStream)</pre>
+<div class="block">
+            通过转换所提供的音频输入流来获得所指示的编码的音频输入流。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>targetEncoding</code> - 转换后的所需编码 
+           </dd>
+<dd>
+<code>sourceStream</code> - 要转换的流 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             指示编码的音频输入流 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果不支持转换 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#getTargetEncodings-javax.sound.sampled.AudioFormat.Encoding-"><code>getTargetEncodings(AudioFormat.Encoding)</code></a> ， 
+            <a href="../../../javax/sound/sampled/AudioSystem.html#getTargetEncodings-javax.sound.sampled.AudioFormat-"><code>getTargetEncodings(AudioFormat)</code></a> ， 
+            <a href="../../../javax/sound/sampled/AudioSystem.html#isConversionSupported-javax.sound.sampled.AudioFormat.Encoding-javax.sound.sampled.AudioFormat-"><code>isConversionSupported(AudioFormat.Encoding, AudioFormat)</code></a> ， 
+            <a href="../../../javax/sound/sampled/AudioSystem.html#getAudioInputStream-javax.sound.sampled.AudioFormat-javax.sound.sampled.AudioInputStream-"><code>getAudioInputStream(AudioFormat, AudioInputStream)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getTargetFormats-javax.sound.sampled.AudioFormat.Encoding-javax.sound.sampled.AudioFormat-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTargetFormats</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a>[] getTargetFormats(<a href="../../../javax/sound/sampled/AudioFormat.Encoding.html" title="class in javax.sound.sampled">AudioFormat.Encoding</a> targetEncoding,
+                                             <a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> sourceFormat)</pre>
+<div class="block">
+            获取具有特定编码的格式，并且系统可以使用一组已安装的格式转换器从指定格式的流中获取。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>targetEncoding</code> - 转换后的所需编码 
+           </dd>
+<dd>
+<code>sourceFormat</code> - 转换前的音频格式 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>数组格式。</span>
+<span>如果不支持指定编码的格式，则返回长度为0的数组。</span>
+</dd>
+</dl> </li>
+</ul> <a name="isConversionSupported-javax.sound.sampled.AudioFormat-javax.sound.sampled.AudioFormat-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isConversionSupported</h4> <pre>public static boolean isConversionSupported(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> targetFormat,
+                                            <a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> sourceFormat)</pre>
+<div class="block">
+            指示是否可以从另一指定格式的音频输入流获取指定格式的音频输入流。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>targetFormat</code> - 转换后所需的音频格式 
+           </dd>
+<dd>
+<code>sourceFormat</code> - 转换前的音频格式 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果转换支持，否则 
+            <code>false</code>
+</dd>
+</dl> </li>
+</ul> <a name="getAudioInputStream-javax.sound.sampled.AudioFormat-javax.sound.sampled.AudioInputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioInputStream</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> getAudioInputStream(<a href="../../../javax/sound/sampled/AudioFormat.html" title="class in javax.sound.sampled">AudioFormat</a> targetFormat,
+                                                   <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> sourceStream)</pre>
+<div class="block">
+            通过转换所提供的音频输入流来获得指示格式的音频输入流。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>targetFormat</code> - 转换后所需的音频格式 
+           </dd>
+<dd>
+<code>sourceStream</code> - 要转换的流 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             指示格式的音频输入流 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果不支持转换#see #getTargetEncodings（AudioFormat） 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#getTargetFormats-javax.sound.sampled.AudioFormat.Encoding-javax.sound.sampled.AudioFormat-"><code>getTargetFormats(AudioFormat.Encoding, AudioFormat)</code></a> ， 
+            <a href="../../../javax/sound/sampled/AudioSystem.html#isConversionSupported-javax.sound.sampled.AudioFormat-javax.sound.sampled.AudioFormat-"><code>isConversionSupported(AudioFormat, AudioFormat)</code></a> ， 
+            <a href="../../../javax/sound/sampled/AudioSystem.html#getAudioInputStream-javax.sound.sampled.AudioFormat.Encoding-javax.sound.sampled.AudioInputStream-"><code>getAudioInputStream(AudioFormat.Encoding, AudioInputStream)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getAudioFileFormat-java.io.InputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioFileFormat</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioFileFormat.html" title="class in javax.sound.sampled">AudioFileFormat</a> getAudioFileFormat(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)
+                                          throws <a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a>,
+                                                 <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>获取提供的输入流的音频文件格式。</span>
+<span>流必须指向有效的音频文件数据。</span>
+<span>该方法的实现可能需要多个解析器来检查流以确定它们是否支持它。</span>
+<span>这些解析器必须能够标记流，读取足够的数据以确定它们是否支持流，如果不是，则将流的读指针重置为其原始位置。</span>
+<span>如果输入流不支持这些操作，则此方法可能会失败，并带有<code>IOException</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>stream</code> - 应提取文件格式信息的输入流 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>AudioFileFormat</code>流的音频文件格式的 
+            <code>AudioFileFormat</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a></code> - 如果流不指向系统识别的有效音频文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果输入/输出异常发生 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/io/InputStream.html#markSupported--"><code>InputStream.markSupported()</code></a> ， 
+            <a href="../../../java/io/InputStream.html#mark-int-"><code>InputStream.mark(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getAudioFileFormat-java.net.URL-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioFileFormat</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioFileFormat.html" title="class in javax.sound.sampled">AudioFileFormat</a> getAudioFileFormat(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)
+                                          throws <a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a>,
+                                                 <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>获取指定URL的音频文件格式。</span>
+<span>URL必须指向有效的音频文件数据。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>url</code> - 应提取文件格式信息的URL 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>AudioFileFormat</code>音频文件格式的 
+            <code>AudioFileFormat</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a></code> - 如果URL不指向系统识别的有效音频文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果输入/输出异常发生 
+           </dd>
+</dl> </li>
+</ul> <a name="getAudioFileFormat-java.io.File-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioFileFormat</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioFileFormat.html" title="class in javax.sound.sampled">AudioFileFormat</a> getAudioFileFormat(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)
+                                          throws <a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a>,
+                                                 <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>获取指定的音频文件格式<code>File</code> 。</span>
+<span><code>File</code>必须指向有效的音频文件数据。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>file</code> - 
+            <code>File</code>提取文件格式信息的File 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>AudioFileFormat</code>音频文件格式的 
+            <code>AudioFileFormat</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a></code> - 如果 
+            <code>File</code>未指向系统识别的有效音频文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getAudioInputStream-java.io.InputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioInputStream</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> getAudioInputStream(<a href="../../../java/io/InputStream.html" title="class in java.io">InputStream</a> stream)
+                                            throws <a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a>,
+                                                   <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从提供的输入流中获取音频输入流。</span>
+<span>流必须指向有效的音频文件数据。</span>
+<span>该方法的实现可能需要多个解析器来检查流以确定它们是否支持它。</span>
+<span>这些解析器必须能够标记流，读取足够的数据以确定它们是否支持流，如果不是，则将流的读指针重置为其原始位置。</span>
+<span>如果输入流不支持这些操作，则此方法可能会失败，并带有<code>IOException</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>stream</code> -从该输入流 
+            <code>AudioInputStream</code>应当被构造 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             基于输入流中包含的音频文件数据的一个 
+            <code>AudioInputStream</code>对象。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a></code> - 如果流不指向系统识别的有效音频文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/io/InputStream.html#markSupported--"><code>InputStream.markSupported()</code></a> ， 
+            <a href="../../../java/io/InputStream.html#mark-int-"><code>InputStream.mark(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getAudioInputStream-java.net.URL-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioInputStream</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> getAudioInputStream(<a href="../../../java/net/URL.html" title="class in java.net">URL</a> url)
+                                            throws <a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a>,
+                                                   <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从提供的URL获取音频输入流。</span>
+<span>URL必须指向有效的音频文件数据。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>url</code> -对于其中的URL 
+            <code>AudioInputStream</code>应当建立 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个基于URL指向的音频文件数据的 
+            <code>AudioInputStream</code>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a></code> - 如果URL不指向系统识别的有效音频文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getAudioInputStream-java.io.File-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioInputStream</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> getAudioInputStream(<a href="../../../java/io/File.html" title="class in java.io">File</a> file)
+                                            throws <a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a>,
+                                                   <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>从提供的<code>File</code>获取音频输入流。</span>
+<span><code>File</code>必须指向有效的音频文件数据。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>file</code> -所述 
+            <code>File</code>的量， 
+            <code>AudioInputStream</code>应当被构造 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>AudioInputStream</code>基于音频文件数据对象指向的 
+            <code>File</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/sound/sampled/UnsupportedAudioFileException.html" title="class in javax.sound.sampled">UnsupportedAudioFileException</a></code> - 如果 
+            <code>File</code>未指向系统识别的有效音频文件数据 
+           </dd>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getAudioFileTypes--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioFileTypes</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a>[] getAudioFileTypes()</pre>
+<div class="block">
+            获取系统提供文件写入支持的文件类型。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>数组的唯一文件类型。</span>
+<span>如果不支持文件类型，则返回长度为0的数组。</span>
+</dd>
+</dl> </li>
+</ul> <a name="isFileTypeSupported-javax.sound.sampled.AudioFileFormat.Type-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isFileTypeSupported</h4> <pre>public static boolean isFileTypeSupported(<a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a> fileType)</pre>
+<div class="block">
+            指示系统是否提供了对指定文件类型的文件写入支持。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>fileType</code> - 查询写入功能的文件类型 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果文件类型是支持，否则 
+            <code>false</code>
+</dd>
+</dl> </li>
+</ul> <a name="getAudioFileTypes-javax.sound.sampled.AudioInputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAudioFileTypes</h4> <pre>public static <a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a>[] getAudioFileTypes(<a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> stream)</pre>
+<div class="block">
+            从指定的音频输入流获取系统可以写入的文件类型。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>stream</code> - 查询音频文件类型支持的音频输入流 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>文件类型数组。</span>
+<span>如果不支持文件类型，则返回长度为0的数组。</span>
+</dd>
+</dl> </li>
+</ul> <a name="isFileTypeSupported-javax.sound.sampled.AudioFileFormat.Type-javax.sound.sampled.AudioInputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isFileTypeSupported</h4> <pre>public static boolean isFileTypeSupported(<a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a> fileType,
+                                          <a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> stream)</pre>
+<div class="block">
+            指示是否可以从指定的音频输入流中写入指定的文件类型的音频文件。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>fileType</code> - 查询写入功能的文件类型 
+           </dd>
+<dd>
+<code>stream</code> - 查询文件支持的流 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果此音频输入流支持该文件类型，否则为 
+            <code>false</code>
+</dd>
+</dl> </li>
+</ul> <a name="write-javax.sound.sampled.AudioInputStream-javax.sound.sampled.AudioFileFormat.Type-java.io.OutputStream-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>write</h4> <pre>public static int write(<a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> stream,
+                        <a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a> fileType,
+                        <a href="../../../java/io/OutputStream.html" title="class in java.io">OutputStream</a> out)
+                 throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+<span>将指定文件类型的音频文件的字节流写入提供的输出流。</span>
+<span>某些文件类型要求将长度写入文件头;</span>
+<span>这样的文件不能从头到尾写入，除非事先知道长度。</span>
+<span>如果音频文件类型的长度为AudioSystem.NOT_SPECIFIED，则写入此类型的文件的尝试将失败，并导致<code>AudioSystem.NOT_SPECIFIED</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>stream</code> - 包含要写入文件的音频数据的音频输入流 
+           </dd>
+<dd>
+<code>fileType</code> - 要写的音频文件的种类 
+           </dd>
+<dd>
+<code>out</code> - 应写入文件数据的流 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             写入输出流的字节数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果输入/输出异常发生 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果系统不支持文件类型 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#isFileTypeSupported-javax.sound.sampled.AudioFileFormat.Type-"><code>isFileTypeSupported(javax.sound.sampled.AudioFileFormat.Type)</code></a> ， 
+            <a href="../../../javax/sound/sampled/AudioSystem.html#getAudioFileTypes--"><code>getAudioFileTypes()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="write-javax.sound.sampled.AudioInputStream-javax.sound.sampled.AudioFileFormat.Type-java.io.File-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>write</h4> <pre>public static int write(<a href="../../../javax/sound/sampled/AudioInputStream.html" title="class in javax.sound.sampled">AudioInputStream</a> stream,
+                        <a href="../../../javax/sound/sampled/AudioFileFormat.Type.html" title="class in javax.sound.sampled">AudioFileFormat.Type</a> fileType,
+                        <a href="../../../java/io/File.html" title="class in java.io">File</a> out)
+                 throws <a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></pre>
+<div class="block">
+            将指定文件类型的音频文件的字节流写入提供的外部文件。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>stream</code> - 包含要写入文件的音频数据的音频输入流 
+           </dd>
+<dd>
+<code>fileType</code> - 要写的音频文件的种类 
+           </dd>
+<dd>
+<code>out</code> - 应写入文件数据的外部文件 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             写入文件的字节数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/io/IOException.html" title="class in java.io">IOException</a></code> - 如果发生I / O异常 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果系统不支持文件类型 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/sound/sampled/AudioSystem.html#isFileTypeSupported-javax.sound.sampled.AudioFileFormat.Type-"><code>isFileTypeSupported(javax.sound.sampled.AudioFileFormat.Type)</code></a> ， 
+            <a href="../../../javax/sound/sampled/AudioSystem.html#getAudioFileTypes--"><code>getAudioFileTypes()</code></a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

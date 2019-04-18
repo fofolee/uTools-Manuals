@@ -1,0 +1,724 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.concurrent 
+   </div>
+<h2 class="title" title="Class CountedCompleter">Class CountedCompleter&lt;T&gt;</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">java.util.concurrent.ForkJoinTask</a>&lt;T&gt;</li>
+<li>
+<ul class="inheritance">
+<li>java.util.concurrent.CountedCompleter&lt;T&gt;</li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../../java/util/concurrent/Future.html" title="java.util.concurrent中的接口">Future</a> &lt;T&gt;</span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">CountedCompleter&lt;T&gt;</span>
+extends <a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a>&lt;T&gt;</pre>
+<div class="block">
+<span>A <a href="../../../java/util/concurrent/ForkJoinTask.html" title="java.util.concurrent中的类"><code>ForkJoinTask</code></a> ，当触发时执行完成操作，并且没有剩余的待处理操作。</span>
+<span>CountedCompleters通常比其他形式的ForkJoinTasks在子任务停顿和阻塞的情况下更加强大，但是不太直观的编程。</span>
+<span>CountedCompleter的使用与其他基于完成的组件（例如<a href="../../../java/nio/channels/CompletionHandler.html" title="java.nio.channels中的接口"><code>CompletionHandler</code></a> ）的使用类似，但可能需要多个<em>未完成的完成</em>才能触发完成操作<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a> ，而不仅仅是一个。</span>
+<span>除非另有初始化， <a href="../../../java/util/concurrent/CountedCompleter.html#getPendingCount--">pending count</a>开始于零，但也可以是（原子），使用方法改变<a href="../../../java/util/concurrent/CountedCompleter.html#setPendingCount-int-"><code>setPendingCount(int)</code></a> ， <a href="../../../java/util/concurrent/CountedCompleter.html#addToPendingCount-int-"><code>addToPendingCount(int)</code></a>和<a href="../../../java/util/concurrent/CountedCompleter.html#compareAndSetPendingCount-int-int-"><code>compareAndSetPendingCount(int, int)</code></a> 。</span>
+<span>在调用<a href="../../../java/util/concurrent/CountedCompleter.html#tryComplete--"><code>tryComplete()</code></a>时，如果待处理的行动计数不为零，则递减;</span>
+<span>否则，执行完成操作，如果完成者本身具有完整性，则该过程将继续完成。</span>
+<span>与相关同步组件（如<a href="../../../java/util/concurrent/Phaser.html" title="java.util.concurrent中的类"><code>Phaser</code></a>和<a href="../../../java/util/concurrent/Semaphore.html" title="java.util.concurrent中的类"><code>Semaphore</code>）的情况一样</a> ，这些方法仅影响内部计数;</span>
+<span>他们没有建立任何进一步的内部簿记。</span>
+<span>特别地，未维护未决任务的身份。</span>
+<span>如下所示，您可以创建在需要时记录一些或所有待处理任务或其结果的子类。</span>
+<span>如下所示，还提供了支持定制完成遍历的实用程序方法。</span>
+<span>然而，由于CountedCompleters仅提供基本的同步机制，因此创建进一步的抽象子类可能是有用的，这些子类保持适用于一组相关用法的链接，字段和其他支持方法。</span>
+<p> <span>具体的CountedCompleter类必须定义方法<a href="../../../java/util/concurrent/CountedCompleter.html#compute--"><code>compute()</code></a> ，在大多数情况下（如下所示），在<code>tryComplete()</code>之前调用<code>tryComplete()</code>一次。</span> <span>该类还可以可选地覆盖方法<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a>以在正常完成时执行动作，并且方法<a href="../../../java/util/concurrent/CountedCompleter.html#onExceptionalCompletion-java.lang.Throwable-java.util.concurrent.CountedCompleter-"><code>onExceptionalCompletion(Throwable, CountedCompleter)</code></a>对任何异常执行动作。</span> </p>
+<p> <span>CountedCompleter通常不承担结果，在这种情况下，它们通常被声明为<code>CountedCompleter&lt;Void&gt;</code> ，并将始终返回<code>null</code>作为结果值。</span> <span>在其他情况下，你应该重写方法<a href="../../../java/util/concurrent/CountedCompleter.html#getRawResult--"><code>getRawResult()</code></a>提供从结果<code>join(), invoke()</code> ，以及相关方法。</span> <span>一般来说，该方法应该返回在完成后保存结果的CountedCompleter对象的一个字段（或一个或多个字段的函数）的值。</span> <span>默认方法<a href="../../../java/util/concurrent/CountedCompleter.html#setRawResult-T-"><code>setRawResult(T)</code></a>在CountedCompleters中不起作用。</span> <span>可能但很少适用于覆盖此方法来维护其他对象或保存结果数据的字段。</span> </p>
+<p> <span>一个CountedCompleter本身不具有一个完整的（即<a href="../../../java/util/concurrent/CountedCompleter.html#getCompleter--"><code>getCompleter()</code></a>返回<code>null</code> ）可以用作这个添加的功能的常规ForkJoinTask。</span> <span>然而，任何完成者又具有另一个完成者仅用作其他计算的内部帮助器，因此其自己的任务状态（如方法如<a href="../../../java/util/concurrent/ForkJoinTask.html#isDone--"><code>ForkJoinTask.isDone()</code></a>所报告）是任意的;</span> <span>这种状况只有在明确调用改变<a href="../../../java/util/concurrent/CountedCompleter.html#complete-T-"><code>complete(T)</code></a> ， <a href="../../../java/util/concurrent/ForkJoinTask.html#cancel-boolean-"><code>ForkJoinTask.cancel(boolean)</code></a> ， <a href="../../../java/util/concurrent/ForkJoinTask.html#completeExceptionally-java.lang.Throwable-"><code>ForkJoinTask.completeExceptionally(Throwable)</code></a>或方法的特殊结束后<code>compute</code> 。</span> <span>在任何异常完成之后，如果有任何异常可能会被传递到任务的完成者（以及其完成者等），如果存在并且尚未完成。</span> <span>同样地，取消一个内部的CountedCompleter只对该完成者有局部的影响，所以并不常用。</span> </p>
+<p> <span><b>示例用法</b></span> </p>
+<p> <span><b>并行递归分解。</b></span> <span>CountedCompleters可能被安排在与<a href="../../../java/util/concurrent/RecursiveAction.html" title="java.util.concurrent中的类"><code>RecursiveAction</code></a>经常使用的类似的树中，尽管与设置相关的结构通常有所不同。</span> <span>这里，每个任务的完成者是其计算树中的父项。</span> <span>即使它们需要更多的簿记，CountedCompleters可能是更好的选择，当应用可能耗时的操作（不能进一步细分）到数组或集合的每个元素;</span> <span>特别是当操作对于一些元素的时间要比其他元素完成时要多得多，这是因为内在的变化（例如I / O）或诸如垃圾收集的辅助效应。</span> <span>因为CountedCompleters提供自己的延续，其他线程不需要阻止等待执行它们。</span> </p>
+<p> <span>例如，这是一个初始版本的类，它使用二分法递归分解将工作分成单个部分（叶子任务）。</span> <span>即使将工作分解为单独的调用，基于树的技术通常比直接分支叶子任务更为可取，因为它们可以减少线程间通信并改善负载平衡。</span> <span>在递归的情况下，要完成的每对子任务副本中的第二个触发器完成其父进程（因为没有执行结果组合，所以方法<code>onCompletion</code>的默认无操作实现不被覆盖）。</span> <span>静态实用程序方法设置基本任务并调用它（这里隐含地使用<a href="../../../java/util/concurrent/ForkJoinPool.html#commonPool--"><code>ForkJoinPool.commonPool()</code></a> ）。</span> </p>
+<pre>  <span><code> class MyOperation&lt;E&gt; { void apply(E e) { ... } } class ForEach&lt;E&gt; extends CountedCompleter&lt;Void&gt; { public static &lt;E&gt; void forEach(E[] array, MyOperation&lt;E&gt; op) { new ForEach&lt;E&gt;(null, array, op, 0, array.length).invoke(); } final E[] array; final MyOperation&lt;E&gt; op; final int lo, hi; ForEach(CountedCompleter&lt;?&gt; p, E[] array, MyOperation&lt;E&gt; op, int lo, int hi) { super(p); this.array = array; this.op = op; this.lo = lo; this.hi = hi; } public void compute() { // version 1 if (hi - lo &gt;= 2) { int mid = (lo + hi) &gt;&gt;&gt; 1; setPendingCount(2); // must set pending count before fork new ForEach(this, array, op, mid, hi).fork(); // right child new ForEach(this, array, op, lo, mid).fork(); // left child } else if (hi &gt; lo) op.apply(array[lo]); tryComplete(); } }</code></span> </pre>
+<span>通过注意到在递归的情况下，该任务在分配正确的任务后无关，因此可以在返回之前直接调用其左任务，从而可以改善此设计。</span>
+<span>（这是一个尾递归删除的模拟。）另外，因为任务在执行其左任务时返回（而不是通过调用<code>tryComplete</code> ），待处理的计数设置为1：</span>
+<pre>  <span><code> class ForEach&lt;E&gt; ... public void compute() { // version 2 if (hi - lo &gt;= 2) { int mid = (lo + hi) &gt;&gt;&gt; 1; setPendingCount(1); // only one pending new ForEach(this, array, op, mid, hi).fork(); // right child new ForEach(this, array, op, lo, mid).compute(); // direct invoke } else { if (hi &gt; lo) op.apply(array[lo]); tryComplete(); } } </code></span> </pre>
+<span>作为一个进一步的改进，注意左边的任务甚至不存在。</span>
+<span>而不是创建一个新的，我们可以迭代使用原始任务，并为每个fork添加一个挂起的计数。</span>
+<span>另外，因为这个树中没有任务实现<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a>方法， <code>tryComplete()</code>可以替换为<a href="../../../java/util/concurrent/CountedCompleter.html#propagateCompletion--"><code>propagateCompletion()</code></a> 。</span>
+<pre>  <span><code> class ForEach&lt;E&gt; ... public void compute() { // version 3 int l = lo, h = hi; while (h - l &gt;= 2) { int mid = (l + h) &gt;&gt;&gt; 1; addToPendingCount(1); new ForEach(this, array, op, mid, h).fork(); // right child h = mid; } if (h &gt; l) op.apply(array[l]); propagateCompletion(); } </code></span> </pre>
+<span>这些类的额外改进可能需要预先计算待处理的计数，以便它们可以在构造函数中建立，专门用于叶子步骤的类，按每个重复的四个细分，而不是两个细分，并使用自适应阈值，而不是总是细分为单个元素。</span>
+<p> <span><b>搜索。</b></span> <span>CountedCompleters的树可以在数据结构的不同部分搜索一个值或属性，一旦发现结果，就会在<a href="../../../java/util/concurrent/atomic/AtomicReference.html" title="java.util.concurrent.atomic中的类"><code>AtomicReference</code></a>中报告结果。</span> <span>其他人可以轮询结果，以避免不必要的工作。</span> <span>（您可以另外提供<a href="../../../java/util/concurrent/ForkJoinTask.html#cancel-boolean-">cancel</a>其他任务，但通常只需让他们注意到结果被设置，并且如果是跳过进一步处理，则通常更简单和更有效）。再次使用完全分区（再次，在实践中，叶任务）几乎总是处理多个元素）：</span> </p>
+<pre>  <span><code> class Searcher&lt;E&gt; extends CountedCompleter&lt;E&gt; { final E[] array; final AtomicReference&lt;E&gt; result; final int lo, hi; Searcher(CountedCompleter&lt;?&gt; p, E[] array, AtomicReference&lt;E&gt; result, int lo, int hi) { super(p); this.array = array; this.result = result; this.lo = lo; this.hi = hi; } public E getRawResult() { return result.get(); } public void compute() { // similar to ForEach version 3 int l = lo, h = hi; while (result.get() == null &amp;&amp; h &gt;= l) { if (h - l &gt;= 2) { int mid = (l + h) &gt;&gt;&gt; 1; addToPendingCount(1); new Searcher(this, array, result, mid, h).fork(); h = mid; } else { E x = array[l]; if (matches(x) &amp;&amp; result.compareAndSet(null, x)) quietlyCompleteRoot(); // root task is now joinable break; } } tryComplete(); // normally complete whether or not found } boolean matches(E e) { ... } // return true if found public static &lt;E&gt; E search(E[] array) { return new Searcher&lt;E&gt;(null, array, new AtomicReference&lt;E&gt;(), 0, array.length).invoke(); } }</code></span> </pre>
+<span>在此示例中，以及其他任务除了compareAndSet设置常见结果之外没有其他效果，tryComplete的后续无条件<code>tryComplete</code>可以被设置为有条件的（ <code>if (result.get() == null) tryComplete();</code> ），因为一旦根任务完成，就不需要进一步的簿记管理完成。</span>
+<p> <span><b>记录子任务</b></span> <span>结合多个子任务的CountedCompleter任务通常需要在方法<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a>中访问这些结果。</span> <span>如下面的类所示（执行map-reduce的简化形式，其中映射和缩减都是类型为<code>E</code> ），分割和征服设计的一种方法是使每个子任务记录成为兄弟，以便它可以可以在方法<code>onCompletion</code>访问。</span> <span>这种技术适用于结合左和右结果的顺序无关紧要的减少;</span> <span>有序减少需要明确的左/右指定。</span> <span>上述示例中可以看到其他流程图的变体。</span> </p>
+<pre>  <span><code> class MyMapper&lt;E&gt; { E apply(E v) { ... } } class MyReducer&lt;E&gt; { E apply(E x, E y) { ... } } class MapReducer&lt;E&gt; extends CountedCompleter&lt;E&gt; { final E[] array; final MyMapper&lt;E&gt; mapper; final MyReducer&lt;E&gt; reducer; final int lo, hi; MapReducer&lt;E&gt; sibling; E result; MapReducer(CountedCompleter&lt;?&gt; p, E[] array, MyMapper&lt;E&gt; mapper, MyReducer&lt;E&gt; reducer, int lo, int hi) { super(p); this.array = array; this.mapper = mapper; this.reducer = reducer; this.lo = lo; this.hi = hi; } public void compute() { if (hi - lo &gt;= 2) { int mid = (lo + hi) &gt;&gt;&gt; 1; MapReducer&lt;E&gt; left = new MapReducer(this, array, mapper, reducer, lo, mid); MapReducer&lt;E&gt; right = new MapReducer(this, array, mapper, reducer, mid, hi); left.sibling = right; right.sibling = left; setPendingCount(1); // only right is pending right.fork(); left.compute(); // directly execute left } else { if (hi &gt; lo) result = mapper.apply(array[lo]); tryComplete(); } } public void onCompletion(CountedCompleter&lt;?&gt; caller) { if (caller != this) { MapReducer&lt;E&gt; child = (MapReducer&lt;E&gt;)caller; MapReducer&lt;E&gt; sib = child.sibling; if (sib == null || sib.result == null) result = child.result; else result = reducer.apply(child.result, sib.result); } } public E getRawResult() { return result; } public static &lt;E&gt; E mapReduce(E[] array, MyMapper&lt;E&gt; mapper, MyReducer&lt;E&gt; reducer) { return new MapReducer&lt;E&gt;(null, array, mapper, reducer, 0, array.length).invoke(); } }</code></span> </pre>
+<span>这里，方法<code>onCompletion</code>采用了结合结果的许多完成设计共同的形式。</span>
+<span>这种回调式方法在每个任务中触发一次，在挂起计数的两个不同上下文中的任一个中，或者当任务本身调用时其挂起的计数为零时变为零：（1），或者<code>tryComplete</code>时的挂起计数为零，或（2）通过任何其子任务，当它们完成并将待处理的计数递减到零时。</span>
+<span><code>caller</code>论证区分案例。</span>
+<span>通常，当呼叫方为<code>this</code>时，不需要采取任何行动。</span>
+<span>否则，可以使用调用者参数（通常通过转换）来提供要组合的值（和/或链接到其他值）。</span>
+<span>假设正确使用挂起计数，里面的动作<code>onCompletion</code>发生（一次）一个任务，其子任务完成时。</span>
+<span>在此方法中不需要额外的同步来确保对此任务或其他完成任务的字段的访问的线程安全性。</span>
+<p> <span><b>完成遍历</b> 。</span> <span>如果使用<code>onCompletion</code>处理完成不适用或不方便，您可以使用方法<a href="../../../java/util/concurrent/CountedCompleter.html#firstComplete--"><code>firstComplete()</code></a>和<a href="../../../java/util/concurrent/CountedCompleter.html#nextComplete--"><code>nextComplete()</code></a>创建自定义遍历。</span> <span>例如，要定义一个仅以第三个ForEach示例的形式分割右侧任务的MapReducer，完成必须按照未用尽的子任务链接合作减少，可以如下完成：</span> </p>
+<pre>  <span><code> class MapReducer&lt;E&gt; extends CountedCompleter&lt;E&gt; { // version 2 final E[] array; final MyMapper&lt;E&gt; mapper; final MyReducer&lt;E&gt; reducer; final int lo, hi; MapReducer&lt;E&gt; forks, next; // record subtask forks in list E result; MapReducer(CountedCompleter&lt;?&gt; p, E[] array, MyMapper&lt;E&gt; mapper, MyReducer&lt;E&gt; reducer, int lo, int hi, MapReducer&lt;E&gt; next) { super(p); this.array = array; this.mapper = mapper; this.reducer = reducer; this.lo = lo; this.hi = hi; this.next = next; } public void compute() { int l = lo, h = hi; while (h - l &gt;= 2) { int mid = (l + h) &gt;&gt;&gt; 1; addToPendingCount(1); (forks = new MapReducer(this, array, mapper, reducer, mid, h, forks)).fork(); h = mid; } if (h &gt; l) result = mapper.apply(array[l]); // process completions by reducing along and advancing subtask links for (CountedCompleter&lt;?&gt; c = firstComplete(); c != null; c = c.nextComplete()) { for (MapReducer t = (MapReducer)c, s = t.forks; s != null; s = t.forks = s.next) t.result = reducer.apply(t.result, s.result); } } public E getRawResult() { return result; } public static &lt;E&gt; E mapReduce(E[] array, MyMapper&lt;E&gt; mapper, MyReducer&lt;E&gt; reducer) { return new MapReducer&lt;E&gt;(null, array, mapper, reducer, 0, array.length, null).invoke(); } }</code></span> </pre>
+<p> <span><b>触发器</b></span> <span>一些CountedCompleters本身从来没有分叉，而是作为其他设计中的一些管道;</span> <span>包括完成一个或多个异步任务触发另一个异步任务。</span> <span>例如：</span> </p>
+<pre>  <span><code> class HeaderBuilder extends CountedCompleter&lt;...&gt; { ... } class BodyBuilder extends CountedCompleter&lt;...&gt; { ... } class PacketSender extends CountedCompleter&lt;...&gt; { PacketSender(...) { super(null, 1); ... } // trigger on second completion public void compute() { } // never called public void onCompletion(CountedCompleter&lt;?&gt; caller) { sendPacket(); } } // sample use: PacketSender p = new PacketSender(); new HeaderBuilder(p, ...).fork(); new BodyBuilder(p, ...).fork(); </code></span> </pre>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.8 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../serialized-form.html#java.util.concurrent.CountedCompleter">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#CountedCompleter--">CountedCompleter</a></span>()</code>
+<div class="block">
+              创建一个新的CountedCompleter，没有完成，初始挂起计数为零。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#CountedCompleter-java.util.concurrent.CountedCompleter-">CountedCompleter</a></span>(<a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; completer)</code>
+<div class="block">
+              创建一个新的CountedCompleter与给定的完成者和初始挂起计数为零。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#CountedCompleter-java.util.concurrent.CountedCompleter-int-">CountedCompleter</a></span>(<a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; completer, int initialPendingCount)</code>
+<div class="block">
+              创建一个新的CountedCompleter与给定的完成和初始挂起计数。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#addToPendingCount-int-">addToPendingCount</a></span>(int delta)</code>
+<div class="block">
+              将给定值添加（原子地）给挂起的计数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#compareAndSetPendingCount-int-int-">compareAndSetPendingCount</a></span>(int expected, int count)</code>
+<div class="block">
+              只有当当前持有给定的预期值时，将挂起的计数设置为（原子地）给定计数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#complete-T-">complete</a></span>(<a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a> rawResult)</code>
+<div class="block">
+              不管挂起计数，调用 
+             <a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a> ，将此任务标记为完成，并进一步触发 
+             <a href="../../../java/util/concurrent/CountedCompleter.html#tryComplete--"><code>tryComplete()</code></a>对此任务的完成（如果存在）。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#compute--">compute</a></span>()</code>
+<div class="block">
+              这个任务执行的主要计算。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#decrementPendingCountUnlessZero--">decrementPendingCountUnlessZero</a></span>()</code>
+<div class="block">
+              如果挂起的计数非零，（原子地）减少它。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#exec--">exec</a></span>()</code>
+<div class="block">
+              实现CountedCompleters的执行约定。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#firstComplete--">firstComplete</a></span>()</code>
+<div class="block">
+<span>如果此任务的挂起计数为零，则返回此任务;</span>
+<span>否则递减其挂起的计数并返回<code>null</code> 。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#getCompleter--">getCompleter</a></span>()</code>
+<div class="block">
+              返回成立于这项任务的构造函数中完成者，或 
+             <code>null</code>如果没有。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#getPendingCount--">getPendingCount</a></span>()</code>
+<div class="block">
+              返回当前挂起的计数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#getRawResult--">getRawResult</a></span>()</code>
+<div class="block">
+              返回计算结果。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#getRoot--">getRoot</a></span>()</code>
+<div class="block">
+<span>返回当前计算的根;</span>
+<span>即这个任务，如果它没有完成，否则它的完成者的根。</span>
+</div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#helpComplete-int-">helpComplete</a></span>(int maxTasks)</code>
+<div class="block">
+              如果此任务尚未完成，则尝试至少处理此任务在完成路径上的给定数量的其他未处理任务（如果有）。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#nextComplete--">nextComplete</a></span>()</code>
+<div class="block">
+              如果此任务没有完成，请调用 
+             <a href="../../../java/util/concurrent/ForkJoinTask.html#quietlyComplete--"><code>ForkJoinTask.quietlyComplete()</code></a>并返回 
+             <code>null</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-">onCompletion</a></span>(<a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; caller)</code>
+<div class="block">
+              当方法 
+             <a href="../../../java/util/concurrent/CountedCompleter.html#tryComplete--"><code>tryComplete()</code></a>被调用并且挂起的计数为零时，或者当调用无条件方法 
+             <a href="../../../java/util/concurrent/CountedCompleter.html#complete-T-"><code>complete(T)</code></a>时，执行一个动作。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#onExceptionalCompletion-java.lang.Throwable-java.util.concurrent.CountedCompleter-">onExceptionalCompletion</a></span>(<a href="../../../java/lang/Throwable.html" title="class in java.lang">Throwable</a> ex, <a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; caller)</code>
+<div class="block">
+              方法 
+             <a href="../../../java/util/concurrent/ForkJoinTask.html#completeExceptionally-java.lang.Throwable-"><code>ForkJoinTask.completeExceptionally(Throwable)</code></a>被调用或方法 
+             <a href="../../../java/util/concurrent/CountedCompleter.html#compute--"><code>compute()</code></a>引发异常，并且此任务尚未正常完成时执行操作。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#propagateCompletion--">propagateCompletion</a></span>()</code>
+<div class="block">
+<span>相当于<a href="../../../java/util/concurrent/CountedCompleter.html#tryComplete--"><code>tryComplete()</code></a>但并不在完成路径中调用<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a> ：如果挂起的计数为非零，则递减计数;</span>
+<span>否则，同样尝试完成此任务的完成，如果存在，否则将此任务标记为完成。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#quietlyCompleteRoot--">quietlyCompleteRoot</a></span>()</code>
+<div class="block">
+              相当于 
+             <code>getRoot().quietlyComplete()</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#setPendingCount-int-">setPendingCount</a></span>(int count)</code>
+<div class="block">
+              将待处理计数设置为给定值。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#setRawResult-T-">setRawResult</a></span>(<a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a> t)</code>
+<div class="block">
+              带有CountedCompleters结果的方法可以可选地用于帮助维护结果数据。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountedCompleter.html#tryComplete--">tryComplete</a></span>()</code>
+<div class="block">
+<span>如果挂起的计数不为零，则减去计数;</span>
+<span>否则调用<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a> ，然后类似地尝试完成此任务的完成，如果存在，否则将此任务标记为完成。</span>
+</div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.util.concurrent.ForkJoinTask">
+<!-- --> </a> <h3>Methods inherited from class java.util.concurrent.<a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a></h3> <code><a href="../../../java/util/concurrent/ForkJoinTask.html#adapt-java.util.concurrent.Callable-">adapt</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#adapt-java.lang.Runnable-">adapt</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#adapt-java.lang.Runnable-T-">adapt</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#cancel-boolean-">cancel</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#compareAndSetForkJoinTaskTag-short-short-">compareAndSetForkJoinTaskTag</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#completeExceptionally-java.lang.Throwable-">completeExceptionally</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#fork--">fork</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#get--">get</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#get-long-java.util.concurrent.TimeUnit-">get</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getException--">getException</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getForkJoinTaskTag--">getForkJoinTaskTag</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getPool--">getPool</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getQueuedTaskCount--">getQueuedTaskCount</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#getSurplusQueuedTaskCount--">getSurplusQueuedTaskCount</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#helpQuiesce--">helpQuiesce</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#inForkJoinPool--">inForkJoinPool</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#invoke--">invoke</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#invokeAll-java.util.Collection-">invokeAll</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#invokeAll-java.util.concurrent.ForkJoinTask...-">invokeAll</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#invokeAll-java.util.concurrent.ForkJoinTask-java.util.concurrent.ForkJoinTask-">invokeAll</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#isCancelled--">isCancelled</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#isCompletedAbnormally--">isCompletedAbnormally</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#isCompletedNormally--">isCompletedNormally</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#isDone--">isDone</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#join--">join</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#peekNextLocalTask--">peekNextLocalTask</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#pollNextLocalTask--">pollNextLocalTask</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#pollTask--">pollTask</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#quietlyComplete--">quietlyComplete</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#quietlyInvoke--">quietlyInvoke</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#quietlyJoin--">quietlyJoin</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#reinitialize--">reinitialize</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#setForkJoinTaskTag-short-">setForkJoinTaskTag</a>, <a href="../../../java/util/concurrent/ForkJoinTask.html#tryUnfork--">tryUnfork</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="CountedCompleter-java.util.concurrent.CountedCompleter-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>CountedCompleter</h4> <pre>protected CountedCompleter(<a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; completer,
+                           int initialPendingCount)</pre>
+<div class="block">
+            创建一个新的CountedCompleter与给定的完成和初始挂起计数。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>completer</code> -这个任务的完成者，或 
+            <code>null</code>如果没有 
+           </dd>
+<dd>
+<code>initialPendingCount</code> - 初始挂单数 
+           </dd>
+</dl> </li>
+</ul> <a name="CountedCompleter-java.util.concurrent.CountedCompleter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>CountedCompleter</h4> <pre>protected CountedCompleter(<a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; completer)</pre>
+<div class="block">
+            创建一个新的CountedCompleter与给定的完成者和初始挂起计数为零。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>completer</code> - 这个任务的完成者，或 
+            <code>null</code>如果没有 
+           </dd>
+</dl> </li>
+</ul> <a name="CountedCompleter--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>CountedCompleter</h4> <pre>protected CountedCompleter()</pre>
+<div class="block">
+            创建一个新的CountedCompleter，没有完成，初始挂起计数为零。 
+          </div> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="compute--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compute</h4> <pre>public abstract void compute()</pre>
+<div class="block">
+            这个任务执行的主要计算。 
+          </div> </li>
+</ul> <a name="onCompletion-java.util.concurrent.CountedCompleter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>onCompletion</h4> <pre>public void onCompletion(<a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; caller)</pre>
+<div class="block">
+<span>当方法<a href="../../../java/util/concurrent/CountedCompleter.html#tryComplete--"><code>tryComplete()</code></a>被调用并且挂起的计数为零时，或当无条件方法<a href="../../../java/util/concurrent/CountedCompleter.html#complete-T-"><code>complete(T)</code></a>被调用时执行一个动作。</span>
+<span>默认情况下，此方法什么都不做。</span>
+<span>您可以通过检查给定的呼叫者参数的身份来区分情况。</span>
+<span>如果不等于<code>this</code> ，则它通常是可以包含结合（和/或其他结果的链接）的子任务。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>caller</code> - 调用此方法的任务（可能是此任务本身） 
+           </dd>
+</dl> </li>
+</ul> <a name="onExceptionalCompletion-java.lang.Throwable-java.util.concurrent.CountedCompleter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>onExceptionalCompletion</h4> <pre>public boolean onExceptionalCompletion(<a href="../../../java/lang/Throwable.html" title="class in java.lang">Throwable</a> ex,
+                                       <a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; caller)</pre>
+<div class="block">
+<span>方法<a href="../../../java/util/concurrent/ForkJoinTask.html#completeExceptionally-java.lang.Throwable-"><code>ForkJoinTask.completeExceptionally(Throwable)</code></a>被调用或方法<a href="../../../java/util/concurrent/CountedCompleter.html#compute--"><code>compute()</code></a>引发异常，并且此任务尚未正常完成时执行操作。</span>
+<span>进入这个方法，这个任务<a href="../../../java/util/concurrent/ForkJoinTask.html#isCompletedAbnormally--"><code>ForkJoinTask.isCompletedAbnormally()</code></a> 。</span>
+<span>该方法的返回值控制进一步的传播：如果<code>true</code>并且此任务具有尚未完成的完成者，那么该完成器也完成异常，与完成者的异常相同。</span>
+<span>该方法的默认实现除了返回<code>true</code>之外什么都不<code>true</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ex</code> - 例外 
+           </dd>
+<dd>
+<code>caller</code> - 调用此方法的任务（可能是此任务本身） 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果这个异常应该被传播到这个任务的完成者（如果存在的话） 
+           </dd>
+</dl> </li>
+</ul> <a name="getCompleter--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCompleter</h4> <pre>public final <a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; getCompleter()</pre>
+<div class="block">
+            返回成立于这项任务的构造函数中完成者，或 
+           <code>null</code>如果没有。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             完成者 
+           </dd>
+</dl> </li>
+</ul> <a name="getPendingCount--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPendingCount</h4> <pre>public final int getPendingCount()</pre>
+<div class="block">
+            返回当前挂起的计数。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前挂单数 
+           </dd>
+</dl> </li>
+</ul> <a name="setPendingCount-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setPendingCount</h4> <pre>public final void setPendingCount(int count)</pre>
+<div class="block">
+            将待处理计数设置为给定值。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>count</code> - 计数 
+           </dd>
+</dl> </li>
+</ul> <a name="addToPendingCount-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>addToPendingCount</h4> <pre>public final void addToPendingCount(int delta)</pre>
+<div class="block">
+            将给定值添加（原子地）给挂起的计数。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>delta</code> - 要添加的值 
+           </dd>
+</dl> </li>
+</ul> <a name="compareAndSetPendingCount-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compareAndSetPendingCount</h4> <pre>public final boolean compareAndSetPendingCount(int expected,
+                                               int count)</pre>
+<div class="block">
+            只有当当前持有给定的预期值时，将挂起的计数设置为（原子地）给定计数。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>expected</code> - 期望值 
+           </dd>
+<dd>
+<code>count</code> - 新的价值 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果成功 
+           </dd>
+</dl> </li>
+</ul> <a name="decrementPendingCountUnlessZero--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>decrementPendingCountUnlessZero</h4> <pre>public final int decrementPendingCountUnlessZero()</pre>
+<div class="block">
+            如果挂起的计数非零，（原子地）减少它。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             初始（未确认）待处理的计数保持进入此方法 
+           </dd>
+</dl> </li>
+</ul> <a name="getRoot--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRoot</h4> <pre>public final <a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; getRoot()</pre>
+<div class="block">
+<span>返回当前计算的根;</span>
+<span>即这个任务，如果它没有完成，否则它的完成者的根。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前计算的根 
+           </dd>
+</dl> </li>
+</ul> <a name="tryComplete--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>tryComplete</h4> <pre>public final void tryComplete()</pre>
+<div class="block">
+<span>如果挂起的计数不为零，则减去计数;</span>
+<span>否则调用<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a> ，然后同样尝试完成此任务的完成，如果存在，否则将此任务标记为完成。</span>
+</div> </li>
+</ul> <a name="propagateCompletion--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>propagateCompletion</h4> <pre>public final void propagateCompletion()</pre>
+<div class="block">
+<span>相当于<a href="../../../java/util/concurrent/CountedCompleter.html#tryComplete--"><code>tryComplete()</code></a>但不会在完成路径下调用<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a> ：如果挂起的计数为非零，则递减计数;</span>
+<span>否则，同样尝试完成此任务的完成，如果存在，否则将此任务标记为完成。</span>
+<span>这种方法可能是在情况下非常有用，其中<code>onCompletion</code>不应该或不需要，调用在计算每完成者。</span>
+</div> </li>
+</ul> <a name="complete-java.lang.Object-">
+<!-- --> </a><a name="complete-T-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>complete</h4> <pre>public void complete(<a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a> rawResult)</pre>
+<div class="block">
+<span>不管挂起计数，调用<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a> ，将此任务标记为完成，并进一步触发<a href="../../../java/util/concurrent/CountedCompleter.html#tryComplete--"><code>tryComplete()</code></a>此任务的完成（如果存在）。</span>
+<span>给定rawResult作为参数传递给<a href="../../../java/util/concurrent/CountedCompleter.html#setRawResult-T-"><code>setRawResult(T)</code></a>调用之前<a href="../../../java/util/concurrent/CountedCompleter.html#onCompletion-java.util.concurrent.CountedCompleter-"><code>onCompletion(CountedCompleter)</code></a>或纪念这一任务已完成;</span>
+<span>其值仅对涵盖setRawResult的类<code>setRawResult</code> 。</span>
+<span>此方法不会修改挂起的计数。</span>
+<p> <span>当获得几个子任务结果的任何一个（相对于所有）结果时，强制完成时，此方法可能是有用的。</span> <span>然而，在<code>setRawResult</code>不被覆盖的共同（和推荐）情况下，可以使用<code>quietlyCompleteRoot();</code>更简单地获得该效果。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ForkJoinTask.html#complete-V-">complete</a></code>在 
+            <code><a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a>&lt;<a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>rawResult</code> - 原始结果 
+           </dd>
+</dl> </li>
+</ul> <a name="firstComplete--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>firstComplete</h4> <pre>public final <a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; firstComplete()</pre>
+<div class="block">
+<span>如果此任务的挂起计数为零，则返回此任务;</span>
+<span>否则减少其待处理的计数并返回<code>null</code> 。</span>
+<span>这种方法被设计为与所使用<a href="../../../java/util/concurrent/CountedCompleter.html#nextComplete--"><code>nextComplete()</code></a>在完成遍历循环。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个任务，如果挂起的计数为零，否则为 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> <a name="nextComplete--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>nextComplete</h4> <pre>public final <a href="../../../java/util/concurrent/CountedCompleter.html" title="class in java.util.concurrent">CountedCompleter</a>&lt;?&gt; nextComplete()</pre>
+<div class="block">
+<span>如果此任务没有完成，请调用<a href="../../../java/util/concurrent/ForkJoinTask.html#quietlyComplete--"><code>ForkJoinTask.quietlyComplete()</code></a>并返回<code>null</code> 。</span>
+<span>或者，如果完成者的挂起计数不为零，则减少待处理的计数并返回<code>null</code> 。</span>
+<span>否则，返回完成者。</span>
+<span>此方法可用作同构任务层次结构的完成遍历循环的一部分：</span>
+<pre>  <span><code> for (CountedCompleter&lt;?&gt; c = firstComplete(); c != null; c = c.nextComplete()) { // ... process c ... }</code></span> </pre>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             完成者，或 
+            <code>null</code>如果没有） 
+           </dd>
+</dl> </li>
+</ul> <a name="quietlyCompleteRoot--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>quietlyCompleteRoot</h4> <pre>public final void quietlyCompleteRoot()</pre>
+<div class="block">
+            相当于 
+           <code>getRoot().quietlyComplete()</code> 。 
+          </div> </li>
+</ul> <a name="helpComplete-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>helpComplete</h4> <pre>public final void helpComplete(int maxTasks)</pre>
+<div class="block">
+            如果此任务尚未完成，则尝试至少处理此任务在完成路径上的给定数量的其他未处理任务（如果有）。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>maxTasks</code> - 要处理的最大任务数。</span>
+<span>如果小于或等于零，则不处理任务。</span>
+</dd>
+</dl> </li>
+</ul> <a name="exec--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>exec</h4> <pre>protected final boolean exec()</pre>
+<div class="block">
+            实现CountedCompleters的执行约定。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ForkJoinTask.html#exec--">exec</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a>&lt;<a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果此任务已知正常完成 
+           </dd>
+</dl> </li>
+</ul> <a name="getRawResult--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRawResult</h4> <pre>public <a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a> getRawResult()</pre>
+<div class="block">
+<span>返回计算结果。</span>
+<span>默认情况下返回<code>null</code> ，这适用于<code>Void</code>操作，但在其他情况下应该被覆盖，几乎总是返回一个在完成后保存结果的字段或函数。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ForkJoinTask.html#getRawResult--">getRawResult</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a>&lt;<a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a>&gt;</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             计算的结果 
+           </dd>
+</dl> </li>
+</ul> <a name="setRawResult-java.lang.Object-">
+<!-- --> </a><a name="setRawResult-T-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>setRawResult</h4> <pre>protected void setRawResult(<a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a> t)</pre>
+<div class="block">
+<span>带有CountedCompleters结果的方法可以可选地用于帮助维护结果数据。</span>
+<span>默认情况下，什么都不做。</span>
+<span>不建议使用覆盖。</span>
+<span>但是，如果覆盖此方法来更新现有对象或字段，则通常将其定义为线程安全。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/util/concurrent/ForkJoinTask.html#setRawResult-V-">setRawResult</a></code>在类别 
+            <code><a href="../../../java/util/concurrent/ForkJoinTask.html" title="class in java.util.concurrent">ForkJoinTask</a>&lt;<a href="../../../java/util/concurrent/CountedCompleter.html" title="type parameter in CountedCompleter">T</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>t</code> - 值 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

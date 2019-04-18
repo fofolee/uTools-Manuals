@@ -1,0 +1,362 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.lang.invoke 
+   </div>
+<h2 class="title" title="Class MutableCallSite">Class MutableCallSite</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">java.lang.invoke.CallSite</a></li>
+<li>
+<ul class="inheritance">
+<li>java.lang.invoke.MutableCallSite</li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public class <span class="typeNameLabel">MutableCallSite</span>
+extends <a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">CallSite</a></pre>
+<div class="block">
+<span>A <code>MutableCallSite</code>是一个<a href="../../../java/lang/invoke/CallSite.html" title="class java.lang.invoke"><code>CallSite</code></a> ，其目标变量的行为像普通字段。</span>
+<span>一个<code>invokedynamic</code>指令链接到<code>MutableCallSite</code>委托给该网站的当前目标的所有呼叫。</span>
+<span>该<a href="../../../java/lang/invoke/CallSite.html#dynamicInvoker--">dynamic invoker</a>一个可变的调用点也代表每次调用该网站的当前目标。</span>
+<p> <span>以下是将状态变量引入到方法句柄链中的可变调用站点的示例。</span>
+<!-- JavaDocExamplesTest.testMutableCallSite --></p>
+<blockquote>
+<span><pre><code>
+MutableCallSite name = new MutableCallSite(MethodType.methodType(String.class));
+MethodHandle MH_name = name.dynamicInvoker();
+MethodType MT_str1 = MethodType.methodType(String.class);
+MethodHandle MH_upcase = MethodHandles.lookup()
+    .findVirtual(String.class, "toUpperCase", MT_str1);
+MethodHandle worker1 = MethodHandles.filterReturnValue(MH_name, MH_upcase);
+name.setTarget(MethodHandles.constant(String.class, "Rocky"));
+assertEquals("ROCKY", (String) worker1.invokeExact());
+name.setTarget(MethodHandles.constant(String.class, "Fred"));
+assertEquals("FRED", (String) worker1.invokeExact());
+// (mutation can be continued indefinitely)
+ </code></pre></span>
+</blockquote>
+<p> <span>同一个呼叫站点可以同时在几个地方使用。</span> </p>
+<blockquote>
+<span><pre><code>
+MethodType MT_str2 = MethodType.methodType(String.class, String.class);
+MethodHandle MH_cat = lookup().findVirtual(String.class,
+  "concat", methodType(String.class, String.class));
+MethodHandle MH_dear = MethodHandles.insertArguments(MH_cat, 1, ", dear?");
+MethodHandle worker2 = MethodHandles.filterReturnValue(MH_name, MH_dear);
+assertEquals("Fred, dear?", (String) worker2.invokeExact());
+name.setTarget(MethodHandles.constant(String.class, "Wilma"));
+assertEquals("WILMA", (String) worker1.invokeExact());
+assertEquals("Wilma, dear?", (String) worker2.invokeExact());
+ </code></pre></span>
+</blockquote>
+<p> <span><em>目标值的不同步：</em>对可变的调用站点的目标的写入不会强制其他线程意识到更新的值。</span> <span>相对于更新的呼叫站点不执行适当的同步动作的线程可能会缓存旧的目标值，并无限期地延迟其使用新的目标值。</span> <span>（这是应用于对象字段的Java内存模型的正常结果。）</span> </p>
+<p> <span><a href="../../../java/lang/invoke/MutableCallSite.html#syncAll-java.lang.invoke.MutableCallSite:A-"><code>syncAll</code></a>操作提供了强制线程接受新的目标值的方法，即使没有其他同步。</span> </p>
+<p> <span>对于经常更新的目标值，请考虑使用<a href="../../../java/lang/invoke/VolatileCallSite.html" title="class java.lang.invoke">volatile call site</a> 。</span> </p>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MutableCallSite.html#MutableCallSite-java.lang.invoke.MethodHandle-">MutableCallSite</a></span>(<a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a> target)</code>
+<div class="block">
+              创建一个具有初始目标方法句柄的调用站点对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MutableCallSite.html#MutableCallSite-java.lang.invoke.MethodType-">MutableCallSite</a></span>(<a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> type)</code>
+<div class="block">
+              使用给定的方法类型创建一个空白的调用站点对象。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MutableCallSite.html#dynamicInvoker--">dynamicInvoker</a></span>()</code>
+<div class="block">
+              生成等效于已经链接到此调用站点的invokedynamic指令的方法句柄。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MutableCallSite.html#getTarget--">getTarget</a></span>()</code>
+<div class="block">
+              返回调用站点的目标方法，其行为类似于 
+             <code>MutableCallSite</code>的正常字段。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MutableCallSite.html#setTarget-java.lang.invoke.MethodHandle-">setTarget</a></span>(<a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a> newTarget)</code>
+<div class="block">
+              将此呼叫站点的目标方法更新为常规变量。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/lang/invoke/MutableCallSite.html#syncAll-java.lang.invoke.MutableCallSite:A-">syncAll</a></span>(<a href="../../../java/lang/invoke/MutableCallSite.html" title="class in java.lang.invoke">MutableCallSite</a>[] sites)</code>
+<div class="block">
+              在给定数组中的每个调用站点上执行同步操作，强制所有其他线程丢弃先前从任何呼叫站点的目标加载的缓存值。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.invoke.CallSite">
+<!-- --> </a> <h3>Methods inherited from class java.lang.invoke.<a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">CallSite</a></h3> <code><a href="../../../java/lang/invoke/CallSite.html#type--">type</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="MutableCallSite-java.lang.invoke.MethodType-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>MutableCallSite</h4> <pre>public MutableCallSite(<a href="../../../java/lang/invoke/MethodType.html" title="class in java.lang.invoke">MethodType</a> type)</pre>
+<div class="block">
+<span>使用给定的方法类型创建一个空白的调用站点对象。</span>
+<span>初始目标设置为给定类型的方法句柄，如果调用该方法句柄将抛出<a href="../../../java/lang/IllegalStateException.html" title="java.lang中的类"><code>IllegalStateException</code></a> 。</span>
+<p> <span>呼叫站点的类型永久设置为给定类型。</span> </p>
+<p> <span>在<code>CallSite</code>对象从引导方法返回之前，或者以其他方式调用，通常会通过调用<a href="../../../java/lang/invoke/CallSite.html#setTarget-java.lang.invoke.MethodHandle-"><code>setTarget</code></a>提供更有用的目标方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>type</code> - 此呼叫站点将具有的方法类型 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果提议的类型为空 
+           </dd>
+</dl> </li>
+</ul> <a name="MutableCallSite-java.lang.invoke.MethodHandle-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>MutableCallSite</h4> <pre>public MutableCallSite(<a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a> target)</pre>
+<div class="block">
+<span>创建一个具有初始目标方法句柄的调用站点对象。</span>
+<span>呼叫站点的类型永久设置为初始目标的类型。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>target</code> - 将作为呼叫站点初始目标的方法句柄 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果提出的目标为null 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getTarget--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTarget</h4> <pre>public final <a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a> getTarget()</pre>
+<div class="block">
+<span>返回调用站点的目标方法，其行为类似于<code>MutableCallSite</code>的正常字段。</span>
+<p> <span><code>getTarget</code>与存储器的<code>getTarget</code>与从普通变量（例如数组元素或非易失性非最终字段）的读取相同。</span> </p>
+<p> <span>特别地，当前线程可以选择从存储器重用先前读取目标的结果，并且可能无法看到另一个线程对目标的最新更新。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/invoke/CallSite.html#getTarget--">getTarget</a></code>在类别 
+            <code><a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">CallSite</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此呼叫站点的链接状态，可随时间变化的方法句柄 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/invoke/MutableCallSite.html#setTarget-java.lang.invoke.MethodHandle-"><code>setTarget(java.lang.invoke.MethodHandle)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="setTarget-java.lang.invoke.MethodHandle-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setTarget</h4> <pre>public void setTarget(<a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a> newTarget)</pre>
+<div class="block">
+<span>将此呼叫站点的目标方法更新为常规变量。</span>
+<span>新目标的类型必须符合旧目标的类型。</span>
+<p> <span>与存储器的交互与对普通变量的写入相同，例如数组元素或非易失性非最终字段。</span> </p>
+<p> <span>特别地，不相关的线程可能无法看到更新的目标，直到它们执行从内存读取。</span> <span>可以通过将适当的操作放入引导方法和/或在任何给定的呼叫站点使用的目标方法来创建更强大的保证。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/invoke/CallSite.html#setTarget-java.lang.invoke.MethodHandle-">setTarget</a></code>在类别 
+            <code><a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">CallSite</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>newTarget</code> - 新的目标 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果提出的新目标为null 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/invoke/WrongMethodTypeException.html" title="class in java.lang.invoke">WrongMethodTypeException</a></code> - 如果提出的新目标具有与先前目标不同的方法类型 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/invoke/MutableCallSite.html#getTarget--"><code>getTarget()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="dynamicInvoker--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>dynamicInvoker</h4> <pre>public final <a href="../../../java/lang/invoke/MethodHandle.html" title="class in java.lang.invoke">MethodHandle</a> dynamicInvoker()</pre>
+<div class="block">
+<span>生成等效于已经链接到此调用站点的invokedynamic指令的方法句柄。</span>
+<p> <span>此方法等同于以下代码：</span> </p>
+<blockquote>
+<span><pre><code>
+ MethodHandle getTarget, invoker, result;
+ getTarget = MethodHandles.publicLookup().bind(this, "getTarget", MethodType.methodType(MethodHandle.class));
+ invoker = MethodHandles.exactInvoker(this.type());
+ result = MethodHandles.foldArguments(invoker, getTarget)
+ </code></pre></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/invoke/CallSite.html#dynamicInvoker--">dynamicInvoker</a></code>在类别 
+            <code><a href="../../../java/lang/invoke/CallSite.html" title="class in java.lang.invoke">CallSite</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个总是调用此调用站点的当前目标的方法句柄 
+           </dd>
+</dl> </li>
+</ul> <a name="syncAll-java.lang.invoke.MutableCallSite:A-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>syncAll</h4> <pre>public static void syncAll(<a href="../../../java/lang/invoke/MutableCallSite.html" title="class in java.lang.invoke">MutableCallSite</a>[] sites)</pre>
+<div class="block">
+<span>在给定数组中的每个调用站点上执行同步操作，强制所有其他线程丢弃先前从任何呼叫站点的目标加载的缓存值。</span>
+<p> <span>此操作不会反转任何已经在旧目标值上启动的呼叫。</span> <span>（Java仅支持<a href="../../../java/lang/Object.html#wait--">forward time travel</a> ）</span> </p>
+<p> <span>整体效果是迫使每个呼叫站点的所有未来读者接受最近存储的值。</span> <span>（“最近”相对于<code>syncAll</code>本身而言）。相反， <code>syncAll</code>通话可能会阻止，直到所有读者都以某种方式解除了每个呼叫站点目标的所有先前版本。</span> </p>
+<p> <span>为了避免竞争条件， <code>syncAll</code>应以某种互斥方式执行对<code>setTarget</code>和<code>syncAll</code>通话。</span> <span>请注意，读者线程可以在安装该值的<code>setTarget</code>调用之前（以及<code>syncAll</code>确认该值之前）观察更新的目标。</span> <span>另一方面，读者线程可以观察目标的先前版本，直到<code>syncAll</code>呼叫返回（并且在尝试传达更新版本的<code>setTarget</code>之后）。</span> </p>
+<p> <span>这个操作可能是昂贵的，应该谨慎使用。</span> <span>如果可能的话，应该对一组呼叫站点进行缓冲以进行批处理。</span> </p>
+<p> <span>如果<code>sites</code>包含一个空元素，那么<code>NullPointerException</code>将被提出。</span> <span>在这种情况下，方法返回异常之前，可能会处理数组中的一些非空元素。</span> <span>哪些元素（如果有的话）是依赖于实现的。</span> </p>
+<h1> <span>Java内存模型详细信息</span> </h1>
+<span>在Java内存模型方面，此操作执行与当前线程写入易失性变量有效的同步操作，以及可能访问受影响的呼叫站点之一的每个其他线程的最终易失性读取。</span>
+<p> <span>以下效果是显而易见的，对于每个单独的呼叫站点<code>S</code> ：</span> </p>
+<ul>
+<li> <span>创建一个新的volatile变量<code>V</code> ，并由当前线程写入。</span> <span>由JMM定义，此写入是全局同步事件。</span> </li>
+<li> <span>由于写入事件的线程本地排序是正常的，所以当前线程已经执行的每个动作都在写入<code>V</code>之前被<code>V</code> 。</span> <span>（在某些实现中，这意味着当前线程执行全局释放操作。）</span> </li>
+<li> <span>具体而言，写入的当前目标<code>S</code>被取挥发性写入之前发生<code>V</code> 。</span> </li>
+<li> <span><code>V</code>的易失性写入以全局同步顺序放置（以实现特定的方式）。</span> </li>
+<li> <span>考虑一个任意的线程<code>T</code> （不同于当前线程）。</span> <span>如果<code>T</code>执行的同步动作<code>A</code>挥发性写入后<code>V</code> （在全局同步顺序），则因此需要看到任一的当前目标<code>S</code> ，或到该目标以后写入时，如果它在目标执行一读的<code>S</code> 。</span> <span>（此约束称为“同步顺序一致性”。）</span> </li>
+<li> <span>JMM专门允许优化编译器来删除已知无用的变量的读取或写入。</span> <span>这种缓和的读取和写入对于发生之前的关系没有影响。</span> <span>不管这个事实如何，挥发性<code>V</code>将不会被<code>V</code> ，即使它的写入值是不确定的，并且其读取值不被使用。</span> </li>
+</ul>
+<span>因为最后一点，实施行为就像一个挥发性读<code>V</code>被执行<code>T</code>其行动后立即<code>A</code> 。</span>
+<span>在<code>T</code>的本地订购行动中，此读取发生在任何未来读取目标之前的<code>S</code> 。</span>
+<span>这是因为如果执行任意地挑选的读取<code>S</code>的目标通过<code>T</code> ，和强制的读<code>V</code>先于它，从而保证了新的目标值的通信。</span>
+<p> <span>只要遵循Java内存模型的约束，实现可能会延迟syncAll <code>syncAll</code>完成，而其他线程（ <code>T</code>以上）继续使用以前的<code>S</code>的目标值。</span> <span>然而，一直鼓励实施方式避免活动锁，并最终要求所有线程考虑更新的目标。</span> </p>
+<p style="font-size:smaller;"> <span><em>讨论：</em>出于性能原因， <code>syncAll</code>不是单个呼叫站点上的虚拟方法，而是适用于一组呼叫站点。</span> <span>一些实现可能产生用于处理一个或多个同步操作的大的固定开销成本，但是每个附加呼叫站点的增量成本较小。</span> <span>在任何情况下，该操作可能是昂贵的，因为其他线程可能必须以某种方式被中断，以便使它们注意更新的目标值。</span> <span>然而，可以观察到，同步多个站点的单个调用与许多调用具有相同的正式效果，每个调用仅在其中一个站点上。</span> </p>
+<p style="font-size:smaller;"> <span><em>实现注意：</em>简单实现<code>MutableCallSite</code>可以使用volatile变量的可变调用点的目标。</span> <span>在这种实现中， <code>syncAll</code>方法可以是无操作的，但它将符合上述JMM行为。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>sites</code> - 要同步的呼叫站点数组 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>sites</code>数组引用为null或数组包含一个空值 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

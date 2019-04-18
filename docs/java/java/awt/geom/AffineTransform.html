@@ -1,0 +1,3149 @@
+<div class="header">
+<div class="subTitle">
+     java.awt.geom 
+   </div>
+<h2 class="title" title="Class AffineTransform">Class AffineTransform</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.awt.geom.AffineTransform</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../../java/lang/Cloneable.html" title="java.lang中的接口">Cloneable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">AffineTransform</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../../java/lang/Cloneable.html" title="interface in java.lang">Cloneable</a>, <a href="../../../java/io/Serializable.html" title="interface in java.io">Serializable</a></pre>
+<div class="block">
+<span><code>AffineTransform</code>类表示2D仿射变换，其执行从2D坐标到其他2D坐标的线性映射，其保留线的“直线度”和“平行度”。</span>
+<span>仿射变换可以使用翻译，缩放，翻转，旋转和剪切的顺序来构建。</span>
+<p> <span>这样的坐标变换可以由3行×3列矩阵表示，隐含的最后一行为[0 0 1]。</span> <span>该矩阵将源坐标<code>(x,y)</code>变换为目标坐标<code>(x',y')</code> ，将它们视为列向量，并根据以下处理将坐标矢量乘以矩阵：</span> </p>
+<pre>  <span>[ x']   [  m00  m01  m02  ] [ x ]   [ m00x + m01y + m02 ]
+      [ y'] = [  m10  m11  m12  ] [ y ] = [ m10x + m11y + m12 ]
+      [ 1 ]   [   0    0    1   ] [ 1 ]   [         1         ]</span> </pre>
+<h3> <span><a name="quadrantapproximation">Handling 90-Degree Rotations</a></span> </h3>
+<p> <span>在<code>AffineTransform</code>类中的<code>rotate</code>方法的某些变体中，双精度参数指定以弧度表示的旋转角度。</span> <span>这些方法对于大约90度的旋转（包括180,270和360度的倍数）具有特殊处理，使得更有效地处理象限旋转的常见情况。</span> <span>这种特殊的处理可以使角度非常接近90度的倍数，被视为90度的精确倍数。</span> <span>对于90度的小倍数，处理为象限旋转的角度范围约为0.00000121度宽。</span> <span>这一节解释了为什么需要这样特别的关心以及如何实施。</span> </p>
+<p> <span>由于90度以弧度表示为<code>PI/2</code> ，并且由于PI是超越（因此是非理性的）数字，所以不可能精确地表示90度的倍数作为以弧度测量的精确双精度值。</span> <span>因此，在理论上不可能使用这些值来描述象限旋转（90,180,270或360度）。</span> <span>双精度浮点值可以非常接近PI/2的非零倍数，但不能足够接近正弦或余弦正好为<code>PI/2</code>或-1.0。</span> <span>的实现<code>Math.sin()</code>和<code>Math.cos()</code>相应从不为比其它任何情况下返回0.0 <code>Math.sin(0.0)</code> 。</span> <span>然而，这些相同的实现对于90度的每个倍数的一些范围的数字返回正好为1.0和-1.0，因为正确答案如此接近1.0或-1.0，所以双精度有效位数不能像它可以精确地表示差异对于接近0.0的数字。</span> </p>
+<p> <span>这些问题的最终结果是，如果<code>Math.sin()</code>和<code>Math.cos()</code>方法用于在这些基于弧度的旋转操作期间直接生成矩阵修改的值，则所得到的变换即使对于简单的情况也不会被严格地分类为象限旋转<code>rotate(Math.PI/2.0)</code> ，由于由正弦和余弦获得的非0.0值引起的矩阵的微小变化。</span> <span>如果这些转换不被划分为象限旋转，则根据变换类型尝试优化进一步操作的后续代码将被归入其最一般的实现。</span> </p>
+<p> <span>因为象限旋转是相当普遍的，所以这个类应该适当地处理这些情况，既可以将旋转应用于变换，也可以将结果变换应用于坐标。</span> <span>为了便于这种最佳处理，采用以弧度测量的旋转角度的方法尝试检测旨在进行四分之一轮转的角度并对其进行处理。</span> <span>因此，如果<code>Math.sin(<em>theta</em>)</code>或<code>Math.cos(<em>theta</em>)</code>返回1.0或-1.0，则这些方法将角度<em>θ</em>视为象限旋转。</span> <span>作为经验法则，该属性适用于围绕Math.PI/2.0的小倍数的大约0.0000000211弧度（或0.00000121度）的<code>Math.PI/2.0</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.2 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../serialized-form.html#java.awt.geom.AffineTransform">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_FLIP">TYPE_FLIP</a></span></code>
+<div class="block">
+              该标志位指示由该对象定义的变换除了由其他标志位指示的转换之外还执行关于某个轴的镜像翻转，该轴将常规右手坐标系改变为左手系统。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION">TYPE_GENERAL_ROTATION</a></span></code>
+<div class="block">
+              该标志位表示由该对象定义的变换除了由其他标志位指示的转换之外还执行任意角度的旋转。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE">TYPE_GENERAL_SCALE</a></span></code>
+<div class="block">
+              该标志位表示由该对象定义的变换除了由其他标志位指示的转换之外还执行一般比例。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_TRANSFORM">TYPE_GENERAL_TRANSFORM</a></span></code>
+<div class="block">
+              该常数表示由该对象定义的变换执行输入坐标的任意转换。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_IDENTITY">TYPE_IDENTITY</a></span></code>
+<div class="block">
+              该常数表示由该对象定义的变换是一个身份变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_MASK_ROTATION">TYPE_MASK_ROTATION</a></span></code>
+<div class="block">
+              该常数是任何旋转标志位的位掩码。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_MASK_SCALE">TYPE_MASK_SCALE</a></span></code>
+<div class="block">
+              该常数是任何刻度标志位的位掩码。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION">TYPE_QUADRANT_ROTATION</a></span></code>
+<div class="block">
+              该标志位表示除了由其他标志位指示的转换之外，由该对象定义的变换执行90度的几倍的象限旋转。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_TRANSLATION">TYPE_TRANSLATION</a></span></code>
+<div class="block">
+              该标志位表示由该对象定义的变换除了由其他标志位指示的转换之外还执行转换。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE">TYPE_UNIFORM_SCALE</a></span></code>
+<div class="block">
+              该标志位表示由该对象定义的变换除了由其他标志位指示的转换之外还执行统一的标度。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#AffineTransform--">AffineTransform</a></span>()</code>
+<div class="block">
+              构造一个 
+             <code>AffineTransform</code>身份转换的新的AffineTransform。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#AffineTransform-java.awt.geom.AffineTransform-">AffineTransform</a></span>(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> Tx)</code>
+<div class="block">
+              构造一个新的 
+             <code>AffineTransform</code> ，它是指定的 
+             <code>AffineTransform</code>对象的副本。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#AffineTransform-double:A-">AffineTransform</a></span>(double[] flatmatrix)</code>
+<div class="block">
+              从表示3x3转换矩阵的4个非转换条目或6个可指定条目的双精度值数组构造新的 
+             <code>AffineTransform</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#AffineTransform-double-double-double-double-double-double-">AffineTransform</a></span>(double m00, double m10, double m01, double m11, double m02, double m12)</code>
+<div class="block">
+              从6个双精度值构造新的 
+             <code>AffineTransform</code> ，表示3x3变换矩阵的6个可指定条目。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#AffineTransform-float:A-">AffineTransform</a></span>(float[] flatmatrix)</code>
+<div class="block">
+              从表示3x3转换矩阵的4个非转换条目或6个可指定条目的浮点值数组构造新的 
+             <code>AffineTransform</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#AffineTransform-float-float-float-float-float-float-">AffineTransform</a></span>(float m00, float m10, float m01, float m11, float m02, float m12)</code>
+<div class="block">
+              从6个浮点值构造新的 
+             <code>AffineTransform</code> ，表示3x3转换矩阵的6个可指定条目。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#clone--">clone</a></span>()</code>
+<div class="block">
+              返回此 
+             <code>AffineTransform</code>对象的副本。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#concatenate-java.awt.geom.AffineTransform-">concatenate</a></span>(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> Tx)</code>
+<div class="block">
+              将 
+             <code>AffineTransform</code>
+<code>Tx</code>到此 
+             <code>AffineTransform</code> Cx中，以最常用的方式提供 
+             <code>Tx</code>映射到前一个用户空间的新用户空间。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#createInverse--">createInverse</a></span>()</code>
+<div class="block">
+              返回表示逆变换的 
+             <code>AffineTransform</code>对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#createTransformedShape-java.awt.Shape-">createTransformedShape</a></span>(<a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> pSrc)</code>
+<div class="block">
+<span>在通过此转换<code>Shape</code>后，返回由指定的<a href="../../../java/awt/Shape.html" title="java.awt中的接口">Shape</a>的几何形状定义的新的对象<code>Shape</code>。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#deltaTransform-double:A-int-double:A-int-int-">deltaTransform</a></span>(double[] srcPts, int srcOff, double[] dstPts, int dstOff, int numPts)</code>
+<div class="block">
+              通过该变换来变换相对距离向量的数组。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#deltaTransform-java.awt.geom.Point2D-java.awt.geom.Point2D-">deltaTransform</a></span>(<a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptSrc, <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptDst)</code>
+<div class="block">
+              变换由指定的相对距离向量 
+             <code>ptSrc</code> ，并将结果存储在 
+             <code>ptDst</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#equals-java.lang.Object-">equals</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              返回 
+             <code>true</code>如果这 
+             <code>AffineTransform</code>表示相同的仿射坐标变换，指定的参数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getDeterminant--">getDeterminant</a></span>()</code>
+<div class="block">
+              返回变换的矩阵表示的行列式。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getMatrix-double:A-">getMatrix</a></span>(double[] flatmatrix)</code>
+<div class="block">
+              检索3x3仿射变换矩阵中的6个可指定值，并将它们放入双重精度值的数组中。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getQuadrantRotateInstance-int-">getQuadrantRotateInstance</a></span>(int numquadrants)</code>
+<div class="block">
+              返回一个将坐标旋转指定数量的象限的变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getQuadrantRotateInstance-int-double-double-">getQuadrantRotateInstance</a></span>(int numquadrants, double anchorx, double anchory)</code>
+<div class="block">
+              返回一个转换，该变换将坐标指定指定锚点周围的指定数量的象限旋转。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getRotateInstance-double-">getRotateInstance</a></span>(double theta)</code>
+<div class="block">
+              返回表示旋转变换的变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getRotateInstance-double-double-">getRotateInstance</a></span>(double vecx, double vecy)</code>
+<div class="block">
+              返回一个根据旋转矢量旋转坐标的变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getRotateInstance-double-double-double-">getRotateInstance</a></span>(double theta, double anchorx, double anchory)</code>
+<div class="block">
+              返回一个在锚点周围旋转坐标的变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getRotateInstance-double-double-double-double-">getRotateInstance</a></span>(double vecx, double vecy, double anchorx, double anchory)</code>
+<div class="block">
+              返回根据旋转向量旋转锚点周围坐标的变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getScaleInstance-double-double-">getScaleInstance</a></span>(double sx, double sy)</code>
+<div class="block">
+              返回表示缩放变换的变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getScaleX--">getScaleX</a></span>()</code>
+<div class="block">
+              返回3x3仿射变换矩阵的X坐标缩放元素（m00）。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getScaleY--">getScaleY</a></span>()</code>
+<div class="block">
+              返回3x3仿射变换矩阵的Y坐标缩放元素（m11）。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getShearInstance-double-double-">getShearInstance</a></span>(double shx, double shy)</code>
+<div class="block">
+              返回代表剪切变换的变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getShearX--">getShearX</a></span>()</code>
+<div class="block">
+              返回3x3仿射变换矩阵的X坐标剪切元素（m01）。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getShearY--">getShearY</a></span>()</code>
+<div class="block">
+              返回3x3仿射变换矩阵的Y坐标剪切元素（m10）。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getTranslateInstance-double-double-">getTranslateInstance</a></span>(double tx, double ty)</code>
+<div class="block">
+              返回表示平移变换的变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getTranslateX--">getTranslateX</a></span>()</code>
+<div class="block">
+              返回3x3仿射变换矩阵的平移元素（m02）的X坐标。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getTranslateY--">getTranslateY</a></span>()</code>
+<div class="block">
+              返回3x3仿射变换矩阵的平移元素（m12）的Y坐标。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#getType--">getType</a></span>()</code>
+<div class="block">
+              检索描述此转换的转换属性的标志位。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              返回此转换的哈希码。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i26">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#inverseTransform-double:A-int-double:A-int-int-">inverseTransform</a></span>(double[] srcPts, int srcOff, double[] dstPts, int dstOff, int numPts)</code>
+<div class="block">
+              通过此变换反向转换双精度坐标数组。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i27">
+<td class="colFirst"><code><a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#inverseTransform-java.awt.geom.Point2D-java.awt.geom.Point2D-">inverseTransform</a></span>(<a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptSrc, <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptDst)</code>
+<div class="block">
+              逆向变换指定的 
+             <code>ptSrc</code>并将结果在 
+             <code>ptDst</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i28">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#invert--">invert</a></span>()</code>
+<div class="block">
+              将此变换设置为本身的倒数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i29">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#isIdentity--">isIdentity</a></span>()</code>
+<div class="block">
+              返回 
+             <code>true</code>如果这 
+             <code>AffineTransform</code>是恒等变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i30">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#preConcatenate-java.awt.geom.AffineTransform-">preConcatenate</a></span>(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> Tx)</code>
+<div class="block">
+              串接的 
+             <code>AffineTransform</code>
+<code>Tx</code>本 
+             <code>AffineTransform</code> CX在一个不常用的方式，使得 
+             <code>Tx</code>坐标变换相对于绝对像素空间而不是相对于现有的用户空间修改。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i31">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#quadrantRotate-int-">quadrantRotate</a></span>(int numquadrants)</code>
+<div class="block">
+              使用将坐标旋转指定数量的象限的变换来连接此变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i32">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#quadrantRotate-int-double-double-">quadrantRotate</a></span>(int numquadrants, double anchorx, double anchory)</code>
+<div class="block">
+              使用将坐标旋转指定锚点周围指定数量的象限的变换来连接此变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i33">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#rotate-double-">rotate</a></span>(double theta)</code>
+<div class="block">
+              使用旋转变换连接此变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i34">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#rotate-double-double-">rotate</a></span>(double vecx, double vecy)</code>
+<div class="block">
+              使用根据旋转矢量旋转坐标的变换来连接此变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i35">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#rotate-double-double-double-">rotate</a></span>(double theta, double anchorx, double anchory)</code>
+<div class="block">
+              将此变换与使锚点附近旋转坐标的变换相连。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i36">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#rotate-double-double-double-double-">rotate</a></span>(double vecx, double vecy, double anchorx, double anchory)</code>
+<div class="block">
+              使用根据旋转矢量围绕锚点旋转坐标的变换来连接此变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i37">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#scale-double-double-">scale</a></span>(double sx, double sy)</code>
+<div class="block">
+              使用缩放变换连接此变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i38">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToIdentity--">setToIdentity</a></span>()</code>
+<div class="block">
+              将此转换重置为Identity变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i39">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToQuadrantRotation-int-">setToQuadrantRotation</a></span>(int numquadrants)</code>
+<div class="block">
+              将此变换设置为将坐标旋转指定数量的象限的旋转变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i40">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToQuadrantRotation-int-double-double-">setToQuadrantRotation</a></span>(int numquadrants, double anchorx, double anchory)</code>
+<div class="block">
+              将此转换设置为转换的旋转变换，该转换将坐标指定指定锚点周围的指定数量的象限旋转。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i41">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToRotation-double-">setToRotation</a></span>(double theta)</code>
+<div class="block">
+              将此变换设置为旋转变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i42">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToRotation-double-double-">setToRotation</a></span>(double vecx, double vecy)</code>
+<div class="block">
+              将此变换设置为根据旋转矢量旋转坐标的旋转变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i43">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToRotation-double-double-double-">setToRotation</a></span>(double theta, double anchorx, double anchory)</code>
+<div class="block">
+              将此转换设置为转换的旋转变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i44">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToRotation-double-double-double-double-">setToRotation</a></span>(double vecx, double vecy, double anchorx, double anchory)</code>
+<div class="block">
+              将此变换设置为根据旋转向量旋转锚点周围的坐标的旋转变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i45">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToScale-double-double-">setToScale</a></span>(double sx, double sy)</code>
+<div class="block">
+              将此变换设置为缩放变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i46">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToShear-double-double-">setToShear</a></span>(double shx, double shy)</code>
+<div class="block">
+              将此变换设置为剪切变换。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i47">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setToTranslation-double-double-">setToTranslation</a></span>(double tx, double ty)</code>
+<div class="block">
+              将此变换设置为转换变换。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i48">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setTransform-java.awt.geom.AffineTransform-">setTransform</a></span>(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> Tx)</code>
+<div class="block">
+              将此变换设置为指定的 
+             <code>AffineTransform</code>对象中的变换 
+             <code>AffineTransform</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i49">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#setTransform-double-double-double-double-double-double-">setTransform</a></span>(double m00, double m10, double m01, double m11, double m02, double m12)</code>
+<div class="block">
+              将此变换设置为由6个双精度值指定的矩阵。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i50">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#shear-double-double-">shear</a></span>(double shx, double shy)</code>
+<div class="block">
+              将此变换与剪切变换相结合。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i51">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#toString--">toString</a></span>()</code>
+<div class="block">
+<span>返回<code>String</code>表示此值<a href="../../../java/lang/Object.html" title="java.lang中的类"><code>Object</code></a> 。</span>
+</div> </td>
+</tr>
+<tr class="altColor" id="i52">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#transform-double:A-int-double:A-int-int-">transform</a></span>(double[] srcPts, int srcOff, double[] dstPts, int dstOff, int numPts)</code>
+<div class="block">
+              通过此转换来转换双精度坐标数组。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i53">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#transform-double:A-int-float:A-int-int-">transform</a></span>(double[] srcPts, int srcOff, float[] dstPts, int dstOff, int numPts)</code>
+<div class="block">
+              通过此转换来转换双精度坐标数组，并将结果存储到浮点数组中。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i54">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#transform-float:A-int-double:A-int-int-">transform</a></span>(float[] srcPts, int srcOff, double[] dstPts, int dstOff, int numPts)</code>
+<div class="block">
+              通过此转换来转换浮点坐标数组，并将结果存储到双精度数组中。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i55">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#transform-float:A-int-float:A-int-int-">transform</a></span>(float[] srcPts, int srcOff, float[] dstPts, int dstOff, int numPts)</code>
+<div class="block">
+              通过此变换来转换浮点坐标数组。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i56">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#transform-java.awt.geom.Point2D:A-int-java.awt.geom.Point2D:A-int-int-">transform</a></span>(<a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a>[] ptSrc, int srcOff, <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a>[] ptDst, int dstOff, int numPts)</code>
+<div class="block">
+              通过此转换来转换点对象数组。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i57">
+<td class="colFirst"><code><a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#transform-java.awt.geom.Point2D-java.awt.geom.Point2D-">transform</a></span>(<a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptSrc, <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptDst)</code>
+<div class="block">
+              转换指定的 
+             <code>ptSrc</code>并存储结果在 
+             <code>ptDst</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i58">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/geom/AffineTransform.html#translate-double-double-">translate</a></span>(double tx, double ty)</code>
+<div class="block">
+              将此转换与转换变换相结合。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="TYPE_IDENTITY">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TYPE_IDENTITY</h4> <pre>public static final int TYPE_IDENTITY</pre>
+<div class="block">
+<span>该常数表示由该对象定义的变换是一个身份变换。</span>
+<span>身份变换是输出坐标与输入坐标始终相同的变换。</span>
+<span>如果此变换是身份转换以外的其他变体，则该变换将作为常量GENERAL_TRANSFORM或适用于该变换执行的各种坐标转换的标志位的组合。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_TRANSLATION"><code>TYPE_TRANSLATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE"><code>TYPE_GENERAL_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_FLIP"><code>TYPE_FLIP</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION"><code>TYPE_QUADRANT_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION"><code>TYPE_GENERAL_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_TRANSFORM"><code>TYPE_GENERAL_TRANSFORM</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getType--"><code>getType()</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_IDENTITY">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TYPE_TRANSLATION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TYPE_TRANSLATION</h4> <pre>public static final int TYPE_TRANSLATION</pre>
+<div class="block">
+<span>该标志位表示由该对象定义的变换除了由其他标志位指示的转换之外还执行转换。</span>
+<span>平移在x和y上移动坐标恒定的量，而不改变向量的长度或角度。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_IDENTITY"><code>TYPE_IDENTITY</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE"><code>TYPE_GENERAL_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_FLIP"><code>TYPE_FLIP</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION"><code>TYPE_QUADRANT_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION"><code>TYPE_GENERAL_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_TRANSFORM"><code>TYPE_GENERAL_TRANSFORM</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getType--"><code>getType()</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_TRANSLATION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TYPE_UNIFORM_SCALE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TYPE_UNIFORM_SCALE</h4> <pre>public static final int TYPE_UNIFORM_SCALE</pre>
+<div class="block">
+<span>该标志位表示由该对象定义的变换除了由其他标志位指示的转换之外还执行统一的标度。</span>
+<span>均匀标度在x和y方向上将向量的长度乘以相同的量，而不改变向量之间的角度。</span>
+<span>该标志位与TYPE_GENERAL_SCALE标志相互排斥。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_IDENTITY"><code>TYPE_IDENTITY</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_TRANSLATION"><code>TYPE_TRANSLATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE"><code>TYPE_GENERAL_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_FLIP"><code>TYPE_FLIP</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION"><code>TYPE_QUADRANT_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION"><code>TYPE_GENERAL_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_TRANSFORM"><code>TYPE_GENERAL_TRANSFORM</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getType--"><code>getType()</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_UNIFORM_SCALE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TYPE_GENERAL_SCALE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TYPE_GENERAL_SCALE</h4> <pre>public static final int TYPE_GENERAL_SCALE</pre>
+<div class="block">
+<span>该标志位表示由该对象定义的变换除了由其他标志位指示的转换之外还执行一般比例。</span>
+<span>一般比例尺在x和y方向上乘以不同量的向量长度，而不改变垂直向量之间的角度。</span>
+<span>该标志位与TYPE_UNIFORM_SCALE标志相互排斥。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_IDENTITY"><code>TYPE_IDENTITY</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_TRANSLATION"><code>TYPE_TRANSLATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_FLIP"><code>TYPE_FLIP</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION"><code>TYPE_QUADRANT_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION"><code>TYPE_GENERAL_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_TRANSFORM"><code>TYPE_GENERAL_TRANSFORM</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getType--"><code>getType()</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_GENERAL_SCALE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TYPE_MASK_SCALE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TYPE_MASK_SCALE</h4> <pre>public static final int TYPE_MASK_SCALE</pre>
+<div class="block">
+            该常数是任何刻度标志位的位掩码。 
+          </div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE"><code>TYPE_GENERAL_SCALE</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_MASK_SCALE">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TYPE_FLIP">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TYPE_FLIP</h4> <pre>public static final int TYPE_FLIP</pre>
+<div class="block">
+<span>该标志位指示由该对象定义的变换除了由其他标志位指示的转换之外还执行关于某个轴的镜像翻转，该轴将常规右手坐标系改变为左手系统。</span>
+<span>右手坐标系是正X轴逆时针旋转以覆盖正Y轴的方式，类似于当您盯着拇指时右手指卷曲的方向。</span>
+<span>左手坐标系是正X轴顺时针旋转以覆盖正Y轴的方式，类似于左手指上的手指卷曲。</span>
+<span>没有数学方法来确定原始翻转或镜像变换的角度，因为在适当的调整旋转情况下，所有翻转角都相同。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_IDENTITY"><code>TYPE_IDENTITY</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_TRANSLATION"><code>TYPE_TRANSLATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE"><code>TYPE_GENERAL_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION"><code>TYPE_QUADRANT_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION"><code>TYPE_GENERAL_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_TRANSFORM"><code>TYPE_GENERAL_TRANSFORM</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getType--"><code>getType()</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_FLIP">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TYPE_QUADRANT_ROTATION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TYPE_QUADRANT_ROTATION</h4> <pre>public static final int TYPE_QUADRANT_ROTATION</pre>
+<div class="block">
+<span>该标志位表示除了由其他标志位指示的转换之外，由该对象定义的变换执行90度的几倍的象限旋转。</span>
+<span>旋转方向将向量的角度改变相同的量，而不管矢量的原始方向如何，而不改变向量的长度。</span>
+<span>该标志位与TYPE_GENERAL_ROTATION标志相互排斥。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_IDENTITY"><code>TYPE_IDENTITY</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_TRANSLATION"><code>TYPE_TRANSLATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE"><code>TYPE_GENERAL_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_FLIP"><code>TYPE_FLIP</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION"><code>TYPE_GENERAL_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_TRANSFORM"><code>TYPE_GENERAL_TRANSFORM</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getType--"><code>getType()</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_QUADRANT_ROTATION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TYPE_GENERAL_ROTATION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TYPE_GENERAL_ROTATION</h4> <pre>public static final int TYPE_GENERAL_ROTATION</pre>
+<div class="block">
+<span>该标志位表示由该对象定义的变换除了由其他标志位指示的转换之外还执行任意角度的旋转。</span>
+<span>旋转方向将向量的角度改变相同的量，而不管矢量的原始方向如何，而不改变向量的长度。</span>
+<span>该标志位与TYPE_QUADRANT_ROTATION标志相互排斥。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_IDENTITY"><code>TYPE_IDENTITY</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_TRANSLATION"><code>TYPE_TRANSLATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE"><code>TYPE_GENERAL_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_FLIP"><code>TYPE_FLIP</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION"><code>TYPE_QUADRANT_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_TRANSFORM"><code>TYPE_GENERAL_TRANSFORM</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getType--"><code>getType()</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_GENERAL_ROTATION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TYPE_MASK_ROTATION">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TYPE_MASK_ROTATION</h4> <pre>public static final int TYPE_MASK_ROTATION</pre>
+<div class="block">
+            该常数是任何旋转标志位的位掩码。 
+          </div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION"><code>TYPE_QUADRANT_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION"><code>TYPE_GENERAL_ROTATION</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_MASK_ROTATION">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TYPE_GENERAL_TRANSFORM">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>TYPE_GENERAL_TRANSFORM</h4> <pre>public static final int TYPE_GENERAL_TRANSFORM</pre>
+<div class="block">
+<span>该常数表示由该对象定义的变换执行输入坐标的任意转换。</span>
+<span>如果该变换可以通过以上任何常数进行分类，则该变换将执行常量TYPE_IDENTITY或适用于各种坐标转换的相应标志位的组合。</span>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_IDENTITY"><code>TYPE_IDENTITY</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_TRANSLATION"><code>TYPE_TRANSLATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE"><code>TYPE_GENERAL_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_FLIP"><code>TYPE_FLIP</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION"><code>TYPE_QUADRANT_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION"><code>TYPE_GENERAL_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getType--"><code>getType()</code></a> ， 
+            <a href="../../../constant-values.html#java.awt.geom.AffineTransform.TYPE_GENERAL_TRANSFORM">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="AffineTransform--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>AffineTransform</h4> <pre>public AffineTransform()</pre>
+<div class="block">
+            构造一个新 
+           <code>AffineTransform</code>表示恒等变换。 
+          </div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="AffineTransform-java.awt.geom.AffineTransform-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>AffineTransform</h4> <pre>public AffineTransform(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> Tx)</pre>
+<div class="block">
+            构造一个新的 
+           <code>AffineTransform</code> ，它是指定的 
+           <code>AffineTransform</code>对象的副本。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>Tx</code> - 要复制的 
+            <code>AffineTransform</code>对象 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="AffineTransform-float-float-float-float-float-float-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>AffineTransform</h4> <pre><a href="../../../java/beans/ConstructorProperties.html" title="annotation in java.beans">@ConstructorProperties</a>(<a href="../../../java/beans/ConstructorProperties.html#value--">value</a>={"scaleX","shearY","shearX","scaleY","translateX","translateY"})
+public AffineTransform(float m00,
+                                                                                                                     float m10,
+                                                                                                                     float m01,
+                                                                                                                     float m11,
+                                                                                                                     float m02,
+                                                                                                                     float m12)</pre>
+<div class="block">
+            从6个浮点值构造新的 
+           <code>AffineTransform</code> ，表示3x3变换矩阵的6个可指定条目。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>m00</code> - 3x3矩阵的X坐标缩放元素 
+           </dd>
+<dd>
+<code>m10</code> - 3x3矩阵的Y坐标剪切元素 
+           </dd>
+<dd>
+<code>m01</code> - 3x3矩阵的X坐标剪切元素 
+           </dd>
+<dd>
+<code>m11</code> - 3x3矩阵的Y坐标缩放元素 
+           </dd>
+<dd>
+<code>m02</code> - 3x3矩阵的X坐标转换元素 
+           </dd>
+<dd>
+<code>m12</code> - 3x3矩阵的Y坐标转换元素 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="AffineTransform-float:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>AffineTransform</h4> <pre>public AffineTransform(float[] flatmatrix)</pre>
+<div class="block">
+<span>从表示3x3转换矩阵的4个非转换条目或6个可指定条目的浮点值数组构造新的<code>AffineTransform</code> 。</span>
+<span>将值从数组中检索为{m00 m10 m01 m11 [m02 m12]}。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>flatmatrix</code> - 包含要在新的<code>AffineTransform</code>对象中设置的值的浮点数组。</span>
+<span>数组的长度假定为至少为4.如果数组的长度小于6，则仅取前4个值。</span>
+<span>如果阵列的长度大于6，则采用前6个值。</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="AffineTransform-double-double-double-double-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>AffineTransform</h4> <pre>public AffineTransform(double m00,
+                       double m10,
+                       double m01,
+                       double m11,
+                       double m02,
+                       double m12)</pre>
+<div class="block">
+            从6个双精度值构造新的 
+           <code>AffineTransform</code> ，表示3x3变换矩阵的6个可指定条目。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>m00</code> - 3x3矩阵的X坐标缩放元素 
+           </dd>
+<dd>
+<code>m10</code> - 3x3矩阵的Y坐标剪切元素 
+           </dd>
+<dd>
+<code>m01</code> - 3x3矩阵的X坐标剪切元素 
+           </dd>
+<dd>
+<code>m11</code> - 3x3矩阵的Y坐标缩放元素 
+           </dd>
+<dd>
+<code>m02</code> - 3x3矩阵的X坐标转换元素 
+           </dd>
+<dd>
+<code>m12</code> - 3x3矩阵的Y坐标转换元素 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="AffineTransform-double:A-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>AffineTransform</h4> <pre>public AffineTransform(double[] flatmatrix)</pre>
+<div class="block">
+<span>从表示3x3转换矩阵的4个非转换条目或6个可指定条目的双精度值数组构造新的<code>AffineTransform</code> 。</span>
+<span>将值从数组中检索为{m00 m10 m01 m11 [m02 m12]}。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>flatmatrix</code> - 包含要在新的<code>AffineTransform</code>对象中设置的值的双数组。</span>
+<span>数组的长度假定为至少为4.如果数组的长度小于6，则仅取前4个值。</span>
+<span>如果阵列的长度大于6，则采用前6个值。</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getTranslateInstance-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTranslateInstance</h4> <pre>public static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> getTranslateInstance(double tx,
+                                                   double ty)</pre>
+<div class="block">
+<span>返回表示平移变换的变换。</span>
+<span>表示返回的变换的矩阵为：</span>
+<pre>  <span>[   1    0    tx  ]
+          [   0    1    ty  ]
+          [   0    0    1   ]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>tx</code> - 坐标在X轴方向上平移的距离 
+           </dd>
+<dd>
+<code>ty</code> - 坐标在Y轴方向上平移的距离 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>AffineTransform</code>对象，表示使用指定向量创建的转换变换。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="getRotateInstance-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRotateInstance</h4> <pre>public static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> getRotateInstance(double theta)</pre>
+<div class="block">
+<span>返回表示旋转变换的变换。</span>
+<span>表示返回的变换的矩阵为：</span>
+<pre>  <span>[   cos(theta)    -sin(theta)    0   ]
+          [   sin(theta)     cos(theta)    0   ]
+          [       0              0         1   ]</span> </pre>
+<span>以正角度θ旋转正X轴上的点朝向正Y轴旋转。</span>
+<span>另请<a href="#quadrantapproximation">参见</a>上述Handling 90-Degree Rotations的<a href="#quadrantapproximation">讨论</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>theta</code> - 以弧度测量的旋转角度 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>AffineTransform</code>对象，它是以指定的旋转角度创建的旋转变换。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="getRotateInstance-double-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRotateInstance</h4> <pre>public static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> getRotateInstance(double theta,
+                                                double anchorx,
+                                                double anchory)</pre>
+<div class="block">
+<span>返回一个在锚点周围旋转坐标的变换。</span>
+<span>该操作等效于平移坐标，使锚点位于原点（S1），然后绕新原点（S2）旋转，最后平移，使得中间原点恢复到原始锚点的坐标（S3）。</span>
+<p> <span>此操作等同于以下呼叫序列：</span> </p>
+<pre>  <span>AffineTransform Tx = new AffineTransform();
+     Tx.translate(anchorx, anchory);    // S3: final translation
+     Tx.rotate(theta);                  // S2: rotate around anchor
+     Tx.translate(-anchorx, -anchory);  // S1: translate anchor to origin</span> </pre>
+<span>表示返回的变换的矩阵为：</span>
+<pre>  <span>[   cos(theta)    -sin(theta)    x-x*cos+y*sin  ]
+          [   sin(theta)     cos(theta)    y-x*sin-y*cos  ]
+          [       0              0               1        ]</span> </pre>
+<span>以正角度θ旋转正X轴上的点朝向正Y轴旋转。</span>
+<span>还要注意上面Handling 90-Degree Rotations的<a href="#quadrantapproximation">讨论</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>theta</code> - 以弧度测量的旋转角度 
+           </dd>
+<dd>
+<code>anchorx</code> - 旋转锚点的X坐标 
+           </dd>
+<dd>
+<code>anchory</code> - 旋转锚点的Y坐标 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>AffineTransform</code>对象，它将指定点周围的坐标旋转指定的旋转角度。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="getRotateInstance-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRotateInstance</h4> <pre>public static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> getRotateInstance(double vecx,
+                                                double vecy)</pre>
+<div class="block">
+<span>返回一个根据旋转矢量旋转坐标的变换。</span>
+<span>所有坐标以原点相同的数量旋转。</span>
+<span>旋转量使得沿着前正X轴的坐标随后将与从原点指向矢量坐标的向量对齐。</span>
+<span>如果<code>vecx</code>和<code>vecy</code>均为0.0，则返回身份转换。</span>
+<span>此操作相当于调用：</span>
+<pre>  <span>AffineTransform.getRotateInstance(Math.atan2(vecy, vecx));</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>vecx</code> - 旋转矢量的X坐标 
+           </dd>
+<dd>
+<code>vecy</code> - 旋转矢量的Y坐标 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             根据指定的旋转矢量旋转坐标的 
+            <code>AffineTransform</code>对象。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="getRotateInstance-double-double-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRotateInstance</h4> <pre>public static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> getRotateInstance(double vecx,
+                                                double vecy,
+                                                double anchorx,
+                                                double anchory)</pre>
+<div class="block">
+<span>返回根据旋转向量旋转锚点周围坐标的变换。</span>
+<span>所有坐标围绕指定的锚点坐标旋转相同的量。</span>
+<span>旋转量使得沿着前正X轴的坐标随后将与从原点指向矢量坐标的向量对齐。</span>
+<span>如果<code>vecx</code>和<code>vecy</code>均为0.0，则返回身份转换。</span>
+<span>此操作相当于调用：</span>
+<pre>  <span>AffineTransform.getRotateInstance(Math.atan2(vecy, vecx),
+                                       anchorx, anchory);</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>vecx</code> - 旋转矢量的X坐标 
+           </dd>
+<dd>
+<code>vecy</code> - 旋转矢量的Y坐标 
+           </dd>
+<dd>
+<code>anchorx</code> - 旋转锚点的X坐标 
+           </dd>
+<dd>
+<code>anchory</code> - 旋转锚点的Y坐标 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>AffineTransform</code>对象，根据指定的旋转矢量旋转指定点周围的坐标。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="getQuadrantRotateInstance-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getQuadrantRotateInstance</h4> <pre>public static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> getQuadrantRotateInstance(int numquadrants)</pre>
+<div class="block">
+<span>返回一个将坐标旋转指定数量的象限的变换。</span>
+<span>此操作相当于调用：</span>
+<pre>  <span>AffineTransform.getRotateInstance(numquadrants * Math.PI / 2.0);</span> </pre>
+<span>旋转正数的象限将正X轴上的点向正Y轴旋转。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>numquadrants</code> - 要旋转的90度弧数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>AffineTransform</code>对象，将坐标旋转指定数量的象限。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="getQuadrantRotateInstance-int-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getQuadrantRotateInstance</h4> <pre>public static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> getQuadrantRotateInstance(int numquadrants,
+                                                        double anchorx,
+                                                        double anchory)</pre>
+<div class="block">
+<span>返回一个转换，该变换将坐标指定指定锚点周围的指定数量的象限旋转。</span>
+<span>此操作相当于调用：</span>
+<pre>  <span>AffineTransform.getRotateInstance(numquadrants * Math.PI / 2.0,
+                                       anchorx, anchory);</span> </pre>
+<span>旋转正数的象限将正X轴上的点向正Y轴旋转。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>numquadrants</code> - 要旋转的90度弧数 
+           </dd>
+<dd>
+<code>anchorx</code> - 旋转锚点的X坐标 
+           </dd>
+<dd>
+<code>anchory</code> - 旋转锚点的Y坐标 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>AffineTransform</code>对象，它将坐标指定在指定锚点周围的指定数量的象限。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="getScaleInstance-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getScaleInstance</h4> <pre>public static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> getScaleInstance(double sx,
+                                               double sy)</pre>
+<div class="block">
+<span>返回表示缩放变换的变换。</span>
+<span>表示返回的变换的矩阵为：</span>
+<pre>  <span>[   sx   0    0   ]
+          [   0    sy   0   ]
+          [   0    0    1   ]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>sx</code> - 坐标沿X轴方向缩放的因子 
+           </dd>
+<dd>
+<code>sy</code> - 坐标沿着Y轴方向缩放的因子 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>AffineTransform</code>对象，按照指定的因素缩放坐标。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="getShearInstance-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getShearInstance</h4> <pre>public static <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> getShearInstance(double shx,
+                                               double shy)</pre>
+<div class="block">
+<span>返回代表剪切变换的变换。</span>
+<span>表示返回的变换的矩阵为：</span>
+<pre>  <span>[   1   shx   0   ]
+          [  shy   1    0   ]
+          [   0    0    1   ]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>shx</code> - 坐标在正X轴方向上偏移的乘数，作为其Y坐标系数 
+           </dd>
+<dd>
+<code>shy</code> - 坐标在正Y轴的方向上作为其X坐标系数的乘数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>AffineTransform</code>对象，通过指定的乘数剪切坐标。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="getType--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getType</h4> <pre>public int getType()</pre>
+<div class="block">
+<span>检索描述此转换的转换属性的标志位。</span>
+<span>返回值是常量TYPE_IDENTITY或TYPE_GENERAL_TRANSFORM之一，或相应标志位的组合。</span>
+<span>标志位的有效组合是除了TYPE_UNIFORM_SCALE或TYPE_GENERAL_SCALE标志位之外的TYPE_TRANSLATION标志位以及TYPE_QUADRANT_ROTATION或TYPE_GENERAL_ROTATION标志位之一之外的组合的异或运算。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             任何适用于此变换的指示标志的OR组合 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#TYPE_IDENTITY"><code>TYPE_IDENTITY</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_TRANSLATION"><code>TYPE_TRANSLATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_SCALE"><code>TYPE_GENERAL_SCALE</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_QUADRANT_ROTATION"><code>TYPE_QUADRANT_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_ROTATION"><code>TYPE_GENERAL_ROTATION</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_GENERAL_TRANSFORM"><code>TYPE_GENERAL_TRANSFORM</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getDeterminant--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDeterminant</h4> <pre>public double getDeterminant()</pre>
+<div class="block">
+<span>返回变换的矩阵表示的行列式。</span>
+<span>决定因素对于确定变换是否可以被反转并且获得表示变换的组合X和Y缩放的单个值是有用的。</span>
+<p> <span>如果行列式不为零，则该变换是可逆的，并且依赖逆变换的各种方法不需要抛出一个<a href="../../../java/awt/geom/NoninvertibleTransformException.html" title="java.awt.geom中的类"><code>NoninvertibleTransformException</code></a> 。</span> <span>如果行列式为零，则该变换不能反转，因为变换将所有输入坐标映射到一行或一点上。</span> <span>如果决定因素接近于零，那么逆变换操作可能不足以产生有意义的结果。</span> </p>
+<p> <span>如果此变换表示统一缩放，由所指示的<code>getType</code>方法则决定因子也代表通过该所有的点是用膨胀或朝向原点收缩均匀缩放因子的平方。</span> <span>如果该变换表示不均匀的标度或更一般的变换，那么除了确定逆变换是否可能之外，行列式不太可能表示用于任何目的的值。</span> </p>
+<p> <span>在数学上，行列式使用以下公式计算：</span> </p>
+<pre>  <span>|  m00  m01  m02  |
+          |  m10  m11  m12  |  =  m00 * m11 - m01 * m10
+          |   0    0    1   |</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             用于转换坐标的矩阵的行列式。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getType--"><code>getType()</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#createInverse--"><code>createInverse()</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#inverseTransform-java.awt.geom.Point2D-java.awt.geom.Point2D-"><code>inverseTransform(java.awt.geom.Point2D, java.awt.geom.Point2D)</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#TYPE_UNIFORM_SCALE"><code>TYPE_UNIFORM_SCALE</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getMatrix-double:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMatrix</h4> <pre>public void getMatrix(double[] flatmatrix)</pre>
+<div class="block">
+<span>检索3x3仿射变换矩阵中的6个可指定值，并将它们放入双重精度值的数组中。</span>
+<span>这些值作为{m00 m10 m01 m11 m02 m12}存储在数组中。</span>
+<span>也可以指定4个双精度数组，在这种情况下，仅检索表示数组的非变换部分的前四个元素，并将该值作为{m00 m10 m01 m11}存储到数组中</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>flatmatrix</code> - 用于存储返回值的double数组。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getScaleX--"><code>getScaleX()</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getScaleY--"><code>getScaleY()</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getShearX--"><code>getShearX()</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getShearY--"><code>getShearY()</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getTranslateX--"><code>getTranslateX()</code></a> ， 
+            <a href="../../../java/awt/geom/AffineTransform.html#getTranslateY--"><code>getTranslateY()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getScaleX--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getScaleX</h4> <pre>public double getScaleX()</pre>
+<div class="block">
+            返回3x3仿射变换矩阵的X坐标缩放元素（m00）。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             作为仿射变换矩阵的缩放元素的X坐标的双重值。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getMatrix-double:A-"><code>getMatrix(double[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getScaleY--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getScaleY</h4> <pre>public double getScaleY()</pre>
+<div class="block">
+            返回3x3仿射变换矩阵的Y坐标缩放元素（m11）。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             作为仿射变换矩阵的缩放元素的Y坐标的双重值。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getMatrix-double:A-"><code>getMatrix(double[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getShearX--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getShearX</h4> <pre>public double getShearX()</pre>
+<div class="block">
+            返回3x3仿射变换矩阵的X坐标剪切元素（m01）。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             作为仿射变换矩阵的剪切元素的X坐标的双重值。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getMatrix-double:A-"><code>getMatrix(double[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getShearY--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getShearY</h4> <pre>public double getShearY()</pre>
+<div class="block">
+            返回3x3仿射变换矩阵的Y坐标剪切元素（m10）。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             作为仿射变换矩阵的剪切元素的Y坐标的双重值。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getMatrix-double:A-"><code>getMatrix(double[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getTranslateX--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTranslateX</h4> <pre>public double getTranslateX()</pre>
+<div class="block">
+            返回3x3仿射变换矩阵的平移元素（m02）的X坐标。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个双重值，它是仿射变换矩阵的平移元素的X坐标。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getMatrix-double:A-"><code>getMatrix(double[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getTranslateY--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getTranslateY</h4> <pre>public double getTranslateY()</pre>
+<div class="block">
+            返回3x3仿射变换矩阵的平移元素（m12）的Y坐标。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             作为仿射变换矩阵的平移元素的Y坐标的双重值。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getMatrix-double:A-"><code>getMatrix(double[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="translate-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>translate</h4> <pre>public void translate(double tx,
+                      double ty)</pre>
+<div class="block">
+<span>将此转换与转换变换相结合。</span>
+<span>这等同于调用concatenate（T），其中T是一个<code>AffineTransform</code>由以下矩阵表示：</span>
+<pre>  <span>[   1    0    tx  ]
+          [   0    1    ty  ]
+          [   0    0    1   ]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>tx</code> - 坐标在X轴方向上平移的距离 
+           </dd>
+<dd>
+<code>ty</code> - 坐标在Y轴方向上平移的距离 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="rotate-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rotate</h4> <pre>public void rotate(double theta)</pre>
+<div class="block">
+<span>使用旋转变换连接此变换。</span>
+<span>这等同于调用concatenate（R），其中R是<code>AffineTransform</code>由以下矩阵表示：</span>
+<pre>  <span>[   cos(theta)    -sin(theta)    0   ]
+          [   sin(theta)     cos(theta)    0   ]
+          [       0              0         1   ]</span> </pre>
+<span>以正角度θ旋转正X轴上的点朝向正Y轴旋转。</span>
+<span>另请<a href="#quadrantapproximation">参见</a>上述Handling 90-Degree Rotations的<a href="#quadrantapproximation">讨论</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>theta</code> - 以弧度测量的旋转角度 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="rotate-double-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rotate</h4> <pre>public void rotate(double theta,
+                   double anchorx,
+                   double anchory)</pre>
+<div class="block">
+<span>将此变换与使锚点附近旋转坐标的变换相连。</span>
+<span>该操作等效于平移坐标，使锚点位于原点（S1），然后绕新原点（S2）旋转，最后平移，使得中间原点恢复到原始锚点的坐标（S3）。</span>
+<p> <span>此操作等同于以下呼叫序列：</span> </p>
+<pre>  <span>translate(anchorx, anchory);      // S3: final translation
+     rotate(theta);                    // S2: rotate around anchor
+     translate(-anchorx, -anchory);    // S1: translate anchor to origin</span> </pre>
+<span>以正角度θ旋转正X轴上的点朝向正Y轴旋转。</span>
+<span>还请注意上述Handling 90-Degree Rotations的<a href="#quadrantapproximation">讨论</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>theta</code> - 以弧度测量的旋转角度 
+           </dd>
+<dd>
+<code>anchorx</code> - 旋转锚点的X坐标 
+           </dd>
+<dd>
+<code>anchory</code> - 旋转锚点的Y坐标 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="rotate-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rotate</h4> <pre>public void rotate(double vecx,
+                   double vecy)</pre>
+<div class="block">
+<span>使用根据旋转矢量旋转坐标的变换来连接此变换。</span>
+<span>所有坐标以原点相同的数量旋转。</span>
+<span>旋转量使得沿着前正X轴的坐标随后将与从原点指向矢量坐标的向量对齐。</span>
+<span>如果<code>vecx</code>和<code>vecy</code>均为0.0，则不会向该变换添加额外的旋转。</span>
+<span>此操作相当于调用：</span>
+<pre>  <span>rotate(Math.atan2(vecy, vecx));</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>vecx</code> - 旋转矢量的X坐标 
+           </dd>
+<dd>
+<code>vecy</code> - 旋转矢量的Y坐标 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="rotate-double-double-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rotate</h4> <pre>public void rotate(double vecx,
+                   double vecy,
+                   double anchorx,
+                   double anchory)</pre>
+<div class="block">
+<span>使用根据旋转矢量围绕锚点旋转坐标的变换来连接此变换。</span>
+<span>所有坐标围绕指定的锚点坐标旋转相同的量。</span>
+<span>旋转量使得沿着前正X轴的坐标随后将与从原点指向矢量坐标的向量对齐。</span>
+<span>如果<code>vecx</code>和<code>vecy</code>均为0.0，则转换不会以任何方式进行修改。</span>
+<span>这个方法相当于调用：</span>
+<pre>  <span>rotate(Math.atan2(vecy, vecx), anchorx, anchory);</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>vecx</code> - 旋转矢量的X坐标 
+           </dd>
+<dd>
+<code>vecy</code> - 旋转矢量的Y坐标 
+           </dd>
+<dd>
+<code>anchorx</code> - 旋转锚点的X坐标 
+           </dd>
+<dd>
+<code>anchory</code> - 旋转锚点的Y坐标 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="quadrantRotate-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>quadrantRotate</h4> <pre>public void quadrantRotate(int numquadrants)</pre>
+<div class="block">
+<span>使用将坐标旋转指定数量的象限的变换来连接此变换。</span>
+<span>这相当于调用：</span>
+<pre>  <span>rotate(numquadrants * Math.PI / 2.0);</span> </pre>
+<span>旋转正数的象限将正X轴上的点向正Y轴旋转。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>numquadrants</code> - 要旋转的90度弧数 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="quadrantRotate-int-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>quadrantRotate</h4> <pre>public void quadrantRotate(int numquadrants,
+                           double anchorx,
+                           double anchory)</pre>
+<div class="block">
+<span>使用将坐标旋转指定锚点周围指定数量的象限的变换来连接此变换。</span>
+<span>这个方法相当于调用：</span>
+<pre>  <span>rotate(numquadrants * Math.PI / 2.0, anchorx, anchory);</span> </pre>
+<span>旋转正数的象限将正X轴上的点向正Y轴旋转。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>numquadrants</code> - 要旋转的90度弧数 
+           </dd>
+<dd>
+<code>anchorx</code> - 旋转锚点的X坐标 
+           </dd>
+<dd>
+<code>anchory</code> - 旋转锚点的Y坐标 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="scale-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>scale</h4> <pre>public void scale(double sx,
+                  double sy)</pre>
+<div class="block">
+<span>使用缩放变换连接此变换。</span>
+<span>这等同于调用concatenate（S），其中S是一个<code>AffineTransform</code>由以下矩阵表示：</span>
+<pre>  <span>[   sx   0    0   ]
+          [   0    sy   0   ]
+          [   0    0    1   ]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>sx</code> - 坐标沿X轴方向缩放的因子 
+           </dd>
+<dd>
+<code>sy</code> - 坐标沿Y轴方向缩放的因子 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="shear-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shear</h4> <pre>public void shear(double shx,
+                  double shy)</pre>
+<div class="block">
+<span>将此变换与剪切变换相结合。</span>
+<span>这等同于调用concatenate（SH），其中SH是<code>AffineTransform</code>由以下矩阵表示：</span>
+<pre>  <span>[   1   shx   0   ]
+          [  shy   1    0   ]
+          [   0    0    1   ]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>shx</code> - 坐标在正X轴方向上偏移的乘数，作为其Y坐标系数 
+           </dd>
+<dd>
+<code>shy</code> - 坐标在正Y轴的方向上移位的乘数作为其X坐标的因子 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="setToIdentity--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToIdentity</h4> <pre>public void setToIdentity()</pre>
+<div class="block">
+            将此转换重置为Identity变换。 
+          </div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="setToTranslation-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToTranslation</h4> <pre>public void setToTranslation(double tx,
+                             double ty)</pre>
+<div class="block">
+<span>将此变换设置为转换变换。</span>
+<span>表示该变换的矩阵变为：</span>
+<pre>  <span>[   1    0    tx  ]
+          [   0    1    ty  ]
+          [   0    0    1   ]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>tx</code> - 坐标在X轴方向上平移的距离 
+           </dd>
+<dd>
+<code>ty</code> - 坐标在Y轴方向上平移的距离 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="setToRotation-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToRotation</h4> <pre>public void setToRotation(double theta)</pre>
+<div class="block">
+<span>将此变换设置为旋转变换。</span>
+<span>表示该变换的矩阵变为：</span>
+<pre>  <span>[   cos(theta)    -sin(theta)    0   ]
+          [   sin(theta)     cos(theta)    0   ]
+          [       0              0         1   ]</span> </pre>
+<span>以正角度θ旋转正X轴上的点朝向正Y轴旋转。</span>
+<span>还要注意上面Handling 90-Degree Rotations的<a href="#quadrantapproximation">讨论</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>theta</code> - 以弧度测量的旋转角度 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="setToRotation-double-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToRotation</h4> <pre>public void setToRotation(double theta,
+                          double anchorx,
+                          double anchory)</pre>
+<div class="block">
+<span>将此转换设置为转换的旋转变换。</span>
+<span>该操作等效于平移坐标，使锚点位于原点（S1），然后绕新原点（S2）旋转，最后平移，使得中间原点恢复到原始锚点的坐标（S3）。</span>
+<p> <span>此操作等同于以下呼叫序列：</span> </p>
+<pre>  <span>setToTranslation(anchorx, anchory); // S3: final translation
+     rotate(theta);                      // S2: rotate around anchor
+     translate(-anchorx, -anchory);      // S1: translate anchor to origin</span> </pre>
+<span>表示该变换的矩阵变为：</span>
+<pre>  <span>[   cos(theta)    -sin(theta)    x-x*cos+y*sin  ]
+          [   sin(theta)     cos(theta)    y-x*sin-y*cos  ]
+          [       0              0               1        ]</span> </pre>
+<span>以正角度θ旋转正X轴上的点朝向正Y轴旋转。</span>
+<span>还要注意上述Handling 90-Degree Rotations的<a href="#quadrantapproximation">讨论</a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>theta</code> - 以弧度测量的旋转角度 
+           </dd>
+<dd>
+<code>anchorx</code> - 旋转锚点的X坐标 
+           </dd>
+<dd>
+<code>anchory</code> - 旋转锚点的Y坐标 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="setToRotation-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToRotation</h4> <pre>public void setToRotation(double vecx,
+                          double vecy)</pre>
+<div class="block">
+<span>将此变换设置为根据旋转矢量旋转坐标的旋转变换。</span>
+<span>所有坐标以原点相同的数量旋转。</span>
+<span>旋转量使得沿着前正X轴的坐标随后将与从原点指向矢量坐标的向量对齐。</span>
+<span>如果<code>vecx</code>和<code>vecy</code>均为0.0，则将变换设置为身份转换。</span>
+<span>此操作相当于调用：</span>
+<pre>  <span>setToRotation(Math.atan2(vecy, vecx));</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>vecx</code> - 旋转矢量的X坐标 
+           </dd>
+<dd>
+<code>vecy</code> - 旋转矢量的Y坐标 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="setToRotation-double-double-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToRotation</h4> <pre>public void setToRotation(double vecx,
+                          double vecy,
+                          double anchorx,
+                          double anchory)</pre>
+<div class="block">
+<span>将此变换设置为根据旋转向量旋转锚点周围的坐标的旋转变换。</span>
+<span>所有坐标围绕指定的锚点坐标旋转相同的量。</span>
+<span>旋转量使得沿着前正X轴的坐标随后将与从原点指向矢量坐标的向量对齐。</span>
+<span>如果<code>vecx</code>和<code>vecy</code>均为0.0，则将变换设置为身份转换。</span>
+<span>此操作相当于调用：</span>
+<pre>  <span>setToTranslation(Math.atan2(vecy, vecx), anchorx, anchory);</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>vecx</code> - 旋转矢量的X坐标 
+           </dd>
+<dd>
+<code>vecy</code> - 旋转矢量的Y坐标 
+           </dd>
+<dd>
+<code>anchorx</code> - 旋转锚点的X坐标 
+           </dd>
+<dd>
+<code>anchory</code> - 旋转锚点的Y坐标 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="setToQuadrantRotation-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToQuadrantRotation</h4> <pre>public void setToQuadrantRotation(int numquadrants)</pre>
+<div class="block">
+<span>将此变换设置为将坐标旋转指定数量的象限的旋转变换。</span>
+<span>此操作相当于调用：</span>
+<pre>  <span>setToRotation(numquadrants * Math.PI / 2.0);</span> </pre>
+<span>旋转正数的象限将正X轴上的点向正Y轴旋转。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>numquadrants</code> - 要旋转的90度弧数 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="setToQuadrantRotation-int-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToQuadrantRotation</h4> <pre>public void setToQuadrantRotation(int numquadrants,
+                                  double anchorx,
+                                  double anchory)</pre>
+<div class="block">
+<span>将此转换设置为转换的旋转变换，该转换将坐标指定指定锚点周围的指定数量的象限旋转。</span>
+<span>此操作相当于调用：</span>
+<pre>  <span>setToRotation(numquadrants * Math.PI / 2.0, anchorx, anchory);</span> </pre>
+<span>旋转正数的象限将正X轴上的点向正Y轴旋转。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>numquadrants</code> - 要旋转的90度弧数 
+           </dd>
+<dd>
+<code>anchorx</code> - 旋转锚点的X坐标 
+           </dd>
+<dd>
+<code>anchory</code> - 旋转锚点的Y坐标 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+</dl> </li>
+</ul> <a name="setToScale-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToScale</h4> <pre>public void setToScale(double sx,
+                       double sy)</pre>
+<div class="block">
+<span>将此变换设置为缩放变换。</span>
+<span>表示该变换的矩阵变为：</span>
+<pre>  <span>[   sx   0    0   ]
+          [   0    sy   0   ]
+          [   0    0    1   ]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>sx</code> - 坐标沿X轴方向缩放的因子 
+           </dd>
+<dd>
+<code>sy</code> - 坐标沿着Y轴方向缩放的因子 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="setToShear-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setToShear</h4> <pre>public void setToShear(double shx,
+                       double shy)</pre>
+<div class="block">
+<span>将此变换设置为剪切变换。</span>
+<span>表示该变换的矩阵变为：</span>
+<pre>  <span>[   1   shx   0   ]
+          [  shy   1    0   ]
+          [   0    0    1   ]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>shx</code> - 坐标在正X轴的方向上作为它们的Y坐标的因子偏移的乘数 
+           </dd>
+<dd>
+<code>shy</code> - 坐标在正Y轴的方向上作为其X坐标系数的乘数 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="setTransform-java.awt.geom.AffineTransform-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setTransform</h4> <pre>public void setTransform(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> Tx)</pre>
+<div class="block">
+            将此变换设置为指定的 
+           <code>AffineTransform</code>对象中的变换 
+           <code>AffineTransform</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>Tx</code> - 
+            <code>AffineTransform</code>复制转换的 
+            <code>AffineTransform</code>对象 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="setTransform-double-double-double-double-double-double-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setTransform</h4> <pre>public void setTransform(double m00,
+                         double m10,
+                         double m01,
+                         double m11,
+                         double m02,
+                         double m12)</pre>
+<div class="block">
+            将此变换设置为由6个双精度值指定的矩阵。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>m00</code> - 3x3矩阵的X坐标缩放元素 
+           </dd>
+<dd>
+<code>m10</code> - 3x3矩阵的Y坐标剪切元素 
+           </dd>
+<dd>
+<code>m01</code> - 3x3矩阵的X坐标剪切元素 
+           </dd>
+<dd>
+<code>m11</code> - 3x3矩阵的Y坐标缩放元素 
+           </dd>
+<dd>
+<code>m02</code> - 3x3矩阵的X坐标转换元素 
+           </dd>
+<dd>
+<code>m12</code> - 3x3矩阵的Y坐标转换元素 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="concatenate-java.awt.geom.AffineTransform-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>concatenate</h4> <pre>public void concatenate(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> Tx)</pre>
+<div class="block">
+<span>将<code>AffineTransform</code> <code>Tx</code>连接到此<code>AffineTransform</code> Cx中，以最常用的方式提供<code>Tx</code>映射到前一个用户空间的新用户空间。</span>
+<span>Cx被更新以执行组合变换。</span>
+<span>通过更新的变换Cx'转换点p等价于首先将p变换为<code>Tx</code> ，然后将结果转换为原始变换Cx，如下所示：Cx'（p）= Cx（Tx（p））以矩阵表示法，如果这样变换Cx由矩阵[this] <code>Tx</code> ，Tx由矩阵[Tx]表示，则该方法执行以下操作：</span>
+<pre>  <span>[this] = [this] x [Tx]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>Tx</code> - 
+            <code>AffineTransform</code>对象要连接到这个 
+            <code>AffineTransform</code>对象。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#preConcatenate-java.awt.geom.AffineTransform-"><code>preConcatenate(java.awt.geom.AffineTransform)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="preConcatenate-java.awt.geom.AffineTransform-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>preConcatenate</h4> <pre>public void preConcatenate(<a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> Tx)</pre>
+<div class="block">
+<span>串接的<code>AffineTransform</code> <code>Tx</code>本<code>AffineTransform</code> CX在一个不常用的方式，使得<code>Tx</code>坐标变换相对于绝对像素空间而不是相对于现有的用户空间修改。</span>
+<span>Cx被更新以执行组合变换。</span>
+<span>通过更新的变换Cx'转换点p等价于首先通过原始变换Cx变换p，然后将结果转换为<code>Tx</code>如下所示：Cx'（p）= Tx（Cx（p））以矩阵表示法，如果这样变换Cx由矩阵[this] <code>Tx</code> ，Tx由矩阵[Tx]表示，则该方法执行以下操作：</span>
+<pre>  <span>[this] = [Tx] x [this]</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>Tx</code> - 要与 
+            <code>AffineTransform</code>对象连接的 
+            <code>AffineTransform</code>对象。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#concatenate-java.awt.geom.AffineTransform-"><code>concatenate(java.awt.geom.AffineTransform)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="createInverse--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createInverse</h4> <pre>public <a href="../../../java/awt/geom/AffineTransform.html" title="class in java.awt.geom">AffineTransform</a> createInverse()
+                              throws <a href="../../../java/awt/geom/NoninvertibleTransformException.html" title="class in java.awt.geom">NoninvertibleTransformException</a></pre>
+<div class="block">
+<span>返回表示逆变换的<code>AffineTransform</code>对象。</span>
+<span>该变换Tx的逆变换Tx'将由Tx变换的坐标映射回其原始坐标。</span>
+<span>换句话说，Tx'（Tx（p））= p = Tx（Tx'（p））。</span>
+<p> <span>如果这个变换将所有的坐标映射到一个点或一行上，那么它将不会有一个反向，因为不在目标点或线上的坐标将不具有逆映射。</span> <span><code>getDeterminant</code>方法可用于确定此变换是否没有反向，在这种情况下，如果调用<code>createInverse</code>方法，将抛出异常。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             表示反向变换的新的 
+            <code>AffineTransform</code>对象。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/awt/geom/NoninvertibleTransformException.html" title="class in java.awt.geom">NoninvertibleTransformException</a></code> - 如果矩阵不能被反转。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getDeterminant--"><code>getDeterminant()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="invert--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>invert</h4> <pre>public void invert()
+            throws <a href="../../../java/awt/geom/NoninvertibleTransformException.html" title="class in java.awt.geom">NoninvertibleTransformException</a></pre>
+<div class="block">
+<span>将此变换设置为本身的倒数。</span>
+<span>该变换Tx的逆变换Tx'将由Tx变换的坐标映射回其原始坐标。</span>
+<span>换句话说，Tx'（Tx（p））= p = Tx（Tx'（p））。</span>
+<p> <span>如果这个变换将所有的坐标映射到一个点或一行上，那么它将不会有一个反向，因为不在目标点或线上的坐标将不具有逆映射。</span> <span><code>getDeterminant</code>方法可用于确定此变换是否没有反向，在这种情况下，如果调用<code>invert</code>方法，将抛出异常。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/awt/geom/NoninvertibleTransformException.html" title="class in java.awt.geom">NoninvertibleTransformException</a></code> - 如果矩阵不能被反转。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/awt/geom/AffineTransform.html#getDeterminant--"><code>getDeterminant()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="transform-java.awt.geom.Point2D-java.awt.geom.Point2D-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>transform</h4> <pre>public <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> transform(<a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptSrc,
+                         <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptDst)</pre>
+<div class="block">
+<span>变换指定的<code>ptSrc</code>并将结果在<code>ptDst</code> 。</span>
+<span>如果<code>ptDst</code>是<code>null</code> ，则<code>null</code>一个新的<a href="../../../java/awt/geom/Point2D.html" title="java.awt.geom中的类"><code>Point2D</code></a>对象，然后将该转换的结果存储在该对象中。</span>
+<span>在任一种情况下，为<code>ptDst</code> ，返回包含转换点的ptDst。</span>
+<span>如果<code>ptSrc</code>和<code>ptDst</code>是相同的对象，则输入点被转换点正确地覆盖。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ptSrc</code> -指定 
+            <code>Point2D</code>待转化 
+           </dd>
+<dd>
+<code>ptDst</code> - 指定的 
+            <code>Point2D</code>存储转换结果 
+            <code>ptSrc</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             在 
+            <code>ptDst</code>后转化 
+            <code>ptSrc</code>并存储在结果 
+            <code>ptDst</code> 。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="transform-java.awt.geom.Point2D:A-int-java.awt.geom.Point2D:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>transform</h4> <pre>public void transform(<a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a>[] ptSrc,
+                      int srcOff,
+                      <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a>[] ptDst,
+                      int dstOff,
+                      int numPts)</pre>
+<div class="block">
+<span>通过此转换来转换点对象数组。</span>
+<span>如果<code>ptDst</code>数组的任何元素是<code>null</code> ，则在存储转换结果之前，将新的<code>Point2D</code>对象分配并存储到该元素中。</span>
+<p> <span>请注意，此方法不采取任何预防措施，以避免将结果存储在<code>Point2D</code>对象中， <code>Point2D</code>对象将被用作源阵列进一步计算的源。</span> <span>该方法确保如果指定的<code>Point2D</code>对象既是同一个单点变换操作的源和目标，则在计算完成之前，结果将不会被存储，以避免将结果存储在操作数之上。</span> <span>然而，如果一个操作的目的地<code>Point2D</code>对象与源<code>Point2D</code>的另一个操作的对象相同，那么该点之前的原始坐标在被转换之前被覆盖。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ptSrc</code> - 包含源点对象的数组 
+           </dd>
+<dd>
+<code>ptDst</code> - 返回变换点对象的数组 
+           </dd>
+<dd>
+<code>srcOff</code> - 要在源数组中转换的第一个点对象的偏移量 
+           </dd>
+<dd>
+<code>dstOff</code> - 存储在目标数组中的第一个转换点对象的位置的偏移量 
+           </dd>
+<dd>
+<code>numPts</code> - 要转换的点对象的数量 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="transform-float:A-int-float:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>transform</h4> <pre>public void transform(float[] srcPts,
+                      int srcOff,
+                      float[] dstPts,
+                      int dstOff,
+                      int numPts)</pre>
+<div class="block">
+<span>通过此变换来转换浮点坐标数组。</span>
+<span>两个坐标阵列部分可以完全相同，也可以是相同阵列的重叠部分，而不会影响结果的有效性。</span>
+<span>该方法确保在前一个操作可以被转换之前，不会覆盖源坐标。</span>
+<span>坐标按照指定的偏移量按照<code>[x0, y0, x1, y1, ..., xn, yn]</code>的顺序存储在阵列中。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>srcPts</code> - 包含源点坐标的数组。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<span><code>dstPts</code> - 返回转换点坐标的数组。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<code>srcOff</code> - 要在源数组中转换的第一个点的偏移量 
+           </dd>
+<dd>
+<code>dstOff</code> - 存储在目标数组中的第一个转换点的位置的偏移量 
+           </dd>
+<dd>
+<code>numPts</code> - 要转换的点数 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="transform-double:A-int-double:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>transform</h4> <pre>public void transform(double[] srcPts,
+                      int srcOff,
+                      double[] dstPts,
+                      int dstOff,
+                      int numPts)</pre>
+<div class="block">
+<span>通过此转换来转换双精度坐标数组。</span>
+<span>两个坐标阵列部分可以完全相同，也可以是相同阵列的重叠部分，而不会影响结果的有效性。</span>
+<span>该方法确保在前一个操作可以被转换之前，不会覆盖源坐标。</span>
+<span>坐标按照指定的偏移量按照<code>[x0, y0, x1, y1, ..., xn, yn]</code>的顺序存储在阵列中。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>srcPts</code> - 包含源点坐标的数组。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<span><code>dstPts</code> - 返回转换点坐标的数组。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<code>srcOff</code> - 要在源数组中转换的第一个点的偏移量 
+           </dd>
+<dd>
+<code>dstOff</code> - 存储在目标数组中的第一个转换点的位置的偏移量 
+           </dd>
+<dd>
+<code>numPts</code> - 要转换的点对象的数量 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="transform-float:A-int-double:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>transform</h4> <pre>public void transform(float[] srcPts,
+                      int srcOff,
+                      double[] dstPts,
+                      int dstOff,
+                      int numPts)</pre>
+<div class="block">
+<span>通过此转换来转换浮点坐标数组，并将结果存储到双精度数组中。</span>
+<span>坐标按照指定的偏移量按照<code>[x0, y0, x1, y1, ..., xn, yn]</code>的顺序存储在阵列中。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>srcPts</code> - 包含源点坐标的数组。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<span><code>dstPts</code> - 返回转换点坐标的阵列。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<code>srcOff</code> - 要在源数组中转换的第一个点的偏移量 
+           </dd>
+<dd>
+<code>dstOff</code> - 存储在目标数组中的第一个转换点的位置的偏移量 
+           </dd>
+<dd>
+<code>numPts</code> - 要转化的点数 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="transform-double:A-int-float:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>transform</h4> <pre>public void transform(double[] srcPts,
+                      int srcOff,
+                      float[] dstPts,
+                      int dstOff,
+                      int numPts)</pre>
+<div class="block">
+<span>通过此转换来转换双精度坐标数组，并将结果存储到浮点数组中。</span>
+<span>坐标按照指定的偏移量按照<code>[x0, y0, x1, y1, ..., xn, yn]</code>的顺序存储在阵列中。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>srcPts</code> - 包含源点坐标的数组。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<span><code>dstPts</code> - 返回转换点坐标的数组。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<code>srcOff</code> - 要在源数组中转换的第一个点的偏移量 
+           </dd>
+<dd>
+<code>dstOff</code> - 存储在目标数组中的第一个转换点的位置的偏移量 
+           </dd>
+<dd>
+<code>numPts</code> - 要转换的点对象的数量 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="inverseTransform-java.awt.geom.Point2D-java.awt.geom.Point2D-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>inverseTransform</h4> <pre>public <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> inverseTransform(<a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptSrc,
+                                <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptDst)
+                         throws <a href="../../../java/awt/geom/NoninvertibleTransformException.html" title="class in java.awt.geom">NoninvertibleTransformException</a></pre>
+<div class="block">
+<span>逆向变换指定的<code>ptSrc</code>并将结果在<code>ptDst</code> 。</span>
+<span>如果<code>ptDst</code>是<code>null</code> ，则<code>null</code>一个新的<code>Point2D</code>对象，然后将该转换的结果存储在该对象中。</span>
+<span>在任一情况下， <code>ptDst</code> ，其包含变换点时，返回的便利。</span>
+<span>如果<code>ptSrc</code>和<code>ptDst</code>是相同的对象，则输入点被转换点正确覆盖。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ptSrc</code> - 要反向转换的点 
+           </dd>
+<dd>
+<code>ptDst</code> - 得到的转化点 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>ptDst</code> ，其中包含逆变换的结果。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/awt/geom/NoninvertibleTransformException.html" title="class in java.awt.geom">NoninvertibleTransformException</a></code> - 如果矩阵不能被反转。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="inverseTransform-double:A-int-double:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>inverseTransform</h4> <pre>public void inverseTransform(double[] srcPts,
+                             int srcOff,
+                             double[] dstPts,
+                             int dstOff,
+                             int numPts)
+                      throws <a href="../../../java/awt/geom/NoninvertibleTransformException.html" title="class in java.awt.geom">NoninvertibleTransformException</a></pre>
+<div class="block">
+<span>通过此变换反向转换双精度坐标数组。</span>
+<span>两个坐标阵列部分可以完全相同，也可以是相同阵列的重叠部分，而不会影响结果的有效性。</span>
+<span>该方法确保在前一个操作可以被转换之前，不会覆盖源坐标。</span>
+<span>坐标按照指定的偏移量按照<code>[x0, y0, x1, y1, ..., xn, yn]</code>的顺序存储在阵列中。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>srcPts</code> - 包含源点坐标的数组。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<span><code>dstPts</code> - 返回转换点坐标的数组。</span>
+<span>每个点被存储为一对x，y坐标。</span>
+</dd>
+<dd>
+<code>srcOff</code> - 要在源数组中转换的第一个点的偏移量 
+           </dd>
+<dd>
+<code>dstOff</code> - 存储在目标数组中的第一个转换点的位置的偏移量 
+           </dd>
+<dd>
+<code>numPts</code> - 要转换的点对象的数量 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/awt/geom/NoninvertibleTransformException.html" title="class in java.awt.geom">NoninvertibleTransformException</a></code> - 如果矩阵不能被反转。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="deltaTransform-java.awt.geom.Point2D-java.awt.geom.Point2D-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>deltaTransform</h4> <pre>public <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> deltaTransform(<a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptSrc,
+                              <a href="../../../java/awt/geom/Point2D.html" title="class in java.awt.geom">Point2D</a> ptDst)</pre>
+<div class="block">
+<span>变换由指定的相对距离向量<code>ptSrc</code> ，并将结果存储在<code>ptDst</code> 。</span>
+<span>使用以下等式，不使用仿射变换矩阵的平移分量来变换相对距离矢量：</span>
+<pre>  <span>[  x' ]   [  m00  m01 (m02) ] [  x  ]   [ m00x + m01y ]
+  [  y' ] = [  m10  m11 (m12) ] [  y  ] = [ m10x + m11y ]
+  [ (1) ]   [  (0)  (0) ( 1 ) ] [ (1) ]   [     (1)     ]</span> </pre>
+<span>如果<code>ptDst</code>是<code>null</code> ，则<code>null</code>一个新的<code>Point2D</code>对象，然后转换的结果存储在该对象中。</span>
+<span>在任一情况下， <code>ptDst</code> ，其包含变换点时，返回的便利。</span>
+<span>如果<code>ptSrc</code>和<code>ptDst</code>是相同的对象，则输入点被转换点正确覆盖。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ptSrc</code> - 要进行delta变换的距离向量 
+           </dd>
+<dd>
+<code>ptDst</code> - 所得到的变换距离向量 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>ptDst</code> ，其中包含转换的结果。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="deltaTransform-double:A-int-double:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>deltaTransform</h4> <pre>public void deltaTransform(double[] srcPts,
+                           int srcOff,
+                           double[] dstPts,
+                           int dstOff,
+                           int numPts)</pre>
+<div class="block">
+<span>通过该变换来变换相对距离向量的数组。</span>
+<span>使用以下等式，不使用仿射变换矩阵的平移分量来变换相对距离矢量：</span>
+<pre>  <span>[  x' ]   [  m00  m01 (m02) ] [  x  ]   [ m00x + m01y ]
+  [  y' ] = [  m10  m11 (m12) ] [  y  ] = [ m10x + m11y ]
+  [ (1) ]   [  (0)  (0) ( 1 ) ] [ (1) ]   [     (1)     ]</span> </pre>
+<span>两个坐标阵列部分可以完全相同，也可以是相同阵列的重叠部分，而不会影响结果的有效性。</span>
+<span>该方法确保在前一个操作可以被转换之前，不会覆盖源坐标。</span>
+<span>坐标按照指定的偏移量按照<code>[x0, y0, x1, y1, ..., xn, yn]</code>的顺序存储在阵列中。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>srcPts</code> - 包含源距离向量的数组。</span>
+<span>每个向量存储为一对相对的x，y坐标。</span>
+</dd>
+<dd>
+<span><code>dstPts</code> - 返回变换后的距离向量的阵列。</span>
+<span>每个向量存储为一对相对的x，y坐标。</span>
+</dd>
+<dd>
+<code>srcOff</code> - 要在源数组中转换的第一个向量的偏移量 
+           </dd>
+<dd>
+<code>dstOff</code> - 存储在目标数组中的第一个变换向量位置的偏移量 
+           </dd>
+<dd>
+<code>numPts</code> - 要转换的向量坐标对的数量 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="createTransformedShape-java.awt.Shape-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createTransformedShape</h4> <pre>public <a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> createTransformedShape(<a href="../../../java/awt/Shape.html" title="interface in java.awt">Shape</a> pSrc)</pre>
+<div class="block">
+<span>在通过此变换<code>Shape</code>后，返回由指定的<a href="../../../java/awt/Shape.html" title="java.awt中的接口">Shape</a>的几何形状定义的新的对象<code>Shape</code>。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>pSrc</code> - 指定的 
+            <code>Shape</code>对象被这个变换转换。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个定义转换后的 
+            <code>Shape</code>的几何对象的新的 
+            <code>Shape</code>对象，如果 
+            <code>pSrc</code>为空，则为null。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>返回<code>String</code>表示此值<a href="../../../java/lang/Object.html" title="java.lang中的类"><code>Object</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#toString--">toString</a></code>在类别 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>String</code>代表这个 
+            <code>Object</code>的价值。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="isIdentity--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isIdentity</h4> <pre>public boolean isIdentity()</pre>
+<div class="block">
+            返回 
+           <code>true</code>如果这 
+           <code>AffineTransform</code>是恒等变换。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果这个<code>AffineTransform</code>是一个身份转换;</span>
+<span><code>false</code>否则。</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+</dl> </li>
+</ul> <a name="clone--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>clone</h4> <pre>public <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> clone()</pre>
+<div class="block">
+            返回此 
+           <code>AffineTransform</code>对象的副本。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#clone--">clone</a></code>在类别 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>Object</code>是这个 
+            <code>AffineTransform</code>对象的副本。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/Cloneable.html" title="java.lang中的接口"><code>Cloneable</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+            返回此转换的哈希码。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             用于此转换的哈希码。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+            返回 
+           <code>true</code>如果这 
+           <code>AffineTransform</code>表示相同的仿射坐标变换，指定的参数。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 
+            <code>Object</code>测试与此平等 
+            <code>AffineTransform</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果<code>obj</code>等于这个<code>AffineTransform</code>对象;</span>
+<span><code>false</code>否则。</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.2 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

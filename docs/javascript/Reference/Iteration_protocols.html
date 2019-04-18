@@ -1,0 +1,357 @@
+<article id="wikiArticle">
+<div></div>
+<div> </div>
+<p>ECMAScript 2015的几个补充，并不是新的内置实现或语法，而是协议<span style="line-height: 1.5;">。</span>这些<span style="line-height: 1.5;">协议</span>可以<span style="line-height: 1.5;">被任何遵循某些约定的对象</span>来<span style="line-height: 1.5;">实现。</span></p>
+<p>有两个协议：<strong>可迭代协议</strong>和<strong>迭代器协议</strong>。</p>
+<h2 id="可迭代协议">可迭代协议</h2>
+<p><strong>可迭代</strong>协议允许 JavaScript 对象去定义或定制它们的迭代行为, 例如（定义）在一个 <a href="Reference/Statements/for...of" title="for...of语句在可迭代对象（包括 Array，Map，Set，String，TypedArray，arguments 对象等等）上创建一个迭代循环，调用自定义迭代钩子，并为每个不同属性的值执行语句"><code>for..of</code></a> 结构中什么值可以被循环（得到）。一些内置类型都是内置的可迭代类型并且有默认的迭代行为, 比如 <a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a> or <a href="Reference/Map" title="此页面仍未被本地化, 期待您的翻译!"><code>Map</code></a>, 另一些类型则不是 (比如<a href="Reference/Global_Objects/Object" title="Object 构造函数创建一个对象包装器。"><code>Object</code></a>) 。</p>
+<p>为了变成可迭代对象， 一个对象必须实现 <strong>@@iterator </strong>方法, 意思是这个对象（或者它原型链 <a href="/en-US/docs/Web/JavaScript/Guide/Inheritance_and_the_prototype_chain">prototype chain</a> 上的某个对象）必须有一个名字是 <a href="Reference/Global_Objects/Symbol" title='Symbol()函数会返回symbol类型的值，该类型具有静态属性和静态方法。它的静态属性会暴露几个内建的成员对象；它的静态方法会暴露全局的symbol注册，且类似于内建对象类，但作为构造函数来说它并不完整，因为它不支持语法："new Symbol()"。'><code>Symbol</code></a><code>.iterator</code> 的属性:</p>
+<table class="standard-table">
+<thead>
+<tr>
+<th scope="col">属性</th>
+<th scope="col">值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[Symbol.iterator]</code></td>
+<td>返回一个对象的无参函数，被返回对象符合迭代器协议。</td>
+</tr>
+</tbody>
+</table>
+<p><font><font>当一个对象需要被迭代的时候（比如开始用于一个</font></font><code><font><font>for..of循环中</font></font></code><font><font>），它的</font></font><strong>@@iterator</strong><font><font>方法被调用并且无参数，</font></font>然后返回一个用于在迭代中获得值的迭代器<font><font>。</font></font></p>
+<h2 id="迭代器协议"><strong><span style="line-height: 1.5;">迭代器协议</span></strong></h2>
+<p><font><font>该</font></font><strong><span style="line-height: 1.5;">迭代器</span></strong><font><font>协议定义了一种标准的方式来产生</font></font>一个<font><font>有限或无限序列</font></font><font><font>的值，并且当所有的值都已经被迭代后，就会有一个默认的返回值。</font></font></p>
+<p>当一个对象只有满足下述条件才会被认为是一个迭代器：<br/>
+ 它<font><font>实现了一个 </font></font><code><strong><font>next()</font></strong></code><strong><font> </font></strong><font><font>的方法并且拥有以下含义：</font></font></p>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">属性</th>
+<th scope="col">值</th>
+</tr>
+<tr>
+<td><code>next</code></td>
+<td>
+<p>返回一个对象的无参函数，被返回对象拥有两个属性：</p>
+<ul>
+<li><code>done</code> (boolean)
+
+      <ul>
+<li>true:迭代器已经超过了可迭代次数。这种情况下,value的值可以被省略</li>
+<li>如果迭代器可以产生序列中的下一个值，则为 false。这等效于没有指定done这个属性。</li>
+</ul>
+</li>
+<li><code>value</code> - 迭代器返回的任何 JavaScript 值。done 为 true 时可省略。</li>
+</ul>
+<p>next 方法必须要返回一一个对象，该对象有两个必要的属性： done和value，如果返回一个非对象值（比如false和undefined) 会展示一个 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> ("iterator.next() returned a non-object value") 的错误</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>不可能知道一个特定的对象是否实现了迭代器协议，然而创造一个同时满足迭代器协议和可迭代协议的对象是很 容易的（就像下面的example所示）。这样做允许一个迭代器能被不同希望迭代的语法方式所使用。 因此，很少只实现迭代器协议而不实现可迭代协议。</p>
+<p> </p>
+<pre><code>var myIterator = {
+    next: function() {
+        // ...
+    },
+    [Symbol.iterator]: function() { return this }
+}</code></pre>
+<p> </p>
+<p> </p>
+<p> </p>
+<p>一些迭代器是转换自可迭代对象:</p>
+<pre class="brush: js">var someArray = [1, 5, 7];
+var someArrayEntries = someArray.entries();
+
+someArrayEntries.toString();           // "[object Array Iterator]"
+someArrayEntries === someArrayEntries[Symbol.iterator]();    // true
+</pre>
+<h2 id="使用迭代协议的例子">使用迭代协议的例子</h2>
+<p><a href="Reference/String" title="此页面仍未被本地化, 期待您的翻译!"><code>String</code></a> 是一个内置的可迭代对象:</p>
+<pre class="brush: js">var someString = "hi";
+typeof someString[Symbol.iterator];          // "function"
+</pre>
+<p><code>String</code> 的默认迭代器会一个接一个返回该字符串的字符：</p>
+<pre class="brush: js">var iterator = someString[Symbol.iterator]();
+iterator + "";                               // "[object String Iterator]"
+ 
+iterator.next();                             // { value: "h", done: false }
+iterator.next();                             // { value: "i", done: false }
+iterator.next();                             // { value: undefined, done: true }</pre>
+<p>一些内置的语法结构，比如 <a href="/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator">spread operator</a> （展开语法：[...val]），内部也使用了同样的迭代协议：</p>
+<pre class="brush: js">[...someString]                              // ["h", "i"]</pre>
+<p>我们可以通过自己的 <code>@@iterator 方法重新定义迭代行为：</code></p>
+<pre class="brush: js">var someString = new String("hi");          // need to construct a String object explicitly to avoid auto-boxing
+
+someString[Symbol.iterator] = function() {
+  return { // this is the iterator object, returning a single element, the string "bye"
+    next: function() {
+      if (this._first) {
+        this._first = false;
+        return { value: "bye", done: false };
+      } else {
+        return { done: true };
+      }
+    },
+    _first: true
+  };
+};
+</pre>
+<p>注意重新定义<code> @@iterator</code> 方法是如何影响内置语法结构的行为的，它使用数据对象相同的迭代协议:</p>
+<pre class="brush: js">[...someString];                              // ["bye"]
+someString + "";                              // "hi"
+</pre>
+<h2 id="可迭代对象示例">可迭代对象示例</h2>
+<h3 id="内置可迭代对象">内置可迭代对象</h3>
+<p><a href="Reference/String" title="此页面仍未被本地化, 期待您的翻译!"><code>String</code></a>, <a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a>, <a href="Reference/Global_Objects/TypedArray" title="一个TypedArray 对象描述一个底层的二进制数据缓存区的一个类似数组(array-like)视图。事实上，没有名为 TypedArray的全局对象，也没有一个名为的 TypedArray构造函数。相反，有许多不同的全局对象，下面会列出这些针对特定元素类型的类型化数组的构造函数。在下面的页面中，你会找到一些不管什么类型都公用的属性和方法。"><code>TypedArray</code></a>, <a href="Reference/Map" title="此页面仍未被本地化, 期待您的翻译!"><code>Map</code></a> and <a href="Reference/Global_Objects/Set" title="Set 对象允许你存储任何类型的唯一值，无论是原始值或者是对象引用。"><code>Set</code></a> 是所有内置可迭代对象， 因为它们的原型对象都有一个 <code>@@</code><code>iterator</code> 方法.</p>
+<h3 id="自定义可迭代对象">自定义可迭代对象</h3>
+<p>我们可以实现一个自己的可迭代对象，就像这样:</p>
+<pre class="brush: js">var myIterable = {};
+myIterable[Symbol.iterator] = function* () {
+    yield 1;
+    yield 2;
+    yield 3;
+};
+[...myIterable]; // [1, 2, 3]
+</pre>
+<h3 id="接受可迭代对象的内置_API">接受可迭代对象的内置 API</h3>
+<p>许多 API 接受可迭代对象（作为参数，译注）, 例如：<a href="Reference/Map" title="此页面仍未被本地化, 期待您的翻译!"><code>Map([iterable])</code></a>, <a href="Reference/WeakMap" title="此页面仍未被本地化, 期待您的翻译!"><code>WeakMap([iterable])</code></a>, <a href="Reference/Global_Objects/Set" title="Set 对象允许你存储任何类型的唯一值，无论是原始值或者是对象引用。"><code>Set([iterable])</code></a> and <a href="Reference/Global_Objects/WeakSet" title="WeakSet 对象允许你将弱保持对象存储在一个集合中。"><code>WeakSet([iterable])</code></a>:</p>
+<pre class="brush: js">var myObj = {};
+new Map([[1,"a"],[2,"b"],[3,"c"]]).get(2);               // "b"
+new WeakMap([[{},"a"],[myObj,"b"],[{},"c"]]).get(myObj); // "b"
+new Set([1, 2, 3]).has(3);                               // true
+new Set("123").has("2");                                 // true
+new WeakSet(function*() {
+    yield {};
+    yield myObj;
+    yield {};
+}()).has(myObj);                                         // true
+</pre>
+<p>另外还有 <a href="Reference/Global_Objects/Promise/all" title="Promise.all(iterable) 方法返回一个 Promise 实例，此实例在 iterable 参数内所有的 promise 都“完成（resolved）”或参数中不包含 promise 时回调完成（resolve）；如果参数中  promise 有一个失败（rejected），此实例回调失败（reject），失败原因的是第一个失败 promise 的结果。"><code>Promise.all(iterable)</code></a>, <a href="Reference/Global_Objects/Promise/race" title="Promise.race(iterable) 方法返回一个 promise，一旦迭代器中的某个promise解决或拒绝，返回的 promise就会解决或拒绝。"><code>Promise.race(iterable)</code></a> 以及 <a href="Reference/Global_Objects/Array/from" title="Array.from() 方法从一个类似数组或可迭代对象中创建一个新的数组实例。"><code>Array.from()</code></a>.</p>
+<h3 id="用于可迭代对象的语法">用于可迭代对象的语法</h3>
+<p>一些语句和表达式是预料会用于可迭代对象，比如 <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of">for-of</a></code> 循环，<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator">spread operator</a>, <code><a href="/en-US/docs/Web/JavaScript/Reference/Operators/yield*">yield*</a></code> 和 <a href="/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment">destructuring assignment</a>。</p>
+<pre class="brush: js">for(let value of ["a", "b", "c"]){
+    console.log(value);
+}
+// "a"
+// "b"
+// "c"
+
+[..."abc"]; // ["a", "b", "c"]
+
+function* gen(){
+  yield* ["a", "b", "c"];
+}
+
+gen().next(); // { value:"a", done:false }
+
+[a, b, c] = new Set(["a", "b", "c"]);
+a // "a"
+
+</pre>
+<h3 id="Non-well-formed_(非-良好-格式化的)可迭代对象">Non-well-formed (非-良好-格式化的)可迭代对象</h3>
+<p>如果一个可迭代对象的 <code>@@iterator 方法不是返回一个迭代器对象，那么它就是一个</code> non-well-formed 可迭代对象 。使用它可能会发生如下的运行时异常或者 buggy 行为:</p>
+<pre class="brush: js">var nonWellFormedIterable = {}
+nonWellFormedIterable[Symbol.iterator] = () =&gt; 1
+[...nonWellFormedIterable] // TypeError: [] is not a function
+</pre>
+<h2 id="迭代器示例">迭代器示例</h2>
+<h3 id="简单迭代器">简单迭代器</h3>
+<pre class="brush: js">function makeIterator(array){
+    var nextIndex = 0;
+    
+    return {
+       next: function(){
+           return nextIndex &lt; array.length ?
+               {value: array[nextIndex++], done: false} :
+               {done: true};
+       }
+    };
+}
+
+var it = makeIterator(['yo', 'ya']);
+
+console.log(it.next().value); // 'yo'
+console.log(it.next().value); // 'ya'
+console.log(it.next().done);  // true
+</pre>
+<h3 id="无穷迭代器">无穷迭代器</h3>
+<pre class="brush: js">function idMaker(){
+    var index = 0;
+    
+    return {
+       next: function(){
+           return {value: index++, done: false};
+       }
+    };
+}
+
+var it = idMaker();
+
+console.log(it.next().value); // '0'
+console.log(it.next().value); // '1'
+console.log(it.next().value); // '2'
+// ...
+</pre>
+<h3 id="生成器式的迭代器">生成器式的迭代器</h3>
+<pre class="brush: js">function* makeSimpleGenerator(array){
+    var nextIndex = 0;
+    
+    while(nextIndex &lt; array.length){
+        yield array[nextIndex++];
+    }
+}
+
+var gen = makeSimpleGenerator(['yo', 'ya']);
+
+console.log(gen.next().value); // 'yo'
+console.log(gen.next().value); // 'ya'
+console.log(gen.next().done);  // true
+
+
+
+function* idMaker(){
+    var index = 0;
+    while(true)
+        yield index++;
+}
+
+var gen = idMaker();
+
+console.log(gen.next().value); // '0'
+console.log(gen.next().value); // '1'
+console.log(gen.next().value); // '2'
+// ...
+</pre>
+<h2 id="生成器对象到底是一个迭代器还是一个可迭代对象">生成器对象到底是一个迭代器还是一个可迭代对象?</h2>
+<p><a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator">生成器对象</a> 既是迭代器也是可迭代对象:</p>
+<p>就像前面说说的，一个良好的迭代即实现了迭代器协议，又实现了可迭代协议，方式就是可迭代协议返回的是自身</p>
+<pre class="brush: js">var aGeneratorObject = function*(){
+    yield 1;
+    yield 2;
+    yield 3;
+}();
+typeof aGeneratorObject.next;
+// "function", because it has a next method, so it's an iterator
+typeof aGeneratorObject[Symbol.iterator];
+// "function", because it has an @@iterator method, so it's an iterable
+aGeneratorObject[Symbol.iterator]() === aGeneratorObject;
+// true, because its @@iterator method return its self (an iterator), so it's an well-formed iterable
+[...aGeneratorObject];
+// [1, 2, 3]
+</pre>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div><div class="blockIndicator warning"><strong><a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">We're converting our compatibility data into a machine-readable JSON format</a></strong>.
+            This compatibility table still uses the old format,
+            because we haven't yet converted the data it contains.
+            <strong><a class="new" href="/zh-CN/docs/MDN/Contribute/Structures/Compatibility_tables" rel="nofollow">Find out how you can help!</a></strong></div>
+<div class="htab">
+<a id="AutoCompatibilityTable" name="AutoCompatibilityTable"></a>
+<ul>
+<li class="selected"><a>Desktop</a></li>
+<li><a>Mobile</a></li>
+</ul>
+</div></div>
+<div id="compat-desktop">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>特性</th>
+<th>Chrome</th>
+<th>Firefox (Gecko)</th>
+<th>Internet Explorer</th>
+<th>Opera</th>
+<th>Safari (WebKit)</th>
+</tr>
+<tr>
+<td>基本支持</td>
+<td>39.0</td>
+<td><a href="/en-US/Firefox/Releases/27" title="Released on 2014-02-04.">27.0</a> (27.0)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td>26</td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+<tr>
+<td><code>IteratorResult</code> object instead of throwing</td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><a href="/en-US/Firefox/Releases/29" title="Released on 2014-04-29.">29.0</a> (29.0)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="compat-mobile">
+<table class="compat-table">
+<tbody>
+<tr>
+<th>特性</th>
+<th>Android</th>
+<th>Android Webview</th>
+<th>Firefox Mobile (Gecko)</th>
+<th>IE Mobile</th>
+<th>Opera Mobile</th>
+<th>Safari Mobile</th>
+<th>Chrome for Android</th>
+</tr>
+<tr>
+<td>基本支持</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+<td>27.0 (27.0)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td>39.0</td>
+</tr>
+<tr>
+<td><code>IteratorResult</code> object instead of throwing</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: rgb(255, 153, 0);" title="Compatibility unknown; please update this.">?</span></td>
+<td>29.0 (29.0)</td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #f00;">未实现</span></td>
+<td><span style="color: #888;" title="Please update this with the earliest version of support.">(Yes)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="Firefox-specific_批注">Firefox-specific 批注</h2>
+<h3 id="IteratorResult_用对象返回代替错误抛出"><code>IteratorResult</code> 用对象返回代替错误抛出</h3>
+<p>从Gecko 29 (Firefox 29 / Thunderbird 29 / SeaMonkey 2.26)开始, 构造器不再抛出 <a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a> "generator has already finished". 取而代之的是它返回一个<code>IteratorResult</code>对象类似于 <code>{ value: undefined, done: true }</code> (<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=958951" rel="noopener" title="FIXED: Return IteratorResult object for completed generators instead of throwing">bug 958951</a>).</p>
+<h3 id="Iterator_property_and_iterator_symbol"><code>Iterator</code> property and <code>@@iterator</code> symbol</h3>
+<p>From Gecko 17 (Firefox 17 / Thunderbird 17 / SeaMonkey 2.14) to Gecko 26 (Firefox 26 / Thunderbird 26 / SeaMonkey 2.23 / Firefox OS 1.2) the <code>iterator</code> property was used (<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=907077" rel="noopener">bug 907077</a>), and from Gecko 27 to Gecko 35 the <code>"@@iterator"</code> placeholder was used. In Gecko 36 (Firefox 36 / Thunderbird 36 / SeaMonkey 2.33), the <code>@@iterator</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol">symbol</a> got implemented (<a class="external" href="https://bugzilla.mozilla.org/show_bug.cgi?id=918828" rel="noopener">bug 918828</a>).</p>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">规范</th>
+<th scope="col">状态</th>
+<th scope="col">备注</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-iteration" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Iteration</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>
+<p>Initial definition.</p>
+</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-iteration" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Iteration</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> ES7(ES2016/ES2017)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="参考">参考</h2>
+<ul>
+<li>更多有关 ES2015 生成器的信息，请参考 <a href="/en-US/docs/Web/JavaScript/Reference/Statements/function*">the function*() documentation</a>.</li>
+</ul>
+<p>
+<audio style="display: none;"> </audio>
+</p>
+</article>

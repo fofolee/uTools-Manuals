@@ -1,0 +1,756 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.concurrent 
+   </div>
+<h2 class="title" title="Class Phaser">Class Phaser</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.util.concurrent.Phaser</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public class <span class="typeNameLabel">Phaser</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span>一个可重复使用的同步屏障，功能类似于<a href="../../../java/util/concurrent/CyclicBarrier.html" title="java.util.concurrent中的类"><code>CyclicBarrier</code></a>和<a href="../../../java/util/concurrent/CountDownLatch.html" title="java.util.concurrent中的类"><code>CountDownLatch</code>，</a>但支持更灵活的使用。</span>
+<p> <span><b>注册。</b></span> <span>不像其他障碍的情况下，各方的号码进行<em>注册</em> ，以在相位同步可以随时间变化。</span> <span>任务可以在任何时间（使用的方法来注册<a href="../../../java/util/concurrent/Phaser.html#register--"><code>register()</code></a> ， <a href="../../../java/util/concurrent/Phaser.html#bulkRegister-int-"><code>bulkRegister(int)</code></a> ，或构造建立各方的初始数的形式），和（使用任何抵达时任选注销<a href="../../../java/util/concurrent/Phaser.html#arriveAndDeregister--"><code>arriveAndDeregister()</code></a> ）。</span> <span>与大多数基本同步结构一样，注册和注销仅影响内部计数;</span> <span>他们没有建立任何进一步的内部簿记，所以任务无法查询是否注册。</span> <span>（但是，您可以通过对此类进行子类化来介绍此类簿记。）</span> </p>
+<p> <span><b>同步</b></span> <span>像<code>CyclicBarrier</code> ， <code>Phaser</code>可能会重复等待。</span> <span>方法<a href="../../../java/util/concurrent/Phaser.html#arriveAndAwaitAdvance--"><code>arriveAndAwaitAdvance()</code></a>有效果类似于<a href="../../../java/util/concurrent/CyclicBarrier.html#await--"><code>CyclicBarrier.await</code></a> 。</span> <span>每一代移相器都具有相关的相位数。</span> <span>相位数从零开始，当所有各方到达移相器时前进，在达到<code>Integer.MAX_VALUE</code>之后<code>Integer.MAX_VALUE</code>零。</span> <span>通过使用阶段数字，可以通过两种可由任何注册方调用的方法，在到达移相器和等待其他人时独立控制动作：</span> </p>
+<ul>
+<li> <span><b>到达。</b></span> <span>方法<a href="../../../java/util/concurrent/Phaser.html#arrive--"><code>arrive()</code></a>和<a href="../../../java/util/concurrent/Phaser.html#arriveAndDeregister--"><code>arriveAndDeregister()</code></a>记录到达。</span> <span>这些方法不会阻塞，而是返回相关的<em>到达阶段数</em> ;</span> <span>即到达应用的移相器的相位数。</span> <span>当给定阶段的最后一方到达时，执行可选操作，并且阶段前进。</span> <span>这些动作由触发相位提前的方执行，并且通过覆盖方法<a href="../../../java/util/concurrent/Phaser.html#onAdvance-int-int-"><code>onAdvance(int, int)</code></a>进行排列，该方法也控制终止。</span> <span>覆盖该方法是相似，但比更灵活，提供屏障作用到<code>CyclicBarrier</code> 。</span> </li>
+<li> <span><b>等候。</b></span> <span>方法<a href="../../../java/util/concurrent/Phaser.html#awaitAdvance-int-"><code>awaitAdvance(int)</code></a>需要一个指示到达阶段数的参数，并且当相位器前进到（或已经处于）不同阶段时返回。</span> <span>与使用<code>CyclicBarrier</code>类似结构不同，方法<code>awaitAdvance</code>继续等待即使等待的线程被中断。</span> <span>中断和超时版本也是可用的，但任务等待中断或超时时遇到的异常不会改变移相器的状态。</span> <span>如有必要，您可以在调用<code>forceTermination</code>之后，在处理程序中执行任何关联的恢复。</span> <span>在<code>ForkJoinPool</code>中执行的任务也可以使用<a href="../../../java/util/concurrent/ForkJoinPool.html" title="java.util.concurrent中的类">抖动器</a> ，当其他人被阻塞等待相位提前时，这将确保足够的并行执行任务。</span> </li>
+</ul>
+<p> <span><b>终止。</b></span> <span>移相器可能进入<em>终止</em>状态，可以使用方法<a href="../../../java/util/concurrent/Phaser.html#isTerminated--"><code>isTerminated()</code></a>进行检查。</span> <span>一旦终止，所有同步方法立即返回而不等待提前，如负值返回值所示。</span> <span>同样，终止时注册的尝试也没有效果。</span> <span>当调用<code>onAdvance</code>返回<code>true</code> 。</span> <span>如果注销已导致注册方的数量变为零，默认实现将返回<code>true</code> 。</span> <span>如下所示，当相位器以固定次数的迭代控制动作时，当当前相位数达到阈值时，通常方便的是重写该方法以导致终止。</span> <span>方法<a href="../../../java/util/concurrent/Phaser.html#forceTermination--"><code>forceTermination()</code></a>也可用于突然释放等待线程并允许它们终止。</span> </p>
+<p> <span><b>分层</b></span> <span>移相器可以<em>分层</em> （即，以树结构构造）以减少争用。</span> <span>具有大量聚会的激动剂，否则将会遇到重度的同步竞争成本，可能会被设置为使得一些子相位器共享一个共同的父节点。</span> <span>这可能会大大增加吞吐量，即使它产生更大的每操作开销。</span> </p>
+<p> <span>在一个分层相位的树中，自动管理儿童相机与其父母的注册和注销。</span> <span>每当儿童移动设备的注册方数量变得非零（如<code>Phaser(Phaser,int)</code>构造函数中所<a href="../../../java/util/concurrent/Phaser.html#Phaser-java.util.concurrent.Phaser-int-">确定的</a>那样， <a href="../../../java/util/concurrent/Phaser.html#register--"><code>register()</code></a>或<a href="../../../java/util/concurrent/Phaser.html#bulkRegister-int-"><code>bulkRegister(int)</code></a> ），子移动设备就向其父母注册。</span> <span>只要注册方的数量变为零的调用的结果<a href="../../../java/util/concurrent/Phaser.html#arriveAndDeregister--"><code>arriveAndDeregister()</code></a> ，孩子相位器从其父注销。</span> </p>
+<p> <span><b>监控。</b></span> <span>虽然同步方法只能由注册方调用，但是可以由任何呼叫者监视移相器的当前状态。</span> <span>在任何时刻，共有<a href="../../../java/util/concurrent/Phaser.html#getRegisteredParties--"><code>getRegisteredParties()</code>个</a>派对，其中<a href="../../../java/util/concurrent/Phaser.html#getArrivedParties--"><code>getArrivedParties()</code></a>已到达现阶段（ <a href="../../../java/util/concurrent/Phaser.html#getPhase--"><code>getPhase()</code></a> ）。</span> <span>剩下的（ <a href="../../../java/util/concurrent/Phaser.html#getUnarrivedParties--"><code>getUnarrivedParties()</code></a> ）派对到达时，阶段进行。</span> <span>这些方法返回的值可以反映瞬态状态，因此对于同步控制通常不是有用的。</span> <span>方法<a href="../../../java/util/concurrent/Phaser.html#toString--"><code>toString()</code></a>以便于非正式监视的形式返回这些状态查询的快照。</span> </p>
+<p> <span><b>示例用法：</b></span> </p>
+<p> <span>可以使用A <code>Phaser</code>而不是<code>CountDownLatch</code>来控制为可变数目的方提供服务的一次性动作。</span> <span>典型的成语是用于首先注册的方法设置，然后启动动作，然后注销，如：</span> </p>
+<pre>  <span><code> void runTasks(List&lt;Runnable&gt; tasks) { final Phaser phaser = new Phaser(1); // "1" to register self // create and start threads for (final Runnable task : tasks) { phaser.register(); new Thread() { public void run() { phaser.arriveAndAwaitAdvance(); // await all creation task.run(); } }.start(); } // allow threads to start and deregister self phaser.arriveAndDeregister(); }</code></span> </pre>
+<p> <span>导致一组线程重复执行给定次数迭代的一种方法是覆盖<code>onAdvance</code> ：</span> </p>
+<pre>  <span><code> void startTasks(List&lt;Runnable&gt; tasks, final int iterations) { final Phaser phaser = new Phaser() { protected boolean onAdvance(int phase, int registeredParties) { return phase &gt;= iterations || registeredParties == 0; } }; phaser.register(); for (final Runnable task : tasks) { phaser.register(); new Thread() { public void run() { do { task.run(); phaser.arriveAndAwaitAdvance(); } while (!phaser.isTerminated()); } }.start(); } phaser.arriveAndDeregister(); // deregister self, don't wait }</code></span> </pre>
+<span>如果主要任务必须等待终止，则可能会重新注册，然后执行类似的循环：</span>
+<pre>  <span><code> // ... phaser.register(); while (!phaser.isTerminated()) phaser.arriveAndAwaitAdvance();</code></span> </pre>
+<p> <span>可以使用相关的结构来等待上下文中的特定阶段数字，在这些上下文中，您确定阶段永远不会绕过<code>Integer.MAX_VALUE</code> 。</span> <span>例如：</span> </p>
+<pre>  <span><code> void awaitPhase(Phaser phaser, int phase) { int p = phaser.register(); // assumes caller not already registered while (p &lt; phase) { if (phaser.isTerminated()) // ... deal with unexpected termination else p = phaser.arriveAndAwaitAdvance(); } phaser.arriveAndDeregister(); }</code></span> </pre>
+<p> <span>要创建一组<code>n</code>采用移相器的一棵树的任务，你可以使用以下形式的代码，假设一个任务类构造函数接受<code>Phaser</code> ，它与在建注册。</span> <span>在调用<code>build(new Task[n], 0, n, new Phaser())</code>之后，可以启动这些任务，例如通过提交到池：</span> </p>
+<pre>  <span><code> void build(Task[] tasks, int lo, int hi, Phaser ph) { if (hi - lo &gt; TASKS_PER_PHASER) { for (int i = lo; i &lt; hi; i += TASKS_PER_PHASER) { int j = Math.min(i + TASKS_PER_PHASER, hi); build(tasks, i, j, new Phaser(ph)); } } else { for (int i = lo; i &lt; hi; ++i) tasks[i] = new Task(ph); // assumes new Task(ph) performs ph.register() } }</code></span> </pre>
+<span><code>TASKS_PER_PHASER</code>的最佳价值主要取决于预期的同步率。</span>
+<span>低至4的值可能适用于非常小的每阶段任务机构（因此高速率），或者对于极大的任务机构可能达到数百。</span>
+<p> <span><b>实施说明</b> ：此实施限制了最大数量的65535.尝试注册附加方会导致<code>IllegalStateException</code> 。</span> <span>但是，您可以并且应该创建分层相位器来适应任意大量的参与者。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.7 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#Phaser--">Phaser</a></span>()</code>
+<div class="block">
+              创建一个新的移相器，没有最初的注册方，没有父级和初始阶段数0。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#Phaser-int-">Phaser</a></span>(int parties)</code>
+<div class="block">
+              创建一个新的移相器与给定数量的注册无障碍方，没有父母和初始阶段0。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#Phaser-java.util.concurrent.Phaser-">Phaser</a></span>(<a href="../../../java/util/concurrent/Phaser.html" title="class in java.util.concurrent">Phaser</a> parent)</code>
+<div class="block">
+              相当于 
+             <a href="../../../java/util/concurrent/Phaser.html#Phaser-java.util.concurrent.Phaser-int-"><code>Phaser(parent, 0)</code></a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#Phaser-java.util.concurrent.Phaser-int-">Phaser</a></span>(<a href="../../../java/util/concurrent/Phaser.html" title="class in java.util.concurrent">Phaser</a> parent, int parties)</code>
+<div class="block">
+              与给定的父母和注册的无礼方的数量创建一个新的移相器。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#arrive--">arrive</a></span>()</code>
+<div class="block">
+              抵达这个移相器，而不用等待别人到达。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#arriveAndAwaitAdvance--">arriveAndAwaitAdvance</a></span>()</code>
+<div class="block">
+              到达这个移相器，等待其他人。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#arriveAndDeregister--">arriveAndDeregister</a></span>()</code>
+<div class="block">
+              到达这个移相器并从其中注销，而无需等待别人到达。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#awaitAdvance-int-">awaitAdvance</a></span>(int phase)</code>
+<div class="block">
+              等待该相位器的相位从给定相位值前进，如果当前相位不等于给定相位值，则立即返回，或者该相位器被终止。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#awaitAdvanceInterruptibly-int-">awaitAdvanceInterruptibly</a></span>(int phase)</code>
+<div class="block">
+              等待该移相器的阶段从给定的相位值推进，如果在等待时 
+             <code>InterruptedException</code>则抛出 
+             <code>InterruptedException</code> ，或者如果当前相位不等于给定的相位值或者该相位器被终止，则立即返回。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#awaitAdvanceInterruptibly-int-long-java.util.concurrent.TimeUnit-">awaitAdvanceInterruptibly</a></span>(int phase, long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              等待该移相器的阶段从给定的相位值或给定的超时时间 
+             <code>InterruptedException</code>到等待时抛出 
+             <code>InterruptedException</code> ，如果当前相位不等于给定的相位值，则立即返回，或者该相位器被终止。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#bulkRegister-int-">bulkRegister</a></span>(int parties)</code>
+<div class="block">
+              增加给定数量的新的有争议的派对到这个移相器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#forceTermination--">forceTermination</a></span>()</code>
+<div class="block">
+              强制此移相器进入终止状态。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#getArrivedParties--">getArrivedParties</a></span>()</code>
+<div class="block">
+              返回在此移相器的当前阶段到达的已注册方的数量。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/Phaser.html" title="class in java.util.concurrent">Phaser</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#getParent--">getParent</a></span>()</code>
+<div class="block">
+              返回此移相器的父级，如果没有，则返回 
+             <code>null</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#getPhase--">getPhase</a></span>()</code>
+<div class="block">
+              返回当前相位数。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#getRegisteredParties--">getRegisteredParties</a></span>()</code>
+<div class="block">
+              返回在此移动设备上注册的各方数量。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../../java/util/concurrent/Phaser.html" title="class in java.util.concurrent">Phaser</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#getRoot--">getRoot</a></span>()</code>
+<div class="block">
+              返回此移相器的根祖先，如果它没有父代，则与该移相器相同。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#getUnarrivedParties--">getUnarrivedParties</a></span>()</code>
+<div class="block">
+              返回尚未到达此移相器当前阶段的已注册方的数量。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#isTerminated--">isTerminated</a></span>()</code>
+<div class="block">
+              返回 
+             <code>true</code>如果移相器已被终止。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#onAdvance-int-int-">onAdvance</a></span>(int phase, int registeredParties)</code>
+<div class="block">
+              在即将进行的相位提前执行动作的可覆盖方法，并控制终止。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#register--">register</a></span>()</code>
+<div class="block">
+              添加一个新的unririved party到这个移相器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/Phaser.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回一个标识此移相器的字符串及其状态。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="Phaser--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Phaser</h4> <pre>public Phaser()</pre>
+<div class="block">
+            创建一个没有初始注册方，没有父级和初始阶段数0的新移相器。使用此移相器的任何线程都需要先注册。 
+          </div> </li>
+</ul> <a name="Phaser-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Phaser</h4> <pre>public Phaser(int parties)</pre>
+<div class="block">
+            创建一个新的移相器与给定数量的注册无障碍方，没有父母和初始阶段0。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>parties</code> - 需要进入下一阶段的各方数量 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果当事方小于零或大于所支持的最大数目 
+           </dd>
+</dl> </li>
+</ul> <a name="Phaser-java.util.concurrent.Phaser-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>Phaser</h4> <pre>public Phaser(<a href="../../../java/util/concurrent/Phaser.html" title="class in java.util.concurrent">Phaser</a> parent)</pre>
+<div class="block">
+            相当于 
+           <a href="../../../java/util/concurrent/Phaser.html#Phaser-java.util.concurrent.Phaser-int-"><code>Phaser(parent, 0)</code></a> 。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>parent</code> - 父移相器 
+           </dd>
+</dl> </li>
+</ul> <a name="Phaser-java.util.concurrent.Phaser-int-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>Phaser</h4> <pre>public Phaser(<a href="../../../java/util/concurrent/Phaser.html" title="class in java.util.concurrent">Phaser</a> parent,
+              int parties)</pre>
+<div class="block">
+<span>与给定的父母和注册的无礼方的数量创建一个新的移相器。</span>
+<span>当给定的父对象不为空且给定的参与方数量大于零时，该子级移动器在其父级注册。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>parent</code> - 父移相器 
+           </dd>
+<dd>
+<code>parties</code> - 进入下一阶段所需的当事人数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果缔约方小于零或大于所支持的最大数目 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="register--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>register</h4> <pre>public int register()</pre>
+<div class="block">
+<span>添加一个新的unririved party到这个移相器。</span>
+<span>如果持续调用<a href="../../../java/util/concurrent/Phaser.html#onAdvance-int-int-"><code>onAdvance(int, int)</code></a>正在进行中，则此方法可能会在返回之前等待完成。</span>
+<span>如果此移动设备有父母，而此移动设备以前没有注册方，则该儿童移动设备也向其父母注册。</span>
+<span>如果此移相器被终止，则尝试注册不起作用，并返回负值。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>此注册申请的到达阶段编号。</span>
+<span>如果该值为负值，则该移相器已终止，在这种情况下注册无效。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果尝试注册超过最多支持的派对数量 
+           </dd>
+</dl> </li>
+</ul> <a name="bulkRegister-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>bulkRegister</h4> <pre>public int bulkRegister(int parties)</pre>
+<div class="block">
+<span>增加给定数量的新的有争议的派对到这个移相器。</span>
+<span>如果持续调用<a href="../../../java/util/concurrent/Phaser.html#onAdvance-int-int-"><code>onAdvance(int, int)</code></a>正在进行中，则此方法可能会在返回之前等待完成。</span>
+<span>如果此移动设备有父母，而且指定的当事人数量大于零，并且此移动设备以前没有注册方，则该子版移动设备也向其父母注册。</span>
+<span>如果此移相器被终止，则尝试注册不起作用，并返回负值。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>parties</code> - 需要进入下一阶段的附加方的数量 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>此注册申请的到达阶段编号。</span>
+<span>如果该值为负值，则该移相器已终止，在这种情况下注册无效。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果尝试注册超过最多支持的派对数量 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>parties &lt; 0</code>
+</dd>
+</dl> </li>
+</ul> <a name="arrive--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>arrive</h4> <pre>public int arrive()</pre>
+<div class="block">
+<span>抵达这个移相器，而不用等待别人到达。</span>
+<p> <span>这是非注册方调用此方法的使用错误。</span> <span>但是，可能会导致这个错误<code>IllegalStateException</code>只有在这个相位一些后续操作，如果有的话。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             到达阶段数，如果终止则为负值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果没有终止，而有争议的党的人数将变为负数 
+           </dd>
+</dl> </li>
+</ul> <a name="arriveAndDeregister--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>arriveAndDeregister</h4> <pre>public int arriveAndDeregister()</pre>
+<div class="block">
+<span>到达这个移相器并从其中注销，而无需等待别人到达。</span>
+<span>撤销注销减少了在未来阶段推进的各方数量。</span>
+<span>如果这个移动设备有父母，而取消注册会导致这个移动设备有零个派对，那么这个移动设备也会从父母中注销。</span>
+<p> <span>这是非注册方调用此方法的使用错误。</span> <span>但是，可能会导致这个错误<code>IllegalStateException</code>只有在这个相位一些后续操作，如果有的话。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             到达阶段数，如果终止则为负值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果没有终止，登记的或没有任何一方的人数将变为负数 
+           </dd>
+</dl> </li>
+</ul> <a name="arriveAndAwaitAdvance--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>arriveAndAwaitAdvance</h4> <pre>public int arriveAndAwaitAdvance()</pre>
+<div class="block">
+<span>到达这个移相器，等待其他人。</span>
+<span>等效于<code>awaitAdvance(arrive())</code> 。</span>
+<span>如果您需要等待中断或超时，您可以使用<code>awaitAdvance</code>方法的其他形式之一使用类似的结构进行<code>awaitAdvance</code> 。</span>
+<span>如果相反，您需要在抵达时<code>awaitAdvance(arriveAndDeregister())</code> ，请使用<code>awaitAdvance(arriveAndDeregister())</code> 。</span>
+<p> <span>这是非注册方调用此方法的使用错误。</span> <span>但是，这个错误可能会导致<code>IllegalStateException</code>只有在这个移相器的一些后续操作，如果有的话。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             到达阶段数，或（否定） 
+            <a href="../../../java/util/concurrent/Phaser.html#getPhase--">current phase</a>如果终止 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalStateException.html" title="class in java.lang">IllegalStateException</a></code> - 如果没有被终止，而有争议的党的人数将变为负数 
+           </dd>
+</dl> </li>
+</ul> <a name="awaitAdvance-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>awaitAdvance</h4> <pre>public int awaitAdvance(int phase)</pre>
+<div class="block">
+            等待该相位器的相位从给定相位值前进，如果当前相位不等于给定相位值，则立即返回，或者该相位器被终止。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>phase</code> - 抵达阶段数，如果终止则为负值;</span>
+<span>此参数通常是前一次调用<code>arrive</code>或<code>arriveAndDeregister</code>返回的值。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             下一个到达阶段数字，或参数如果为负数，或（否定） 
+            <a href="../../../java/util/concurrent/Phaser.html#getPhase--">current phase</a>如果终止 
+           </dd>
+</dl> </li>
+</ul> <a name="awaitAdvanceInterruptibly-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>awaitAdvanceInterruptibly</h4> <pre>public int awaitAdvanceInterruptibly(int phase)
+                              throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+            等待该移相器的相位从给定的相位值推进，如果在等待时 
+           <code>InterruptedException</code>则抛出 
+           <code>InterruptedException</code> ，或者如果当前相位不等于给定相位值，则立即返回，或者该相位器被终止。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>phase</code> - 到达阶段号码，如果终止则为负值;</span>
+<span>此参数通常是前一次调用<code>arrive</code>或<code>arriveAndDeregister</code>返回的值。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             下一个到达阶段的数字，或参数如果是负数，或（否定） 
+            <a href="../../../java/util/concurrent/Phaser.html#getPhase--">current phase</a>如果终止 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果线程在等待时中断 
+           </dd>
+</dl> </li>
+</ul> <a name="awaitAdvanceInterruptibly-int-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>awaitAdvanceInterruptibly</h4> <pre>public int awaitAdvanceInterruptibly(int phase,
+                                     long timeout,
+                                     <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)
+                              throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a>,
+                                     <a href="../../../java/util/concurrent/TimeoutException.html" title="class in java.util.concurrent">TimeoutException</a></pre>
+<div class="block">
+            等待该移相器的阶段从给定的相位值或给定的超时时间 
+           <code>InterruptedException</code>到等待时抛出 
+           <code>InterruptedException</code> ，如果当前相位不等于给定的相位值，则立即返回，或者该相位器被终止。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>phase</code> - 到达阶段数，如果终止则为负值;</span>
+<span>此参数通常是前一次调用<code>arrive</code>或<code>arriveAndDeregister</code>返回的值。</span>
+</dd>
+<dd>
+<code>timeout</code> - 放弃之前等待多久，以 
+            <code>unit</code>为单位 
+           </dd>
+<dd>
+<code>unit</code> - a 
+            <code>TimeUnit</code>确定如何解释 
+            <code>timeout</code>参数 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             下一个到达阶段的数字，或参数，如果它是负数，或（负） 
+            <a href="../../../java/util/concurrent/Phaser.html#getPhase--">current phase</a>如果终止 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果线程在等待时中断 
+           </dd>
+<dd>
+<code><a href="../../../java/util/concurrent/TimeoutException.html" title="class in java.util.concurrent">TimeoutException</a></code> - 如果在等待时超时 
+           </dd>
+</dl> </li>
+</ul> <a name="forceTermination--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>forceTermination</h4> <pre>public void forceTermination()</pre>
+<div class="block">
+<span>强制此移相器进入终止状态。</span>
+<span>注册方的数量不受影响。</span>
+<span>如果这个移相器是分层的相位片的成员，则集合中的所有相移器都将被终止。</span>
+<span>如果此移相器已被终止，则此方法无效。</span>
+<span>在一个或多个任务遇到意外异常之后，此方法可能有助于协调恢复。</span>
+</div> </li>
+</ul> <a name="getPhase--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPhase</h4> <pre>public final int getPhase()</pre>
+<div class="block">
+<span>返回当前相位数。</span>
+<span>最大相位数为<code>Integer.MAX_VALUE</code> ，之后重新开始为零。</span>
+<span>一旦终止，相数为负，在这种情况下，终止前的主要阶段可以通过<code>getPhase() + Integer.MIN_VALUE</code>获得。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             相位数，如果终止则为负值 
+           </dd>
+</dl> </li>
+</ul> <a name="getRegisteredParties--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRegisteredParties</h4> <pre>public int getRegisteredParties()</pre>
+<div class="block">
+            返回在此移动设备上注册的各方数量。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当事人数 
+           </dd>
+</dl> </li>
+</ul> <a name="getArrivedParties--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getArrivedParties</h4> <pre>public int getArrivedParties()</pre>
+<div class="block">
+<span>返回在此移相器的当前阶段到达的已注册方的数量。</span>
+<span>如果这个移相器已经终止，返回的值是无意义和任意的。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             到达方的数量 
+           </dd>
+</dl> </li>
+</ul> <a name="getUnarrivedParties--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getUnarrivedParties</h4> <pre>public int getUnarrivedParties()</pre>
+<div class="block">
+<span>返回尚未到达此移相器当前阶段的已注册方的数量。</span>
+<span>如果这个移相器已经终止，返回的值是无意义和任意的。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             无数派的人数 
+           </dd>
+</dl> </li>
+</ul> <a name="getParent--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getParent</h4> <pre>public <a href="../../../java/util/concurrent/Phaser.html" title="class in java.util.concurrent">Phaser</a> getParent()</pre>
+<div class="block">
+            返回此移相器的父级，如果没有，则返回 
+           <code>null</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个移相器的父母，如果没有， 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> <a name="getRoot--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRoot</h4> <pre>public <a href="../../../java/util/concurrent/Phaser.html" title="class in java.util.concurrent">Phaser</a> getRoot()</pre>
+<div class="block">
+            返回此移相器的根祖先，如果它没有父代，则与该移相器相同。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个移相器的根祖先 
+           </dd>
+</dl> </li>
+</ul> <a name="isTerminated--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isTerminated</h4> <pre>public boolean isTerminated()</pre>
+<div class="block">
+            返回 
+           <code>true</code>如果移相器已被终止。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果此移相器已被终止 
+           </dd>
+</dl> </li>
+</ul> <a name="onAdvance-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>onAdvance</h4> <pre>protected boolean onAdvance(int phase,
+                            int registeredParties)</pre>
+<div class="block">
+<span>在即将进行的相位提前执行动作的可覆盖方法，并控制终止。</span>
+<span>这种方法在派对推进这个移相器（当所有其他等待方休眠）的时候被调用。</span>
+<span>如果此方法返回<code>true</code> ，则该移相器将在提前设置为最终终止状态，后续调用<a href="../../../java/util/concurrent/Phaser.html#isTerminated--"><code>isTerminated()</code></a>将返回true。</span>
+<span>任何（未选中）通过调用此方法引发的异常或错误将传播给尝试推进此移相器的方，在这种情况下不会发生提前。</span>
+<p> <span>该方法的参数提供了当前转换占优势的状态。</span> <span>在<code>onAdvance</code>内对这个移相器引用到达，注册和等待方法的<code>onAdvance</code>是未指定的，不应该依赖。</span> </p>
+<p> <span>如果这个移相器是分层的相位器的成员，那么<code>onAdvance</code>仅在每个<code>onAdvance</code>的根<code>onAdvance</code>器上被调用。</span> </p>
+<p> <span>支持最常见的用例，此方法的默认实现返回<code>true</code>时注册方的数量已变为零作为党调用的结果<code>arriveAndDeregister</code> 。</span> <span>您可以禁用此行为，从而通过覆盖此方法始终返回<code>false</code> ：</span> </p>
+<pre>  <span><code> Phaser phaser = new Phaser() { protected boolean onAdvance(int phase, int parties) { return false; } }</code></span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>phase</code> - 在此移相器提前之前输入此方法的当前阶段编号 
+           </dd>
+<dd>
+<code>registeredParties</code> - 当前注册方的数量 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果这个移相器应该终止 
+           </dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>返回一个标识此移相器的字符串及其状态。</span>
+<span>状态，在括号中，它包括字符串<code>"phase = "</code>其次是相数， <code>"parties = "</code>其次是注册政党的数量，并<code>"arrived = "</code>随后赶到方的数量。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#toString--">toString</a></code>在类别 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个标识这个移相器的字符串，以及它的状态 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

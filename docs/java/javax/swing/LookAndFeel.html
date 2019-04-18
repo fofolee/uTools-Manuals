@@ -1,0 +1,1129 @@
+<div class="header">
+<div class="subTitle">
+     javax.swing 
+   </div>
+<h2 class="title" title="Class LookAndFeel">Class LookAndFeel</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.swing.LookAndFeel</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+        已知直接子类：
+       </dt>
+<dd>
+<span><a href="../../javax/swing/plaf/basic/BasicLookAndFeel.html" title="javax.swing.plaf.basic中的类">BasicLookAndFeel</a> ， <a href="../../javax/swing/plaf/multi/MultiLookAndFeel.html" title="javax.swing.plaf.multi中的类">MultiLookAndFeel</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">LookAndFeel</span>
+extends <a href="../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span><code>LookAndFeel</code> ，顾名思义，封装外观。</span>
+<span>除了安装外观，大多数开发人员不需要直接与<code>LookAndFeel</code>进行交互。</span>
+<span>一般来说，创建自定义外观的开发人员只需要关注这个类。</span>
+<p> <span>Swing建立在每个<code>JComponent</code>子类的基础上，具有特定的<code>ComponentUI</code>子类的实现。</span> <span><code>ComponentUI</code>通常被称为“ui”，“ui”或“look-feel delegate”。</span> <span><code>ComponentUI</code>子类负责提供组件的外观和特定功能。</span> <span>例如， <code>JTree</code>要求执行<code>ComponentUI</code>子类<code>TreeUI</code> 。</span> <span>具体<code>ComponentUI</code>子类的实现由<code>LookAndFeel</code>提供。</span> <span>每个<code>JComponent</code>子类通过<code>JComponent</code>方法<code>getUIClassID</code> <code>ComponentUI</code>子类。</span> </p>
+<p> <span>每个<code>LookAndFeel</code>实现必须通过为从<code>getDefaults</code>返回的<code>UIDefaults</code>对象中的每个Swing的ui类ID指定一个值来提供适当的<code>ComponentUI</code>子类的<code>getDefaults</code> 。</span> <span>例如， <code>BasicLookAndFeel</code>使用<code>BasicTreeUI</code>作为具体实施<code>TreeUI</code> 。</span> <span>这是通过<code>BasicLookAndFeel</code>完成的，提供了键值对<code>"TreeUI"-"javax.swing.plaf.basic.BasicTreeUI"</code> ，在<code>UIDefaults</code>从<code>getDefaults</code>返回。</span> <span>有关如何获得<code>ComponentUI</code>子类的实现的详细信息，请参阅<a href="../../javax/swing/UIDefaults.html#getUI-javax.swing.JComponent-"><code>UIDefaults.getUI(JComponent)</code></a> 。</span> </p>
+<p> <span>当安装<code>LookAndFeel</code>时， <code>UIManager</code>不会检查所有ui类ID是否存在条目。</span> <span>因此，如果当前的外观和感觉没有为特定的ui类id提供值，并且创建<code>JComponent</code>子类的实例，则会发生随机异常。</span> </p>
+<h2> <span>外观和感觉的建议</span> </h2>
+<span>如<code>UIManager</code>所述，每个<code>LookAndFeel</code>都有机会提供一组与开发人员和系统默认值分层的默认值。</span>
+<span>一些Swing的组件需要外观和感觉来提供一组特定的默认值。</span>
+<span>这些记录在需要特定默认值的类中。</span>
+<h3> <span><a name="defaultRecommendation">ComponentUIs and defaults</a></span> </h3>
+<span>所有<code>ComponentUIs</code>通常需要在设置各种属性<code>JComponent</code>的<code>ComponentUI</code>为其提供外观和感觉。</span>
+<span>当<code>ComponentUI</code>在JComponent上时， <code>ComponentUI</code>会执行此<code>JComponent</code> 。</span>
+<span>只有开发人员没有设置属性，才能设置属性。</span>
+<span>对于非原始值，建议的<code>ComponentUI</code>仅改变在属性<code>JComponent</code>如果当前值是<code>null</code>或实现<code>UIResource</code> 。</span>
+<span>如果当前值为<code>null</code>或实现<code>UIResource</code>则表明该属性尚未由开发人员设置，并且您可以自由更改该属性。</span>
+<span>例如， <code>BasicButtonUI.installDefaults</code>仅改变对字体<code>JButton</code>如果从返回值<code>button.getFont()</code>是<code>null</code>或实现<code>UIResource</code> 。</span>
+<span>另一方面，如果<code>button.getFont()</code>返回一个没有实现<code>UIResource</code>的<code>non-null</code>值，那么<code>BasicButtonUI.installDefaults</code>将不会更改<code>JButton</code>的字体。</span>
+<p> <span>对于原始值，如<code>opaque</code> ，应调用方法<code>installProperty</code> 。</span> <span><code>installProperty</code>只有在开发人员尚未更改该值时才更改相应的属性。</span> </p>
+<p> <span><code>ComponentUI</code>实现应该使用此类提供的各种安装方法，因为它们处理必要的检查并使用推荐的指导原则安装该属性。</span> </p>
+<h3> <span><a name="exceptions"></a>例外</span> </h3>
+<span>如果要更改的属性值为<code>null</code>或<code>UIResource</code>提供的所有安装方法<code>LookAndFeel</code>需要访问默认值。</span>
+<span>例如，安装该字体将执行以下操作：</span>
+<pre>  <span>JComponent c;
+   Font font = c.getFont();
+   if (font == null || (font instanceof UIResource)) {
+       c.setFont(UIManager.getFont("fontKey"));
+   }</span> </pre>
+<span>如果字体是<code>null</code>或<code>UIResource</code> ，则使用键<code>fontKey</code>查询默认表。</span>
+<span>所有<code>UIDefault's</code>获取方法抛出一个<code>NullPointerException</code>如果通过在<code>null</code> 。</span>
+<span>因此，除非另有说明各个不同的安装方法<code>LookAndFeel</code>抛出<code>NullPointerException</code>如果当前值是<code>null</code>或<code>UIResource</code>和提供的默认密钥是<code>null</code> 。</span>
+<span>此外，除非另有说明，所有的<code>install</code>方法抛出一个<code>NullPointerException</code>如果<code>null</code>组件中通过。</span>
+</div> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#LookAndFeel--">LookAndFeel</a></span>()</code> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../javax/swing/UIDefaults.html" title="class in javax.swing">UIDefaults</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#getDefaults--">getDefaults</a></span>()</code>
+<div class="block">
+              返回外观和默认值。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>abstract <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#getDescription--">getDescription</a></span>()</code>
+<div class="block">
+              返回这个外观的一行描述实现，例如 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static <a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#getDesktopPropertyValue-java.lang.String-java.lang.Object-">getDesktopPropertyValue</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> systemPropertyName, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> fallbackValue)</code>
+<div class="block">
+              通过调用 
+             <code>Toolkit.getDefaultToolkit().getDesktopProperty()</code>返回指定的系统桌面属性的 
+             <code>Toolkit.getDefaultToolkit().getDesktopProperty()</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../javax/swing/Icon.html" title="interface in javax.swing">Icon</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#getDisabledIcon-javax.swing.JComponent-javax.swing.Icon-">getDisabledIcon</a></span>(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> component, <a href="../../javax/swing/Icon.html" title="interface in javax.swing">Icon</a> icon)</code>
+<div class="block">
+              返回一个 
+             <code>Icon</code>具有禁用外观。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../javax/swing/Icon.html" title="interface in javax.swing">Icon</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#getDisabledSelectedIcon-javax.swing.JComponent-javax.swing.Icon-">getDisabledSelectedIcon</a></span>(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> component, <a href="../../javax/swing/Icon.html" title="interface in javax.swing">Icon</a> icon)</code>
+<div class="block">
+              返回一个 
+             <code>Icon</code>供被还被选中的禁用组件使用。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>abstract <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#getID--">getID</a></span>()</code>
+<div class="block">
+              返回一个识别这种外观和感觉的字符串。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../javax/swing/LayoutStyle.html" title="class in javax.swing">LayoutStyle</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#getLayoutStyle--">getLayoutStyle</a></span>()</code>
+<div class="block">
+              返回 
+             <code>LayoutStyle</code>为这种外观和感觉。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>abstract <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#getName--">getName</a></span>()</code>
+<div class="block">
+              返回一个标识这种外观的短字符串，例如 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#getSupportsWindowDecorations--">getSupportsWindowDecorations</a></span>()</code>
+<div class="block">
+              返回 
+             <code>true</code>如果 
+             <code>LookAndFeel</code>返回 
+             <code>RootPaneUI</code>实例支持提供 
+             <code>Window</code>在装饰 
+             <code>JRootPane</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#initialize--">initialize</a></span>()</code>
+<div class="block">
+              初始化外观和感觉。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#installBorder-javax.swing.JComponent-java.lang.String-">installBorder</a></span>(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c, <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultBorderName)</code>
+<div class="block">
+              使用默认值设置组件边框属性的便利方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#installColors-javax.swing.JComponent-java.lang.String-java.lang.String-">installColors</a></span>(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c, <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultBgName, <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultFgName)</code>
+<div class="block">
+              使用默认值设置组件的前景和背景颜色属性的便利方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#installColorsAndFont-javax.swing.JComponent-java.lang.String-java.lang.String-java.lang.String-">installColorsAndFont</a></span>(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c, <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultBgName, <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultFgName, <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultFontName)</code>
+<div class="block">
+              使用默认值设置组件的前景，背景和字体属性的便利方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#installProperty-javax.swing.JComponent-java.lang.String-java.lang.Object-">installProperty</a></span>(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c, <a href="../../java/lang/String.html" title="class in java.lang">String</a> propertyName, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> propertyValue)</code>
+<div class="block">
+              如果开发人员尚未设置该属性，则在方法上安装具有指定名称和值的属性。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>abstract boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#isNativeLookAndFeel--">isNativeLookAndFeel</a></span>()</code>
+<div class="block">
+              如果底层平台具有“本机”的外观，而这是一个实现方法，请返回 
+             <code>true</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>abstract boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#isSupportedLookAndFeel--">isSupportedLookAndFeel</a></span>()</code>
+<div class="block">
+              如果底层平台支持和/或允许这种外观，返回 
+             <code>true</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#loadKeyBindings-javax.swing.InputMap-java.lang.Object:A-">loadKeyBindings</a></span>(<a href="../../javax/swing/InputMap.html" title="class in javax.swing">InputMap</a> retMap, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] keys)</code>
+<div class="block">
+              填充一个 
+             <code>InputMap</code>与指定的绑定。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>static <a href="../../javax/swing/ComponentInputMap.html" title="class in javax.swing">ComponentInputMap</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#makeComponentInputMap-javax.swing.JComponent-java.lang.Object:A-">makeComponentInputMap</a></span>(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c, <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] keys)</code>
+<div class="block">
+              创建一个 
+             <code>ComponentInputMapUIResource</code>从 
+             <code>keys</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>static <a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#makeIcon-java.lang.Class-java.lang.String-">makeIcon</a></span>(<a href="../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; baseClass, <a href="../../java/lang/String.html" title="class in java.lang">String</a> gifFile)</code>
+<div class="block">
+              创建并返回一个加载图像的 
+             <code>UIDefault.LazyValue</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code>static <a href="../../javax/swing/InputMap.html" title="class in javax.swing">InputMap</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#makeInputMap-java.lang.Object:A-">makeInputMap</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] keys)</code>
+<div class="block">
+              创建一个 
+             <code>InputMapUIResource</code>从 
+             <code>keys</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code>static <a href="../../javax/swing/text/JTextComponent.KeyBinding.html" title="class in javax.swing.text">JTextComponent.KeyBinding</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#makeKeyBindings-java.lang.Object:A-">makeKeyBindings</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] keyBindingList)</code>
+<div class="block">
+              方便构建 
+             <code>KeyBindings</code>数组的 
+             <code>KeyBindings</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#provideErrorFeedback-java.awt.Component-">provideErrorFeedback</a></span>(<a href="../../java/awt/Component.html" title="class in java.awt">Component</a> component)</code>
+<div class="block">
+              当用户尝试无效操作时调用，例如粘贴到具有焦点的不可 
+             <code>JTextField</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回显示和标识此对象属性的字符串。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#uninitialize--">uninitialize</a></span>()</code>
+<div class="block">
+              初始化外观和感觉。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../javax/swing/LookAndFeel.html#uninstallBorder-javax.swing.JComponent-">uninstallBorder</a></span>(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c)</code>
+<div class="block">
+              方便卸载边框的方法。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="LookAndFeel--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>LookAndFeel</h4> <pre>public LookAndFeel()</pre> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="installColors-javax.swing.JComponent-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>installColors</h4> <pre>public static void installColors(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c,
+                                 <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultBgName,
+                                 <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultFgName)</pre>
+<div class="block">
+<span>使用默认值设置组件的前景和背景颜色属性的便利方法。</span>
+<span>仅当当前值为<code>null</code>或UIResource时才会设置<code>UIResource</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>c</code> - 设置颜色的组件 
+           </dd>
+<dd>
+<code>defaultBgName</code> - 背景的钥匙 
+           </dd>
+<dd>
+<code>defaultFgName</code> - 
+            <code>defaultFgName</code>键 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如exceptions 
+            <a href="#exceptions">所述</a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/LookAndFeel.html#installColorsAndFont-javax.swing.JComponent-java.lang.String-java.lang.String-java.lang.String-"><code>installColorsAndFont(javax.swing.JComponent, java.lang.String, java.lang.String, java.lang.String)</code></a> ， 
+            <a href="../../javax/swing/UIManager.html#getColor-java.lang.Object-"><code>UIManager.getColor(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="installColorsAndFont-javax.swing.JComponent-java.lang.String-java.lang.String-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>installColorsAndFont</h4> <pre>public static void installColorsAndFont(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c,
+                                        <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultBgName,
+                                        <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultFgName,
+                                        <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultFontName)</pre>
+<div class="block">
+<span>使用默认值设置组件的前景，背景和字体属性的便利方法。</span>
+<span>仅当当前值为<code>null</code>或<code>UIResource</code>时才设置<code>UIResource</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>c</code> - 组件设置为颜色和字体 
+           </dd>
+<dd>
+<code>defaultBgName</code> - 背景的关键 
+           </dd>
+<dd>
+<code>defaultFgName</code> - 
+            <code>defaultFgName</code>键 
+           </dd>
+<dd>
+<code>defaultFontName</code> - 字体的键 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如exceptions 
+            <a href="#exceptions">所述</a>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/LookAndFeel.html#installColors-javax.swing.JComponent-java.lang.String-java.lang.String-"><code>installColors(javax.swing.JComponent, java.lang.String, java.lang.String)</code></a> ， 
+            <a href="../../javax/swing/UIManager.html#getColor-java.lang.Object-"><code>UIManager.getColor(java.lang.Object)</code></a> ， 
+            <a href="../../javax/swing/UIManager.html#getFont-java.lang.Object-"><code>UIManager.getFont(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="installBorder-javax.swing.JComponent-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>installBorder</h4> <pre>public static void installBorder(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c,
+                                 <a href="../../java/lang/String.html" title="class in java.lang">String</a> defaultBorderName)</pre>
+<div class="block">
+<span>使用默认值设置组件边框属性的便利方法。</span>
+<span>如果边界是边界仅设置<code>null</code>或实例<code>UIResource</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>c</code> - 设置边框的组件 
+           </dd>
+<dd>
+<code>defaultBorderName</code> - 指定边框的键 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如exceptions 
+            <a href="#exceptions">所述</a>
+</dd>
+</dl> </li>
+</ul> <a name="uninstallBorder-javax.swing.JComponent-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>uninstallBorder</h4> <pre>public static void uninstallBorder(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c)</pre>
+<div class="block">
+<span>方便卸载边框的方法。</span>
+<span>如果组件的边框是<code>UIResource</code> ，则设置为<code>null</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>c</code> - 卸载边框的组件 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>c</code>是 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> <a name="installProperty-javax.swing.JComponent-java.lang.String-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>installProperty</h4> <pre>public static void installProperty(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c,
+                                   <a href="../../java/lang/String.html" title="class in java.lang">String</a> propertyName,
+                                   <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> propertyValue)</pre>
+<div class="block">
+<span>如果开发人员尚未设置该属性，则在方法上安装具有指定名称和值的属性。</span>
+<span>该方法旨在由需要为原始类型（boolean，int，..）的属性指定默认值的ui委托实例使用，但不希望覆盖客户端设置的值。</span>
+<span>由于原始属性值不能用<code>UIResource</code>标记包装，因此此方法使用私有状态来确定该属性是否已由客户端设置。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>c</code> - 设置属性的目标组件 
+           </dd>
+<dd>
+<code>propertyName</code> - 要设置的属性的名称 
+           </dd>
+<dd>
+<code>propertyValue</code> - 物业的价值 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果指定的属性不是可以使用此方法设置的属性 
+           </dd>
+<dd>
+<code><a href="../../java/lang/ClassCastException.html" title="class in java.lang">ClassCastException</a></code> - 如果属性值尚未由开发人员设置，并且类型与属性的类型不匹配 
+           </dd>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>c</code>是 
+            <code>null</code> ，或者指定的属性尚未由开发者设置，并且 
+            <code>propertyValue</code>是 
+            <code>null</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+</dl> </li>
+</ul> <a name="makeKeyBindings-java.lang.Object:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>makeKeyBindings</h4> <pre>public static <a href="../../javax/swing/text/JTextComponent.KeyBinding.html" title="class in javax.swing.text">JTextComponent.KeyBinding</a>[] makeKeyBindings(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] keyBindingList)</pre>
+<div class="block">
+<span>方便构建<code>KeyBindings</code>数组的<code>KeyBindings</code> 。</span>
+<span>虽然此方法不被弃用，但开发人员应改为使用<code>ActionMap</code>和<code>InputMap</code>提供密钥绑定。</span>
+<p> <span>该方法返回一个<code>KeyBindings</code>的数组，每个交替的<code>key-action</code>对在<code>keyBindingList</code> 。</span> <span>甲<code>key</code>可以是一个<code>String</code>在由指定的格式<code>KeyStroke.getKeyStroke</code>法，或<code>KeyStroke</code> 。</span> <span>所述<code>action</code>的双部分是<code>String</code>对应于名称<code>Action</code> 。</span> </p>
+<p> <span>以下示例说明从六个交替的<code>key-action</code>对创建<code>KeyBinding</code>阵列：</span> </p>
+<pre>  <span>JTextComponent.KeyBinding[] multilineBindings = makeKeyBindings( new Object[] {
+          "UP", DefaultEditorKit.upAction,
+        "DOWN", DefaultEditorKit.downAction,
+     "PAGE_UP", DefaultEditorKit.pageUpAction,
+   "PAGE_DOWN", DefaultEditorKit.pageDownAction,
+       "ENTER", DefaultEditorKit.insertBreakAction,
+         "TAB", DefaultEditorKit.insertTabAction
+  });</span> </pre>
+<span>如果<code>keyBindingList's</code>长度为奇数，则忽略最后一个元素。</span>
+<p> <span>供给<code>null</code>为任一值<code>key</code>或<code>action</code>的一部分<code>key-action</code>在创建一对结果<code>KeyBinding</code>与相应的值<code>null</code> 。</span> <span>由于Swing的其他部分预计在<code>non-null</code>中有<code>KeyBinding</code> ，因此您应避免提供<code>null</code>作为<code>key-action</code>对的<code>key</code>或<code>action</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>keyBindingList</code> - 一组 
+            <code>key-action</code>对 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个 
+            <code>KeyBindings</code>的数组 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>keyBindingList</code>是 
+            <code>null</code>
+</dd>
+<dd>
+<code><a href="../../java/lang/ClassCastException.html" title="class in java.lang">ClassCastException</a></code> - 如果 
+            <code>key</code>部分对不是 
+            <code>KeyStroke</code>或 
+            <code>String</code> ，或 
+            <code>action</code>部分对不是 
+            <code>String</code>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/ActionMap.html" title="javax.swing中的类"><code>ActionMap</code></a> ， <a href="../../javax/swing/InputMap.html" title="javax.swing中的类"><code>InputMap</code></a> ， <a href="../../javax/swing/KeyStroke.html#getKeyStroke-char-"><code>KeyStroke.getKeyStroke(char)</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="makeInputMap-java.lang.Object:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>makeInputMap</h4> <pre>public static <a href="../../javax/swing/InputMap.html" title="class in javax.swing">InputMap</a> makeInputMap(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] keys)</pre>
+<div class="block">
+<span>创建一个<code>InputMapUIResource</code>从<code>keys</code> 。</span>
+<span>这是创建一个新的<code>InputMapUIResource</code> ，调用<code>loadKeyBindings(map, keys)</code>并返回InputMapUIResource的<code>InputMapUIResource</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>keys</code> - 交替的 
+            <code>keystroke-action key</code>对，如
+            <code>loadKeyBindings(javax.swing.InputMap, java.lang.Object[])</code>
+<a href="../../javax/swing/LookAndFeel.html#loadKeyBindings-javax.swing.InputMap-java.lang.Object:A-">所述</a>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             新创建和填充 
+            <code>InputMapUIResource</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/LookAndFeel.html#loadKeyBindings-javax.swing.InputMap-java.lang.Object:A-"><code>loadKeyBindings(javax.swing.InputMap, java.lang.Object[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="makeComponentInputMap-javax.swing.JComponent-java.lang.Object:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>makeComponentInputMap</h4> <pre>public static <a href="../../javax/swing/ComponentInputMap.html" title="class in javax.swing">ComponentInputMap</a> makeComponentInputMap(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> c,
+                                                      <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] keys)</pre>
+<div class="block">
+<span>创建一个<code>ComponentInputMapUIResource</code>从<code>keys</code> 。</span>
+<span>这是创建一个新的<code>ComponentInputMapUIResource</code> ，调用<code>loadKeyBindings(map, keys)</code>并返回ComponentInputMapUIResource的<code>ComponentInputMapUIResource</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>c</code> - 创建 
+            <code>ComponentInputMapUIResource</code>
+</dd>
+<dd>
+<code>keys</code> - 交替的 
+            <code>keystroke-action key</code>对，如
+            <code>loadKeyBindings(javax.swing.InputMap, java.lang.Object[])</code>
+<a href="../../javax/swing/LookAndFeel.html#loadKeyBindings-javax.swing.InputMap-java.lang.Object:A-">所述</a>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             新创建和填充 
+            <code>InputMapUIResource</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>c</code>是 
+            <code>null</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/LookAndFeel.html#loadKeyBindings-javax.swing.InputMap-java.lang.Object:A-"><code>loadKeyBindings(javax.swing.InputMap, java.lang.Object[])</code></a> ， <a href="../../javax/swing/plaf/ComponentInputMapUIResource.html" title="javax.swing.plaf中的类"><code>ComponentInputMapUIResource</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="loadKeyBindings-javax.swing.InputMap-java.lang.Object:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>loadKeyBindings</h4> <pre>public static void loadKeyBindings(<a href="../../javax/swing/InputMap.html" title="class in javax.swing">InputMap</a> retMap,
+                                   <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>[] keys)</pre>
+<div class="block">
+<span>填充一个<code>InputMap</code>与指定的绑定。</span>
+<span>绑定作为交替<code>keystroke-action key</code>对的列表提供。</span>
+<span>所述<code>keystroke</code>是任一的一个实例<code>KeyStroke</code> ，或<code>String</code>标识<code>KeyStroke</code>的结合。</span>
+<span>具体格式请参考<code>KeyStroke.getKeyStroke(String)</code> 。</span>
+<span><code>action key</code>一部分是InputMap的<code>InputMap</code>的<code>KeyStroke</code> 。</span>
+<p> <span>以下说明如何加载一个<code>InputMap</code>与两个<code>key-action</code>对：</span> </p>
+<pre>  <span>LookAndFeel.loadKeyBindings(inputMap, new Object[] {
+     "control X", "cut",
+     "control V", "paste"
+   });</span> </pre>
+<p> <span>提供<code>null</code>绑定列表（ <code>keys</code> ）不会以任何方式更改<code>retMap</code> 。</span> </p>
+<p> <span>指定<code>null</code> <code>action key</code>导致从<code>InputMap</code>删除<code>keystroke's</code>条目。</span> <span>A <code>null</code> <code>keystroke</code>被忽略。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>retMap</code> - 
+            <code>InputMap</code>将 
+            <code>key-action</code>对添加到 
+           </dd>
+<dd>
+<code>keys</code> - 绑定添加到 
+            <code>retMap</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>keys</code>是 
+            <code>non-null</code> ，不是空的，而 
+            <code>retMap</code>是 
+            <code>null</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.3 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/KeyStroke.html#getKeyStroke-java.lang.String-"><code>KeyStroke.getKeyStroke(String)</code></a> ， <a href="../../javax/swing/InputMap.html" title="javax.swing中的类"><code>InputMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="makeIcon-java.lang.Class-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>makeIcon</h4> <pre>public static <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> makeIcon(<a href="../../java/lang/Class.html" title="class in java.lang">类</a>&lt;?&gt; baseClass,
+                              <a href="../../java/lang/String.html" title="class in java.lang">String</a> gifFile)</pre>
+<div class="block">
+<span>创建并返回一个加载图像的<code>UIDefault.LazyValue</code> 。</span>
+<span>返回的值是UIDefaults.LazyValue的<code>UIDefaults.LazyValue</code> 。</span>
+<span>当对返回的对象调用<code>createValue</code>时，将加载映像。</span>
+<span>如果图像是<code>non-null</code> ，那么它将被包裹在一个<code>Icon</code> ，它实现了<code>UIResource</code> 。</span>
+<span>图像使用<code>Class.getResourceAsStream(gifFile)</code>加载。</span>
+<p> <span>此方法不会以任何方式检查参数。</span> <span>强烈建议提供<code>non-null</code>值，否则可能会在返回的对象上调用createValue时发生<code>createValue</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>baseClass</code> - 
+            <code>类</code>用于加载资源 
+           </dd>
+<dd>
+<code>gifFile</code> - 加载图像的路径 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>一个<code>UIDefaults.LazyValue</code> ;</span>
+<span>当解析时， <code>LazyValue</code>加载指定的图像</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../javax/swing/UIDefaults.LazyValue.html" title="javax.swing中的接口"><code>UIDefaults.LazyValue</code></a> ， <a href="../../javax/swing/Icon.html" title="javax.swing中的接口"><code>Icon</code></a> ， <a href="../../java/lang/Class.html#getResourceAsStream-java.lang.String-"><code>Class.getResourceAsStream(String)</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="getLayoutStyle--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getLayoutStyle</h4> <pre>public <a href="../../javax/swing/LayoutStyle.html" title="class in javax.swing">LayoutStyle</a> getLayoutStyle()</pre>
+<div class="block">
+<span>返回<code>LayoutStyle</code>为这种外观和感觉。</span>
+<span>这从来没有返回<code>null</code> 。</span>
+<p> <span>一般不要使用<code>LayoutStyle</code>的外观和感觉，而是使用<code>LayoutStyle</code>方法<code>getInstance</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>LayoutStyle</code>为这种外观和感觉 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.6 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/LayoutStyle.html#getInstance--"><code>LayoutStyle.getInstance()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="provideErrorFeedback-java.awt.Component-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>provideErrorFeedback</h4> <pre>public void provideErrorFeedback(<a href="../../java/awt/Component.html" title="class in java.awt">Component</a> component)</pre>
+<div class="block">
+<span>当用户尝试无效操作时调用，例如粘贴到具有焦点的不可<code>JTextField</code> 。</span>
+<span>默认实现哔声。</span>
+<span>希望不同行为的子类应该覆盖此，并提供其他反馈。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>component</code> - 
+            <code>Component</code>发生错误，可能是 
+            <code>null</code>指示错误情况与Component没有直接 
+            <code>Component</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+</dl> </li>
+</ul> <a name="getDesktopPropertyValue-java.lang.String-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDesktopPropertyValue</h4> <pre>public static <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> getDesktopPropertyValue(<a href="../../java/lang/String.html" title="class in java.lang">String</a> systemPropertyName,
+                                             <a href="../../java/lang/Object.html" title="class in java.lang">Object</a> fallbackValue)</pre>
+<div class="block">
+<span>通过调用<code>Toolkit.getDefaultToolkit().getDesktopProperty()</code>返回指定的系统桌面属性的<code>Toolkit.getDefaultToolkit().getDesktopProperty()</code> 。</span>
+<span>如果指定属性的值为<code>null</code> ，则返回<code>fallbackValue</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>systemPropertyName</code> - 要查询的系统桌面属性的名称 
+           </dd>
+<dd>
+<code>fallbackValue</code> - 如果系统值为null，则返回值作为值 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             桌面属性的当前值 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/awt/Toolkit.html#getDesktopProperty-java.lang.String-"><code>Toolkit.getDesktopProperty(java.lang.String)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getDisabledIcon-javax.swing.JComponent-javax.swing.Icon-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDisabledIcon</h4> <pre>public <a href="../../javax/swing/Icon.html" title="interface in javax.swing">Icon</a> getDisabledIcon(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> component,
+                            <a href="../../javax/swing/Icon.html" title="interface in javax.swing">Icon</a> icon)</pre>
+<div class="block">
+<span>返回一个<code>Icon</code>具有禁用外观。</span>
+<span>这种方法被用于产生一个禁用<code>Icon</code>时，未指定的一个。</span>
+<span>例如，如果您创建一个<code>JButton</code> ，并且仅通过<code>setIcon</code>指定一个<code>Icon</code> ， <code>setIcon</code>此方法来生成禁用的<code>Icon</code> 。</span>
+<span>如果<code>null</code>传递为<code>icon</code>此方法返回<code>null</code> 。</span>
+<p> <span>有些看起来和感觉可能不会使残疾人<code>Icon</code> ，在这种情况下他们会忽略这一点。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>component</code> - 
+            <code>JComponent</code>将显示 
+            <code>Icon</code> ，可能是 
+            <code>null</code>
+</dd>
+<dd>
+<code>icon</code> - 
+            <code>Icon</code>生成禁用图标 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             禁用 
+            <code>Icon</code> ，或 
+            <code>null</code>如果合适 
+            <code>Icon</code>不能生成 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+</dl> </li>
+</ul> <a name="getDisabledSelectedIcon-javax.swing.JComponent-javax.swing.Icon-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDisabledSelectedIcon</h4> <pre>public <a href="../../javax/swing/Icon.html" title="interface in javax.swing">Icon</a> getDisabledSelectedIcon(<a href="../../javax/swing/JComponent.html" title="class in javax.swing">JComponent</a> component,
+                                    <a href="../../javax/swing/Icon.html" title="interface in javax.swing">Icon</a> icon)</pre>
+<div class="block">
+<span>返回一个<code>Icon</code>供被还被选中的禁用组件使用。</span>
+<span>此方法用于为禁用和选定状态的<code>Icon</code>生成Icon，但对于该状态不具有特定的<code>Icon</code> 。</span>
+<span>例如，如果您创建了一个<code>JButton</code> ，并且只通过<code>setIcon</code>指定了一个<code>Icon</code> ， <code>setIcon</code>此方法来生成禁用和选择的<code>Icon</code> 。</span>
+<span>如果<code>null</code>传递为<code>icon</code>此方法返回<code>null</code> 。</span>
+<p> <span>有些看起来和感觉可能不会渲染残疾人并选择<code>Icon</code> ，在这种情况下，他们将忽略这一点。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>component</code> - 
+            <code>JComponent</code>将显示 
+            <code>Icon</code> ，可能是 
+            <code>null</code>
+</dd>
+<dd>
+<code>icon</code> - 
+            <code>Icon</code>生成禁用和选定的图标 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             禁用和选中的图标，或 
+            <code>null</code>如果合适 
+            <code>Icon</code>不能生成。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+</dl> </li>
+</ul> <a name="getName--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getName</h4> <pre>public abstract <a href="../../java/lang/String.html" title="class in java.lang">String</a> getName()</pre>
+<div class="block">
+<span>返回一个识别这种外观的短字符串，例如“CDE / Motif”。</span>
+<span>此字符串应适合于菜单项。</span>
+<span>不同的外观和感觉应该有不同的名称，例如MotifLookAndFeel的一个子类，改变一些组件的渲染方式应该被称为“CDE / Motif My Way”;</span>
+<span>对于尝试从名单列表中选择L＆F的用户来说，这将是有用的。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             短标识符的外观和感觉 
+           </dd>
+</dl> </li>
+</ul> <a name="getID--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getID</h4> <pre>public abstract <a href="../../java/lang/String.html" title="class in java.lang">String</a> getID()</pre>
+<div class="block">
+<span>返回一个识别这种外观和感觉的字符串。</span>
+<span>该字符串将被想要识别众所周知的外观和感觉实现的应用程序/服务使用。</span>
+<span>目前，众所周知的名字是“Motif”，“Windows”，“Mac”，“Metal”。</span>
+<span>请注意，从不会对外观或感觉进行任何根本改变的众所周知的超类派生的LookAndFeel不应该覆盖此方法。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             标识符的外观和感觉 
+           </dd>
+</dl> </li>
+</ul> <a name="getDescription--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDescription</h4> <pre>public abstract <a href="../../java/lang/String.html" title="class in java.lang">String</a> getDescription()</pre>
+<div class="block">
+<span>返回一行描述这种外观和感觉的实现，例如“CDE / Motif Look and Feel”。</span>
+<span>此字符串用于用户，例如在窗口的标题或ToolTip消息中。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             外观简洁的描述 
+           </dd>
+</dl> </li>
+</ul> <a name="getSupportsWindowDecorations--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSupportsWindowDecorations</h4> <pre>public boolean getSupportsWindowDecorations()</pre>
+<div class="block">
+<span>返回<code>true</code>如果<code>LookAndFeel</code>返回<code>RootPaneUI</code>实例支持提供<code>Window</code>在装饰<code>JRootPane</code> 。</span>
+<p> <span>默认实现返回<code>false</code> ，支持<code>Window</code>装饰的子类应该覆盖此并返回<code>true</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果由这种外观创建的 
+            <code>RootPaneUI</code>实例支持客户端装饰 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.4 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/JDialog.html#setDefaultLookAndFeelDecorated-boolean-"><code>JDialog.setDefaultLookAndFeelDecorated(boolean)</code></a> ， 
+            <a href="../../javax/swing/JFrame.html#setDefaultLookAndFeelDecorated-boolean-"><code>JFrame.setDefaultLookAndFeelDecorated(boolean)</code></a> ， 
+            <a href="../../javax/swing/JRootPane.html#setWindowDecorationStyle-int-"><code>JRootPane.setWindowDecorationStyle(int)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="isNativeLookAndFeel--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isNativeLookAndFeel</h4> <pre>public abstract boolean isNativeLookAndFeel()</pre>
+<div class="block">
+<span>如果底层平台具有“本机”的外观，这是一个实现，返回<code>true</code> 。</span>
+<span>例如，当底层平台是Solaris运行CDE时，CDE / Motif的外观实现将返回<code>true</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果这种外观和感觉代表底层平台的外观和感觉 
+           </dd>
+</dl> </li>
+</ul> <a name="isSupportedLookAndFeel--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isSupportedLookAndFeel</h4> <pre>public abstract boolean isSupportedLookAndFeel()</pre>
+<div class="block">
+<span>返回<code>true</code>如果底层平台支持和/或允许这种外观和感觉。</span>
+<span>如果外观和风格取决于未为当前平台定义的特殊资源或法律协议，则此方法返回<code>false</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果这是支持的外观和感觉 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/UIManager.html#setLookAndFeel-javax.swing.LookAndFeel-"><code>UIManager.setLookAndFeel(javax.swing.LookAndFeel)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="initialize--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>initialize</h4> <pre>public void initialize()</pre>
+<div class="block">
+<span>初始化外观和感觉。</span>
+<span>虽然这种方法是公开的，但是只有当外观和感觉被安装为当前的外观时，才应该由<code>UIManager</code>调用。</span>
+<span>在<code>UIManager</code>调用<code>getDefaults</code>之前调用此方法。</span>
+<span>该方法旨在对外观进行任何初始化。</span>
+<span>子类应该在这里进行任何一次性设置，而不是在静态初始化器中进行任何一次性设置，因为可以加载外观和感觉类对象，以发现<code>isSupportedLookAndFeel()</code>返回<code>false</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/LookAndFeel.html#uninitialize--"><code>uninitialize()</code></a> ， 
+            <a href="../../javax/swing/UIManager.html#setLookAndFeel-javax.swing.LookAndFeel-"><code>UIManager.setLookAndFeel(javax.swing.LookAndFeel)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="uninitialize--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>uninitialize</h4> <pre>public void uninitialize()</pre>
+<div class="block">
+<span>初始化外观和感觉。</span>
+<span>虽然这种方法是公开的，但只有当外观和感觉被卸载时才应该由<code>UIManager</code>调用。</span>
+<span>例如，当外观和感觉改变时， <code>UIManager.setLookAndFeel</code>调用它。</span>
+<p> <span>子类可以选择在这里释放一些资源。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/LookAndFeel.html#initialize--"><code>initialize()</code></a> ， 
+            <a href="../../javax/swing/UIManager.html#setLookAndFeel-javax.swing.LookAndFeel-"><code>UIManager.setLookAndFeel(javax.swing.LookAndFeel)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getDefaults--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDefaults</h4> <pre>public <a href="../../javax/swing/UIDefaults.html" title="class in javax.swing">UIDefaults</a> getDefaults()</pre>
+<div class="block">
+<span>返回外观和默认值。</span>
+<span>尽管此方法是公共的，但只能由调用<code>UIManager</code>当外观被设置为当前的外观和后<code>initialize</code>已被调用。</span>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             外观和默认值 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../javax/swing/LookAndFeel.html#initialize--"><code>initialize()</code></a> ， 
+            <a href="../../javax/swing/LookAndFeel.html#uninitialize--"><code>uninitialize()</code></a> ， 
+            <a href="../../javax/swing/UIManager.html#setLookAndFeel-javax.swing.LookAndFeel-"><code>UIManager.setLookAndFeel(javax.swing.LookAndFeel)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+            返回显示和标识此对象属性的字符串。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#toString--">toString</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该对象的字符串表示形式 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

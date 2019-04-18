@@ -1,0 +1,181 @@
+<article id="wikiArticle">
+<div></div>
+<p><code><strong>charCodeAt()</strong></code> 方法返回0到65535之间的整数，表示给定索引处的UTF-16代码单元 (在 Unicode 编码单元表示一个单一的 UTF-16 编码单元的情况下，UTF-16 编码单元匹配 Unicode 编码单元。但在——例如 Unicode 编码单元 &gt; 0x10000 的这种——不能被一个 UTF-16 编码单元单独表示的情况下，只能匹配 Unicode 代理对的第一个编码单元) 。如果你想要整个代码点的值，使用 <strong><code>codePointAt</code></strong>()。</p>
+<div><iframe class="interactive interactive-js" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/string-charcodeat.html" width="100%"></iframe></div>
+<p class="hidden">The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> and send us a pull request.</p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox"><code><em>str</em>.charCodeAt(<em>index</em>)</code></pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>index</code></dt>
+<dd>一个大于等于 0，小于字符串长度的整数。如果不是一个数值，则默认为 0。</dd>
+</dl>
+<h3 id="返回值">返回值</h3>
+<p>返回值是一表示给定索引处（String中index索引处）字符的 UTF-16 代码单元值的数字；如果索引超出范围，则返回 <a href="Reference/Global_Objects/NaN" title="全局属性 NaN 的值表示不是一个数字（Not-A-Number）。"><code>NaN</code></a>。</p>
+<h2 id="描述">描述</h2>
+<p>Unicode 编码单元（code points）的范围从 0 到 1,114,111（0x10FFFF）。开头的 128 个 Unicode 编码单元和 ASCII 字符编码一样。关于 Unicode 的更多信息，可查看 <a href="https://developer.mozilla.orgGuide/Values,_variables,_and_literals#Unicode">JavaScript Guide</a>。</p>
+<p>注意，<code>charCodeAt</code> 总是返回一个小于 65,536 的值。这是因为高位编码单元（higher code point）使用一对（低位编码 lower valued）代理伪字符（"surrogate" pseudo-characters）来表示，从而构成一个真正的字符。因此，为了查看或复制（reproduce）65536 及以上编码字符的完整字符，需要在获取 <code>charCodeAt(i)</code> 的值的同时获取 <code>charCodeAt(i+1)</code> 的值（如同查看/reproducing 拥有两个字符的字符串一样），或者改为获取 <code>codePointAt(i)</code> 的值。参看下面例 2 和例 3。</p>
+<p>如果指定的 index 小于 0 或不小于字符串的长度，则 <code>charCodeAt</code> 返回 <a href="Reference/Global_Objects/NaN" title="全局属性 NaN 的值表示不是一个数字（Not-A-Number）。"><code>NaN</code></a>。</p>
+<p>向后兼容：在历史版本中（如 JavaScript 1.2），<code>charCodeAt</code> 返回一个数字，表示给定 index 处字符的 ISO-Latin-1 编码值。ISO-Latin-1 编码集范围从 0 到 255。开头的 0 到 127 直接匹配 ASCII 字符集。</p>
+<h2 id="Examples" name="Examples">示例</h2>
+<h3 id="Example:_Using_charCodeAt" name="Example:_Using_charCodeAt">使用 <code>charCodeAt()</code></h3>
+<p>下例介绍了不同索引情况下返回的 Unicode 值：</p>
+<pre class="brush: js">"ABC".charCodeAt(0) // returns 65:"A"
+
+"ABC".charCodeAt(1) // returns 66:"B"
+
+"ABC".charCodeAt(2) // returns 67:"C"
+
+"ABC".charCodeAt(3) // returns NaN</pre>
+<h3 id="使用_charCodeAt()_修复字符串中出现的未知的非基本多语言范围（非BMP，non-Basic-Multilingual-Plane）字符">使用 <code>charCodeAt()</code> 修复字符串中出现的未知的非基本多语言范围（非BMP，non-Basic-Multilingual-Plane）字符</h3>
+<p>这段代码可以被用在 for 循环和其他类似语句中，当在指定引索之前不确定是否有非BMP字符存在时。</p>
+<p> </p>
+<pre class="brush:js">function fixedCharCodeAt (str, idx) {
+    // ex. fixedCharCodeAt ('\uD800\uDC00', 0); // 65536
+    // ex. fixedCharCodeAt ('\uD800\uDC00', 1); // false
+    idx = idx || 0;
+    var code = str.charCodeAt(idx);
+    var hi, low;
+    
+    // High surrogate (could change last hex to 0xDB7F to treat high
+    // private surrogates as single characters)
+    if (0xD800 &lt;= code &amp;&amp; code &lt;= 0xDBFF) {
+        hi = code;
+        low = str.charCodeAt(idx+1);
+        if (isNaN(low)) {
+            throw 'High surrogate not followed by low surrogate in fixedCharCodeAt()';
+        }
+        return ((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000;
+    }
+    if (0xDC00 &lt;= code &amp;&amp; code &lt;= 0xDFFF) { // Low surrogate
+        // We return false to allow loops to skip this iteration since should have
+        // already handled high surrogate above in the previous iteration
+        return false;
+        /*hi = str.charCodeAt(idx-1);
+        low = code;
+        return ((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000;*/
+    }
+    return code;
+} 
+</pre>
+<h3 id="使用_charCodeAt()_修复字符串中出现的已知的非BMP字符">使用 <code>charCodeAt()</code> 修复字符串中出现的已知的非BMP字符</h3>
+<pre class="brush:js">function knownCharCodeAt (str, idx) {
+    str += '';
+    var code,
+        end = str.length;
+
+    var surrogatePairs = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
+    while ((surrogatePairs.exec(str)) != null) {
+        var li = surrogatePairs.lastIndex;
+        if (li - 2 &lt; idx) {
+            idx++;
+        }
+        else {
+            break;
+        }
+    }
+
+    if (idx &gt;= end || idx &lt; 0) {
+        return NaN;
+    }
+
+    code = str.charCodeAt(idx);
+
+    var hi, low;
+    if (0xD800 &lt;= code &amp;&amp; code &lt;= 0xDBFF) {
+        hi = code;
+        low = str.charCodeAt(idx+1);
+        // Go one further, since one of the "characters" is part of a surrogate pair
+        return ((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000;
+    }
+    return code;
+}
+
+</pre>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td>ECMAScript 1st Edition.</td>
+<td>Standard</td>
+<td>Initial definition. Implemented in JavaScript 1.2.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-15.5.4.5" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">String.prototype.charCodeAt</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-string.prototype.charcodeat" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">String.prototype.charCodeAt</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-string.prototype.charcodeat" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">String.prototype.charCodeAt</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<p class="hidden">The compatibility table in this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</p>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>charCodeAt</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              12</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd></dl></section></div><p></p>
+<h2 id="参见">参见</h2>
+<ul>
+<li><a href="Reference/Global_Objects/String/fromCharCode" title="静态 String.fromCharCode() 方法返回由指定的UTF-16代码单元序列创建的字符串。"><code>String.fromCharCode()</code></a></li>
+<li><a href="Reference/Global_Objects/String/charAt" title="charAt() 方法从一个字符串中返回指定的字符。"><code>String.prototype.charAt()</code></a></li>
+<li><a href="Reference/Global_Objects/String/fromCodePoint" title="String.fromCodePoint() 静态方法返回使用指定的代码点序列创建的字符串。"><code>String.fromCodePoint()</code></a></li>
+<li><a href="Reference/Global_Objects/String/codePointAt" title="codePointAt() 方法返回 一个 Unicode 编码点值的非负整数。"><code>String.prototype.codePointAt()</code></a></li>
+</ul>
+</article>

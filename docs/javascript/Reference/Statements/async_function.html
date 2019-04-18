@@ -1,0 +1,248 @@
+<article id="wikiArticle">
+<div></div>
+<p><code><strong>async function</strong></code> 声明用于定义一个返回 <a href="Reference/Global_Objects/AsyncFunction" title="AsyncFunction 构造函数用来创建新的 异步函数 对象，JavaScript 中每个异步函数都是  AsyncFunction 的对象。"><code>AsyncFunction</code></a> 对象的异步函数。异步函数是指通过事件循环异步执行的函数，它会通过一个隐式的 <a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a> 返回其结果。但是如果你的代码使用了异步函数，它的语法和结构会更像是标准的同步函数。</p>
+<div class="noinclude">
+<p>你还可以使用 <a class="new" href="Reference/Operators/async_function" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!">异步函数表达式</a> 来定义异步函数。</p>
+</div>
+<div><iframe class="interactive interactive-js taller" frameborder="0" height="250" src="https://interactive-examples.mdn.mozilla.net/pages/js/statement-async.html" width="100%"></iframe></div>
+<p class="hidden">该交互式demo源文件存储于Github仓库中。如果希望为此交互式项目做出贡献,请 clone <a class="external" href="https://github.com/mdn/interactive-examples" rel="noopener">https://github.com/mdn/interactive-examples</a> 项目并用pull形式向我们的原始仓库发出请求。</p>
+<h2 id="语法">语法</h2>
+<pre class="syntaxbox">async function <em>name</em>([<em>param</em>[, <em>param</em>[, ... <em>param</em>]]]) { <em>statements </em>}
+</pre>
+<h3 id="参数">参数</h3>
+<dl>
+<dt><code>name</code></dt>
+<dd>函数名称。</dd>
+</dl>
+<dl>
+<dt><code>param</code></dt>
+<dd>要传递给函数的参数的名称。</dd>
+</dl>
+<dl>
+<dt><code>statements</code></dt>
+<dd>函数体语句。</dd>
+<dt>
+<h3 id="返回值">返回值</h3>
+</dt>
+<dd>一个返回的<code><a class="new" href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise" rel="nofollow">Promise</a></code>对象会以async function的返回值进行解析(resolved)，或者以该函数抛出的异常进行回绝(rejected)。</dd>
+</dl>
+<h2 id="描述">描述</h2>
+<p>当调用一个 <code>async</code> 函数时，会返回一个 <a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a> 对象。当这个 <code>async</code> 函数返回一个值时，<code>Promise</code> 的 resolve 方法会负责传递这个值；当 <code>async</code> 函数抛出异常时，<code>Promise</code> 的 reject 方法也会传递这个异常值。</p>
+<p><code>async</code> 函数中可能会有 <a href="Reference/Operators/await" title="await  操作符用于等待一个Promise 对象。它只能在异步函数 async function 中使用。"><code>await</code></a> 表达式，这会使 <code>async</code> 函数暂停执行，等待 <code>Promise</code>  的结果出来，然后恢复<code>async</code>函数的执行并返回解析值（resolved）。</p>
+<p>    注意， <code>await</code> 关键字仅仅在 <code>async</code> function中有效。如果在 <code>async function</code>函数体外使用 <code>await</code> ，你只会得到一个语法错误（<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError">SyntaxError</a></code>）。</p>
+<div class="note">
+<p><code>async</code>/<code>await</code>的目的是简化使用多个 promise 时的同步行为，并对一组 <code>Promises</code>执行某些操作。正如<code>Promises</code>类似于结构化回调，<code>async</code>/<code>await</code>类似于组合生成器和 promises。</p>
+</div>
+<h2 id="示例">示例</h2>
+<h3 id="简单例子">简单例子</h3>
+<pre class="brush: js">var resolveAfter2Seconds = function() {
+  console.log("starting slow promise");
+  return new Promise(resolve =&gt; {
+    setTimeout(function() {
+      resolve("slow");
+      console.log("slow promise is done");
+    }, 2000);
+  });
+};
+
+var resolveAfter1Second = function() {
+  console.log("starting fast promise");
+  return new Promise(resolve =&gt; {
+    setTimeout(function() {
+      resolve("fast");
+      console.log("fast promise is done");
+    }, 1000);
+  });
+};
+
+var sequentialStart = async function() {
+  console.log('==SEQUENTIAL START==');
+
+  // 1. Execution gets here almost instantly
+  const slow = await resolveAfter2Seconds();
+  console.log(slow); // 2. this runs 2 seconds after 1.
+
+  const fast = await resolveAfter1Second();
+  console.log(fast); // 3. this runs 3 seconds after 1.
+}
+
+var concurrentStart = async function() {
+  console.log('==CONCURRENT START with await==');
+  const slow = resolveAfter2Seconds(); // starts timer immediately
+  const fast = resolveAfter1Second(); // starts timer immediately
+
+  // 1. Execution gets here almost instantly
+  console.log(await slow); // 2. this runs 2 seconds after 1.
+  console.log(await fast); // 3. this runs 2 seconds after 1., immediately after 2., since fast is already resolved
+}
+
+var concurrentPromise = function() {
+  console.log('==CONCURRENT START with Promise.all==');
+  return Promise.all([resolveAfter2Seconds(), resolveAfter1Second()]).then((messages) =&gt; {
+    console.log(messages[0]); // slow
+    console.log(messages[1]); // fast
+  });
+}
+
+var parallel = async function() {
+  console.log('==PARALLEL with await Promise.all==');
+  
+  // Start 2 "jobs" in parallel and wait for both of them to complete
+  await Promise.all([
+      (async()=&gt;console.log(await resolveAfter2Seconds()))(),
+      (async()=&gt;console.log(await resolveAfter1Second()))()
+  ]);
+}
+
+// This function does not handle errors. See warning below!
+var parallelPromise = function() {
+  console.log('==PARALLEL with Promise.then==');
+  resolveAfter2Seconds().then((message)=&gt;console.log(message));
+  resolveAfter1Second().then((message)=&gt;console.log(message));
+}
+
+sequentialStart(); // after 2 seconds, logs "slow", then after 1 more second, "fast"
+
+// wait above to finish
+setTimeout(concurrentStart, 4000); // after 2 seconds, logs "slow" and then "fast"
+
+// wait again
+setTimeout(concurrentPromise, 7000); // same as concurrentStart
+
+// wait again
+setTimeout(parallel, 10000); // truly parallel: after 1 second, logs "fast", then after 1 more second, "slow"
+
+// wait again
+setTimeout(parallelPromise, 13000); // same as parallel
+</pre>
+<div class="note">
+<h4 id="await_and_parallelism"><code>await</code> and parallelism</h4>
+<p>在<code>sequentialStart</code>中，程序在第一个<code>await</code>停留了2秒，然后又在第二个<code>await</code>停留了1秒。直到第一个计时器结束后，第二个计时器才被创建。程序是3秒后才结束。</p>
+<p><br/>
+ 在 <code>concurrentStart</code>中，两个计时器均被创建，然后一起被<code>await</code>。这两个计时器同时运行的，这意味着程序完成运行只需要2秒，而不是3秒。这是由最慢的计时器决定的。</p>
+<p>但是 <code>await </code>仍旧是一起调用的时，这意味着第二个 <code>await</code> 还是得等待第一个执行完。在这个例子中，这使得先运行结束的输出出现在最慢的输出之后。</p>
+<p>如果你希望并行<code>等待</code>两个或者是更多的任务，你必须使用<code>await Promise.all([job1(), job2()])</code>，正如<code>parallel</code>例子。</p>
+</div>
+<div class="warning">
+<h4 id="asyncawait_vs_Promisethen_and_error_handling"><code>async</code>/<code>await</code> vs Promise#then and error handling</h4>
+<p>Most async functions can also be written as regular functions using Promises. However <code>async</code> functions are a little bit less error-prone when it comes to error handling.</p>
+<p>Both <code>concurrentStart</code> and <code>concurrentPromise</code> are functionally equivalent.<br/>
+ In <code>concurrentStart</code>, if either of the <code>await</code>ed calls fail, the exception will be automatically caught, the async function execution interrupted, and the Error propagated to the caller through the implicit return Promise.<br/>
+ For the same to happen in the Promise case, the function must take care of returning a <code>Promise</code> which captures the completion of the function. In <code>concurrentPromise</code> that means <code>return</code>ing the promise from <code>Promise.all([]).then()</code>. As a matter of fact, a previous version of this example forgot to do this!</p>
+<p>It is however still possible for <code>async</code> functions to mistakenly swallow errors.<br/>
+ Take for example the <code>parallel</code> async function. If it didn't <code>await</code> (or <code>return</code>) the result of the <code>Promise.all([])</code> call, any Error would not have been propagated.<br/>
+ While the <code>parallelPromise</code> example seem simple, it does not handle errors at all! Doing so would require a similar <code>return </code><code>Promise.all([])</code>.</p>
+<p> </p>
+</div>
+<h3 id="通过async函数重写_promise_链">通过<code>async</code>函数重写 promise 链</h3>
+<p>返回 <a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a>的 API 将会被用于 promise 链，它会将函数分成若干部分。例如下面代码：</p>
+<pre class="brush: js">function getProcessedData(url) {
+  return downloadData(url) // 返回一个 promise 对象
+    .catch(e =&gt; {
+      return downloadFallbackData(url)  // 返回一个 promise 对象
+    })
+    .then(v =&gt; {
+      return processDataInWorker(v); // 返回一个 promise 对象
+    });
+}</pre>
+<p>可以通过如下所示的一个<code>async</code>函数重写：</p>
+<pre class="brush: js">async function getProcessedData(url) {
+  let v;
+  try {
+    v = await downloadData(url); 
+  } catch (e) {
+    v = await downloadFallbackData(url);
+  }
+  return processDataInWorker(v);
+}
+</pre>
+<p>注意，在上述示例中，<code>return</code> 语句中没有 <code>await</code> 操作符，因为 <code>async function</code> 的返回值将被隐式地传递给 <code><a href="Reference/Global_Objects/Promise/resolve" title="The source for this interactive demo is stored in a GitHub repository. If you'd like to contribute to the interactive demo project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>Promise.resolve</code></a></code>。</p>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<thead>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-async-function-definitions" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">async function</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td>初始定义于ES2017.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/8.0/#sec-async-function-definitions" hreflang="en" lang="en" rel="noopener">ECMAScript 2017 (ECMA-262)<br/><small lang="zh-CN">async function</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容性">浏览器兼容性</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row"><code>async function</code></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              55</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              52</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              42</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10.1</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              55</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              52</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              42</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              10.1</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              6.0</td><td class="bc-supports-yes bc-browser-nodejs bc-has-history"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              7.6.0<div class="bc-icons"></div><section class="bc-history" id="sect1"><dl><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              7.6.0<div class="bc-icons"></div></dt><dd></dd><dt class="bc-supports-yes bc-supports"><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              7.0.0<div class="bc-icons"><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> </div></dt><dd><abbr class="only-icon" title="User must explicitly enable this feature."><span>Disabled</span><i class="ic-disabled"></i></abbr> From version 7.0.0: this feature is behind the <code>--harmony</code> runtime flag.</dd></dl></section></td></tr></tbody></table><section class="bc-legend" id="sect2"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><abbr class="only-icon" title="User must explicitly enable this feature."><span>User must explicitly enable this feature.</span><i class="ic-disabled"></i></abbr></dt><dd>User must explicitly enable this feature.</dd></dl></section></div><p></p>
+<h2 id="参见">参见</h2>
+<ul>
+<li><a class="new" href="Reference/Operators/async_function" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!"><code>async function expression</code></a></li>
+<li><a href="Reference/Global_Objects/AsyncFunction" title="AsyncFunction 构造函数用来创建新的 异步函数 对象，JavaScript 中每个异步函数都是  AsyncFunction 的对象。"><code>AsyncFunction</code></a> object</li>
+<li><a href="Reference/Operators/await" title="await  操作符用于等待一个Promise 对象。它只能在异步函数 async function 中使用。"><code>await</code></a></li>
+<li><a class="external" href="http://innolitics.com/10x/javascript-decorators-for-promise-returning-functions/" rel="noopener">"Decorating Async Javascript Functions" on "innolitics.com"</a></li>
+</ul>
+</article>

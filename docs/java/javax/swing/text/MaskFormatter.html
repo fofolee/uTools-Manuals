@@ -1,0 +1,595 @@
+<div class="header">
+<div class="subTitle">
+     javax.swing.text 
+   </div>
+<h2 class="title" title="Class MaskFormatter">Class MaskFormatter</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../javax/swing/JFormattedTextField.AbstractFormatter.html" title="class in javax.swing">javax.swing.JFormattedTextField.AbstractFormatter</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../javax/swing/text/DefaultFormatter.html" title="class in javax.swing.text">javax.swing.text.DefaultFormatter</a></li>
+<li>
+<ul class="inheritance">
+<li>javax.swing.text.MaskFormatter</li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a> ， <a href="../../../java/lang/Cloneable.html" title="java.lang中的接口">Cloneable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">MaskFormatter</span>
+extends <a href="../../../javax/swing/text/DefaultFormatter.html" title="class in javax.swing.text">DefaultFormatter</a></pre>
+<div class="block">
+<span><code>MaskFormatter</code>用于格式化和编辑字符串。</span>
+<span><code>MaskFormatter</code>的行为是通过String mask来控制的，该掩码指定了可以包含在<code>Document</code>模型中特定位置的有效字符。</span>
+<span>可以指定以下字符：</span>
+<span>  Character  <p style="text-align:left">描述</p>   # Any valid number, uses <code>Character.isDigit</code>.   ' Escape character, used to escape any of the special formatting characters.   U Any character (<code>Character.isLetter</code>). All lowercase letters are mapped to upper case.   L Any character (<code>Character.isLetter</code>). All upper case letters are mapped to lower case.   A Any character or number (<code>Character.isLetter</code> or <code>Character.isDigit</code>)   ? Any character (<code>Character.isLetter</code>).   * Anything.   H Any hex character (0-9, a-f or A-F).  </span>
+<table border="1" summary="Valid characters and their descriptions">
+</table>
+<p> <span>通常字符对应于一个字符，但在某些语言中并不是这样。</span> <span>面具是以每个字符为基础的，因此将调整为适合所需的许多字符。</span> </p>
+<p> <span>您可以进一步限制<code>setInvalidCharacters</code>和<code>setValidCharacters</code>方法可以输入的<code>setInvalidCharacters</code> 。</span> <span><code>setInvalidCharacters</code>允许您指定哪些字符不合法。</span> <span><code>setValidCharacters</code>允许您指定哪些字符有效。</span> <span>例如，以下代码块相当于没有无效/有效字符的'0xHHH'掩码。</span> </p>
+<pre>  <span>MaskFormatter formatter = new MaskFormatter("0x***");
+ formatter.setValidCharacters("0123456789abcdefABCDEF");</span> </pre>
+<p> <span>当最初格式化一个值，如果字符串的长度小于掩码的长度，可以发生两件事情。</span> <span>将使用占位符字符串，否则将使用占位符字符。</span> <span>优先级被赋予占位符字符串。</span> <span>例如：</span> </p>
+<pre>  <span>MaskFormatter formatter = new MaskFormatter("###-####");
+   formatter.setPlaceholderCharacter('_');
+   formatter.getDisplayValue(tf, "123");</span> </pre>
+<p> <span>会导致字符串'123 -____'。</span> <span>如果<code>setPlaceholder("555-1212")</code>被调用'123-1212'将导致。</span> <span>占位符字符串仅用于初始格式，后续格式仅使用占位符字符。</span> </p>
+<p> <span>如果<code>MaskFormatter</code>配置为仅允许有效字符（ <code>setAllowsInvalid(false)</code> ），则编辑时将根据需要跳过字面字符。</span> <span>考虑一个带有“### - ####”和当前值“555-1212”的<code>MaskFormatter</code> 。</span> <span>使用右箭头键浏览该字段将导致（|表示插入符的位置）：</span> </p>
+<pre>  <span>|555-1212
+   5|55-1212
+   55|5-1212
+   555-|1212
+   555-1|212</span> </pre>
+<span>' - '是一个字面（不可编辑）字符，并被跳过。</span>
+<p> <span>编辑时会产生类似的行为。</span> <span>考虑将字符串'123-45'和'12345'插入上一个示例中的<code>MaskFormatter</code> 。</span> <span>两个插入将导致相同的字符串'123-45__'。</span> <span>当<code>MaskFormatter</code>正在处理字符位置3（' - '）的插入时，可能会发生两件事情：</span> </p>
+<ol>
+<li> <span>如果插入的字符为“ - ”，则被接受。</span> </li>
+<li> <span>如果插入的字符匹配下一个非字面字符的掩码，则在新位置被接受。</span> </li>
+<li> <span>其他任何事情都会导致编辑无效</span> </li>
+</ol>
+<p> <span>默认情况下， <code>MaskFormatter</code>不允许无效编辑，您可以使用<code>setAllowsInvalid</code>方法更改此内容，并将对有效的编辑进行编辑（使用<code>setCommitsOnValidEdit</code>更改此内容）。</span> </p>
+<p> <span>默认情况下， <code>MaskFormatter</code>处于覆盖模式。</span> <span>就是说，键入的字符不会插入一个新的字符，而是当前位置的字符被替换为新键入的字符。</span> <span>您可以通过方法<code>setOverwriteMode</code>更改此行为。</span> </p>
+<p> <span><strong>警告：</strong>此类的序列化对象与将来的Swing版本不兼容。</span> <span>当前的序列化支持适用于运行相同版本的Swing的应用程序之间的短期存储或RMI。</span> <span>从1.4开始，支持所有JavaBeans的长期存储已被添加到<code>java.beans</code>包中。</span> <span>请参阅<a href="../../../java/beans/XMLEncoder.html" title="java.beans中的类"><code>XMLEncoder</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#MaskFormatter--">MaskFormatter</a></span>()</code>
+<div class="block">
+              创建一个没有掩码的MaskFormatter。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#MaskFormatter-java.lang.String-">MaskFormatter</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> mask)</code>
+<div class="block">
+              用指定的掩码创建一个 
+             <code>MaskFormatter</code> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#getInvalidCharacters--">getInvalidCharacters</a></span>()</code>
+<div class="block">
+              返回对输入无效的字符。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#getMask--">getMask</a></span>()</code>
+<div class="block">
+              返回格式化掩码。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#getPlaceholder--">getPlaceholder</a></span>()</code>
+<div class="block">
+              如果值未完全填写掩码，则返回要使用的字符串。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>char</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#getPlaceholderCharacter--">getPlaceholderCharacter</a></span>()</code>
+<div class="block">
+              返回要用于代替值中不存在的字符的字符，即用户必须填写它们。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#getValidCharacters--">getValidCharacters</a></span>()</code>
+<div class="block">
+              返回可以输入的有效字符。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#getValueContainsLiteralCharacters--">getValueContainsLiteralCharacters</a></span>()</code>
+<div class="block">
+              如果 
+             <code>stringToValue</code>应该返回掩码中的文字字符，则返回true。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#install-javax.swing.JFormattedTextField-">install</a></span>(<a href="../../../javax/swing/JFormattedTextField.html" title="class in javax.swing">JFormattedTextField</a> ftf)</code>
+<div class="block">
+              将 
+             <code>DefaultFormatter</code>安装到特定的 
+             <code>JFormattedTextField</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#setInvalidCharacters-java.lang.String-">setInvalidCharacters</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> invalidCharacters)</code>
+<div class="block">
+              允许进一步限制可以输入的字符。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#setMask-java.lang.String-">setMask</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> mask)</code>
+<div class="block">
+              设置掩码规定合法字符。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#setPlaceholder-java.lang.String-">setPlaceholder</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> placeholder)</code>
+<div class="block">
+              如果值未完全填写掩码，则设置要使用的字符串。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#setPlaceholderCharacter-char-">setPlaceholderCharacter</a></span>(char placeholder)</code>
+<div class="block">
+              设置要使用的字符代替值中不存在的字符，即用户必须填写它们。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#setValidCharacters-java.lang.String-">setValidCharacters</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> validCharacters)</code>
+<div class="block">
+              允许进一步限制可以输入的字符。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#setValueContainsLiteralCharacters-boolean-">setValueContainsLiteralCharacters</a></span>(boolean containsLiteralChars)</code>
+<div class="block">
+              如果为true，则返回的值和设置值也将包含掩码中的文字字符。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#stringToValue-java.lang.String-">stringToValue</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> value)</code>
+<div class="block">
+              解析文本，返回String 
+             <code>value</code>的相应对象表示 
+             <code>value</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/text/MaskFormatter.html#valueToString-java.lang.Object-">valueToString</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> value)</code>
+<div class="block">
+              根据掩码返回Object 
+             <code>value</code>的String表示形式。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.text.DefaultFormatter">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.text.<a href="../../../javax/swing/text/DefaultFormatter.html" title="class in javax.swing.text">DefaultFormatter</a></h3> <code><a href="../../../javax/swing/text/DefaultFormatter.html#clone--">clone</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#getAllowsInvalid--">getAllowsInvalid</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#getCommitsOnValidEdit--">getCommitsOnValidEdit</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#getDocumentFilter--">getDocumentFilter</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#getNavigationFilter--">getNavigationFilter</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#getOverwriteMode--">getOverwriteMode</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#getValueClass--">getValueClass</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#setAllowsInvalid-boolean-">setAllowsInvalid</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#setCommitsOnValidEdit-boolean-">setCommitsOnValidEdit</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#setOverwriteMode-boolean-">setOverwriteMode</a>, <a href="../../../javax/swing/text/DefaultFormatter.html#setValueClass-java.lang.Class-">setValueClass</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.JFormattedTextField.AbstractFormatter">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.<a href="../../../javax/swing/JFormattedTextField.AbstractFormatter.html" title="class in javax.swing">JFormattedTextField.AbstractFormatter</a></h3> <code><a href="../../../javax/swing/JFormattedTextField.AbstractFormatter.html#getActions--">getActions</a>, <a href="../../../javax/swing/JFormattedTextField.AbstractFormatter.html#getFormattedTextField--">getFormattedTextField</a>, <a href="../../../javax/swing/JFormattedTextField.AbstractFormatter.html#invalidEdit--">invalidEdit</a>, <a href="../../../javax/swing/JFormattedTextField.AbstractFormatter.html#setEditValid-boolean-">setEditValid</a>, <a href="../../../javax/swing/JFormattedTextField.AbstractFormatter.html#uninstall--">uninstall</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="MaskFormatter--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>MaskFormatter</h4> <pre>public MaskFormatter()</pre>
+<div class="block">
+            创建一个没有掩码的MaskFormatter。 
+          </div> </li>
+</ul> <a name="MaskFormatter-java.lang.String-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>MaskFormatter</h4> <pre>public MaskFormatter(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> mask)
+              throws <a href="../../../java/text/ParseException.html" title="class in java.text">ParseException</a></pre>
+<div class="block">
+<span>用指定的掩码创建一个<code>MaskFormatter</code> 。</span>
+<span>一个<code>ParseException</code>如果将抛出<code>mask</code>是无效的面具。</span>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/text/ParseException.html" title="class in java.text">ParseException</a></code> - 如果mask不包含有效的掩码字符 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="setMask-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setMask</h4> <pre>public void setMask(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> mask)
+             throws <a href="../../../java/text/ParseException.html" title="class in java.text">ParseException</a></pre>
+<div class="block">
+<span>设置掩码规定合法字符。</span>
+<span>如果<code>mask</code>无效，将会抛出<code>ParseException</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/text/ParseException.html" title="class in java.text">ParseException</a></code> - 如果mask不包含有效的掩码字符 
+           </dd>
+</dl> </li>
+</ul> <a name="getMask--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getMask</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> getMask()</pre>
+<div class="block">
+            返回格式化掩码。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             掩饰法定字符值。 
+           </dd>
+</dl> </li>
+</ul> <a name="setValidCharacters-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setValidCharacters</h4> <pre>public void setValidCharacters(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> validCharacters)</pre>
+<div class="block">
+<span>允许进一步限制可以输入的字符。</span>
+<span>只有在蒙版中指定的<code>invalidCharacters</code>不能在<code>invalidCharacters</code>和<code>validCharacters</code>中被允许输入。</span>
+<span>传入null（默认）意味着有效的字符只受掩码和无效字符的约束。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>validCharacters</code> - 如果非空，则指定合法字符。 
+           </dd>
+</dl> </li>
+</ul> <a name="getValidCharacters--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getValidCharacters</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> getValidCharacters()</pre>
+<div class="block">
+            返回可以输入的有效字符。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             法定字符 
+           </dd>
+</dl> </li>
+</ul> <a name="setInvalidCharacters-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setInvalidCharacters</h4> <pre>public void setInvalidCharacters(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> invalidCharacters)</pre>
+<div class="block">
+<span>允许进一步限制可以输入的字符。</span>
+<span>只有在蒙版中指定的<code>invalidCharacters</code>不能在<code>invalidCharacters</code>和<code>validCharacters</code>中被允许输入。</span>
+<span>传入null（默认值）意味着有效字符只受掩码和有效字符的约束。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>invalidCharacters</code> - 如果非空，则指定非法字符。 
+           </dd>
+</dl> </li>
+</ul> <a name="getInvalidCharacters--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getInvalidCharacters</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> getInvalidCharacters()</pre>
+<div class="block">
+            返回对输入无效的字符。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             非法字符 
+           </dd>
+</dl> </li>
+</ul> <a name="setPlaceholder-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setPlaceholder</h4> <pre>public void setPlaceholder(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> placeholder)</pre>
+<div class="block">
+<span>如果值未完全填写掩码，则设置要使用的字符串。</span>
+<span>null值意味着应该使用占位符char。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>placeholder</code> - 如果值未完全填写掩码，则在格式化时使用的字符串 
+           </dd>
+</dl> </li>
+</ul> <a name="getPlaceholder--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPlaceholder</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> getPlaceholder()</pre>
+<div class="block">
+            如果值未完全填写掩码，则返回要使用的字符串。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             格式化时使用的字符串，如果该值未完全填满该掩码 
+           </dd>
+</dl> </li>
+</ul> <a name="setPlaceholderCharacter-char-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setPlaceholderCharacter</h4> <pre>public void setPlaceholderCharacter(char placeholder)</pre>
+<div class="block">
+<span>设置要使用的字符代替值中不存在的字符，即用户必须填写它们。默认值为空格。</span>
+<p> <span>仅当尚未指定占位符字符串或者未完全填写掩码时，才适用。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>placeholder</code> - 格式化时使用的字符，如果该值未完全填满该掩码 
+           </dd>
+</dl> </li>
+</ul> <a name="getPlaceholderCharacter--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getPlaceholderCharacter</h4> <pre>public char getPlaceholderCharacter()</pre>
+<div class="block">
+            返回要用于代替值中不存在的字符的字符，即用户必须填写它们。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             格式化时使用的字符，如果该值未完全填满该掩码 
+           </dd>
+</dl> </li>
+</ul> <a name="setValueContainsLiteralCharacters-boolean-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setValueContainsLiteralCharacters</h4> <pre>public void setValueContainsLiteralCharacters(boolean containsLiteralChars)</pre>
+<div class="block">
+<span>如果为true，则返回的值和设置值也将包含掩码中的文字字符。</span>
+<p> <span>例如，如果掩码为<code>'(###) ###-####'</code> ，则当前值为<code>'(415) 555-1212'</code> ，而<code>valueContainsLiteralCharacters</code>为真<code>stringToValue</code>将返回<code>'(415) 555-1212'</code> 。</span> <span>另一方面，如果<code>valueContainsLiteralCharacters</code>是假的， <code>stringToValue</code>将返回<code>'4155551212'</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>containsLiteralChars</code> - 用于指示是否应在stringToValue中返回掩码中的字符字符 
+           </dd>
+</dl> </li>
+</ul> <a name="getValueContainsLiteralCharacters--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getValueContainsLiteralCharacters</h4> <pre>public boolean getValueContainsLiteralCharacters()</pre>
+<div class="block">
+            如果 
+           <code>stringToValue</code>应该返回掩码中的文字字符，则返回true。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果掩码中的文字字符应该返回到stringToValue，则为真 
+           </dd>
+</dl> </li>
+</ul> <a name="stringToValue-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>stringToValue</h4> <pre>public <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> stringToValue(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> value)
+                     throws <a href="../../../java/text/ParseException.html" title="class in java.text">ParseException</a></pre>
+<div class="block">
+<span>解析文本，返回String <code>value</code>的相应对象表示<code>value</code> 。</span>
+<span>这将根据需要剥离文字字符，并调用超级<code>stringToValue</code> ，以便如果您指定了一个值类（ <code>setValueClass</code> ），则会创建一个实例。</span>
+<span>如果该值与当前掩码不匹配，则会抛出<code>ParseException</code> 。</span>
+<span>有关如何处理文字的详细信息，请参阅<a href="../../../javax/swing/text/MaskFormatter.html#setValueContainsLiteralCharacters-boolean-"><code>setValueContainsLiteralCharacters(boolean)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/text/DefaultFormatter.html#stringToValue-java.lang.String-">stringToValue</a></code>在 
+            <code><a href="../../../javax/swing/text/DefaultFormatter.html" title="class in javax.swing.text">DefaultFormatter</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>value</code> - 要转换的字符串 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             文本的对象表示 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/text/ParseException.html" title="class in java.text">ParseException</a></code> - 转换中是否有错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/text/MaskFormatter.html#setValueContainsLiteralCharacters-boolean-"><code>setValueContainsLiteralCharacters(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="valueToString-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>valueToString</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> valueToString(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> value)
+                     throws <a href="../../../java/text/ParseException.html" title="class in java.text">ParseException</a></pre>
+<div class="block">
+<span>根据掩码返回Object <code>value</code>的String表示形式。</span>
+<span>有关如何处理文字的详细信息，请参阅<a href="../../../javax/swing/text/MaskFormatter.html#setValueContainsLiteralCharacters-boolean-"><code>setValueContainsLiteralCharacters(boolean)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/text/DefaultFormatter.html#valueToString-java.lang.Object-">valueToString</a></code>中的 
+            <code><a href="../../../javax/swing/text/DefaultFormatter.html" title="class in javax.swing.text">DefaultFormatter</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>value</code> - 要转换的价值 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             值的字符串表示 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/text/ParseException.html" title="class in java.text">ParseException</a></code> - 转换中是否有错误 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/swing/text/MaskFormatter.html#setValueContainsLiteralCharacters-boolean-"><code>setValueContainsLiteralCharacters(boolean)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="install-javax.swing.JFormattedTextField-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>install</h4> <pre>public void install(<a href="../../../javax/swing/JFormattedTextField.html" title="class in javax.swing">JFormattedTextField</a> ftf)</pre>
+<div class="block">
+<span>将<code>DefaultFormatter</code>安装到特定的<code>JFormattedTextField</code> 。</span>
+<span>这将调用<code>valueToString</code>将当前值从<code>JFormattedTextField</code>转换为字符串。</span>
+<span>那么这将安装<code>Action</code>从s <code>getActions</code> ，该<code>DocumentFilter</code>从返回<code>getDocumentFilter</code>和<code>NavigationFilter</code>从返回<code>getNavigationFilter</code>到<code>JFormattedTextField</code> 。</span>
+<p> <span>子类通常只需要覆盖这个，如果他们希望在JFormattedTextField上安装其他监听<code>JFormattedTextField</code> 。</span> </p>
+<p> <span>如果有一个<code>ParseException</code>将当前值转换为字符串，则将文本设置为空字符串，并将<code>JFormattedTextField</code>标记为无效状态。</span> </p>
+<p> <span>虽然这是一种公共方法，但这通常仅适用于JFormattedTextField的<code>JFormattedTextField</code> 。</span> <span><code>JFormattedTextField</code>将在值更改或其内部状态更改的适当时候调用此方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/text/DefaultFormatter.html#install-javax.swing.JFormattedTextField-">install</a></code>在 
+            <code><a href="../../../javax/swing/text/DefaultFormatter.html" title="class in javax.swing.text">DefaultFormatter</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ftf</code> - JFormattedTextField格式化，可能为null表示从当前JFormattedTextField卸载。 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

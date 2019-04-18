@@ -1,0 +1,368 @@
+<div class="header">
+<div class="subTitle">
+     javax.swing.table 
+   </div>
+<h2 class="title" title="Class TableRowSorter">Class TableRowSorter&lt;M extends <a href="../../../javax/swing/table/TableModel.html" title="interface in javax.swing.table">TableModel</a>&gt;</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../javax/swing/RowSorter.html" title="class in javax.swing">javax.swing.RowSorter</a>&lt;M&gt;</li>
+<li>
+<ul class="inheritance">
+<li><a href="../../../javax/swing/DefaultRowSorter.html" title="class in javax.swing">javax.swing.DefaultRowSorter</a>&lt;M,<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>&gt;</li>
+<li>
+<ul class="inheritance">
+<li>javax.swing.table.TableRowSorter&lt;M&gt;</li>
+</ul> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+<span class="paramLabel">参数类型</span>
+</dt>
+<dd>
+<code>M</code> - 模型的类型，它必须是TableModel的一个 
+        <code>TableModel</code>
+</dd>
+</dl>
+<hr/> <br/> <pre>public class <span class="typeNameLabel">TableRowSorter&lt;M extends <a href="../../../javax/swing/table/TableModel.html" title="interface in javax.swing.table">TableModel</a>&gt;</span>
+extends <a href="../../../javax/swing/DefaultRowSorter.html" title="class in javax.swing">DefaultRowSorter</a>&lt;M,<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>&gt;</pre>
+<div class="block">
+<span>的实施<code>RowSorter</code> ，其提供排序，并使用过滤<code>TableModel</code> 。</span>
+<span>以下示例显示将排序添加到<code>JTable</code> ：</span>
+<pre>  <span>TableModel myModel = createMyTableModel();
+   JTable table = new JTable(myModel);
+   table.setRowSorter(new TableRowSorter(myModel));</span> </pre>
+<span>这将执行所有布线，使得当用户执行适当的手势时，例如单击列标题，表将进行视觉分类。</span>
+<p> <span><code>JTable</code>的基于行的方法和<code>JTable</code>的选择模型参考视图而不是底层模型。</span> <span>因此，有必要在两者之间进行转换。</span> <span>例如，要获得myModel的<code>myModel</code>您需要转换索引：</span> </p>
+<pre>  <span>int[] selection = table.getSelectedRows();
+   for (int i = 0; i &lt; selection.length; i++) {
+     selection[i] = table.convertRowIndexToModel(selection[i]);
+   }</span> </pre>
+<span>类似地，在<code>JTable</code>根据底层模型的坐标来选择一行是否相反：</span>
+<pre>  <span>table.setRowSelectionInterval(table.convertRowIndexToView(row),
+                                 table.convertRowIndexToView(row));</span> </pre>
+<p> <span>上一个示例假设您尚未启用过滤。</span> <span>如果启用过滤<code>convertRowIndexToView</code>将在视图中不可见的位置返回-1。</span> </p>
+<p> <span><code>TableRowSorter</code>使用<code>Comparator</code>进行比较。</span> <span>以下定义了如何为列选择<code>Comparator</code> ：</span> </p>
+<ol>
+<li> <span>如果<code>Comparator</code>已经为列由指定<code>setComparator</code>方法，使用它。</span> </li>
+<li> <span>如果<code>getColumnClass</code>返回的列类为<code>String</code> ，请使用<code>Comparator</code>返回的<code>Collator.getInstance()</code> 。</span> </li>
+<li> <span>如果列类实现<code>Comparable</code> ，使用<code>Comparator</code>调用该<code>compareTo</code>方法。</span> </li>
+<li> <span>如果<code>TableStringConverter</code>了TableStringConverter，请使用它将值转换为<code>String</code> ，然后使用<code>Comparator</code>返回的<code>Collator.getInstance()</code> 。</span> </li>
+<li> <span>否则使用<code>Comparator</code>返回的<code>Collator.getInstance()</code>对结果调用<code>toString</code>上的对象。</span> </li>
+</ol>
+<p> <span>除了排序<code>TableRowSorter</code>提供了过滤能力。</span> <span>使用<code>setFilter</code>方法指定过滤器。</span> <span>以下示例将仅显示包含字符串“foo”的行：</span> </p>
+<pre>  <span>TableModel myModel = createMyTableModel();
+   TableRowSorter sorter = new TableRowSorter(myModel);
+   sorter.setRowFilter(RowFilter.regexFilter(".*foo.*"));
+   JTable table = new JTable(myModel);
+   table.setRowSorter(sorter);</span> </pre>
+<p> <span>如果底层模型结构发生变化（调用了<code>modelStructureChanged</code>方法），则以下列项将被重置为默认值： <code>Comparator</code> s，按列，当前排序顺序，以及每列是否可排序。</span> <span>默认排序顺序是自然的（与模型相同），列可默认排序。</span> </p>
+<p> <span><code>TableRowSorter</code>有一个正式类型参数：模型的类型。</span> <span>传递一个与您的模型完全对应的类型，可以根据您的模型进行过滤，而无需投射。</span> <span>请参阅RowFilter的<code>RowFilter</code> ，以获得一个示例。</span> </p>
+<p> <span><b>警告：</b> <code>DefaultTableModel</code>返回一个列类为<code>Object</code> 。</span> <span>因此，所有比较将使用<code>toString</code>完成。</span> <span>这可能是不必要的昂贵的。</span> <span>如果列仅包含一种类型的值，例如<code>Integer</code> ，则应覆盖<code>getColumnClass</code>并返回相应的<code>类</code> 。</span> <span>这将大大提高这个类的性能。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.6 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/swing/JTable.html" title="javax.swing中的类"><code>JTable</code></a> ， <a href="../../../javax/swing/RowFilter.html" title="javax.swing中的类"><code>RowFilter</code></a> ， <a href="../../../javax/swing/table/DefaultTableModel.html" title="javax.swing.table中的类"><code>DefaultTableModel</code></a> ， <a href="../../../java/text/Collator.html" title="java.text中的类"><code>Collator</code></a> ， <a href="../../../java/util/Comparator.html" title="java.util中的接口"><code>Comparator</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.javax.swing.DefaultRowSorter">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class javax.swing.<a href="../../../javax/swing/DefaultRowSorter.html" title="class in javax.swing">DefaultRowSorter</a></h3> <code><a href="../../../javax/swing/DefaultRowSorter.ModelWrapper.html" title="class in javax.swing">DefaultRowSorter.ModelWrapper</a>&lt;<a href="../../../javax/swing/DefaultRowSorter.ModelWrapper.html" title="type parameter in DefaultRowSorter.ModelWrapper">M</a>,<a href="../../../javax/swing/DefaultRowSorter.ModelWrapper.html" title="type parameter in DefaultRowSorter.ModelWrapper">I</a>&gt;</code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="nested.classes.inherited.from.class.javax.swing.RowSorter">
+<!-- --> </a> <h3>Nested classes/interfaces inherited from class javax.swing.<a href="../../../javax/swing/RowSorter.html" title="class in javax.swing">RowSorter</a></h3> <code><a href="../../../javax/swing/RowSorter.SortKey.html" title="class in javax.swing">RowSorter.SortKey</a></code></li>
+</ul> </li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../javax/swing/table/TableRowSorter.html#TableRowSorter--">TableRowSorter</a></span>()</code>
+<div class="block">
+              创建一个空的模型 
+             <code>TableRowSorter</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../javax/swing/table/TableRowSorter.html#TableRowSorter-M-">TableRowSorter</a></span>(<a href="../../../javax/swing/table/TableRowSorter.html" title="type parameter in TableRowSorter">M</a> model)</code>
+<div class="block">
+              创建 
+             <code>TableRowSorter</code>使用 
+             <code>model</code>作为底层 
+             <code>TableModel</code> 。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/util/Comparator.html" title="interface in java.util">Comparator</a>&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/table/TableRowSorter.html#getComparator-int-">getComparator</a></span>(int column)</code>
+<div class="block">
+              返回 
+             <code>Comparator</code>指定列。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code><a href="../../../javax/swing/table/TableStringConverter.html" title="class in javax.swing.table">TableStringConverter</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/table/TableRowSorter.html#getStringConverter--">getStringConverter</a></span>()</code>
+<div class="block">
+              返回负责将值从模型转换为字符串的对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/table/TableRowSorter.html#setModel-M-">setModel</a></span>(<a href="../../../javax/swing/table/TableRowSorter.html" title="type parameter in TableRowSorter">M</a> model)</code>
+<div class="block">
+              设置 
+             <code>TableModel</code>为这个底层模型使用 
+             <code>TableRowSorter</code> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/table/TableRowSorter.html#setStringConverter-javax.swing.table.TableStringConverter-">setStringConverter</a></span>(<a href="../../../javax/swing/table/TableStringConverter.html" title="class in javax.swing.table">TableStringConverter</a> stringConverter)</code>
+<div class="block">
+              设置负责将值从模型转换为字符串的对象。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/swing/table/TableRowSorter.html#useToString-int-">useToString</a></span>(int column)</code>
+<div class="block">
+              返回在进行排序比较之前是否将该值转换为字符串。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.DefaultRowSorter">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.<a href="../../../javax/swing/DefaultRowSorter.html" title="class in javax.swing">DefaultRowSorter</a></h3> <code><a href="../../../javax/swing/DefaultRowSorter.html#allRowsChanged--">allRowsChanged</a>, <a href="../../../javax/swing/DefaultRowSorter.html#convertRowIndexToModel-int-">convertRowIndexToModel</a>, <a href="../../../javax/swing/DefaultRowSorter.html#convertRowIndexToView-int-">convertRowIndexToView</a>, <a href="../../../javax/swing/DefaultRowSorter.html#getMaxSortKeys--">getMaxSortKeys</a>, <a href="../../../javax/swing/DefaultRowSorter.html#getModel--">getModel</a>, <a href="../../../javax/swing/DefaultRowSorter.html#getModelRowCount--">getModelRowCount</a>, <a href="../../../javax/swing/DefaultRowSorter.html#getModelWrapper--">getModelWrapper</a>, <a href="../../../javax/swing/DefaultRowSorter.html#getRowFilter--">getRowFilter</a>, <a href="../../../javax/swing/DefaultRowSorter.html#getSortKeys--">getSortKeys</a>, <a href="../../../javax/swing/DefaultRowSorter.html#getSortsOnUpdates--">getSortsOnUpdates</a>, <a href="../../../javax/swing/DefaultRowSorter.html#getViewRowCount--">getViewRowCount</a>, <a href="../../../javax/swing/DefaultRowSorter.html#isSortable-int-">isSortable</a>, <a href="../../../javax/swing/DefaultRowSorter.html#modelStructureChanged--">modelStructureChanged</a>, <a href="../../../javax/swing/DefaultRowSorter.html#rowsDeleted-int-int-">rowsDeleted</a>, <a href="../../../javax/swing/DefaultRowSorter.html#rowsInserted-int-int-">rowsInserted</a>, <a href="../../../javax/swing/DefaultRowSorter.html#rowsUpdated-int-int-">rowsUpdated</a>, <a href="../../../javax/swing/DefaultRowSorter.html#rowsUpdated-int-int-int-">rowsUpdated</a>, <a href="../../../javax/swing/DefaultRowSorter.html#setComparator-int-java.util.Comparator-">setComparator</a>, <a href="../../../javax/swing/DefaultRowSorter.html#setMaxSortKeys-int-">setMaxSortKeys</a>, <a href="../../../javax/swing/DefaultRowSorter.html#setModelWrapper-javax.swing.DefaultRowSorter.ModelWrapper-">setModelWrapper</a>, <a href="../../../javax/swing/DefaultRowSorter.html#setRowFilter-javax.swing.RowFilter-">setRowFilter</a>, <a href="../../../javax/swing/DefaultRowSorter.html#setSortable-int-boolean-">setSortable</a>, <a href="../../../javax/swing/DefaultRowSorter.html#setSortKeys-java.util.List-">setSortKeys</a>, <a href="../../../javax/swing/DefaultRowSorter.html#setSortsOnUpdates-boolean-">setSortsOnUpdates</a>, <a href="../../../javax/swing/DefaultRowSorter.html#sort--">sort</a>, <a href="../../../javax/swing/DefaultRowSorter.html#toggleSortOrder-int-">toggleSortOrder</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.swing.RowSorter">
+<!-- --> </a> <h3>Methods inherited from class javax.swing.<a href="../../../javax/swing/RowSorter.html" title="class in javax.swing">RowSorter</a></h3> <code><a href="../../../javax/swing/RowSorter.html#addRowSorterListener-javax.swing.event.RowSorterListener-">addRowSorterListener</a>, <a href="../../../javax/swing/RowSorter.html#fireRowSorterChanged-int:A-">fireRowSorterChanged</a>, <a href="../../../javax/swing/RowSorter.html#fireSortOrderChanged--">fireSortOrderChanged</a>, <a href="../../../javax/swing/RowSorter.html#removeRowSorterListener-javax.swing.event.RowSorterListener-">removeRowSorterListener</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#toString--">toString</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="TableRowSorter--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TableRowSorter</h4> <pre>public TableRowSorter()</pre>
+<div class="block">
+            创建一个空的模型 
+           <code>TableRowSorter</code> 。 
+          </div> </li>
+</ul> <a name="TableRowSorter-javax.swing.table.TableModel-">
+<!-- --> </a><a name="TableRowSorter-M-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>TableRowSorter</h4> <pre>public TableRowSorter(<a href="../../../javax/swing/table/TableRowSorter.html" title="type parameter in TableRowSorter">M</a> model)</pre>
+<div class="block">
+            创建 
+           <code>TableRowSorter</code>使用 
+           <code>model</code>作为基础 
+           <code>TableModel</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>model</code> -底层 
+            <code>TableModel</code>使用， 
+            <code>null</code>被视为空模型 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="setModel-javax.swing.table.TableModel-">
+<!-- --> </a><a name="setModel-M-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setModel</h4> <pre>public void setModel(<a href="../../../javax/swing/table/TableRowSorter.html" title="type parameter in TableRowSorter">M</a> model)</pre>
+<div class="block">
+<span>设置<code>TableModel</code>为这个底层模型使用<code>TableRowSorter</code> 。</span>
+<span>可以使用值<code>null</code>设置空模型。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>model</code> - 使用的基础模型，或 
+            <code>null</code>
+</dd>
+</dl> </li>
+</ul> <a name="setStringConverter-javax.swing.table.TableStringConverter-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>setStringConverter</h4> <pre>public void setStringConverter(<a href="../../../javax/swing/table/TableStringConverter.html" title="class in javax.swing.table">TableStringConverter</a> stringConverter)</pre>
+<div class="block">
+<span>设置负责将值从模型转换为字符串的对象。</span>
+<span>如果非<code>null</code>这是用来转换任何对象值，没有注册<code>Comparator</code> ，为字符串。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>stringConverter</code> - 负责将值从模型转换为字符串的对象 
+           </dd>
+</dl> </li>
+</ul> <a name="getStringConverter--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getStringConverter</h4> <pre>public <a href="../../../javax/swing/table/TableStringConverter.html" title="class in javax.swing.table">TableStringConverter</a> getStringConverter()</pre>
+<div class="block">
+            返回负责将值从模型转换为字符串的对象。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             负责将值转换为字符串的对象。 
+           </dd>
+</dl> </li>
+</ul> <a name="getComparator-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getComparator</h4> <pre>public <a href="../../../java/util/Comparator.html" title="interface in java.util">Comparator</a>&lt;?&gt; getComparator(int column)</pre>
+<div class="block">
+<span>返回<code>Comparator</code>指定列。</span>
+<span>如果<code>Comparator</code>尚未使用指定<code>setComparator</code>方法的<code>Comparator</code>将基于列类（被返回<code>TableModel.getColumnClass</code>指定列的）。</span>
+<span>如果列类为<code>String</code> ，则返回<code>Collator.getInstance</code> 。</span>
+<span>如果列类实现<code>Comparable</code>则返回一个调用<code>compareTo</code>方法的私有<code>Comparator</code> 。</span>
+<span>否则返回<code>Collator.getInstance</code> 。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/DefaultRowSorter.html#getComparator-int-">getComparator</a></code>在 
+            <code><a href="../../../javax/swing/DefaultRowSorter.html" title="class in javax.swing">DefaultRowSorter</a>&lt;<a href="../../../javax/swing/table/TableRowSorter.html" title="type parameter in TableRowSorter">M</a> extends <a href="../../../javax/swing/table/TableModel.html" title="interface in javax.swing.table">TableModel</a>,<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>column</code> -列去取 
+            <code>Comparator</code>的，在底层模型而言 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             该 
+            <code>Comparator</code>指定列 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IndexOutOfBoundsException.html" title="class in java.lang">IndexOutOfBoundsException</a></code> - 如果列超出了底层模型的范围 
+           </dd>
+</dl> </li>
+</ul> <a name="useToString-int-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>useToString</h4> <pre>protected boolean useToString(int column)</pre>
+<div class="block">
+<span>返回在进行排序比较之前是否将该值转换为字符串。</span>
+<span>如果真<code>ModelWrapper.getStringValueAt</code>将被使用，否则<code>ModelWrapper.getValueAt</code>将被使用。</span>
+<span>它是由子类，如<code>TableRowSorter</code> ，兑现他们这个值<code>ModelWrapper</code>实现。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../javax/swing/DefaultRowSorter.html#useToString-int-">useToString</a></code>在 
+            <code><a href="../../../javax/swing/DefaultRowSorter.html" title="class in javax.swing">DefaultRowSorter</a>&lt;<a href="../../../javax/swing/table/TableRowSorter.html" title="type parameter in TableRowSorter">M</a> extends <a href="../../../javax/swing/table/TableModel.html" title="interface in javax.swing.table">TableModel</a>,<a href="../../../java/lang/Integer.html" title="class in java.lang">Integer</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>column</code> - 根据底层模型测试的列的索引 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IndexOutOfBoundsException.html" title="class in java.lang">IndexOutOfBoundsException</a></code> - 如果 
+            <code>column</code>无效 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

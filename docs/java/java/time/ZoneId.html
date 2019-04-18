@@ -1,0 +1,648 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.time 
+   </div>
+<h2 class="title" title="Class ZoneId">Class ZoneId</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.time.ZoneId</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../java/io/Serializable.html" title="java.io中的接口">Serializable</a></span>
+</dd>
+</dl>
+<dl>
+<dt>
+        已知直接子类：
+       </dt>
+<dd>
+<span><a href="../../java/time/ZoneOffset.html" title="java.time中的类">ZoneOffset</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">ZoneId</span>
+extends <a href="../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../java/io/Serializable.html" title="interface in java.io">Serializable</a></pre>
+<div class="block">
+<span>一个时区ID，如<code>Europe/Paris</code> 。</span>
+<p> <span>A <code>ZoneId</code>用于识别用于在<a href="../../java/time/Instant.html" title="java.time中的类"><code>Instant</code></a>和<a href="../../java/time/LocalDateTime.html" title="java.time中的类"><code>LocalDateTime</code></a>之间转换的规则。</span> <span>有两种不同类型的ID：</span> </p>
+<ul>
+<li> <span>固定偏移量 - 从UTC /格林威治完全解析的偏移量，对所有本地日期时间使用相同的偏移量</span> </li>
+<li> <span>地理区域 - 适用于查找UTC /格林威治的偏移量的特定规则集的区域</span> </li>
+</ul>
+<span>大多数固定偏移量由<a href="../../java/time/ZoneOffset.html" title="java.time中的类"><code>ZoneOffset</code>表示</a> 。</span>
+<span>在任何<a href="../../java/time/ZoneId.html#normalized--">ZoneId</a>上<code>ZoneId</code>将确保固定的偏移ID将被表示为<code>ZoneOffset</code> 。</span>
+<p> <span>描述偏移变化的时间和方式的实际规则由<a href="../../java/time/zone/ZoneRules.html" title="java.time.zone中的类"><code>ZoneRules</code></a>定义。</span> <span>这个类只是一个用于获取基本规则的ID。</span> <span>采取这种方法是因为规则由政府定义并且频繁变化，而ID是稳定的。</span> </p>
+<p> <span>这个区别有其他的影响。</span> <span>序列化<code>ZoneId</code>只会发送ID，而序列化规则会发送整个数据集。</span> <span>类似地，两个ID的比较仅检查ID，而两个规则的比较检查整个数据集。</span> </p>
+<h3> <span>时区ID</span> </h3>
+<span>该ID在系统内是唯一的。</span>
+<span>有三种类型的ID。</span>
+<p> <span>最简单的ID是<code>ZoneOffset</code> 。</span> <span>这由“Z”和以“+”或“ - ”开头的ID组成。</span> </p>
+<p> <span>下一种类型的ID是具有某些形式的前缀的偏移样式ID，例如“GMT + 2”或“UTC + 01：00”。</span> <span>识别的前缀是“UTC”，“GMT”和“UT”。</span> <span>偏移量是后缀，在创建过程中将被归一化。</span> <span>这些ID可以归一<code>ZoneOffset</code>使用<code>normalized()</code> 。</span> </p>
+<p> <span>第三种类型的ID是基于区域的ID。</span> <span>基于区域的ID必须为两个或更多个字符，而不是以“UTC”，“GMT”，“UT”+“或” - “开头。</span> <span>基于区域的ID由配置定义，请参见<a href="../../java/time/zone/ZoneRulesProvider.html" title="java.time.zone中的类"><code>ZoneRulesProvider</code></a> 。</span> <span>配置重点是提供从ID到底层的查找<code>ZoneRules</code> 。</span> </p>
+<p> <span>时区规则由政府界定，频繁变化。</span> <span>有一些组织，这里被称为组，监视时区更改并整理它们。</span> <span>默认组是IANA时区数据库（TZDB）。</span> <span>其他组织包括国际航协（航空业机构）和微软。</span> </p>
+<p> <span>每个组为其提供的区域ID定义其自己的格式。</span> <span>TZDB组定义了诸如“Europe / London”或“America / New_York”之类的ID。</span> <span>TZDB ID优先于其他组。</span> </p>
+<p> <span>强烈建议组名称包含在TZDB以外的组所提供的所有ID中，以避免冲突。</span> <span>例如，IATA航空公司时区区域ID通常与三字母机场代码相同。</span> <span>但是，乌特勒支机场的代码“UTC”显然是一个冲突。</span> <span>来自TZDB以外的组的区域ID的推荐格式为“group〜region”。</span> <span>因此，如果定义了IATA数据，乌得勒支机场将是“IATA〜UTC”。</span> </p>
+<h3> <span>序列化</span> </h3>
+<span>该类可以序列化，并将字符串区域ID存储在外部表单中。</span>
+<span><code>ZoneOffset</code>子类使用仅存储UTC /格林威治的偏移量的专用格式。</span>
+<p> <span>A <code>ZoneId</code>可以在Java运行时反序列化，其中ID是未知的。</span> <span>例如，如果服务器端Java运行时已经使用新的区域ID更新，但客户端Java运行时尚未更新。</span> <span>在这种情况下， <code>ZoneId</code>对象会存在，并且可以使用被查询<code>getId</code> ， <code>equals</code> ， <code>hashCode</code> ， <code>toString</code> ， <code>getDisplayName</code>和<code>normalized</code> 。</span> <span>但是，任何致电<code>getRules</code>都将失败， <code>ZoneRulesException</code> 。</span> <span>该方法旨在允许在具有不完整时区信息的Java运行时上加载和查询<a href="../../java/time/ZonedDateTime.html" title="java.time中的类"><code>ZonedDateTime</code></a>但不进行修改。</span> </p>
+<p> <span>这是一个<a href="../../java/lang/doc-files/ValueBased.html">value-based</a>类;</span> <span>使用身份敏感的操作（包括引用相等（的<code>==</code>上的实例），标识哈希码，或同步） <code>ZoneId</code>可具有不可预测的结果，应当避免。</span> <span><code>equals</code>方法应用于比较。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">实现要求：</span>
+</dt>
+<dd>
+<span>这个抽象类有两个实现，这两个实现是不可变的和线程安全的。</span>
+<span>一个实现模型基于区域的ID，另一个是<code>ZoneOffset</code>建模基于偏移的ID。</span>
+<span>这种差异在序列化中可见。</span>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.8 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../serialized-form.html#java.time.ZoneId">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static <a href="../../java/util/Map.html" title="interface in java.util">Map</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>,<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#SHORT_IDS">SHORT_IDS</a></span></code>
+<div class="block">
+              区域覆盖的映射，以启用短时区名称。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#equals-java.lang.Object-">equals</a></span>(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</code>
+<div class="block">
+              检查此时区ID是否等于其他时区ID。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#from-java.time.temporal.TemporalAccessor-">from</a></span>(<a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a> temporal)</code>
+<div class="block">
+              从时间对象获取一个 
+             <code>ZoneId</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static <a href="../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#getAvailableZoneIds--">getAvailableZoneIds</a></span>()</code>
+<div class="block">
+              获取一组可用的区域ID。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#getDisplayName-java.time.format.TextStyle-java.util.Locale-">getDisplayName</a></span>(<a href="../../java/time/format/TextStyle.html" title="enum in java.time.format">TextStyle</a> style, <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> locale)</code>
+<div class="block">
+              获取区域的文字表示，例如“英国时间”或“+02：00”。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>abstract <a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#getId--">getId</a></span>()</code>
+<div class="block">
+              获取唯一的时区ID。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>abstract <a href="../../java/time/zone/ZoneRules.html" title="class in java.time.zone">ZoneRules</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#getRules--">getRules</a></span>()</code>
+<div class="block">
+              获取此ID的时区规则，允许执行计算。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              此时区ID的哈希码。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#normalized--">normalized</a></span>()</code>
+<div class="block">
+              规范时区ID，尽可能 
+             <code>ZoneOffset</code> 。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#of-java.lang.String-">of</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> zoneId)</code>
+<div class="block">
+              从ID获取一个 
+             <code>ZoneId</code>的实例，确保该ID有效并且可供使用。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#of-java.lang.String-java.util.Map-">of</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> zoneId, <a href="../../java/util/Map.html" title="interface in java.util">Map</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>,<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt; aliasMap)</code>
+<div class="block">
+              获取 
+             <code>ZoneId</code>的实例，使用其ID使用别名映射来补充标准区域ID。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#ofOffset-java.lang.String-java.time.ZoneOffset-">ofOffset</a></span>(<a href="../../java/lang/String.html" title="class in java.lang">String</a> prefix, <a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> offset)</code>
+<div class="block">
+              获得一个封装偏移量的 
+             <code>ZoneId</code>的实例。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#systemDefault--">systemDefault</a></span>()</code>
+<div class="block">
+              获取系统默认时区。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code><a href="../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../java/time/ZoneId.html#toString--">toString</a></span>()</code>
+<div class="block">
+              输出该区域为 
+             <code>String</code> ，使用ID。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../java/lang/Object.html#clone--">clone</a>, <a href="../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../java/lang/Object.html#notify--">notify</a>, <a href="../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../java/lang/Object.html#wait--">wait</a>, <a href="../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="SHORT_IDS">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>SHORT_IDS</h4> <pre>public static final <a href="../../java/util/Map.html" title="interface in java.util">Map</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>,<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt; SHORT_IDS</pre>
+<div class="block">
+<span>区域覆盖的映射，以启用短时区名称。</span>
+<p> <span>总之区ID的使用已过时， <code>java.util.TimeZone</code> 。</span> <span>该地图允许通过<a href="../../java/time/ZoneId.html#of-java.lang.String-java.util.Map-"><code>of(String, Map)</code></a>工厂方法继续使用ID。</span> </p>
+<p> <span>此映射包含与TZDB 2005r及更高版本一致的ID映射，其中“EST”，“MST”和“HST”映射到不包括夏令时的ID。</span> </p>
+<p> <span>这个地图如下：</span> </p>
+<ul>
+<li> <span>EST - -05：00</span> </li>
+<li> <span>HST - -10：00</span> </li>
+<li> <span>MST - -07：00</span> </li>
+<li> <span>ACT - 澳大利亚/达尔文</span> </li>
+<li> <span>澳大利亚/悉尼</span> </li>
+<li> <span>AGT - 美洲/阿根廷/布宜诺斯艾利斯</span> </li>
+<li> <span>艺术 - 非洲/开罗</span> </li>
+<li> <span>AST - 美国/安克拉治</span> </li>
+<li> <span>BET - America / Sao_Paulo</span> </li>
+<li> <span>BST - 亚洲/达卡</span> </li>
+<li> <span>CAT - 非洲/哈拉雷</span> </li>
+<li> <span>CNT - America / St_Johns</span> </li>
+<li> <span>CST - 美国/芝加哥</span> </li>
+<li> <span>CTT - 亚洲/上海</span> </li>
+<li> <span>EAT - 非洲/ Addis_Ababa</span> </li>
+<li> <span>ECT - 欧洲/巴黎</span> </li>
+<li> <span>IET - 美洲/印第安纳州/印第安纳州</span> </li>
+<li> <span>IST - 亚洲/加尔各答</span> </li>
+<li> <span>JST - 亚洲/东京</span> </li>
+<li> <span>麻省理工学院 - 太平洋/阿皮亚</span> </li>
+<li> <span>NET - 亚洲/埃里温</span> </li>
+<li> <span>NST - 太平洋/奥克兰</span> </li>
+<li> <span>PLT - 亚洲/卡拉奇</span> </li>
+<li> <span>PNT - 美国/凤凰城</span> </li>
+<li> <span>PRT - 美洲/波多黎各</span> </li>
+<li> <span>PST - 美国/ Los_Angeles</span> </li>
+<li> <span>太平洋岛屿/瓜达尔卡纳群岛</span> </li>
+<li> <span>VST - 亚洲/ Ho_Chi_Minh</span> </li>
+</ul>
+<span>地图是不可修改的。</span>
+</div> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="systemDefault--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>systemDefault</h4> <pre>public static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> systemDefault()</pre>
+<div class="block">
+<span>获取系统默认时区。</span>
+<p> <span>这查询<a href="../../java/util/TimeZone.html#getDefault--"><code>TimeZone.getDefault()</code></a>找到默认时区并将其转换为<code>ZoneId</code> 。</span> <span>如果系统默认时区更改，则此方法的结果也会发生变化。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             区域ID，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 转换后的区域ID是否格式无效 
+           </dd>
+<dd>
+<code><a href="../../java/time/zone/ZoneRulesException.html" title="class in java.time.zone">ZoneRulesException</a></code> - 如果找不到转换的区域区域ID 
+           </dd>
+</dl> </li>
+</ul> <a name="getAvailableZoneIds--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAvailableZoneIds</h4> <pre>public static <a href="../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt; getAvailableZoneIds()</pre>
+<div class="block">
+<span>获取一组可用的区域ID。</span>
+<p> <span>该集合包括所有可用的基于区域的ID的字符串形式。</span> <span>返回的集合中不包括基于偏移的区域ID。</span> <span>该ID可以传递给<a href="../../java/time/ZoneId.html#of-java.lang.String-"><code>of(String)</code></a>以创建一个<code>ZoneId</code> 。</span> </p>
+<p> <span>区域ID的集合可以随着时间而增加，尽管在典型的应用中，ID集合是固定的。</span> <span>每次调用此方法都是线程安全的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一组区域ID的可修改副本，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="of-java.lang.String-java.util.Map-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>of</h4> <pre>public static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> of(<a href="../../java/lang/String.html" title="class in java.lang">String</a> zoneId,
+                        <a href="../../java/util/Map.html" title="interface in java.util">Map</a>&lt;<a href="../../java/lang/String.html" title="class in java.lang">String</a>,<a href="../../java/lang/String.html" title="class in java.lang">String</a>&gt; aliasMap)</pre>
+<div class="block">
+<span>获取使用其ID的<code>ZoneId</code>实例，使用别名映射来补充标准区域ID。</span>
+<p> <span>时区的许多用户使用简短的缩写，例如“太平洋标准时间”的PST和“太平洋夏令时”的PDT。</span> <span>这些缩写不是唯一的，因此不能用作ID。</span> <span>该方法允许在应用程序内设置和重新使用字符串到时区的映射。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>zoneId</code> - 时区ID，不为空 
+           </dd>
+<dd>
+<code>aliasMap</code> - 实际区域ID的别名区域ID（通常为缩写）的映射，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             区域ID，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果区域ID的格式无效 
+           </dd>
+<dd>
+<code><a href="../../java/time/zone/ZoneRulesException.html" title="class in java.time.zone">ZoneRulesException</a></code> - 如果区域ID是无法找到的区域ID 
+           </dd>
+</dl> </li>
+</ul> <a name="of-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>of</h4> <pre>public static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> of(<a href="../../java/lang/String.html" title="class in java.lang">String</a> zoneId)</pre>
+<div class="block">
+<span>从ID获取一个<code>ZoneId</code>的实例，确保该ID有效并且可以使用。</span>
+<p> <span>此方法解析产生一个<code>ZoneId</code>或<code>ZoneOffset</code>的ID。</span> <span>如果ID为“Z”，则返回<code>ZoneOffset</code> ，或以“+”或“ - ”开头。</span> <span>结果将始终是一个有效的ID， <a href="../../java/time/zone/ZoneRules.html" title="java.time.zone中的类">可以获得<code>ZoneRules</code></a> 。</span> </p>
+<p> <span>解析如下一步地匹配区域ID。</span> </p>
+<ul>
+<li> <span>如果区域ID等于'Z'，结果为<code>ZoneOffset.UTC</code> 。</span> </li>
+<li> <span>如果区域ID由单个字母组成，则区域ID无效，并且抛出<code>DateTimeException</code> 。</span> </li>
+<li> <span>如果区域ID以“+”或“ - ” <code>ZoneOffset</code>使用<a href="../../java/time/ZoneOffset.html#of-java.lang.String-"><code>ZoneOffset.of(String)</code></a>将该ID解析为<a href="../../java/time/ZoneOffset.html#of-java.lang.String-">ZoneOffset</a> 。</span> </li>
+<li> <span>如果区域ID等于'GMT'，'UTC'或'UT'，那么结果是一个<code>ZoneId</code> ，其ID和规则相当于<code>ZoneOffset.UTC</code> 。</span> </li>
+<li> <span>如果区域ID以“UTC +”，“UTC-”，“GMT +”，“GMT-”，“UT +”或“UT-”开头，那么ID就是前缀的基于偏移量的ID。</span> <span>ID分为两个，两个或三个字母的前缀和一个以符号开头的后缀。</span> <span>后缀被解析为<a href="../../java/time/ZoneOffset.html#of-java.lang.String-"><code>ZoneOffset</code></a> 。</span> <span>其结果将是一个<code>ZoneId</code>与指定UTC / GMT / UT前缀和归一化的偏移ID作为每<a href="../../java/time/ZoneOffset.html#getId--"><code>ZoneOffset.getId()</code></a> 。</span> <span>返回的<code>ZoneId</code>的规则将相当于已解析的<code>ZoneOffset</code> 。</span> </li>
+<li> <span>所有其他ID都将被分析为基于区域的区域ID。</span> <span>区ID必须与正则表达式匹配<code>[A-Za-z][A-Za-z0-9~/._+-]+</code>否则<code>DateTimeException</code>被抛出。</span> <span>如果区域ID不在配置的ID <code>ZoneRulesException</code> ，则会抛出<code>ZoneRulesException</code> 。</span> <span>区域ID的详细格式取决于提供数据的组。</span> <span>默认数据集由IANA时区数据库（TZDB）提供。</span> <span>它具有“{area} / {city}”形式的区域ID，例如“Europe / Paris”或“America / New_York”。</span> <span>这与<code>TimeZone</code>的大多数ID <a href="../../java/util/TimeZone.html" title="java.util中的类">兼容</a> 。</span> </li>
+</ul>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>zoneId</code> - 时区ID，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             区域ID，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 区域ID是否格式无效 
+           </dd>
+<dd>
+<code><a href="../../java/time/zone/ZoneRulesException.html" title="class in java.time.zone">ZoneRulesException</a></code> - 如果区域ID是无法找到的区域ID 
+           </dd>
+</dl> </li>
+</ul> <a name="ofOffset-java.lang.String-java.time.ZoneOffset-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ofOffset</h4> <pre>public static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> ofOffset(<a href="../../java/lang/String.html" title="class in java.lang">String</a> prefix,
+                              <a href="../../java/time/ZoneOffset.html" title="class in java.time">ZoneOffset</a> offset)</pre>
+<div class="block">
+<span>获得包装偏移的<code>ZoneId</code>的实例。</span>
+<p> <span>如果前缀为“GMT”，“UTC”或“UT”，则<code>ZoneId</code>具有前缀和非零偏移量的<code>ZoneId</code> 。</span> <span>如果前缀为空<code>""</code> ，则返回<code>ZoneOffset</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>prefix</code> - 时区ID，不为空 
+           </dd>
+<dd>
+<code>offset</code> - 偏移量，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             区域ID，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果前缀不是“GMT”，“UTC”或“UT”或“” 
+           </dd>
+</dl> </li>
+</ul> <a name="from-java.time.temporal.TemporalAccessor-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>from</h4> <pre>public static <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> from(<a href="../../java/time/temporal/TemporalAccessor.html" title="interface in java.time.temporal">TemporalAccessor</a> temporal)</pre>
+<div class="block">
+<span>从时间对象获取一个<code>ZoneId</code>的实例。</span>
+<p> <span>这获得了基于指定时间的区域。</span> <span>A <code>TemporalAccessor</code>表示一个任意的日期和时间信息集，该工厂转换为<code>ZoneId</code>一个实例。</span> </p>
+<p> <span>A <code>TemporalAccessor</code>表示某种形式的日期和时间信息。</span> <span>该工厂转换任意时间对象的实例<code>ZoneId</code> 。</span> </p>
+<p> <span>转换将尝试以有利于基于偏移的区域上的基于区域的区域使用<a href="../../java/time/temporal/TemporalQueries.html#zone--"><code>TemporalQueries.zone()</code>获取</a>区域。</span> </p>
+<p> <span>该方法中，功能接口的签名相匹配<a href="../../java/time/temporal/TemporalQuery.html" title="java.time.temporal中的接口"><code>TemporalQuery</code></a>允许它在通过方法参考，查询中使用<code>ZoneId::from</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>temporal</code> - 要转换的时间对象，不为null 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             区域ID，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/DateTimeException.html" title="class in java.time">DateTimeException</a></code> - 如果无法转换为 
+            <code>ZoneId</code>
+</dd>
+</dl> </li>
+</ul> <a name="getId--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getId</h4> <pre>public abstract <a href="../../java/lang/String.html" title="class in java.lang">String</a> getId()</pre>
+<div class="block">
+<span>获取唯一的时区ID。</span>
+<p> <span>此ID唯一地定义了该对象。</span> <span>基于偏移的ID的格式由<a href="../../java/time/ZoneOffset.html#getId--"><code>ZoneOffset.getId()</code></a>定义。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             时区唯一ID，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="getDisplayName-java.time.format.TextStyle-java.util.Locale-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getDisplayName</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> getDisplayName(<a href="../../java/time/format/TextStyle.html" title="enum in java.time.format">TextStyle</a> style,
+                             <a href="../../java/util/Locale.html" title="class in java.util">Locale</a> locale)</pre>
+<div class="block">
+<span>获取区域的文字表示，例如“英国时间”或“+02：00”。</span>
+<p> <span>这返回用于标识时区ID的文本名称，适用于向用户呈现。</span> <span>参数控制返回的文本和区域设置的样式。</span> </p>
+<p> <span>如果没有发现文本映射，则返回<a href="../../java/time/ZoneId.html#getId--"><code>full ID</code></a> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>style</code> - 所需文本的长度，不为空 
+           </dd>
+<dd>
+<code>locale</code> - 要使用的语言环境，不为空 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             区域的文本值，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="getRules--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRules</h4> <pre>public abstract <a href="../../java/time/zone/ZoneRules.html" title="class in java.time.zone">ZoneRules</a> getRules()</pre>
+<div class="block">
+<span>获取此ID的时区规则，允许执行计算。</span>
+<p> <span>规则提供与时区相关联的功能，例如查找给定即时或本地日期时间的偏移量。</span> </p>
+<p> <span>如果在Java运行时反序列化时区，则该时区不能与存储它的Java运行时加载相同的规则。</span> <span>在这种情况下，调用此方法会抛出一个<code>ZoneRulesException</code> 。</span> </p>
+<p> <span>规则由<a href="../../java/time/zone/ZoneRulesProvider.html" title="java.time.zone中的类"><code>ZoneRulesProvider</code></a>提供。</span> <span>高级提供商可以支持规则的动态更新，而无需重新启动Java运行时。</span> <span>如果是这样，则该方法的结果可能会随时间而变化。</span> <span>每个单独的呼叫仍将保持线程安全。</span> </p>
+<p> <span><a href="../../java/time/ZoneOffset.html" title="java.time中的类"><code>ZoneOffset</code></a>将始终返回一组规则，其中偏移量不会更改。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             规则，不为空 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../java/time/zone/ZoneRulesException.html" title="class in java.time.zone">ZoneRulesException</a></code> - 如果没有规则可用于此ID 
+           </dd>
+</dl> </li>
+</ul> <a name="normalized--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>normalized</h4> <pre>public <a href="../../java/time/ZoneId.html" title="class in java.time">ZoneId</a> normalized()</pre>
+<div class="block">
+<span>规范时区ID，尽可能<code>ZoneOffset</code> 。</span>
+<p> <span>返回一个归一化的<code>ZoneId</code>可以用来代替这个ID。</span> <span>结果将具有<code>ZoneRules</code>相当于该对象返回的结果，但是由<code>getId()</code>返回的ID可能不同。</span> </p>
+<p> <span>规范化检查此<code>ZoneId</code>的规则是否具有固定的偏移量。</span> <span>如果他们这样做，则<code>ZoneOffset</code>等于该偏移的<code>ZoneOffset</code> 。</span> <span>否则返回<code>this</code> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             时区唯一ID，不为空 
+           </dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../java/lang/Object.html" title="class in java.lang">Object</a> obj)</pre>
+<div class="block">
+<span>检查此时区ID是否等于其他时区ID。</span>
+<p> <span>比较是基于ID。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>obj</code> - 要检查的对象，null返回false 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             如果这等于其他时区ID，则为true 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+            此时区ID的哈希码。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个合适的哈希码 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+            使用ID将该区域输出为 
+           <code>String</code> 。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../java/lang/Object.html#toString--">toString</a></code>在 
+            <code><a href="../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此时区ID的字符串表示形式，不为空 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

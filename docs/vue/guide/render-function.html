@@ -1,0 +1,593 @@
+<div class="content guide with-sidebar render-function-guide">
+<h1>渲染函数 &amp; JSX</h1>
+<h2 id="基础"><a class="headerlink" href="#基础" title="基础"></a>基础</h2><p>Vue 推荐在绝大多数情况下使用模板来创建你的 HTML。然而在一些场景中，你真的需要 JavaScript 的完全编程的能力。这时你可以用<strong>渲染函数</strong>，它比模板更接近编译器。</p>
+<p>让我们深入一个简单的例子，这个例子里 <code>render</code> 函数很实用。假设我们要生成一些带锚点的标题：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"hello-world"</span> <span class="hljs-attr">href</span>=<span class="hljs-string">"#hello-world"</span>&gt;</span>
+    Hello world!
+  <span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></code></pre>
+<p>对于上面的 HTML，你决定这样定义组件接口：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">anchored-heading</span> <span class="hljs-attr">:level</span>=<span class="hljs-string">"1"</span>&gt;</span>Hello world!<span class="hljs-tag">&lt;/<span class="hljs-name">anchored-heading</span>&gt;</span></code></pre>
+<p>当开始写一个只能通过 <code>level</code> prop 动态生成标题 (heading) 的组件时，你可能很快想到这样实现：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/x-template"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"anchored-heading-template"</span>&gt;</span><span class="xml">
+  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"level === 1"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span> <span class="hljs-attr">v-else-if</span>=<span class="hljs-string">"level === 2"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h3</span> <span class="hljs-attr">v-else-if</span>=<span class="hljs-string">"level === 3"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">h3</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h4</span> <span class="hljs-attr">v-else-if</span>=<span class="hljs-string">"level === 4"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">h4</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h5</span> <span class="hljs-attr">v-else-if</span>=<span class="hljs-string">"level === 5"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">h5</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h6</span> <span class="hljs-attr">v-else-if</span>=<span class="hljs-string">"level === 6"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">slot</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">h6</span>&gt;</span>
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'anchored-heading'</span>, {
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'#anchored-heading-template'</span>,
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">level</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-built_in">Number</span>,
+      <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>
+    }
+  }
+})</code></pre>
+<p>这里用模板并不是最好的选择：不但代码冗长，而且在每一个级别的标题中重复书写了 <code>&lt;slot&gt;&lt;/slot&gt;</code>，在要插入锚点元素时还要再次重复。</p>
+<p>虽然模板在大多数组件中都非常好用，但是显然在这里它就不合适了。那么，我们来尝试使用 <code>render</code> 函数重写上面的例子：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'anchored-heading'</span>, {
+  <span class="hljs-attr">render</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+    <span class="hljs-keyword">return</span> createElement(
+      <span class="hljs-string">'h'</span> + <span class="hljs-keyword">this</span>.level,   <span class="hljs-comment">// 标签名称</span>
+      <span class="hljs-keyword">this</span>.$slots.default <span class="hljs-comment">// 子节点数组</span>
+    )
+  },
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">level</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-built_in">Number</span>,
+      <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>
+    }
+  }
+})</code></pre>
+<p>看起来简单多了！这样代码精简很多，但是需要非常熟悉 Vue 的实例属性。在这个例子中，你需要知道，向组件中传递不带 <code>v-slot</code> 指令的子节点时，比如 <code>anchored-heading</code> 中的 <code>Hello world!</code>，这些子节点被存储在组件实例中的 <code>$slots.default</code> 中。如果你还不了解，<strong>在深入渲染函数之前推荐阅读<a href="../api/#实例属性">实例属性 API</a>。</strong></p>
+<h2 id="节点、树以及虚拟-DOM"><a class="headerlink" href="#节点、树以及虚拟-DOM" title="节点、树以及虚拟 DOM"></a>节点、树以及虚拟 DOM</h2><p>在深入渲染函数之前，了解一些浏览器的工作原理是很重要的。以下面这段 HTML 为例：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>My title<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+  Some text content
+  <span class="hljs-comment">&lt;!-- <span class="hljs-doctag">TODO:</span> Add tagline --&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>当浏览器读到这些代码时，它会建立一个<a href="https://javascript.info/dom-nodes" rel="noopener" target="_blank">“DOM 节点”树</a>来保持追踪所有内容，如同你会画一张家谱树来追踪家庭成员的发展一样。</p>
+<p>上述 HTML 对应的 DOM 节点树如下图所示：</p>
+<p><img src="https://cn.vuejs.org/images/dom-tree.png"/></p>
+<p>每个元素都是一个节点。每段文字也是一个节点。甚至注释也都是节点。一个节点就是页面的一个部分。就像家谱树一样，每个节点都可以有孩子节点 (也就是说每个部分可以包含其它的一些部分)。</p>
+<p>高效地更新所有这些节点会是比较困难的，不过所幸你不必手动完成这个工作。你只需要告诉 Vue 你希望页面上的 HTML 是什么，这可以是在一个模板里：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>{{ blogTitle }}<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></code></pre>
+<p>或者一个渲染函数里：</p>
+<pre><code class="hljs js">render: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+  <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'h1'</span>, <span class="hljs-keyword">this</span>.blogTitle)
+}</code></pre>
+<p>在这两种情况下，Vue 都会自动保持页面的更新，即便 <code>blogTitle</code> 发生了改变。</p>
+<h3 id="虚拟-DOM"><a class="headerlink" href="#虚拟-DOM" title="虚拟 DOM"></a>虚拟 DOM</h3><p>Vue 通过建立一个<strong>虚拟 DOM</strong> 来追踪自己要如何改变真实 DOM。请仔细看这行代码：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'h1'</span>, <span class="hljs-keyword">this</span>.blogTitle)</code></pre>
+<p><code>createElement</code> 到底会返回什么呢？其实不是一个<em>实际的</em> DOM 元素。它更准确的名字可能是 <code>createNodeDescription</code>，因为它所包含的信息会告诉 Vue 页面上需要渲染什么样的节点，包括及其子节点的描述信息。我们把这样的节点描述为“虚拟节点 (virtual node)”，也常简写它为“<strong>VNode</strong>”。“虚拟 DOM”是我们对由 Vue 组件树建立起来的整个 VNode 树的称呼。</p>
+<h2 id="createElement-参数"><a class="headerlink" href="#createElement-参数" title="createElement 参数"></a><code>createElement</code> 参数</h2><p>接下来你需要熟悉的是如何在 <code>createElement</code> 函数中使用模板中的那些功能。这里是 <code>createElement</code> 接受的参数：</p>
+<pre><code class="hljs js"><span class="hljs-comment">// @returns {VNode}</span>
+createElement(
+  <span class="hljs-comment">// {String | Object | Function}</span>
+  <span class="hljs-comment">// 一个 HTML 标签名、组件选项对象，或者</span>
+  <span class="hljs-comment">// resolve 了上述任何一种的一个 async 函数。必填项。</span>
+  <span class="hljs-string">'div'</span>,
+
+  <span class="hljs-comment">// {Object}</span>
+  <span class="hljs-comment">// 一个与模板中属性对应的数据对象。可选。</span>
+  {
+    <span class="hljs-comment">// (详情见下一节)</span>
+  },
+
+  <span class="hljs-comment">// {String | Array}</span>
+  <span class="hljs-comment">// 子级虚拟节点 (VNodes)，由 `createElement()` 构建而成，</span>
+  <span class="hljs-comment">// 也可以使用字符串来生成“文本虚拟节点”。可选。</span>
+  [
+    <span class="hljs-string">'先写一些文字'</span>,
+    createElement(<span class="hljs-string">'h1'</span>, <span class="hljs-string">'一则头条'</span>),
+    createElement(MyComponent, {
+      <span class="hljs-attr">props</span>: {
+        <span class="hljs-attr">someProp</span>: <span class="hljs-string">'foobar'</span>
+      }
+    })
+  ]
+)</code></pre>
+<h3 id="深入数据对象"><a class="headerlink" href="#深入数据对象" title="深入数据对象"></a>深入数据对象</h3><p>有一点要注意：正如 <code>v-bind:class</code> 和 <code>v-bind:style</code> 在模板语法中会被特别对待一样，它们在 VNode 数据对象中也有对应的顶层字段。该对象也允许你绑定普通的 HTML 特性，也允许绑定如 <code>innerHTML</code> 这样的 DOM 属性 (这会覆盖 <code>v-html</code> 指令)。</p>
+<pre><code class="hljs js">{
+  <span class="hljs-comment">// 与 `v-bind:class` 的 API 相同，</span>
+  <span class="hljs-comment">// 接受一个字符串、对象或字符串和对象组成的数组</span>
+  <span class="hljs-string">'class'</span>: {
+    <span class="hljs-attr">foo</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">bar</span>: <span class="hljs-literal">false</span>
+  },
+  <span class="hljs-comment">// 与 `v-bind:style` 的 API 相同，</span>
+  <span class="hljs-comment">// 接受一个字符串、对象，或对象组成的数组</span>
+  style: {
+    <span class="hljs-attr">color</span>: <span class="hljs-string">'red'</span>,
+    <span class="hljs-attr">fontSize</span>: <span class="hljs-string">'14px'</span>
+  },
+  <span class="hljs-comment">// 普通的 HTML 特性</span>
+  attrs: {
+    <span class="hljs-attr">id</span>: <span class="hljs-string">'foo'</span>
+  },
+  <span class="hljs-comment">// 组件 prop</span>
+  props: {
+    <span class="hljs-attr">myProp</span>: <span class="hljs-string">'bar'</span>
+  },
+  <span class="hljs-comment">// DOM 属性</span>
+  domProps: {
+    <span class="hljs-attr">innerHTML</span>: <span class="hljs-string">'baz'</span>
+  },
+  <span class="hljs-comment">// 事件监听器在 `on` 属性内，</span>
+  <span class="hljs-comment">// 但不再支持如 `v-on:keyup.enter` 这样的修饰器。</span>
+  <span class="hljs-comment">// 需要在处理函数中手动检查 keyCode。</span>
+  on: {
+    <span class="hljs-attr">click</span>: <span class="hljs-keyword">this</span>.clickHandler
+  },
+  <span class="hljs-comment">// 仅用于组件，用于监听原生事件，而不是组件内部使用</span>
+  <span class="hljs-comment">// `vm.$emit` 触发的事件。</span>
+  nativeOn: {
+    <span class="hljs-attr">click</span>: <span class="hljs-keyword">this</span>.nativeClickHandler
+  },
+  <span class="hljs-comment">// 自定义指令。注意，你无法对 `binding` 中的 `oldValue`</span>
+  <span class="hljs-comment">// 赋值，因为 Vue 已经自动为你进行了同步。</span>
+  directives: [
+    {
+      <span class="hljs-attr">name</span>: <span class="hljs-string">'my-custom-directive'</span>,
+      <span class="hljs-attr">value</span>: <span class="hljs-string">'2'</span>,
+      <span class="hljs-attr">expression</span>: <span class="hljs-string">'1 + 1'</span>,
+      <span class="hljs-attr">arg</span>: <span class="hljs-string">'foo'</span>,
+      <span class="hljs-attr">modifiers</span>: {
+        <span class="hljs-attr">bar</span>: <span class="hljs-literal">true</span>
+      }
+    }
+  ],
+  <span class="hljs-comment">// 作用域插槽的格式为</span>
+  <span class="hljs-comment">// { name: props =&gt; VNode | Array&lt;VNode&gt; }</span>
+  scopedSlots: {
+    <span class="hljs-attr">default</span>: <span class="hljs-function"><span class="hljs-params">props</span> =&gt;</span> createElement(<span class="hljs-string">'span'</span>, props.text)
+  },
+  <span class="hljs-comment">// 如果组件是其它组件的子组件，需为插槽指定名称</span>
+  slot: <span class="hljs-string">'name-of-slot'</span>,
+  <span class="hljs-comment">// 其它特殊顶层属性</span>
+  key: <span class="hljs-string">'myKey'</span>,
+  <span class="hljs-attr">ref</span>: <span class="hljs-string">'myRef'</span>,
+  <span class="hljs-comment">// 如果你在渲染函数中给多个元素都应用了相同的 ref 名，</span>
+  <span class="hljs-comment">// 那么 `$refs.myRef` 会变成一个数组。</span>
+  refInFor: <span class="hljs-literal">true</span>
+}</code></pre>
+<h3 id="完整示例"><a class="headerlink" href="#完整示例" title="完整示例"></a>完整示例</h3><p>有了这些知识，我们现在可以完成我们最开始想实现的组件：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> getChildrenTextContent = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">children</span>) </span>{
+  <span class="hljs-keyword">return</span> children.map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">node</span>) </span>{
+    <span class="hljs-keyword">return</span> node.children
+      ? getChildrenTextContent(node.children)
+      : node.text
+  }).join(<span class="hljs-string">''</span>)
+}
+
+Vue.component(<span class="hljs-string">'anchored-heading'</span>, {
+  <span class="hljs-attr">render</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+    <span class="hljs-comment">// 创建 kebab-case 风格的 ID</span>
+    <span class="hljs-keyword">var</span> headingId = getChildrenTextContent(<span class="hljs-keyword">this</span>.$slots.default)
+      .toLowerCase()
+      .replace(<span class="hljs-regexp">/\W+/g</span>, <span class="hljs-string">'-'</span>)
+      .replace(<span class="hljs-regexp">/(^-|-$)/g</span>, <span class="hljs-string">''</span>)
+
+    <span class="hljs-keyword">return</span> createElement(
+      <span class="hljs-string">'h'</span> + <span class="hljs-keyword">this</span>.level,
+      [
+        createElement(<span class="hljs-string">'a'</span>, {
+          <span class="hljs-attr">attrs</span>: {
+            <span class="hljs-attr">name</span>: headingId,
+            <span class="hljs-attr">href</span>: <span class="hljs-string">'#'</span> + headingId
+          }
+        }, <span class="hljs-keyword">this</span>.$slots.default)
+      ]
+    )
+  },
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">level</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-built_in">Number</span>,
+      <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>
+    }
+  }
+})</code></pre>
+<h3 id="约束"><a class="headerlink" href="#约束" title="约束"></a>约束</h3><h4 id="VNode-必须唯一"><a class="headerlink" href="#VNode-必须唯一" title="VNode 必须唯一"></a>VNode 必须唯一</h4><p>组件树中的所有 VNode 必须是唯一的。这意味着，下面的渲染函数是不合法的：</p>
+<pre><code class="hljs js">render: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+  <span class="hljs-keyword">var</span> myParagraphVNode = createElement(<span class="hljs-string">'p'</span>, <span class="hljs-string">'hi'</span>)
+  <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'div'</span>, [
+    <span class="hljs-comment">// 错误 - 重复的 VNode</span>
+    myParagraphVNode, myParagraphVNode
+  ])
+}</code></pre>
+<p>如果你真的需要重复很多次的元素/组件，你可以使用工厂函数来实现。例如，下面这渲染函数用完全合法的方式渲染了 20 个相同的段落：</p>
+<pre><code class="hljs js">render: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+  <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'div'</span>,
+    <span class="hljs-built_in">Array</span>.apply(<span class="hljs-literal">null</span>, { <span class="hljs-attr">length</span>: <span class="hljs-number">20</span> }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'p'</span>, <span class="hljs-string">'hi'</span>)
+    })
+  )
+}</code></pre>
+<h2 id="使用-JavaScript-代替模板功能"><a class="headerlink" href="#使用-JavaScript-代替模板功能" title="使用 JavaScript 代替模板功能"></a>使用 JavaScript 代替模板功能</h2><h3 id="v-if-和-v-for"><a class="headerlink" href="#v-if-和-v-for" title="v-if 和 v-for"></a><code>v-if</code> 和 <code>v-for</code></h3><p>只要在原生的 JavaScript 中可以轻松完成的操作，Vue 的渲染函数就不会提供专有的替代方法。比如，在模板中使用的 <code>v-if</code> 和 <code>v-for</code>：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">ul</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"items.length"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span> <span class="hljs-attr">v-for</span>=<span class="hljs-string">"item in items"</span>&gt;</span>{{ item.name }}<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">v-else</span>&gt;</span>No items found.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></code></pre>
+<p>这些都可以在渲染函数中用 JavaScript 的 <code>if</code>/<code>else</code> 和 <code>map</code> 来重写：</p>
+<pre><code class="hljs js">props: [<span class="hljs-string">'items'</span>],
+<span class="hljs-attr">render</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.items.length) {
+    <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'ul'</span>, <span class="hljs-keyword">this</span>.items.map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">item</span>) </span>{
+      <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'li'</span>, item.name)
+    }))
+  } <span class="hljs-keyword">else</span> {
+    <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'p'</span>, <span class="hljs-string">'No items found.'</span>)
+  }
+}</code></pre>
+<h3 id="v-model"><a class="headerlink" href="#v-model" title="v-model"></a><code>v-model</code></h3><p>渲染函数中没有与 <code>v-model</code> 的直接对应——你必须自己实现相应的逻辑：</p>
+<pre><code class="hljs js">props: [<span class="hljs-string">'value'</span>],
+<span class="hljs-attr">render</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+  <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>
+  <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'input'</span>, {
+    <span class="hljs-attr">domProps</span>: {
+      <span class="hljs-attr">value</span>: self.value
+    },
+    <span class="hljs-attr">on</span>: {
+      <span class="hljs-attr">input</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">event</span>) </span>{
+        self.$emit(<span class="hljs-string">'input'</span>, event.target.value)
+      }
+    }
+  })
+}</code></pre>
+<p>这就是深入底层的代价，但与 <code>v-model</code> 相比，这可以让你更好地控制交互细节。</p>
+<h3 id="事件-amp-按键修饰符"><a class="headerlink" href="#事件-amp-按键修饰符" title="事件 &amp; 按键修饰符"></a>事件 &amp; 按键修饰符</h3><p>对于 <code>.passive</code>、<code>.capture</code> 和 <code>.once</code> 这些事件修饰符, Vue 提供了相应的前缀可以用于 <code>on</code>：</p>
+<table>
+<thead>
+<tr>
+<th>修饰符</th>
+<th>前缀</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.passive</code></td>
+<td><code>&amp;</code></td>
+</tr>
+<tr>
+<td><code>.capture</code></td>
+<td><code>!</code></td>
+</tr>
+<tr>
+<td><code>.once</code></td>
+<td><code>~</code></td>
+</tr>
+<tr>
+<td><code>.capture.once</code> 或<br/><code>.once.capture</code></td>
+<td><code>~!</code></td>
+</tr>
+</tbody>
+</table>
+<p>例如:</p>
+<pre><code class="hljs javascript">on: {
+  <span class="hljs-string">'!click'</span>: <span class="hljs-keyword">this</span>.doThisInCapturingMode,
+  <span class="hljs-string">'~keyup'</span>: <span class="hljs-keyword">this</span>.doThisOnce,
+  <span class="hljs-string">'~!mouseover'</span>: <span class="hljs-keyword">this</span>.doThisOnceInCapturingMode
+}</code></pre>
+<p>对于所有其它的修饰符，私有前缀都不是必须的，因为你可以在事件处理函数中使用事件方法：</p>
+<table>
+<thead>
+<tr>
+<th>修饰符</th>
+<th>处理函数中的等价操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.stop</code></td>
+<td><code>event.stopPropagation()</code></td>
+</tr>
+<tr>
+<td><code>.prevent</code></td>
+<td><code>event.preventDefault()</code></td>
+</tr>
+<tr>
+<td><code>.self</code></td>
+<td><code>if (event.target !== event.currentTarget) return</code></td>
+</tr>
+<tr>
+<td>按键：<br/><code>.enter</code>, <code>.13</code></td>
+<td><code>if (event.keyCode !== 13) return</code> (对于别的按键修饰符来说，可将 <code>13</code> 改为<a href="http://keycode.info/" rel="noopener" target="_blank">另一个按键码</a>)</td>
+</tr>
+<tr>
+<td>修饰键：<br/><code>.ctrl</code>, <code>.alt</code>, <code>.shift</code>, <code>.meta</code></td>
+<td><code>if (!event.ctrlKey) return</code> (将 <code>ctrlKey</code> 分别修改为 <code>altKey</code>、<code>shiftKey</code> 或者 <code>metaKey</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>这里是一个使用所有修饰符的例子：</p>
+<pre><code class="hljs javascript">on: {
+  <span class="hljs-attr">keyup</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">event</span>) </span>{
+    <span class="hljs-comment">// 如果触发事件的元素不是事件绑定的元素</span>
+    <span class="hljs-comment">// 则返回</span>
+    <span class="hljs-keyword">if</span> (event.target !== event.currentTarget) <span class="hljs-keyword">return</span>
+    <span class="hljs-comment">// 如果按下去的不是 enter 键或者</span>
+    <span class="hljs-comment">// 没有同时按下 shift 键</span>
+    <span class="hljs-comment">// 则返回</span>
+    <span class="hljs-keyword">if</span> (!event.shiftKey || event.keyCode !== <span class="hljs-number">13</span>) <span class="hljs-keyword">return</span>
+    <span class="hljs-comment">// 阻止 事件冒泡</span>
+    event.stopPropagation()
+    <span class="hljs-comment">// 阻止该元素默认的 keyup 事件</span>
+    event.preventDefault()
+    <span class="hljs-comment">// ...</span>
+  }
+}</code></pre>
+<h3 id="插槽"><a class="headerlink" href="#插槽" title="插槽"></a>插槽</h3><p>你可以通过 <a href="../api/#vm-slots"><code>this.$slots</code></a> 访问静态插槽的内容，每个插槽都是一个 VNode 数组：</p>
+<pre><code class="hljs js">render: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+  <span class="hljs-comment">// `&lt;div&gt;&lt;slot&gt;&lt;/slot&gt;&lt;/div&gt;`</span>
+  <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'div'</span>, <span class="hljs-keyword">this</span>.$slots.default)
+}</code></pre>
+<p>也可以通过 <a href="../api/#vm-scopedSlots"><code>this.$scopedSlots</code></a> 访问作用域插槽，每个作用域插槽都是一个返回若干 VNode 的函数：</p>
+<pre><code class="hljs js">props: [<span class="hljs-string">'message'</span>],
+<span class="hljs-attr">render</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+  <span class="hljs-comment">// `&lt;div&gt;&lt;slot :text="message"&gt;&lt;/slot&gt;&lt;/div&gt;`</span>
+  <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'div'</span>, [
+    <span class="hljs-keyword">this</span>.$scopedSlots.default({
+      <span class="hljs-attr">text</span>: <span class="hljs-keyword">this</span>.message
+    })
+  ])
+}</code></pre>
+<p>如果要用渲染函数向子组件中传递作用域插槽，可以利用 VNode 数据对象中的 <code>scopedSlots</code> 字段：</p>
+<pre><code class="hljs js">render: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement</span>) </span>{
+  <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'div'</span>, [
+    createElement(<span class="hljs-string">'child'</span>, {
+      <span class="hljs-comment">// 在数据对象中传递 `scopedSlots`</span>
+      <span class="hljs-comment">// 格式为 { name: props =&gt; VNode | Array&lt;VNode&gt; }</span>
+      scopedSlots: {
+        <span class="hljs-attr">default</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">props</span>) </span>{
+          <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'span'</span>, props.text)
+        }
+      }
+    })
+  ])
+}</code></pre>
+<h2 id="JSX"><a class="headerlink" href="#JSX" title="JSX"></a>JSX</h2><p>如果你写了很多 <code>render</code> 函数，可能会觉得下面这样的代码写起来很痛苦：</p>
+<pre><code class="hljs js">createElement(
+  <span class="hljs-string">'anchored-heading'</span>, {
+    <span class="hljs-attr">props</span>: {
+      <span class="hljs-attr">level</span>: <span class="hljs-number">1</span>
+    }
+  }, [
+    createElement(<span class="hljs-string">'span'</span>, <span class="hljs-string">'Hello'</span>),
+    <span class="hljs-string">' world!'</span>
+  ]
+)</code></pre>
+<p>特别是对应的模板如此简单的情况下：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">anchored-heading</span> <span class="hljs-attr">:level</span>=<span class="hljs-string">"1"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>Hello<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span> world!
+<span class="hljs-tag">&lt;/<span class="hljs-name">anchored-heading</span>&gt;</span></code></pre>
+<p>这就是为什么会有一个 <a href="https://github.com/vuejs/jsx" rel="noopener" target="_blank">Babel 插件</a>，用于在 Vue 中使用 JSX 语法，它可以让我们回到更接近于模板的语法上。</p>
+<pre><code class="hljs js"><span class="hljs-keyword">import</span> AnchoredHeading <span class="hljs-keyword">from</span> <span class="hljs-string">'./AnchoredHeading.vue'</span>
+
+<span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#demo'</span>,
+  <span class="hljs-attr">render</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">h</span>) </span>{
+    <span class="hljs-keyword">return</span> (
+      <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">AnchoredHeading</span> <span class="hljs-attr">level</span>=<span class="hljs-string">{1}</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>Hello<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span> world!
+      <span class="hljs-tag">&lt;/<span class="hljs-name">AnchoredHeading</span>&gt;</span></span>
+    )
+  }
+})</code></pre>
+<p class="tip">将 <code>h</code> 作为 <code>createElement</code> 的别名是 Vue 生态系统中的一个通用惯例，实际上也是 JSX 所要求的。从 Vue 的 Babel 插件的 <a href="https://github.com/vuejs/babel-plugin-transform-vue-jsx#h-auto-injection" rel="noopener" target="_blank">3.4.0 版本</a>开始，我们会在以 ES2015 语法声明的含有 JSX 的任何方法和 getter 中 (不是函数或箭头函数中) 自动注入 <code>const h = this.$createElement</code>，这样你就可以去掉 <code>(h)</code> 参数了。对于更早版本的插件，如果 <code>h</code> 在当前作用域中不可用，应用会抛错。</p>
+<p>要了解更多关于 JSX 如何映射到 JavaScript，请阅读<a href="https://github.com/vuejs/jsx#installation" rel="noopener" target="_blank">使用文档</a>。</p>
+<h2 id="函数式组件"><a class="headerlink" href="#函数式组件" title="函数式组件"></a>函数式组件</h2><p>之前创建的锚点标题组件是比较简单，没有管理任何状态，也没有监听任何传递给它的状态，也没有生命周期方法。实际上，它只是一个接受一些 prop 的函数。<br/>在这样的场景下，我们可以将组件标记为 <code>functional</code>，这意味它无状态 (没有<a href="../api/#选项-数据">响应式数据</a>)，也没有实例 (没有 <code>this</code> 上下文)。<br/>一个<strong>函数式组件</strong>就像这样：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'my-component'</span>, {
+  <span class="hljs-attr">functional</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-comment">// Props 是可选的</span>
+  props: {
+    <span class="hljs-comment">// ...</span>
+  },
+  <span class="hljs-comment">// 为了弥补缺少的实例</span>
+  <span class="hljs-comment">// 提供第二个参数作为上下文</span>
+  render: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement, context</span>) </span>{
+    <span class="hljs-comment">// ...</span>
+  }
+})</code></pre>
+<blockquote>
+<p>注意：在 2.3.0 之前的版本中，如果一个函数式组件想要接收 prop，则 <code>props</code> 选项是必须的。在 2.3.0 或以上的版本中，你可以省略 <code>props</code> 选项，所有组件上的特性都会被自动隐式解析为 prop。</p>
+</blockquote>
+<p>在 2.5.0 及以上版本中，如果你使用了<a href="single-file-components.html">单文件组件</a>，那么基于模板的函数式组件可以这样声明：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">functional</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span></code></pre>
+<p>组件需要的一切都是通过 <code>context</code> 参数传递，它是一个包括如下字段的对象：</p>
+<ul>
+<li><code>props</code>：提供所有 prop 的对象</li>
+<li><code>children</code>: VNode 子节点的数组</li>
+<li><code>slots</code>: 一个函数，返回了包含所有插槽的对象</li>
+<li><code>scopedSlots</code>: (2.6.0+) 一个暴露传入的作用域插槽的对象。也以函数形式暴露普通插槽。</li>
+<li><code>data</code>：传递给组件的整个<a href="#深入-data-对象">数据对象</a>，作为 <code>createElement</code> 的第二个参数传入组件</li>
+<li><code>parent</code>：对父组件的引用</li>
+<li><code>listeners</code>: (2.3.0+) 一个包含了所有父组件为当前组件注册的事件监听器的对象。这是 <code>data.on</code> 的一个别名。</li>
+<li><code>injections</code>: (2.3.0+) 如果使用了 <a href="../api/#provide-inject"><code>inject</code></a> 选项，则该对象包含了应当被注入的属性。</li>
+</ul>
+<p>在添加 <code>functional: true</code> 之后，需要更新我们的锚点标题组件的渲染函数，为其增加 <code>context</code> 参数，并将 <code>this.$slots.default</code> 更新为 <code>context.children</code>，然后将 <code>this.level</code> 更新为 <code>context.props.level</code>。</p>
+<p>因为函数式组件只是函数，所以渲染开销也低很多。然而，对持久化实例的缺乏也意味着函数式组件不会出现在 <a href="https://github.com/vuejs/vue-devtools" rel="noopener" target="_blank">Vue devtools</a> 的组件树里。</p>
+<p>在作为包装组件时它们也同样非常有用。比如，当你需要做这些时：</p>
+<ul>
+<li>程序化地在多个组件中选择一个来代为渲染；</li>
+<li>在将 <code>children</code>、<code>props</code>、<code>data</code> 传递给子组件之前操作它们。</li>
+</ul>
+<p>下面是一个 <code>smart-list</code> 组件的例子，它能根据传入 prop 的值来代为渲染更具体的组件：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> EmptyList = { <span class="hljs-comment">/* ... */</span> }
+<span class="hljs-keyword">var</span> TableList = { <span class="hljs-comment">/* ... */</span> }
+<span class="hljs-keyword">var</span> OrderedList = { <span class="hljs-comment">/* ... */</span> }
+<span class="hljs-keyword">var</span> UnorderedList = { <span class="hljs-comment">/* ... */</span> }
+
+Vue.component(<span class="hljs-string">'smart-list'</span>, {
+  <span class="hljs-attr">functional</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">items</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-built_in">Array</span>,
+      <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>
+    },
+    <span class="hljs-attr">isOrdered</span>: <span class="hljs-built_in">Boolean</span>
+  },
+  <span class="hljs-attr">render</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement, context</span>) </span>{
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">appropriateListComponent</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-keyword">var</span> items = context.props.items
+
+      <span class="hljs-keyword">if</span> (items.length === <span class="hljs-number">0</span>)           <span class="hljs-keyword">return</span> EmptyList
+      <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> items[<span class="hljs-number">0</span>] === <span class="hljs-string">'object'</span>) <span class="hljs-keyword">return</span> TableList
+      <span class="hljs-keyword">if</span> (context.props.isOrdered)      <span class="hljs-keyword">return</span> OrderedList
+
+      <span class="hljs-keyword">return</span> UnorderedList
+    }
+
+    <span class="hljs-keyword">return</span> createElement(
+      appropriateListComponent(),
+      context.data,
+      context.children
+    )
+  }
+})</code></pre>
+<h3 id="向子元素或子组件传递特性和事件"><a class="headerlink" href="#向子元素或子组件传递特性和事件" title="向子元素或子组件传递特性和事件"></a>向子元素或子组件传递特性和事件</h3><p>在普通组件中，没有被定义为 prop 的特性会自动添加到组件的根元素上，将已有的同名特性进行替换或与其进行<a href="class-and-style.html">智能合并</a>。</p>
+<p>然而函数式组件要求你显式定义该行为：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'my-functional-button'</span>, {
+  <span class="hljs-attr">functional</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">render</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">createElement, context</span>) </span>{
+    <span class="hljs-comment">// 完全透传任何特性、事件监听器、子节点等。</span>
+    <span class="hljs-keyword">return</span> createElement(<span class="hljs-string">'button'</span>, context.data, context.children)
+  }
+})</code></pre>
+<p>通过向 <code>createElement</code> 传入 <code>context.data</code> 作为第二个参数，我们就把 <code>my-functional-button</code> 上面所有的特性和事件监听器都传递下去了。事实上这是非常透明的，以至于那些事件甚至并不要求 <code>.native</code> 修饰符。</p>
+<p>如果你使用基于模板的函数式组件，那么你还需要手动添加特性和监听器。因为我们可以访问到其独立的上下文内容，所以我们可以使用 <code>data.attrs</code> 传递任何 HTML 特性，也可以使用 <code>listeners</code> <em>(即 <code>data.on</code> 的别名)</em> 传递任何事件监听器。</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">template</span> <span class="hljs-attr">functional</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span>
+    <span class="hljs-attr">class</span>=<span class="hljs-string">"btn btn-primary"</span>
+    <span class="hljs-attr">v-bind</span>=<span class="hljs-string">"data.attrs"</span>
+    <span class="hljs-attr">v-on</span>=<span class="hljs-string">"listeners"</span>
+  &gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">slot</span>/&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span></code></pre>
+<h3 id="slots-和-children-对比"><a class="headerlink" href="#slots-和-children-对比" title="slots() 和 children 对比"></a><code>slots()</code> 和 <code>children</code> 对比</h3><p>你可能想知道为什么同时需要 <code>slots()</code> 和 <code>children</code>。<code>slots().default</code> 不是和 <code>children</code> 类似的吗？在一些场景中，是这样——但如果是如下的带有子节点的函数式组件呢？</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">my-functional-component</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">v-slot:foo</span>&gt;</span>
+    first
+  <span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>second<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">my-functional-component</span>&gt;</span></code></pre>
+<p>对于这个组件，<code>children</code> 会给你两个段落标签，而 <code>slots().default</code> 只会传递第二个匿名段落标签，<code>slots().foo</code> 会传递第一个具名段落标签。同时拥有 <code>children</code> 和 <code>slots()</code>，因此你可以选择让组件感知某个插槽机制，还是简单地通过传递 <code>children</code>，移交给其它组件去处理。</p>
+<h2 id="模板编译"><a class="headerlink" href="#模板编译" title="模板编译"></a>模板编译</h2><p>你可能会有兴趣知道，Vue 的模板实际上被编译成了渲染函数。这是一个实现细节，通常不需要关心。但如果你想看看模板的功能具体是怎样被编译的，可能会发现会非常有意思。下面是一个使用 <code>Vue.compile</code> 来实时编译模板字符串的简单示例：</p>
+<div class="demo" id="vue-compile-demo">
+<textarea rows="10" v-model="templateText"></textarea>
+<div v-if="typeof result === 'object'">
+<label>render:</label>
+<pre><code>{{ result.render }}</code></pre>
+<label>staticRenderFns:</label>
+<pre v-for="(fn, index) in result.staticRenderFns"><code>_m({{ index }}): {{ fn }}</code></pre>
+<pre v-if="!result.staticRenderFns.length"><code>{{ result.staticRenderFns }}</code></pre>
+</div>
+<div v-else="">
+<label>Compilation Error:</label>
+<pre><code>{{ result }}</code></pre>
+</div>
+</div>
+<script>
+new Vue({
+  el: '#vue-compile-demo',
+  data: {
+    templateText: '\
+<div>\n\
+  <header>\n\
+    <h1>I\'m a template!</h1>\n\
+  </header>\n\
+  <p v-if="message">\n\
+    {{ message }}\n\
+  </p>\n\
+  <p v-else>\n\
+    No message.\n\
+  </p>\n\
+</div>\
+    ',
+  },
+  computed: {
+    result: function () {
+      if (!this.templateText) {
+        return 'Enter a valid template above'
+      }
+      try {
+        var result = Vue.compile(this.templateText.replace(/\s{2,}/g, ''))
+        return {
+          render: this.formatFunction(result.render),
+          staticRenderFns: result.staticRenderFns.map(this.formatFunction)
+        }
+      } catch (error) {
+        return error.message
+      }
+    }
+  },
+  methods: {
+    formatFunction: function (fn) {
+      return fn.toString().replace(/(\{\n)(\S)/, '$1  $2')
+    }
+  }
+})
+console.error = function (error) {
+  throw new Error(error)
+}
+</script>
+<style>
+#vue-compile-demo {
+  -webkit-user-select: inherit;
+  user-select: inherit;
+}
+#vue-compile-demo pre {
+  padding: 10px;
+  overflow-x: auto;
+}
+#vue-compile-demo code {
+  white-space: pre;
+  padding: 0
+}
+#vue-compile-demo textarea {
+  width: 100%;
+  font-family: monospace;
+}
+</style>
+<div class="guide-links">
+<span>← <a href="custom-directive.html">自定义指令</a></span>
+<span style="float: right;"><a href="plugins.html">插件</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srcrender-function.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

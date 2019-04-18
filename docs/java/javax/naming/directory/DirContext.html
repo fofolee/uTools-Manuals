@@ -1,0 +1,1526 @@
+<div class="header">
+<div class="subTitle">
+     compact3 
+   </div>
+<div class="subTitle">
+     javax.naming.directory 
+   </div>
+<h2 class="title" title="Interface DirContext">Interface DirContext</h2>
+</div><div class="contentContainer">
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Superinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../../javax/naming/Context.html" title="javax.naming中的接口">Context</a></span>
+</dd>
+</dl>
+<dl>
+<dt>
+         All Known Subinterfaces: 
+       </dt>
+<dd>
+<span><a href="../../../javax/naming/event/EventDirContext.html" title="javax.naming.event中的接口">EventDirContext</a> ， <a href="../../../javax/naming/ldap/LdapContext.html" title="javax.naming.ldap中的接口">LdapContext</a></span>
+</dd>
+</dl>
+<dl>
+<dt>
+        所有已知实现类：
+       </dt>
+<dd>
+<span><a href="../../../javax/naming/directory/InitialDirContext.html" title="javax.naming.directory中的类">InitialDirContext</a> ， <a href="../../../javax/naming/ldap/InitialLdapContext.html" title="javax.naming.ldap中的类">InitialLdapContext</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public interface <span class="typeNameLabel">DirContext</span>
+extends <a href="../../../javax/naming/Context.html" title="interface in javax.naming">Context</a></pre>
+<div class="block">
+<span>目录服务界面，包含检查和更新与对象关联的属性以及搜索目录的方法。</span>
+<h1> <span>名字</span> </h1>
+<span>传递给<tt>DirContext</tt>方法的参数的每个名称都是相对于该上下文。</span>
+<span>空的名称用于命名上下文本身。</span>
+<span>name参数可能永远不为null。</span>
+<p> <span>大多数方法都有超载版本，一个使用<code>Name</code>参数，一个采用<code>String</code> 。</span> <span>这些重载版本是等效的，因为如果<code>Name</code>和<code>String</code>参数只是相同名称的不同表示，那么相同方法的重载版本的行为相同。</span> <span>在下面的方法描述中，仅记录一个版本。</span> <span>第二个版本代替了第一个链接：相同的文档适用于两者。</span> </p>
+<p> <span>有关对<tt>Context</tt>方法的名称参数的<tt>解释的</tt>讨论，请参阅<tt>Context</tt> 。</span> <span>这些相同的规则适用于<tt>DirContext</tt>方法的name参数。</span> </p>
+<h1> <span>属性模型</span> </h1>
+<span>有两个基本模型应该与什么属性相关联。</span>
+<span>首先，属性可以直接与DirContext对象相关联。</span>
+<span>在这个模型中，命名对象的属性操作大致等同于对名称（返回DirContext对象）的查找，后跟在调用者提供空名称的DirContext对象上调用的属性操作。</span>
+<span>可以将属性视为与对象一起存储（请注意，这并不意味着实现必须这样做）。</span>
+<p> <span>第二个模型是属性与DirContext中的名称（通常是原子名称）相关联。</span> <span>在该模型中，命名对象的属性操作大致等同于对命名对象的父DirContext的名称进行查找，后跟在调用者提供终端原子名称的父级上调用的属性操作。</span> <span>属性可以被视为存储在父DirContext中（同样，这并不意味着实现必须这样做）。</span> <span>不是DirContexts的对象可以具有属性，只要他们的父母是DirContexts。</span> </p>
+<p> <span>JNDI支持这两种模式。</span> <span>各个服务提供商决定在哪里“存储”属性。</span> <span>如果对象的属性被存储为对象的一部分，或存储在父对象中并与对象的名称相关联，那么JNDI客户端是最安全的。</span> </p>
+<h1> <span>属性类型名称</span> </h1>
+<span>在<tt>getAttributes()</tt>和<tt>search()</tt>方法中，您可以通过提供属性名称（字符串）列表来提供要返回的属性。</span>
+<span>您返回的属性可能不具有与您指定的属性名称相同的名称。</span>
+<span>这是因为某些目录支持使其返回其他属性的功能。</span>
+<span>这些功能包括属性子类，属性名称同义词和属性语言代码。</span>
+<p> <span>在属性子类化中，属性在类层次结构中定义。</span> <span>在某些目录中，例如，“name”属性可能是所有名称相关属性的超类，包括“commonName”和“surName”。</span> <span>要求“name”属性可能会返回“commonName”和“surName”属性。</span> </p>
+<p> <span>使用属性类型同义词，一个目录可以为同一属性分配多个名称。</span> <span>例如，“cn”和“commonName”可能都指向相同的属性。</span> <span>要求“cn”可能会返回“commonName”属性。</span> </p>
+<p> <span>一些目录支持属性的语言代码。</span> <span>例如，要求“description”属性的目录可能会返回以下所有属性：</span> </p>
+<ul>
+<li> <span>描述</span> </li>
+<li> <span>描述; lang-en</span> </li>
+<li> <span>描述;兰德</span> </li>
+<li> <span>描述; lang-fr</span> </li>
+</ul>
+<h1> <span>操作属性</span> </h1>
+<p> <span>某些目录具有“操作属性”的概念，这是与管理目的的目录对象相关联的属性。</span> <span>操作属性的示例是对象的访问控制列表。</span> </p>
+<p> <span>在<tt>getAttributes()</tt>和<tt>search()</tt>方法中，您可以指定与请求的对象相关联的所有属性由供应<tt>null</tt>返回作为要返回的<tt>属性</tt>列表。</span> <span>返回的属性<em>不</em>包括操作属性。</span> <span>为了检索操作属性，您必须明确命名它们。</span> </p>
+<h1> <span>命名上下文</span> </h1>
+<p> <span>名称必须解析为上下文的某些方法（例如，在搜索单一级别的上下文时）。</span> <span>这些方法的文档使用<em>名为context</em>的术语来描述其名称参数。</span> <span>对于这些方法，如果命名对象不是DirContext，则抛出<code>NotContextException</code> 。</span> <span>除了这些方法，不需要将<em>命名对象</em>作为DirContext。</span> </p>
+<h1> <span>参数</span> </h1>
+<p> <span>作为参数传递给任何方法的<tt><tt>Attributes，SearchControls，</tt></tt>或阵列对象不会由服务提供者进行修改。</span> <span>服务提供商可以在操作期间保留对其的引用，包括方法结果的任何枚举以及生成的任何引用的处理。</span> <span>呼叫者在此期间不应修改对象。</span> <span>由任何方法返回的<tt>Attributes</tt>对象由调用者拥有。</span> <span>呼叫者可以随后修改它;</span> <span>服务提供商不会。</span> </p>
+<h1> <span>例外</span> </h1>
+<p> <span>此接口中的所有方法都可能会抛出NamingException或其任何子类。</span> <span>有关每个异常的详细信息，请参阅NamingException及其子类。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.3 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/naming/Context.html" title="javax.naming中的接口"><code>Context</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#ADD_ATTRIBUTE">ADD_ATTRIBUTE</a></span></code>
+<div class="block">
+              此常数指定添加具有指定值的属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#REMOVE_ATTRIBUTE">REMOVE_ATTRIBUTE</a></span></code>
+<div class="block">
+              该常量指定从属性中删除指定的属性值。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#REPLACE_ATTRIBUTE">REPLACE_ATTRIBUTE</a></span></code>
+<div class="block">
+              该常数指定用指定值替换属性。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.javax.naming.Context">
+<!-- --> </a> <h3>Fields inherited from interface javax.naming.<a href="../../../javax/naming/Context.html" title="interface in javax.naming">Context</a></h3> <code><a href="../../../javax/naming/Context.html#APPLET">APPLET</a>, <a href="../../../javax/naming/Context.html#AUTHORITATIVE">AUTHORITATIVE</a>, <a href="../../../javax/naming/Context.html#BATCHSIZE">BATCHSIZE</a>, <a href="../../../javax/naming/Context.html#DNS_URL">DNS_URL</a>, <a href="../../../javax/naming/Context.html#INITIAL_CONTEXT_FACTORY">INITIAL_CONTEXT_FACTORY</a>, <a href="../../../javax/naming/Context.html#LANGUAGE">LANGUAGE</a>, <a href="../../../javax/naming/Context.html#OBJECT_FACTORIES">OBJECT_FACTORIES</a>, <a href="../../../javax/naming/Context.html#PROVIDER_URL">PROVIDER_URL</a>, <a href="../../../javax/naming/Context.html#REFERRAL">REFERRAL</a>, <a href="../../../javax/naming/Context.html#SECURITY_AUTHENTICATION">SECURITY_AUTHENTICATION</a>, <a href="../../../javax/naming/Context.html#SECURITY_CREDENTIALS">SECURITY_CREDENTIALS</a>, <a href="../../../javax/naming/Context.html#SECURITY_PRINCIPAL">SECURITY_PRINCIPAL</a>, <a href="../../../javax/naming/Context.html#SECURITY_PROTOCOL">SECURITY_PROTOCOL</a>, <a href="../../../javax/naming/Context.html#STATE_FACTORIES">STATE_FACTORIES</a>, <a href="../../../javax/naming/Context.html#URL_PKG_PREFIXES">URL_PKG_PREFIXES</a></code></li>
+</ul> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#bind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-">bind</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)</code>
+<div class="block">
+              将名称绑定到对象，以及关联的属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#bind-java.lang.String-java.lang.Object-javax.naming.directory.Attributes-">bind</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)</code>
+<div class="block">
+              将名称绑定到对象，以及关联的属性。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#createSubcontext-javax.naming.Name-javax.naming.directory.Attributes-">createSubcontext</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)</code>
+<div class="block">
+              创建和绑定新的上下文以及关联的属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#createSubcontext-java.lang.String-javax.naming.directory.Attributes-">createSubcontext</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)</code>
+<div class="block">
+              创建和绑定新的上下文以及关联的属性。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#getAttributes-javax.naming.Name-">getAttributes</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              检索与命名对象关联的所有属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#getAttributes-javax.naming.Name-java.lang.String:A-">getAttributes</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] attrIds)</code>
+<div class="block">
+              检索与命名对象关联的所选属性。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#getAttributes-java.lang.String-">getAttributes</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              检索与命名对象关联的所有属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#getAttributes-java.lang.String-java.lang.String:A-">getAttributes</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] attrIds)</code>
+<div class="block">
+              检索与命名对象关联的所选属性。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#getSchema-javax.naming.Name-">getSchema</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              检索与命名对象关联的模式。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#getSchema-java.lang.String-">getSchema</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              检索与命名对象关联的模式。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#getSchemaClassDefinition-javax.naming.Name-">getSchemaClassDefinition</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)</code>
+<div class="block">
+              检索包含命名对象的类定义的模式对象的上下文。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#getSchemaClassDefinition-java.lang.String-">getSchemaClassDefinition</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)</code>
+<div class="block">
+              检索包含命名对象的类定义的模式对象的上下文。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-javax.naming.Name-int-javax.naming.directory.Attributes-">modifyAttributes</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, int mod_op, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)</code>
+<div class="block">
+              修改与命名对象关联的属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-javax.naming.Name-javax.naming.directory.ModificationItem:A-">modifyAttributes</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../../javax/naming/directory/ModificationItem.html" title="class in javax.naming.directory">ModificationItem</a>[] mods)</code>
+<div class="block">
+              使用有序的修改列表修改与命名对象关联的属性。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-java.lang.String-int-javax.naming.directory.Attributes-">modifyAttributes</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, int mod_op, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)</code>
+<div class="block">
+              修改与命名对象关联的属性。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-java.lang.String-javax.naming.directory.ModificationItem:A-">modifyAttributes</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../javax/naming/directory/ModificationItem.html" title="class in javax.naming.directory">ModificationItem</a>[] mods)</code>
+<div class="block">
+              使用有序的修改列表修改与命名对象关联的属性。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#rebind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-">rebind</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)</code>
+<div class="block">
+              将名称绑定到对象以及关联的属性，覆盖任何现有绑定。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#rebind-java.lang.String-java.lang.Object-javax.naming.directory.Attributes-">rebind</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)</code>
+<div class="block">
+              将名称绑定到对象以及关联的属性，覆盖任何现有绑定。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-javax.naming.directory.Attributes-">search</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> matchingAttributes)</code>
+<div class="block">
+              在单个上下文中搜索包含指定属性集的对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-javax.naming.directory.Attributes-java.lang.String:A-">search</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> matchingAttributes, <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] attributesToReturn)</code>
+<div class="block">
+              在单个上下文中搜索包含指定属性集的对象，并检索所选属性。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i20">
+<td class="colFirst"><code><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-java.lang.String-java.lang.Object:A-javax.naming.directory.SearchControls-">search</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> filterExpr, <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>[] filterArgs, <a href="../../../javax/naming/directory/SearchControls.html" title="class in javax.naming.directory">SearchControls</a> cons)</code>
+<div class="block">
+              在命名的上下文或对象中搜索满足给定搜索过滤器的条目。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i21">
+<td class="colFirst"><code><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-java.lang.String-javax.naming.directory.SearchControls-">search</a></span>(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> filter, <a href="../../../javax/naming/directory/SearchControls.html" title="class in javax.naming.directory">SearchControls</a> cons)</code>
+<div class="block">
+              在命名的上下文或对象中搜索满足给定搜索过滤器的条目。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i22">
+<td class="colFirst"><code><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#search-java.lang.String-javax.naming.directory.Attributes-">search</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> matchingAttributes)</code>
+<div class="block">
+              在单个上下文中搜索包含指定属性集的对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i23">
+<td class="colFirst"><code><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#search-java.lang.String-javax.naming.directory.Attributes-java.lang.String:A-">search</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> matchingAttributes, <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] attributesToReturn)</code>
+<div class="block">
+              在单个上下文中搜索包含指定属性集的对象，并检索所选属性。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i24">
+<td class="colFirst"><code><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#search-java.lang.String-java.lang.String-java.lang.Object:A-javax.naming.directory.SearchControls-">search</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> filterExpr, <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>[] filterArgs, <a href="../../../javax/naming/directory/SearchControls.html" title="class in javax.naming.directory">SearchControls</a> cons)</code>
+<div class="block">
+              在命名的上下文或对象中搜索满足给定搜索过滤器的条目。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i25">
+<td class="colFirst"><code><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../javax/naming/directory/DirContext.html#search-java.lang.String-java.lang.String-javax.naming.directory.SearchControls-">search</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name, <a href="../../../java/lang/String.html" title="class in java.lang">String</a> filter, <a href="../../../javax/naming/directory/SearchControls.html" title="class in javax.naming.directory">SearchControls</a> cons)</code>
+<div class="block">
+              在命名的上下文或对象中搜索满足给定搜索过滤器的条目。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.javax.naming.Context">
+<!-- --> </a> <h3>Methods inherited from interface javax.naming.<a href="../../../javax/naming/Context.html" title="interface in javax.naming">Context</a></h3> <code><a href="../../../javax/naming/Context.html#addToEnvironment-java.lang.String-java.lang.Object-">addToEnvironment</a>, <a href="../../../javax/naming/Context.html#bind-javax.naming.Name-java.lang.Object-">bind</a>, <a href="../../../javax/naming/Context.html#bind-java.lang.String-java.lang.Object-">bind</a>, <a href="../../../javax/naming/Context.html#close--">close</a>, <a href="../../../javax/naming/Context.html#composeName-javax.naming.Name-javax.naming.Name-">composeName</a>, <a href="../../../javax/naming/Context.html#composeName-java.lang.String-java.lang.String-">composeName</a>, <a href="../../../javax/naming/Context.html#createSubcontext-javax.naming.Name-">createSubcontext</a>, <a href="../../../javax/naming/Context.html#createSubcontext-java.lang.String-">createSubcontext</a>, <a href="../../../javax/naming/Context.html#destroySubcontext-javax.naming.Name-">destroySubcontext</a>, <a href="../../../javax/naming/Context.html#destroySubcontext-java.lang.String-">destroySubcontext</a>, <a href="../../../javax/naming/Context.html#getEnvironment--">getEnvironment</a>, <a href="../../../javax/naming/Context.html#getNameInNamespace--">getNameInNamespace</a>, <a href="../../../javax/naming/Context.html#getNameParser-javax.naming.Name-">getNameParser</a>, <a href="../../../javax/naming/Context.html#getNameParser-java.lang.String-">getNameParser</a>, <a href="../../../javax/naming/Context.html#list-javax.naming.Name-">list</a>, <a href="../../../javax/naming/Context.html#list-java.lang.String-">list</a>, <a href="../../../javax/naming/Context.html#listBindings-javax.naming.Name-">listBindings</a>, <a href="../../../javax/naming/Context.html#listBindings-java.lang.String-">listBindings</a>, <a href="../../../javax/naming/Context.html#lookup-javax.naming.Name-">lookup</a>, <a href="../../../javax/naming/Context.html#lookup-java.lang.String-">lookup</a>, <a href="../../../javax/naming/Context.html#lookupLink-javax.naming.Name-">lookupLink</a>, <a href="../../../javax/naming/Context.html#lookupLink-java.lang.String-">lookupLink</a>, <a href="../../../javax/naming/Context.html#rebind-javax.naming.Name-java.lang.Object-">rebind</a>, <a href="../../../javax/naming/Context.html#rebind-java.lang.String-java.lang.Object-">rebind</a>, <a href="../../../javax/naming/Context.html#removeFromEnvironment-java.lang.String-">removeFromEnvironment</a>, <a href="../../../javax/naming/Context.html#rename-javax.naming.Name-javax.naming.Name-">rename</a>, <a href="../../../javax/naming/Context.html#rename-java.lang.String-java.lang.String-">rename</a>, <a href="../../../javax/naming/Context.html#unbind-javax.naming.Name-">unbind</a>, <a href="../../../javax/naming/Context.html#unbind-java.lang.String-">unbind</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="ADD_ATTRIBUTE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ADD_ATTRIBUTE</h4> <pre>static final int ADD_ATTRIBUTE</pre>
+<div class="block">
+<span>此常数指定添加具有指定值的属性。</span>
+<p> <span>如果属性不存在，请创建属性。</span> <span>结果属性具有指定值集合和先前值集合的并集。</span> <span>如果属性必须至少有一个值，则添加没有值的属性将抛出<code>InvalidAttributeValueException</code> 。</span> <span>对于该属性已存在的单值属性，抛出<code>AttributeInUseException</code> 。</span> <span>如果尝试将多个值添加到单值属性，则抛出<code>InvalidAttributeValueException</code> 。</span> </p>
+<p> <span>该常数的值为<tt>1</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/naming/directory/ModificationItem.html" title="javax.naming.directory中的类"><code>ModificationItem</code></a> ， <a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-javax.naming.Name-int-javax.naming.directory.Attributes-"><code>modifyAttributes(javax.naming.Name, int, javax.naming.directory.Attributes)</code></a> ， <a href="../../../constant-values.html#javax.naming.directory.DirContext.ADD_ATTRIBUTE">Constant Field Values</a></span>
+</dd>
+</dl> </li>
+</ul> <a name="REPLACE_ATTRIBUTE">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>REPLACE_ATTRIBUTE</h4> <pre>static final int REPLACE_ATTRIBUTE</pre>
+<div class="block">
+<span>该常数指定用指定值替换属性。</span>
+<p> <span>如果属性已存在，则使用新的指定值替换所有现有值。</span> <span>如果属性不存在，创建它。</span> <span>如果未指定值，则删除属性的所有值。</span> <span>如果属性需要至少有一个值，则删除最后一个值将删除该属性。</span> <span>如果尝试向单值属性添加多个值，则抛出<code>InvalidAttributeValueException</code> 。</span> </p>
+<p> <span>该常数的值为<tt>2</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/naming/directory/ModificationItem.html" title="javax.naming.directory中的类"><code>ModificationItem</code></a> ， <a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-javax.naming.Name-int-javax.naming.directory.Attributes-"><code>modifyAttributes(javax.naming.Name, int, javax.naming.directory.Attributes)</code></a> ， <a href="../../../constant-values.html#javax.naming.directory.DirContext.REPLACE_ATTRIBUTE">Constant Field Values</a></span>
+</dd>
+</dl> </li>
+</ul> <a name="REMOVE_ATTRIBUTE">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>REMOVE_ATTRIBUTE</h4> <pre>static final int REMOVE_ATTRIBUTE</pre>
+<div class="block">
+<span>该常量指定从属性中删除指定的属性值。</span>
+<p> <span>所得到的属性具有其先前值集合和指定值集合的设置差异。</span> <span>如果未指定值，则删除整个属性。</span> <span>如果属性不存在，或者指定值集合的某些或所有成员不存在，则该缺失可能会被忽略，并且操作成功，或者可能会抛出NamingException以指示缺少。</span> <span>如果属性需要至少有一个值，则删除最后一个值将删除该属性。</span> </p>
+<p> <span>该常数的值为<tt>3</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/naming/directory/ModificationItem.html" title="javax.naming.directory中的类"><code>ModificationItem</code></a> ， <a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-javax.naming.Name-int-javax.naming.directory.Attributes-"><code>modifyAttributes(javax.naming.Name, int, javax.naming.directory.Attributes)</code></a> ， <a href="../../../constant-values.html#javax.naming.directory.DirContext.REMOVE_ATTRIBUTE">Constant Field Values</a></span>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getAttributes-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAttributes</h4> <pre><a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> getAttributes(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+                  throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索与命名对象关联的所有属性。</span>
+<span>请参阅有关属性模型，属性类型名称和操作属性的类描述。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 从中检索属性的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>与name相关联的一组<code>name</code> 。</span>
+<span>如果name没有属性，返回一个空属性集;</span>
+<span>从不为空。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/naming/directory/DirContext.html#getAttributes-java.lang.String-"><code>getAttributes(String)</code></a> ， 
+            <a href="../../../javax/naming/directory/DirContext.html#getAttributes-javax.naming.Name-java.lang.String:A-"><code>getAttributes(Name, String[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="getAttributes-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAttributes</h4> <pre><a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> getAttributes(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)
+                  throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索与命名对象关联的所有属性。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#getAttributes-javax.naming.Name-"><code>getAttributes(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 从中检索属性的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             与name相关联的一组 
+            <code>name</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getAttributes-javax.naming.Name-java.lang.String:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAttributes</h4> <pre><a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> getAttributes(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+                         <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] attrIds)
+                  throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索与命名对象关联的所选属性。</span>
+<span>请参阅有关属性模型，属性类型名称和操作属性的类描述。</span>
+<p> <span>如果对象没有指定属性，则该目录将忽略不存在的属性，并返回该对象具有的请求属性。</span> </p>
+<p> <span>目录可能会返回比所请求的更多属性（请参阅类描述中的属性<strong>类型名称</strong> ），但不允许返回任意的，不相关的属性。</span> </p>
+<p> <span>请参阅类描述也<strong>操作属性</strong> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 从中检索属性的对象的名称 
+           </dd>
+<dd>
+<span><code>attrIds</code> - 要检索的属性的标识符。</span>
+<span>null表示应检索所有属性;</span>
+<span>一个空数组表示不应该检索。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>请求的属性;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getAttributes-java.lang.String-java.lang.String:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getAttributes</h4> <pre><a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> getAttributes(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                         <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] attrIds)
+                  throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索与命名对象关联的所选属性。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#getAttributes-javax.naming.Name-java.lang.String:A-"><code>getAttributes(Name, String[])</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 从中检索属性的对象的名称 
+           </dd>
+<dd>
+<span><code>attrIds</code> - 要检索的属性的标识符。</span>
+<span>null表示应检索所有属性;</span>
+<span>一个空数组表示不应该检索。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>请求的属性;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="modifyAttributes-javax.naming.Name-int-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>modifyAttributes</h4> <pre>void modifyAttributes(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+                      int mod_op,
+                      <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)
+               throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>修改与命名对象关联的属性。</span>
+<span>未指定修改的顺序。</span>
+<span>在可能的情况下，修改以原子方式执行。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 其属性将被更新的对象的名称 
+           </dd>
+<dd>
+<code>mod_op</code> -修改操作的一个： 
+            <code>ADD_ATTRIBUTE</code> ， 
+            <code>REPLACE_ATTRIBUTE</code> ， 
+            <code>REMOVE_ATTRIBUTE</code> 。 
+           </dd>
+<dd>
+<span><code>attrs</code> - 用于修改的属性;</span>
+<span>可能不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/directory/AttributeModificationException.html" title="class in javax.naming.directory">AttributeModificationException</a></code> - 如果修改无法成功完成 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-javax.naming.Name-javax.naming.directory.ModificationItem:A-"><code>modifyAttributes(Name, ModificationItem[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="modifyAttributes-java.lang.String-int-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>modifyAttributes</h4> <pre>void modifyAttributes(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                      int mod_op,
+                      <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)
+               throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>修改与命名对象关联的属性。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-javax.naming.Name-int-javax.naming.directory.Attributes-"><code>modifyAttributes(Name, int, Attributes)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 其属性将被更新的对象的名称 
+           </dd>
+<dd>
+<code>mod_op</code> -修改操作的一个： 
+            <code>ADD_ATTRIBUTE</code> ， 
+            <code>REPLACE_ATTRIBUTE</code> ， 
+            <code>REMOVE_ATTRIBUTE</code> 。 
+           </dd>
+<dd>
+<span><code>attrs</code> - 用于修改的属性;</span>
+<span>可能不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/directory/AttributeModificationException.html" title="class in javax.naming.directory">AttributeModificationException</a></code> - 如果修改无法成功完成 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="modifyAttributes-javax.naming.Name-javax.naming.directory.ModificationItem:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>modifyAttributes</h4> <pre>void modifyAttributes(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+                      <a href="../../../javax/naming/directory/ModificationItem.html" title="class in javax.naming.directory">ModificationItem</a>[] mods)
+               throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>使用有序的修改列表修改与命名对象关联的属性。</span>
+<span>修改按指定的顺序执行。</span>
+<span>每个修改指定修改操作代码和要在其上操作的属性。</span>
+<span>在可能的情况下，修改以原子方式执行。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 其属性将被更新的对象的名称 
+           </dd>
+<dd>
+<span><code>mods</code> - 要执行的有序修改序列;</span>
+<span>可能不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/directory/AttributeModificationException.html" title="class in javax.naming.directory">AttributeModificationException</a></code> - 如果修改不能成功完成 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-javax.naming.Name-int-javax.naming.directory.Attributes-"><code>modifyAttributes(Name, int, Attributes)</code></a> ， <a href="../../../javax/naming/directory/ModificationItem.html" title="javax.naming.directory中的类"><code>ModificationItem</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="modifyAttributes-java.lang.String-javax.naming.directory.ModificationItem:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>modifyAttributes</h4> <pre>void modifyAttributes(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                      <a href="../../../javax/naming/directory/ModificationItem.html" title="class in javax.naming.directory">ModificationItem</a>[] mods)
+               throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>使用有序的修改列表修改与命名对象关联的属性。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#modifyAttributes-javax.naming.Name-javax.naming.directory.ModificationItem:A-"><code>modifyAttributes(Name, ModificationItem[])</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 其属性将被更新的对象的名称 
+           </dd>
+<dd>
+<span><code>mods</code> - 要执行的有序修改序列;</span>
+<span>可能不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/directory/AttributeModificationException.html" title="class in javax.naming.directory">AttributeModificationException</a></code> - 如果修改不能成功完成 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="bind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>bind</h4> <pre>void bind(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+          <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj,
+          <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)
+   throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将名称绑定到对象，以及关联的属性。</span>
+<span>如果<tt>attrs</tt>为null，则所得绑定将具有与<tt>obj</tt>相关的属性，如果<tt>obj</tt>是<tt>DirContext，</tt>否则没有属性。</span>
+<span>如果<tt>attrs</tt>为非空值，则结果绑定将具有<tt>attrs</tt>作为其属性;</span>
+<span>与<tt>obj关联的</tt>任何属性将被忽略。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>obj</code> - 要绑定的对象;</span>
+<span>可能为null</span>
+</dd>
+<dd>
+<code>attrs</code> - 与绑定关联的属性 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果名称已经绑定 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果不提供绑定的某些“强制”属性 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/naming/Context.html#bind-javax.naming.Name-java.lang.Object-"><code>Context.bind(Name, Object)</code></a> ， 
+            <a href="../../../javax/naming/directory/DirContext.html#rebind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-"><code>rebind(Name, Object, Attributes)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="bind-java.lang.String-java.lang.Object-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>bind</h4> <pre>void bind(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+          <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj,
+          <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)
+   throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将名称绑定到对象，以及关联的属性。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#bind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-"><code>bind(Name, Object, Attributes)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>obj</code> - 要绑定的对象;</span>
+<span>可能为null</span>
+</dd>
+<dd>
+<code>attrs</code> - 与绑定关联的属性 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果名称已经绑定 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果不提供绑定的某些“强制”属性 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="rebind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rebind</h4> <pre>void rebind(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+            <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj,
+            <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)
+     throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将名称绑定到对象以及关联的属性，覆盖任何现有绑定。</span>
+<span>如果<tt>attrs</tt>为空， <tt>obj</tt>为<tt>DirContext</tt> ，则使用obj的<tt>属性</tt> 。</span>
+<span>如果<tt>attrs</tt>为空且<tt>obj</tt>不是<tt>DirContext</tt> ，则与已经绑定在目录中的对象相关联的任何现有属性保持不变。</span>
+<span>如果<tt>attrs</tt>不为null，在目录已经绑定的对象关联的所有现有属性被删除<tt>，attrs</tt>与命名对象关联。</span>
+<span>如果<tt>obj</tt>是<tt>DirContext</tt> ，并且<tt>attrs</tt>是非空的，那么obj的<tt>属性</tt>将被忽略。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>obj</code> - 要绑定的对象;</span>
+<span>可能为null</span>
+</dd>
+<dd>
+<code>attrs</code> - 与绑定关联的属性 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果不提供绑定的某些“强制”属性 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/naming/Context.html#bind-javax.naming.Name-java.lang.Object-"><code>Context.bind(Name, Object)</code></a> ， 
+            <a href="../../../javax/naming/directory/DirContext.html#bind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-"><code>bind(Name, Object, Attributes)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="rebind-java.lang.String-java.lang.Object-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>rebind</h4> <pre>void rebind(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+            <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> obj,
+            <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)
+     throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>将名称绑定到对象以及关联的属性，覆盖任何现有绑定。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#rebind-javax.naming.Name-java.lang.Object-javax.naming.directory.Attributes-"><code>rebind(Name, Object, Attributes)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要绑定的名称</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<span><code>obj</code> - 要绑定的对象;</span>
+<span>可能为null</span>
+</dd>
+<dd>
+<code>attrs</code> - 与绑定关联的属性 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果不提供绑定的某些“强制”属性 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="createSubcontext-javax.naming.Name-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createSubcontext</h4> <pre><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a> createSubcontext(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+                            <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)
+                     throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>创建和绑定新的上下文以及关联的属性。</span>
+<span>此方法将创建一个具有给定名称的新子上下文，并将其绑定到目标上下文中（由名称的所有终端原子组件命名），并将提供的属性与新创建的对象相关联。</span>
+<span>所有中间和目标上下文必须已经存在。</span>
+<span>如果<tt>attrs</tt>为空，则此方法相当于<tt>Context.createSubcontext()</tt> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要创建的上下文的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<code>attrs</code> - 与新创建的上下文关联的属性 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             新创建的上下文 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果名称已经绑定 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果 
+            <code>attrs</code>不包含创建所需的所有必需属性 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/naming/Context.html#createSubcontext-javax.naming.Name-"><code>Context.createSubcontext(Name)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="createSubcontext-java.lang.String-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>createSubcontext</h4> <pre><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a> createSubcontext(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                            <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> attrs)
+                     throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>创建和绑定新的上下文以及关联的属性。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#createSubcontext-javax.naming.Name-javax.naming.directory.Attributes-"><code>createSubcontext(Name, Attributes)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>name</code> - 要创建的上下文的名称;</span>
+<span>可能不是空的</span>
+</dd>
+<dd>
+<code>attrs</code> - 与新创建的上下文关联的属性 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             新创建的上下文 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NameAlreadyBoundException.html" title="class in javax.naming">NameAlreadyBoundException</a></code> - 如果名称已经绑定 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidAttributesException.html" title="class in javax.naming.directory">InvalidAttributesException</a></code> - 如果 
+            <code>attrs</code>不包含创建所需的所有必需属性 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getSchema-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSchema</h4> <pre><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a> getSchema(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+              throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索与命名对象关联的模式。</span>
+<span>该模式描述了关于命名空间的结构和存储在其中的属性的规则。</span>
+<span>模式指定可以将什么类型的对象添加到目录以及可以添加到哪里？</span>
+<span>对象可以具有什么强制和可选属性。</span>
+<span>对架构的支持范围是目录特定的。</span>
+<p> <span>此方法返回适用于命名对象的模式信息树的根。</span> <span>几个命名对象（甚至是整个目录）可能共享相同的模式。</span> </p>
+<p> <span>诸如架构树的结构和内容，修改模式树的内容的权限以及此类修改对目录的影响等问题取决于底层目录。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要检索其模式的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>与上下文相关联的模式;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/OperationNotSupportedException.html" title="class in javax.naming">OperationNotSupportedException</a></code> - 如果不支持模式 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getSchema-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSchema</h4> <pre><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a> getSchema(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)
+              throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索与命名对象关联的模式。</span>
+<span>详情请见<a href="../../../javax/naming/directory/DirContext.html#getSchema-javax.naming.Name-"><code>getSchema(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要检索其模式的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>与上下文相关联的模式;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/OperationNotSupportedException.html" title="class in javax.naming">OperationNotSupportedException</a></code> - 如果不支持模式 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getSchemaClassDefinition-javax.naming.Name-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSchemaClassDefinition</h4> <pre><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a> getSchemaClassDefinition(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name)
+                             throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索包含命名对象的类定义的模式对象的上下文。</span>
+<p> <span>目录模式中找到的一类信息是<em>类定义</em> 。</span> <span>“对象类”定义指定对象的<em>类型</em>以及对象必须/可以具有的属性（强制和可选）。</span> <span>请注意，这里所指的术语“对象类”在目录中是以Java的方式而不是目录。</span> <span>例如，如果命名对象是“Person”类的目录对象， <tt>那么getSchemaClassDefinition()</tt>将返回一个<tt>DirContext，</tt>表示（目录）的对象类定义“Person”。</span> </p>
+<p> <span>可以从对象类定义检索的信息与目录相关。</span> </p>
+<p> <span>在JNDI 1.2之前，此方法返回一个表示命名对象的类定义的模式对象。</span> <span>从JNDI 1.2开始，此方法返回一个<tt>DirContext</tt>包含所有命名对象类定义的。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要检索其对象类定义的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>该<tt>DirContext</tt>包含命名对象的类定义;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/OperationNotSupportedException.html" title="class in javax.naming">OperationNotSupportedException</a></code> - 如果不支持模式 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="getSchemaClassDefinition-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getSchemaClassDefinition</h4> <pre><a href="../../../javax/naming/directory/DirContext.html" title="interface in javax.naming.directory">DirContext</a> getSchemaClassDefinition(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name)
+                             throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>检索包含命名对象的类定义的模式对象的上下文。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#getSchemaClassDefinition-javax.naming.Name-"><code>getSchemaClassDefinition(Name)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要检索其对象类定义的对象的名称 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>该<tt>DirContext</tt>包含命名对象的类定义;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/OperationNotSupportedException.html" title="class in javax.naming">OperationNotSupportedException</a></code> - 如果不支持模式 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="search-javax.naming.Name-javax.naming.directory.Attributes-java.lang.String:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>search</h4> <pre><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt; search(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+                                       <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> matchingAttributes,
+                                       <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] attributesToReturn)
+                                throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在单个上下文中搜索包含指定属性集的对象，并检索所选属性。</span>
+<span>使用默认的<code>SearchControls</code>设置进行搜索。</span>
+<p> <span>对于要选择的对象，matchingAttributes中的每个<code>matchingAttributes</code>必须匹配对象的某些属性。</span> <span>如果<code>matchingAttributes</code>为空或为null，则返回目标上下文中的所有对象。</span> </p>
+<p> <span>在属性<em>A</em> <sub>1</sub> <code>matchingAttributes</code>被认为是匹配的属性<em>A</em> <sub>2</sub>的物体的，如果<em>A</em> <sub>1</sub>和<em>A</em> <sub>2</sub>具有相同的标识符，和<em>A</em> <sub>1</sub>的每个值等于<em>A</em> <sub>2</sub>的某个值。</span> <span>这意味着值的顺序不重要，并且<em>A</em> <sub>2</sub>可能包含在<em>A</em> <sub>1中</sub>找不到的“额外”值，而不影响比较。</span> <span>这也意味着如果<em>A</em> <sub>1</sub>没有值，则匹配的测试等同于测试具有相同标识符的属性<em>A</em> <sub>2</sub>的存在。</span> </p>
+<p> <span>用于比较属性值的“等同”的精确定义由底层目录服务定义。</span> <span>例如，它可能使用<code>Object.equals</code>方法，或者可能使用模式来指定不同的相等操作。</span> <span>对于基于除等于的操作（如子串比较）进行匹配，请使用采用过滤器参数的版本<code>search</code> 。</span> </p>
+<p> <span>当对此<tt>DirContext</tt>进行更改时，对此方法的以前调用返回的对枚举的影响是未定义的。</span> </p>
+<p> <span>如果对象没有指定属性，该目录将忽略不存在的属性，并返回对象所具有的请求属性。</span> </p>
+<p> <span>目录可能会返回比所请求的更多属性（请参阅类描述中的属性<strong>类型名称</strong> ），但不允许返回任意的，不相关的属性。</span> </p>
+<p> <span>请参阅类描述也<strong>操作属性</strong> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要搜索的上下文的名称 
+           </dd>
+<dd>
+<span><code>matchingAttributes</code> - 要搜索的属性。</span>
+<span>如果为空，则返回目标上下文中的所有对象。</span>
+</dd>
+<dd>
+<span><code>attributesToReturn</code> - 要返回的属性。</span>
+<span>null表示要返回的所有属性;</span>
+<span>一个空数组表示不返回任何数组。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><tt>SearchResult</tt>对象的非空枚举。</span>
+<span>每个<tt>SearchResult</tt>包含由attributesToReturn标识的<code>attributesToReturn</code>和相对于由<code>name</code>命名的上下文命名的对应对象的名称。</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/naming/directory/SearchControls.html" title="javax.naming.directory中的类"><code>SearchControls</code></a> ， <a href="../../../javax/naming/directory/SearchResult.html" title="javax.naming.directory中的类"><code>SearchResult</code></a> ， <a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-java.lang.String-java.lang.Object:A-javax.naming.directory.SearchControls-"><code>search(Name, String, Object[], SearchControls)</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="search-java.lang.String-javax.naming.directory.Attributes-java.lang.String:A-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>search</h4> <pre><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt; search(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                                       <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> matchingAttributes,
+                                       <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] attributesToReturn)
+                                throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在单个上下文中搜索包含指定属性集的对象，并检索所选属性。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-javax.naming.directory.Attributes-java.lang.String:A-"><code>search(Name, Attributes, String[])</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要搜索的上下文的名称 
+           </dd>
+<dd>
+<code>matchingAttributes</code> - 要搜索的属性 
+           </dd>
+<dd>
+<code>attributesToReturn</code> - 要返回的属性 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>SearchResult</tt>对象的非空枚举 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="search-javax.naming.Name-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>search</h4> <pre><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt; search(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+                                       <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> matchingAttributes)
+                                throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在单个上下文中搜索包含指定属性集的对象。</span>
+<span>此方法返回此类对象的所有属性。</span>
+<span>它相当于将<tt>atributesToReturn</tt>参数提供给方法<code>search(Name, Attributes, String[])</code> 。</span>
+<br/>
+<span>见<a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-javax.naming.directory.Attributes-java.lang.String:A-"><code>search(Name, Attributes, String[])</code></a>完整的说明。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要搜索的上下文的名称 
+           </dd>
+<dd>
+<code>matchingAttributes</code> - 要搜索的属性 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             枚举 
+            <tt>SearchResult个</tt>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-javax.naming.directory.Attributes-java.lang.String:A-"><code>search(Name, Attributes, String[])</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="search-java.lang.String-javax.naming.directory.Attributes-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>search</h4> <pre><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt; search(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                                       <a href="../../../javax/naming/directory/Attributes.html" title="interface in javax.naming.directory">Attributes</a> matchingAttributes)
+                                throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在单个上下文中搜索包含指定属性集的对象。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-javax.naming.directory.Attributes-"><code>search(Name, Attributes)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要搜索的上下文的名称 
+           </dd>
+<dd>
+<code>matchingAttributes</code> - 要搜索的属性 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             枚举 
+            <tt>SearchResult个</tt>对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="search-javax.naming.Name-java.lang.String-javax.naming.directory.SearchControls-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>search</h4> <pre><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt; search(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+                                       <a href="../../../java/lang/String.html" title="class in java.lang">String</a> filter,
+                                       <a href="../../../javax/naming/directory/SearchControls.html" title="class in javax.naming.directory">SearchControls</a> cons)
+                                throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在命名的上下文或对象中搜索满足给定搜索过滤器的条目。</span>
+<span>按照搜索控件的指定执行搜索。</span>
+<p> <span>的格式和解释<code>filter</code>遵循RFC 2254，解释如下<code>attr</code>和<code>value</code> RFC中提及。</span> </p>
+<p> <span><code>attr</code>是属性的标识符。</span> </p>
+<p> <span><code>value</code>是属性值的字符串表示形式。</span> <span>将此字符串表示形式转换为属性值是特定于目录的。</span> </p>
+<p> <span>对于断言“someCount = 127”，例如， <code>attr</code>是“someCount”， <code>value</code>是“127”。</span> <span>提供者根据属性ID（“someCount”）（以及可能的模式）确定属性的值是整数。</span> <span>然后适当地解析字符串“127”。</span> </p>
+<p> <span>过滤器字符串中的任何非ASCII字符都应由适当的Java（Unicode）字符表示，而不是以UTF-8字节编码。</span> <span>或者，可以使用RFC 2254中描述的“反斜杠十六进制”符号。</span> </p>
+<p> <span>如果目录不支持部分或全部其属性的字符串表示的形式<code>search</code>接受在对象的形式过滤器参数可以用来代替。</span> <span>然后，这样一个目录的服务提供商将把过滤器参数转换成用于过滤器评估的服务特定表示。</span> <span>见<code>search(Name, String, Object[], SearchControls)</code> 。</span> </p>
+<p> <span>RFC 2254为过滤器定义了某些运算符，包括子串匹配，等式，近似匹配，大于，小于。</span> <span>这些运算符映射到基础目录中具有相应语义的运算符。</span> <span>例如，对于equals运算符，假设目录具有定义过滤器中属性“等于”的匹配规则。</span> <span>该规则将用于检查过滤器中指定的属性与目录中对象属性的相等性。</span> <span>类似地，如果目录具有用于排序的匹配规则，则该规则将用于进行“大于”和“小于”比较。</span> </p>
+<p> <span>并非RFC 2254中定义的所有运算符都适用于所有属性。</span> <span>当操作员不适用时，抛出异常<code>InvalidSearchFilterException</code> 。</span> </p>
+<p> <span>结果以枚举<tt>SearchResult</tt> s的形式返回。</span> <span>每个<tt>SearchResult</tt>包含对象的名称和有关对象的其他信息（请参阅SearchResult）。</span> <span>该名称是相对于搜索的目标上下文（由<code>name</code>参数命名的），或者它是一个URL字符串。</span> <span>如果目标上下文包括在枚举（如可能时<code>cons</code>指定的检索范围<code>SearchControls.OBJECT_SCOPE</code>或<code>SearchControls.SUBSTREE_SCOPE</code> ），其名称为空字符串。</span> <span><tt>SearchResult</tt>也可以包含匹配对象的属性，如果<tt>cons</tt>参数指定返回属性。</span> </p>
+<p> <span>如果对象没有请求的属性，则该不存在的属性将被忽略。</span> <span>将返回对象确实拥有的那些请求的属性。</span> </p>
+<p> <span>目录可能会返回比所请求的更多属性（请参阅类描述中的属性<strong>类型名称</strong> ），但不允许返回任意不相关的属性。</span> </p>
+<p> <span>请参阅类描述也<strong>操作属性</strong> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要搜索的上下文或对象的名称 
+           </dd>
+<dd>
+<span><code>filter</code> - 用于搜索的过滤器表达式;</span>
+<span>可能不为空</span>
+</dd>
+<dd>
+<span><code>cons</code> - 控制搜索的搜索控件。</span>
+<span>如果为null，则使用默认搜索控件（相当于<tt>(new SearchControls())</tt> ）。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>枚举满足过滤器的对象的<tt>SearchResult</tt> s;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidSearchFilterException.html" title="class in javax.naming.directory">InvalidSearchFilterException</a></code> - 如果指定的搜索过滤器不受底层目录的支持或理解 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidSearchControlsException.html" title="class in javax.naming.directory">InvalidSearchControlsException</a></code> - 搜索控件是否包含无效设置 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-java.lang.String-java.lang.Object:A-javax.naming.directory.SearchControls-"><code>search(Name, String, Object[], SearchControls)</code></a> ， <a href="../../../javax/naming/directory/SearchControls.html" title="javax.naming.directory中的类"><code>SearchControls</code></a> ， <a href="../../../javax/naming/directory/SearchResult.html" title="javax.naming.directory中的类"><code>SearchResult</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="search-java.lang.String-java.lang.String-javax.naming.directory.SearchControls-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>search</h4> <pre><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt; search(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                                       <a href="../../../java/lang/String.html" title="class in java.lang">String</a> filter,
+                                       <a href="../../../javax/naming/directory/SearchControls.html" title="class in javax.naming.directory">SearchControls</a> cons)
+                                throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在命名的上下文或对象中搜索满足给定搜索过滤器的条目。</span>
+<span>按照搜索控件的指定执行搜索。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-java.lang.String-javax.naming.directory.SearchControls-"><code>search(Name, String, SearchControls)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要搜索的上下文或对象的名称 
+           </dd>
+<dd>
+<span><code>filter</code> - 用于搜索的过滤器表达式;</span>
+<span>可能不为空</span>
+</dd>
+<dd>
+<span><code>cons</code> - 控制搜索的搜索控件。</span>
+<span>如果为null，则使用默认搜索控件（相当于<tt>(new SearchControls())</tt> ）。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             枚举满足过滤器的对象为 
+            <tt>SearchResult</tt> s。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidSearchFilterException.html" title="class in javax.naming.directory">InvalidSearchFilterException</a></code> - 如果指定的搜索过滤器不被底层目录支持或理解 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidSearchControlsException.html" title="class in javax.naming.directory">InvalidSearchControlsException</a></code> - 如果搜索控件包含无效设置 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> <a name="search-javax.naming.Name-java.lang.String-java.lang.Object:A-javax.naming.directory.SearchControls-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>search</h4> <pre><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt; search(<a href="../../../javax/naming/Name.html" title="interface in javax.naming">Name</a> name,
+                                       <a href="../../../java/lang/String.html" title="class in java.lang">String</a> filterExpr,
+                                       <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>[] filterArgs,
+                                       <a href="../../../javax/naming/directory/SearchControls.html" title="class in javax.naming.directory">SearchControls</a> cons)
+                                throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在命名的上下文或对象中搜索满足给定搜索过滤器的条目。</span>
+<span>按照搜索控件的指定执行搜索。</span>
+<p> <span>filterExpr的<code>filterExpr</code>基于RFC 2254.它还可以包含{i}格式的<code>{i}</code> ，其中<code>i</code>是一个整数，它引用了<code>filterArgs</code>数组中的对象。</span> <span>filterExpr的<code>filterExpr</code>与方法<code>search(Name, String, SearchControls)</code>的<code>filter</code>参数的<code>search(Name, String, SearchControls)</code> 。</span> </p>
+<p> <span>当变量<code>{i}</code>出现在搜索过滤器中时，表示在该位置使用过滤器参数<code>filterArgs[i]</code> 。</span> <span>在RFC 2254第4节的过滤器语法中出现<em>attr</em> ， <em>value</em>或<em>matchingrule</em>生产的任何地方都可以使用这些变量。当一个字符串值过滤器参数代替一个变量时，过滤器被解释为：变量的位置，具有根据RFC 2254的规则被转义的过滤器（如<code>'*'</code> ）中具有特殊意义的任何字符。</span> </p>
+<p> <span>对于不对某些或全部属性使用字符串表示形式的目录，与属性值相对应的过滤器参数可能不是String类型。</span> <span>例如，支持非结构化二进制值属性的目录应该接受字节数组作为过滤器参数。</span> <span>任何其他类型的过滤器参数的解释（如果有）由该目录的服务提供者确定，该服务提供者将过滤器操作映射到基础目录中具有相应语义的操作。</span> </p>
+<p> <span>此方法返回结果的枚举。</span> <span>枚举中的每个元素都包含对象的名称和有关对象的其他信息（参见<code>SearchResult</code> ）。</span> <span>该名称是相对于搜索的目标上下文（由<code>name</code>参数命名的），或者它是一个URL字符串。</span> <span>如果目标上下文包含在枚举中（ <code>cons</code>指定<code>SearchControls.OBJECT_SCOPE</code>或<code>SearchControls.SUBSTREE_SCOPE</code>的搜索范围时可能），其名称为空字符串。</span> </p>
+<p> <span><tt>SearchResult</tt>也可以包含匹配对象的属性，如果<tt>cons</tt>参数指定返回属性。</span> </p>
+<p> <span>如果对象没有请求的属性，则该不存在的属性将被忽略。</span> <span>将返回对象确实拥有的那些请求的属性。</span> </p>
+<p> <span>目录可能会返回比所请求的更多属性（请参阅类描述中的属性<strong>类型名称</strong> ），但不允许返回任意不相关的属性。</span> </p>
+<p> <span>如果为此方法提供了带有无效变量替换的搜索过滤器，则结果未定义。</span> <span>当对此DirContext进行更改时，对此方法的先前调用返回的对枚举的影响是未定义的。</span> </p>
+<p> <span>请参阅类描述也<strong>操作属性</strong> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要搜索的上下文或对象的名称 
+           </dd>
+<dd>
+<span><code>filterExpr</code> - 用于搜索的过滤器表达式。</span>
+<span>该表达式可能包含“ <code>{i}</code> ”形式的<code>{i}</code> ，其中<code>i</code>是非负整数。</span>
+<span>可能不为空</span>
+</dd>
+<dd>
+<span><code>filterArgs</code> - 在filterExpr中替换变量的参数<code>filterExpr</code> 。</span>
+<span><code>filterArgs[i]</code>的值将代替每次出现的“ <code>{i}</code> ”。</span>
+<span>如果为空，则相当于一个空数组。</span>
+</dd>
+<dd>
+<span><code>cons</code> - 控制搜索的搜索控件。</span>
+<span>如果为空，则使用默认搜索控件（相当于<tt>(new SearchControls())</tt> ）。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>枚举满足过滤器的对象的<tt>SearchResult</tt> s;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/ArrayIndexOutOfBoundsException.html" title="class in java.lang">ArrayIndexOutOfBoundsException</a></code> - 如果 
+            <tt>filterExpr</tt>包含 
+            <code>{i}</code>表达式，其中 
+            <code>i</code>位于数组边界之外 
+            <code>filterArgs</code>
+</dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidSearchControlsException.html" title="class in javax.naming.directory">InvalidSearchControlsException</a></code> - 如果 
+            <tt>cons</tt>包含无效设置 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidSearchFilterException.html" title="class in javax.naming.directory">InvalidSearchFilterException</a></code> -如果 
+            <tt>filterExpr</tt>与 
+            <tt>filterArgs</tt>表示无效的搜索过滤器 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-javax.naming.directory.Attributes-java.lang.String:A-"><code>search(Name, Attributes, String[])</code></a> ， <a href="../../../java/text/MessageFormat.html" title="java.text中的类"><code>MessageFormat</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="search-java.lang.String-java.lang.String-java.lang.Object:A-javax.naming.directory.SearchControls-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>search</h4> <pre><a href="../../../javax/naming/NamingEnumeration.html" title="interface in javax.naming">NamingEnumeration</a>&lt;<a href="../../../javax/naming/directory/SearchResult.html" title="class in javax.naming.directory">SearchResult</a>&gt; search(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> name,
+                                       <a href="../../../java/lang/String.html" title="class in java.lang">String</a> filterExpr,
+                                       <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>[] filterArgs,
+                                       <a href="../../../javax/naming/directory/SearchControls.html" title="class in javax.naming.directory">SearchControls</a> cons)
+                                throws <a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></pre>
+<div class="block">
+<span>在命名的上下文或对象中搜索满足给定搜索过滤器的条目。</span>
+<span>按照搜索控件的指定执行搜索。</span>
+<span>详见<a href="../../../javax/naming/directory/DirContext.html#search-javax.naming.Name-java.lang.String-java.lang.Object:A-javax.naming.directory.SearchControls-"><code>search(Name, String, Object[], SearchControls)</code></a> 。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>name</code> - 要搜索的上下文或对象的名称 
+           </dd>
+<dd>
+<span><code>filterExpr</code> - 用于搜索的过滤器表达式。</span>
+<span>该表达式可能包含“ <code>{i}</code> ”形式的<code>{i}</code> ，其中<code>i</code>是非负整数。</span>
+<span>可能不为空</span>
+</dd>
+<dd>
+<span><code>filterArgs</code> - 在filterExpr中替换变量的参数<code>filterExpr</code> 。</span>
+<span><code>filterArgs[i]</code>的值将取代每一次“ <code>{i}</code> ”。</span>
+<span>如果为空，则相当于一个空数组。</span>
+</dd>
+<dd>
+<span><code>cons</code> - 控制搜索的搜索控件。</span>
+<span>如果为空，则使用默认搜索控件（相当于<tt>(new SearchControls())</tt> ）。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span>枚举满足过滤器的对象的<tt>SearchResult</tt> s;</span>
+<span>从不为空</span>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/ArrayIndexOutOfBoundsException.html" title="class in java.lang">ArrayIndexOutOfBoundsException</a></code> - 如果 
+            <tt>filterExpr</tt>包含 
+            <code>{i}</code>表达式，其中 
+            <code>i</code>在数组的边界之外 
+            <code>filterArgs</code>
+</dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidSearchControlsException.html" title="class in javax.naming.directory">InvalidSearchControlsException</a></code> - 如果 
+            <tt>cons</tt>包含无效设置 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/directory/InvalidSearchFilterException.html" title="class in javax.naming.directory">InvalidSearchFilterException</a></code> -如果 
+            <tt>filterExpr</tt>与 
+            <tt>filterArgs</tt>表示无效的搜索过滤器 
+           </dd>
+<dd>
+<code><a href="../../../javax/naming/NamingException.html" title="class in javax.naming">NamingException</a></code> - 如果遇到命名异常 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

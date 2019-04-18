@@ -1,0 +1,239 @@
+<div class="content guide with-sidebar components-props-guide">
+<h1>Prop</h1>
+<blockquote>
+<p>该页面假设你已经阅读过了<a href="components.html">组件基础</a>。如果你还对组件不太了解，推荐你先阅读它。</p>
+</blockquote>
+<h2 id="Prop-的大小写-camelCase-vs-kebab-case"><a class="headerlink" href="#Prop-的大小写-camelCase-vs-kebab-case" title="Prop 的大小写 (camelCase vs kebab-case)"></a>Prop 的大小写 (camelCase vs kebab-case)</h2><p>HTML 中的特性名是大小写不敏感的，所以浏览器会把所有大写字符解释为小写字符。这意味着当你使用 DOM 中的模板时，camelCase (驼峰命名法) 的 prop 名需要使用其等价的 kebab-case (短横线分隔命名) 命名：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'blog-post'</span>, {
+  <span class="hljs-comment">// 在 JavaScript 中是 camelCase 的</span>
+  props: [<span class="hljs-string">'postTitle'</span>],
+  <span class="hljs-attr">template</span>: <span class="hljs-string">'&lt;h3&gt;{{ postTitle }}&lt;/h3&gt;'</span>
+})</code></pre>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 在 HTML 中是 kebab-case 的 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">post-title</span>=<span class="hljs-string">"hello!"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<p>重申一次，如果你使用字符串模板，那么这个限制就不存在了。</p>
+<h2 id="Prop-类型"><a class="headerlink" href="#Prop-类型" title="Prop 类型"></a>Prop 类型</h2><p>到这里，我们只看到了以字符串数组形式列出的 prop：</p>
+<pre><code class="hljs js">props: [<span class="hljs-string">'title'</span>, <span class="hljs-string">'likes'</span>, <span class="hljs-string">'isPublished'</span>, <span class="hljs-string">'commentIds'</span>, <span class="hljs-string">'author'</span>]</code></pre>
+<p>但是，通常你希望每个 prop 都有指定的值类型。这时，你可以以对象形式列出 prop，这些属性的名称和值分别是 prop 各自的名称和类型：</p>
+<pre><code class="hljs js">props: {
+  <span class="hljs-attr">title</span>: <span class="hljs-built_in">String</span>,
+  <span class="hljs-attr">likes</span>: <span class="hljs-built_in">Number</span>,
+  <span class="hljs-attr">isPublished</span>: <span class="hljs-built_in">Boolean</span>,
+  <span class="hljs-attr">commentIds</span>: <span class="hljs-built_in">Array</span>,
+  <span class="hljs-attr">author</span>: <span class="hljs-built_in">Object</span>,
+  <span class="hljs-attr">callback</span>: <span class="hljs-built_in">Function</span>,
+  <span class="hljs-attr">contactsPromise</span>: <span class="hljs-built_in">Promise</span> <span class="hljs-comment">// or any other constructor</span>
+}</code></pre>
+<p>这不仅为你的组件提供了文档，还会在它们遇到错误的类型时从浏览器的 JavaScript 控制台提示用户。你会在这个页面接下来的部分看到<a href="#Prop-验证">类型检查和其它 prop 验证</a>。</p>
+<h2 id="传递静态或动态-Prop"><a class="headerlink" href="#传递静态或动态-Prop" title="传递静态或动态 Prop"></a>传递静态或动态 Prop</h2><p>像这样，你已经知道了可以像这样给 prop 传入一个静态的值：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">title</span>=<span class="hljs-string">"My journey with Vue"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<p>你也知道 prop 可以通过 <code>v-bind</code> 动态赋值，例如：</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 动态赋予一个变量的值 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">v-bind:title</span>=<span class="hljs-string">"post.title"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 动态赋予一个复杂表达式的值 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+  <span class="hljs-attr">v-bind:title</span>=<span class="hljs-string">"post.title + ' by ' + post.author.name"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<p>在上述两个示例中，我们传入的值都是字符串类型的，但实际上<em>任何</em>类型的值都可以传给一个 prop。</p>
+<h3 id="传入一个数字"><a class="headerlink" href="#传入一个数字" title="传入一个数字"></a>传入一个数字</h3><pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 即便 `42` 是静态的，我们仍然需要 `v-bind` 来告诉 Vue --&gt;</span>
+<span class="hljs-comment">&lt;!-- 这是一个 JavaScript 表达式而不是一个字符串。--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">v-bind:likes</span>=<span class="hljs-string">"42"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 用一个变量进行动态赋值。--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">v-bind:likes</span>=<span class="hljs-string">"post.likes"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<h3 id="传入一个布尔值"><a class="headerlink" href="#传入一个布尔值" title="传入一个布尔值"></a>传入一个布尔值</h3><pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 包含该 prop 没有值的情况在内，都意味着 `true`。--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">is-published</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 即便 `false` 是静态的，我们仍然需要 `v-bind` 来告诉 Vue --&gt;</span>
+<span class="hljs-comment">&lt;!-- 这是一个 JavaScript 表达式而不是一个字符串。--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">v-bind:is-published</span>=<span class="hljs-string">"false"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 用一个变量进行动态赋值。--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">v-bind:is-published</span>=<span class="hljs-string">"post.isPublished"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<h3 id="传入一个数组"><a class="headerlink" href="#传入一个数组" title="传入一个数组"></a>传入一个数组</h3><pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 即便数组是静态的，我们仍然需要 `v-bind` 来告诉 Vue --&gt;</span>
+<span class="hljs-comment">&lt;!-- 这是一个 JavaScript 表达式而不是一个字符串。--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">v-bind:comment-ids</span>=<span class="hljs-string">"[234, 266, 273]"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 用一个变量进行动态赋值。--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">v-bind:comment-ids</span>=<span class="hljs-string">"post.commentIds"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<h3 id="传入一个对象"><a class="headerlink" href="#传入一个对象" title="传入一个对象"></a>传入一个对象</h3><pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 即便对象是静态的，我们仍然需要 `v-bind` 来告诉 Vue --&gt;</span>
+<span class="hljs-comment">&lt;!-- 这是一个 JavaScript 表达式而不是一个字符串。--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+  <span class="hljs-attr">v-bind:author</span>=<span class="hljs-string">"{
+    name: 'Veronica',
+    company: 'Veridian Dynamics'
+  }"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- 用一个变量进行动态赋值。--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">v-bind:author</span>=<span class="hljs-string">"post.author"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<h3 id="传入一个对象的所有属性"><a class="headerlink" href="#传入一个对象的所有属性" title="传入一个对象的所有属性"></a>传入一个对象的所有属性</h3><p>如果你想要将一个对象的所有属性都作为 prop 传入，你可以使用不带参数的 <code>v-bind</code> (取代 <code>v-bind:prop-name</code>)。例如，对于一个给定的对象 <code>post</code>：</p>
+<pre><code class="hljs js">post: {
+  <span class="hljs-attr">id</span>: <span class="hljs-number">1</span>,
+  <span class="hljs-attr">title</span>: <span class="hljs-string">'My Journey with Vue'</span>
+}</code></pre>
+<p>下面的模板：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span> <span class="hljs-attr">v-bind</span>=<span class="hljs-string">"post"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<p>等价于：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">blog-post</span>
+  <span class="hljs-attr">v-bind:id</span>=<span class="hljs-string">"post.id"</span>
+  <span class="hljs-attr">v-bind:title</span>=<span class="hljs-string">"post.title"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">blog-post</span>&gt;</span></code></pre>
+<h2 id="单向数据流"><a class="headerlink" href="#单向数据流" title="单向数据流"></a>单向数据流</h2><p>所有的 prop 都使得其父子 prop 之间形成了一个<strong>单向下行绑定</strong>：父级 prop 的更新会向下流动到子组件中，但是反过来则不行。这样会防止从子组件意外改变父级组件的状态，从而导致你的应用的数据流向难以理解。</p>
+<p>额外的，每次父级组件发生更新时，子组件中所有的 prop 都将会刷新为最新的值。这意味着你<strong>不</strong>应该在一个子组件内部改变 prop。如果你这样做了，Vue 会在浏览器的控制台中发出警告。</p>
+<p>这里有两种常见的试图改变一个 prop 的情形：</p>
+<ol>
+<li><p><strong>这个 prop 用来传递一个初始值；这个子组件接下来希望将其作为一个本地的 prop 数据来使用。</strong>在这种情况下，最好定义一个本地的 data 属性并将这个 prop 用作其初始值：</p>
+<pre><code class="hljs js">props: [<span class="hljs-string">'initialCounter'</span>],
+<span class="hljs-attr">data</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">counter</span>: <span class="hljs-keyword">this</span>.initialCounter
+  }
+}</code></pre>
+</li>
+<li><p><strong>这个 prop 以一种原始的值传入且需要进行转换。</strong>在这种情况下，最好使用这个 prop 的值来定义一个计算属性：</p>
+<pre><code class="hljs js">props: [<span class="hljs-string">'size'</span>],
+<span class="hljs-attr">computed</span>: {
+  <span class="hljs-attr">normalizedSize</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.size.trim().toLowerCase()
+  }
+}</code></pre>
+</li>
+</ol>
+<p class="tip">注意在 JavaScript 中对象和数组是通过引用传入的，所以对于一个数组或对象类型的 prop 来说，在子组件中改变这个对象或数组本身<strong>将会</strong>影响到父组件的状态。</p>
+<h2 id="Prop-验证"><a class="headerlink" href="#Prop-验证" title="Prop 验证"></a>Prop 验证</h2><p>我们可以为组件的 prop 指定验证要求，例如你知道的这些类型。如果有一个需求没有被满足，则 Vue 会在浏览器控制台中警告你。这在开发一个会被别人用到的组件时尤其有帮助。</p>
+<p>为了定制 prop 的验证方式，你可以为 <code>props</code> 中的值提供一个带有验证需求的对象，而不是一个字符串数组。例如：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'my-component'</span>, {
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-comment">// 基础的类型检查 (`null` 和 `undefined` 会通过任何类型验证)</span>
+    propA: <span class="hljs-built_in">Number</span>,
+    <span class="hljs-comment">// 多个可能的类型</span>
+    propB: [<span class="hljs-built_in">String</span>, <span class="hljs-built_in">Number</span>],
+    <span class="hljs-comment">// 必填的字符串</span>
+    propC: {
+      <span class="hljs-attr">type</span>: <span class="hljs-built_in">String</span>,
+      <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>
+    },
+    <span class="hljs-comment">// 带有默认值的数字</span>
+    propD: {
+      <span class="hljs-attr">type</span>: <span class="hljs-built_in">Number</span>,
+      <span class="hljs-attr">default</span>: <span class="hljs-number">100</span>
+    },
+    <span class="hljs-comment">// 带有默认值的对象</span>
+    propE: {
+      <span class="hljs-attr">type</span>: <span class="hljs-built_in">Object</span>,
+      <span class="hljs-comment">// 对象或数组默认值必须从一个工厂函数获取</span>
+      <span class="hljs-keyword">default</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+        <span class="hljs-keyword">return</span> { <span class="hljs-attr">message</span>: <span class="hljs-string">'hello'</span> }
+      }
+    },
+    <span class="hljs-comment">// 自定义验证函数</span>
+    propF: {
+      <span class="hljs-attr">validator</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">value</span>) </span>{
+        <span class="hljs-comment">// 这个值必须匹配下列字符串中的一个</span>
+        <span class="hljs-keyword">return</span> [<span class="hljs-string">'success'</span>, <span class="hljs-string">'warning'</span>, <span class="hljs-string">'danger'</span>].indexOf(value) !== <span class="hljs-number">-1</span>
+      }
+    }
+  }
+})</code></pre>
+<p>当 prop 验证失败的时候，(开发环境构建版本的) Vue 将会产生一个控制台的警告。</p>
+<p class="tip">注意那些 prop 会在一个组件实例创建<strong>之前</strong>进行验证，所以实例的属性 (如 <code>data</code>、<code>computed</code> 等) 在 <code>default</code> 或 <code>validator</code> 函数中是不可用的。</p>
+<h3 id="类型检查"><a class="headerlink" href="#类型检查" title="类型检查"></a>类型检查</h3><p><code>type</code> 可以是下列原生构造函数中的一个：</p>
+<ul>
+<li><code>String</code></li>
+<li><code>Number</code></li>
+<li><code>Boolean</code></li>
+<li><code>Array</code></li>
+<li><code>Object</code></li>
+<li><code>Date</code></li>
+<li><code>Function</code></li>
+<li><code>Symbol</code></li>
+</ul>
+<p>额外的，<code>type</code> 还可以是一个自定义的构造函数，并且通过 <code>instanceof</code> 来进行检查确认。例如，给定下列现成的构造函数：</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Person</span> (<span class="hljs-params">firstName, lastName</span>) </span>{
+  <span class="hljs-keyword">this</span>.firstName = firstName
+  <span class="hljs-keyword">this</span>.lastName = lastName
+}</code></pre>
+<p>你可以使用：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'blog-post'</span>, {
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">author</span>: Person
+  }
+})</code></pre>
+<p>来验证 <code>author</code> prop 的值是否是通过 <code>new Person</code> 创建的。</p>
+<h2 id="非-Prop-的特性"><a class="headerlink" href="#非-Prop-的特性" title="非 Prop 的特性"></a>非 Prop 的特性</h2><p>一个非 prop 特性是指传向一个组件，但是该组件并没有相应 prop 定义的特性。</p>
+<p>因为显式定义的 prop 适用于向一个子组件传入信息，然而组件库的作者并不总能预见组件会被用于怎样的场景。这也是为什么组件可以接受任意的特性，而这些特性会被添加到这个组件的根元素上。</p>
+<p>例如，想象一下你通过一个 Bootstrap 插件使用了一个第三方的 <code>&lt;bootstrap-date-input&gt;</code> 组件，这个插件需要在其 <code>&lt;input&gt;</code> 上用到一个 <code>data-date-picker</code> 特性。我们可以将这个特性添加到你的组件实例上：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">bootstrap-date-input</span> <span class="hljs-attr">data-date-picker</span>=<span class="hljs-string">"activated"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">bootstrap-date-input</span>&gt;</span></code></pre>
+<p>然后这个 <code>data-date-picker="activated"</code> 特性就会自动添加到 <code>&lt;bootstrap-date-input&gt;</code> 的根元素上。</p>
+<h3 id="替换-合并已有的特性"><a class="headerlink" href="#替换-合并已有的特性" title="替换/合并已有的特性"></a>替换/合并已有的特性</h3><p>想象一下 <code>&lt;bootstrap-date-input&gt;</code> 的模板是这样的：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"date"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"form-control"</span>&gt;</span></code></pre>
+<p>为了给我们的日期选择器插件定制一个主题，我们可能需要像这样添加一个特别的类名：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">bootstrap-date-input</span>
+  <span class="hljs-attr">data-date-picker</span>=<span class="hljs-string">"activated"</span>
+  <span class="hljs-attr">class</span>=<span class="hljs-string">"date-picker-theme-dark"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">bootstrap-date-input</span>&gt;</span></code></pre>
+<p>在这种情况下，我们定义了两个不同的 <code>class</code> 的值：</p>
+<ul>
+<li><code>form-control</code>，这是在组件的模板内设置好的</li>
+<li><code>date-picker-theme-dark</code>，这是从组件的父级传入的</li>
+</ul>
+<p>对于绝大多数特性来说，从外部提供给组件的值会替换掉组件内部设置好的值。所以如果传入 <code>type="text"</code> 就会替换掉 <code>type="date"</code> 并把它破坏！庆幸的是，<code>class</code> 和 <code>style</code> 特性会稍微智能一些，即两边的值会被合并起来，从而得到最终的值：<code>form-control date-picker-theme-dark</code>。</p>
+<h3 id="禁用特性继承"><a class="headerlink" href="#禁用特性继承" title="禁用特性继承"></a>禁用特性继承</h3><p>如果你<strong>不</strong>希望组件的根元素继承特性，你可以在组件的选项中设置 <code>inheritAttrs: false</code>。例如：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'my-component'</span>, {
+  <span class="hljs-attr">inheritAttrs</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-comment">// ...</span>
+})</code></pre>
+<p>这尤其适合配合实例的 <code>$attrs</code> 属性使用，该属性包含了传递给一个组件的特性名和特性值，例如：</p>
+<pre><code class="hljs js">{
+  <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">placeholder</span>: <span class="hljs-string">'Enter your username'</span>
+}</code></pre>
+<p>有了 <code>inheritAttrs: false</code> 和 <code>$attrs</code>，你就可以手动决定这些特性会被赋予哪个元素。在撰写<a href="../style-guide/#基础组件名-强烈推荐">基础组件</a>的时候是常会用到的：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'base-input'</span>, {
+  <span class="hljs-attr">inheritAttrs</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'label'</span>, <span class="hljs-string">'value'</span>],
+  <span class="hljs-attr">template</span>: <span class="hljs-string">`
+    &lt;label&gt;
+      {{ label }}
+      &lt;input
+        v-bind="$attrs"
+        v-bind:value="value"
+        v-on:input="$emit('input', $event.target.value)"
+      &gt;
+    &lt;/label&gt;
+  `</span>
+})</code></pre>
+<p class="tip">注意 <code>inheritAttrs: false</code> 选项<strong>不会</strong>影响 <code>style</code> 和 <code>class</code> 的绑定。</p>
+<p>这个模式允许你在使用基础组件的时候更像是使用原始的 HTML 元素，而不会担心哪个元素是真正的根元素：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-input</span>
+  <span class="hljs-attr">v-model</span>=<span class="hljs-string">"username"</span>
+  <span class="hljs-attr">required</span>
+  <span class="hljs-attr">placeholder</span>=<span class="hljs-string">"Enter your username"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">base-input</span>&gt;</span></code></pre>
+<div class="guide-links">
+<span>← <a href="components-registration.html">组件注册</a></span>
+<span style="float: right;"><a href="components-custom-events.html">自定义事件</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srccomponents-props.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

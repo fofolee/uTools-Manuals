@@ -1,0 +1,459 @@
+<article id="wikiArticle">
+<div></div>
+<p>可以通过<a href="Reference/Global_Objects/Object"><code>new Object()</code></a>，<code> <a href="Reference/Global_Objects/Object/create">Object.create()</a></code>方法，或者使用字面量标记（初始化标记）初始化对象。 一个对象初始化器，由花括号/大括号 (<code>{}</code>) 包含的一个由零个或多个对象属性名和其关联值组成的一个逗号分隔的列表构成。</p>
+<h2 id="语法">语法</h2>
+<pre class="brush: js">var o = {};
+var o = {a: 'foo', b: 42, c: {}};
+
+var a = 'foo', b = 42, c = {};
+var o = {a: a, b: b, c: c};
+
+var o = {
+  property: function ([parameters]) {},
+  get property() {},
+  set property(value) {}
+};</pre>
+<h3 id="ECMAScript_2015_的新标记">ECMAScript 2015 的新标记</h3>
+<p>请参考兼容性表格获取这些标记的支持信息。在不被支持的环境中，这些标记将造成语法错误。</p>
+<pre class="brush: js">// Shorthand property names (ES2015)
+var a = 'foo', b = 42, c = {};
+var o = {a, b, c};
+
+// Shorthand method names (ES2015)
+var o = {
+  property([parameters]) {}
+};
+
+// Computed property names (ES2015)
+var prop = 'foo';
+var o = {
+  [prop]: 'hey',
+  ['b' + 'ar']: 'there'
+};</pre>
+<h2 id="描述">描述</h2>
+<p>对象初始化是一个描述<a href="Reference/Global_Objects/Object" title="Object 构造函数创建一个对象包装器。"><code>对象</code></a>初始化过程的表达式。对象初始化是由一组描述对象的属性组成。属性的值可以是<a class="glossaryLink" href="/en-US/docs/Glossary/primitive" title="原始: In JavaScript, a primitive (primitive value, primitive data type) is data that is not an object and has no methods. There are 6 primitive data types: string, number, boolean, null, undefined, symbol (new in ECMAScript 2015).">原始</a>类型，也可以是其他对象。</p>
+<h3 id="创建对象">创建对象</h3>
+<p>没有属性的空对象可以用以下方式创建：</p>
+<pre class="brush: js">let obj = {};</pre>
+<p>不过，<em>字面 </em>和<em>初始化 </em>标记的优势在于，可以用内含属性的花括号快速创建对象。简单地编写一个逗号分隔的键值对的类别。如下代码创建了一个含三个属性的对象，键分别为 "<code>foo</code>", "<code>age</code>" 和 "<code>baz</code>"。这些键对应的值，分别是字符串“<code>bar</code>”，数字<code>42</code>和另一个对象。</p>
+<pre class="brush: js">let obj = {
+  foo: "bar",
+  age: 42,
+  baz: { myProp: 12 },
+}</pre>
+<h3 id="属性访问">属性访问</h3>
+<p>创建对象后，可以读取或者修改它。对象属性可以用下标小圆点标记或者方括号标记访问。参考<a href="/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors">属性访问</a> 获取更多信息。</p>
+<pre class="brush: js">object.foo; // "bar"
+object["age"]; // 42
+
+object.foo = "baz";
+</pre>
+<h3 id="属性定义">属性定义</h3>
+<p>上面学习了如何用初始化标记对象属性。经常能遇到希望将代码中的变量放到对象中的情况。可能遇到如下代码：</p>
+<pre class="brush: js">var a = "foo", 
+    b = 42,
+    c = {};
+
+var o = { 
+  a: a,
+  b: b,
+  c: c
+};</pre>
+<p>在 ECMAScript 2015 中，有更简短的标记可以实现同样的效果：</p>
+<pre class="brush: js">var a = 'foo', 
+    b = 42, 
+    c = {};
+
+// Shorthand property names (ES2015)
+var o = {a, b, c};
+
+// In other words,
+console.log((o.a === {a}.a)); // true</pre>
+<h4 id="重复属性名">重复属性名</h4>
+<p>属性使用了同样的名称时，后面的属性会覆盖前面的属性。</p>
+<pre class="brush: js">var a = {x: 1, x: 2};
+console.log(a); // { x: 2}
+</pre>
+<p>在 ECMAScript 5 严格模式的代码中， 重复的属性名会被当做<a href="Reference/Global_Objects/SyntaxError" title="SyntaxError 对象代表尝试解析语法上不合法的代码的错误。"><code>SyntaxError</code></a>。引入计算的属性名以后，属性名会在运行时出现重复。ECMAScript 2015 移除了这个限制。</p>
+<pre class="brush: js">function haveES6DuplicatePropertySemantics(){
+  "use strict";
+  try {
+    ({ prop: 1, prop: 2 });
+
+    // No error thrown, duplicate property names allowed in strict mode
+    return true;
+  } catch (e) {
+    // Error thrown, duplicates prohibited in strict mode
+    return false;
+  }
+}</pre>
+<h3 id="方法定义">方法定义</h3>
+<p>对象属性也可以是一个<a href="/en-US/docs/Web/JavaScript/Reference/Functions">函数</a>、<a href="/en-US/docs/Web/JavaScript/Reference/Functions/get">getter</a>、<a href="/en-US/docs/Web/JavaScript/Reference/Functions/set">setter</a>方法。</p>
+<pre class="brush: js">var o = {
+  <var>property: function </var>([<var>parameters</var>]) {},
+  get <var>property</var>() {},
+  set <var>property</var>(<var>value</var>) {},
+};</pre>
+<p>ECMAScript 2015引入了一种简短写法， "function" 关键字也可以丢掉。</p>
+<pre class="brush: js">// Shorthand method names (ES6)
+var o = {
+  <var>property</var>([<var>parameters</var>]) {},
+  get <var>property</var>() {},
+  set <var>property</var>(<var>value</var>) {},
+  * <var>generator</var>() {}
+};</pre>
+<p>ECMAScript 2015 提供了一种简明地定义以生成器函数作为值的属性的方法。</p>
+<pre class="brush: js">var o = {
+  * <var>generator</var>() {
+    ...........
+  }
+};</pre>
+<p>ECMAScript 5 中可以这样书写（需要注意的是 ES5 没有生成器）：</p>
+<pre class="brush: js">var o = {
+  generator<var>Method: function *</var>() {
+    ...........
+  }
+};</pre>
+<p>获取更多信息和范例，请参考 <a href="/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions">method definitions</a>。</p>
+<h3 id="计算属性名">计算属性名</h3>
+<p>从ECMAScript 2015开始，对象初始化语法开始支持计算属性名。其允许在[]中放入表达式，计算结果可以当做属性名。这种用法和用方括号访问<a href="/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors">属性</a>非常类似，也许你已经用来读取和设置属性了。现在同样的语法也可以用于对象字面值了：</p>
+<pre class="brush: js">// Computed property names (ES6)
+var i = 0;
+var a = {
+  ["foo" + ++i]: i,
+  ["foo" + ++i]: i,
+  ["foo" + ++i]: i
+};
+
+console.log(a.foo1); // 1
+console.log(a.foo2); // 2
+console.log(a.foo3); // 3
+
+var param = 'size';
+var config = {
+  [param]: 12,
+  ["mobile" + param.charAt(0).toUpperCase() + param.slice(1)]: 4
+};
+
+console.log(config); // { size: 12, mobileSize: 4 }</pre>
+<h3 id="扩展属性">扩展属性</h3>
+<p> </p>
+<p>ECMAScript 提案（第3阶段）的<a class="external" href="https://github.com/tc39/proposal-object-rest-spread" rel="noopener">剩余/扩展属性</a>将<a href="Reference/Operators/Spread_operator">扩展</a>属性添加到对象文字。它将自己提供的对象的枚举属性复制到一个新的对象上。</p>
+<p>使用比<a href="Reference/Global_Objects/Object/assign" title="Object.assign() 方法用于将所有可枚举属性的值从一个或多个源对象复制到目标对象。它将返回目标对象。"><code>Object.assign()</code></a>更短的语法，可以轻松克隆（不包括原型）或合并对象。</p>
+<p> </p>
+<pre class="brush: js">var obj1 = { foo: 'bar', x: 42 };
+var obj2 = { foo: 'baz', y: 13 };
+
+var clonedObj = { ...obj1 };
+// Object { foo: "bar", x: 42 }
+
+var mergedObj = { ...obj1, ...obj2 };
+// Object { foo: "baz", x: 42, y: 13 }
+</pre>
+<p>请注意，<a href="Reference/Global_Objects/Object/assign" title="Object.assign() 方法用于将所有可枚举属性的值从一个或多个源对象复制到目标对象。它将返回目标对象。"><code>Object.assign()</code></a>会触发<a href="Reference/Functions/set">setter</a>，而展开操作符则不会。</p>
+<h3 id="变更原型">变更原型</h3>
+<p>定义属性为<code>__proto__: 值</code> 或 <code>"__proto__": 值</code> 时，不会创建名为<code>__proto__</code>属性。如果给出的值是对象或者<a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/null"><code>null</code></a>，那么对象的<code>[[Prototype]]</code>会被设置为给出的值。（如果给出的值不是对象也不是null，那么对象的原型不会改变。）</p>
+<pre class="brush: js">var obj1 = {};
+assert(Object.getPrototypeOf(obj1) === Object.prototype);
+
+var obj2 = { __proto__: null };
+assert(Object.getPrototypeOf(obj2) === null);
+
+var protoObj = {};
+var obj3 = { "__proto__": protoObj };
+assert(Object.getPrototypeOf(obj3) === protoObj);
+
+var obj4 = { __proto__: "not an object or null" };
+assert(Object.getPrototypeOf(obj4) === Object.prototype);
+assert(!obj4.hasOwnProperty("__proto__"));
+</pre>
+<p>在对象字面值中，仅有一次变更原型的机会；多次变更原型，会被视为语法错误。</p>
+<p>不使用冒号标记的属性定义，不会变更对象的原型；而是和其他具有不同名字的属性一样是普通属性定义。</p>
+<pre class="brush: js">var __proto__ = "variable";
+
+var obj1 = { __proto__ };
+assert(Object.getPrototypeOf(obj1) === Object.prototype);
+assert(obj1.hasOwnProperty("__proto__"));
+assert(obj1.__proto__ === "variable");
+
+var obj2 = { __proto__() { return "hello"; } };
+assert(obj2.__proto__() === "hello");
+
+var obj3 = { ["__prot" + "o__"]: 17 };
+assert(obj3.__proto__ === 17);
+</pre>
+<h2 id="对象字面量表示法与JSON">对象字面量表示法与JSON</h2>
+<p>对象字面量表示法和 <strong>J</strong>ava<strong>S</strong>cript <strong>O</strong>bject <strong>N</strong>otation（<a href="/en-US/docs/Glossary/JSON">JSON</a>）是不同的。虽然他们看起来相似，不同点有：</p>
+<ul>
+<li>JSON 只允许<code>"property": value</code> syntax形式的属性定义。属性名必须用双引号括起来。且属性定义不允许使用简便写法。</li>
+<li>JSON中，属性的值仅允许字符串，数字，数组，<code>true</code>，<code>false</code>，<code>null</code>或其他（JSON）对象。 </li>
+<li>JSON中，不允许将值设置为函数。</li>
+<li> <a href="Reference/Date" title="此页面仍未被本地化, 期待您的翻译!"><code>Date</code></a> 等对象，经<a href="Reference/Global_Objects/JSON/parse" title="JSON.parse() 方法用来解析JSON字符串，构造由字符串描述的JavaScript值或对象。提供可选的reviver函数用以在返回之前对所得到的对象执行变换(操作)。"><code>JSON.parse()</code></a>处理后，会变成字符串。</li>
+<li><a href="Reference/Global_Objects/JSON/parse" title="JSON.parse() 方法用来解析JSON字符串，构造由字符串描述的JavaScript值或对象。提供可选的reviver函数用以在返回之前对所得到的对象执行变换(操作)。"><code>JSON.parse()</code></a> 不会处理计算的属性名，会当做错误抛出。</li>
+</ul>
+<h2 id="规范">规范</h2>
+<table class="standard-table">
+<tbody>
+<tr>
+<th scope="col">Specification</th>
+<th scope="col">Status</th>
+<th scope="col">Comment</th>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/publications/files/ECMA-ST-ARCH/ECMA-262,%201st%20edition,%20June%201997.pdf" hreflang="en" lang="en" rel="noopener" title="ECMAScript 1st Edition (ECMA-262)">ECMAScript 1st Edition (ECMA-262)</a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>initial definition.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/5.1/#sec-11.1.5" hreflang="en" lang="en" rel="noopener">ECMAScript 5.1 (ECMA-262)<br/><small lang="zh-CN">Object Initializer</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td><a href="/en-US/docs/Web/JavaScript/Reference/Functions/get">getter</a> and <a href="/en-US/docs/Web/JavaScript/Reference/Functions/set">setter</a> added.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://www.ecma-international.org/ecma-262/6.0/#sec-object-initializer" hreflang="en" lang="en" rel="noopener">ECMAScript 2015 (6th Edition, ECMA-262)<br/><small lang="zh-CN">Object Initializer</small></a></td>
+<td><span class="spec-Standard">Standard</span></td>
+<td>Shorthand method/property names and computed property names added.</td>
+</tr>
+<tr>
+<td><a class="external" href="https://tc39.github.io/ecma262/#sec-object-initializer" hreflang="en" lang="en" rel="noopener">ECMAScript Latest Draft (ECMA-262)<br/><small lang="zh-CN">Object Initializer</small></a></td>
+<td><span class="spec-Draft">Draft</span></td>
+<td> </td>
+</tr>
+<tr>
+<td><a class="external" href="https://github.com/tc39/proposal-object-rest-spread" rel="noopener">Rest/Spread Properties for ECMAScript </a></td>
+<td>Draft</td>
+<td>Stage 3 draft.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="浏览器兼容">浏览器兼容</h2>
+<div class="hidden">The compatibility table on this page is generated from structured data. If you'd like to contribute to the data, please check out <a class="external" href="https://github.com/mdn/browser-compat-data" rel="noopener">https://github.com/mdn/browser-compat-data</a> and send us a pull request.</div>
+<p></p><div class="bc-data"><a class="bc-github-link external" href="https://github.com/mdn/browser-compat-data" rel="noopener">Update compatibility data on GitHub</a><table class="bc-table bc-table-js"><thead><tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="6"><span>Desktop</span></th><th class="bc-platform-mobile" colspan="7"><span>Mobile</span></th><th class="bc-platform-server" colspan="1"><span>Server</span></th></tr><tr class="bc-browsers"><td></td><th class="bc-browser-chrome"><span class="bc-head-txt-label bc-head-icon-chrome">Chrome</span></th><th class="bc-browser-edge"><span class="bc-head-txt-label bc-head-icon-edge">Edge</span></th><th class="bc-browser-firefox"><span class="bc-head-txt-label bc-head-icon-firefox">Firefox</span></th><th class="bc-browser-ie"><span class="bc-head-txt-label bc-head-icon-ie">Internet Explorer</span></th><th class="bc-browser-opera"><span class="bc-head-txt-label bc-head-icon-opera">Opera</span></th><th class="bc-browser-safari"><span class="bc-head-txt-label bc-head-icon-safari">Safari</span></th><th class="bc-browser-webview_android"><span class="bc-head-txt-label bc-head-icon-webview_android">Android webview</span></th><th class="bc-browser-chrome_android"><span class="bc-head-txt-label bc-head-icon-chrome_android">Chrome for Android</span></th><th class="bc-browser-edge_mobile"><span class="bc-head-txt-label bc-head-icon-edge_mobile">Edge Mobile</span></th><th class="bc-browser-firefox_android"><span class="bc-head-txt-label bc-head-icon-firefox_android">Firefox for Android</span></th><th class="bc-browser-opera_android"><span class="bc-head-txt-label bc-head-icon-opera_android">Opera for Android</span></th><th class="bc-browser-safari_ios"><span class="bc-head-txt-label bc-head-icon-safari_ios">Safari on iOS</span></th><th class="bc-browser-samsunginternet_android"><span class="bc-head-txt-label bc-head-icon-samsunginternet_android">Samsung Internet</span></th><th class="bc-browser-nodejs"><span class="bc-head-txt-label bc-head-icon-nodejs">Node.js</span></th></tr></thead><tbody><tr><th scope="row">Object initializer</th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              18</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              4</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              1</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr><tr><th scope="row">Computed property names</th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr><tr><th scope="row">Shorthand property names</th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              33</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              33</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr><tr><th scope="row">Shorthand method names</th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              47</td><td class="bc-supports-yes bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              34</td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              9</td><td class="bc-supports-yes bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              5.0</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              Yes</td></tr><tr><th scope="row">Spread properties <div class="bc-icons"><abbr class="only-icon" title="Experimental. Expect behavior to change in the future."><span>Experimental</span><i class="ic-experimental"></i></abbr></div></th><td class="bc-supports-yes bc-browser-chrome"><span class="bc-browser-name">Chrome</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60</td><td class="bc-supports-no bc-browser-edge"><span class="bc-browser-name">Edge</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox"><span class="bc-browser-name">Firefox</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              55</td><td class="bc-supports-no bc-browser-ie"><span class="bc-browser-name">IE</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-unknown bc-browser-opera"><span class="bc-browser-name">Opera</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-safari"><span class="bc-browser-name">Safari</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              11.1</td><td class="bc-supports-yes bc-browser-webview_android"><span class="bc-browser-name">WebView Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60</td><td class="bc-supports-yes bc-browser-chrome_android"><span class="bc-browser-name">Chrome Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              60</td><td class="bc-supports-no bc-browser-edge_mobile"><span class="bc-browser-name">Edge Mobile</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-firefox_android"><span class="bc-browser-name">Firefox Android</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              55</td><td class="bc-supports-unknown bc-browser-opera_android"><span class="bc-browser-name">Opera Android</span><abbr title="Compatibility unknown; please update this.">
+                ?
+              </abbr></td><td class="bc-supports-yes bc-browser-safari_ios"><span class="bc-browser-name">Safari iOS</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              11.1</td><td class="bc-supports-no bc-browser-samsunginternet_android"><span class="bc-browser-name">Samsung Internet Android</span><abbr class="bc-level-no only-icon" title="No support">
+<span>No support</span>
+</abbr>
+              No</td><td class="bc-supports-yes bc-browser-nodejs"><span class="bc-browser-name">nodejs</span><abbr class="bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+</abbr>
+              8.3.0</td></tr></tbody></table><section class="bc-legend" id="sect1"><h3 class="offscreen" id="Legend">Legend</h3><dl><dt><span class="bc-supports-yes bc-supports">
+<abbr class="bc-level bc-level-yes only-icon" title="Full support">
+<span>Full support</span>
+                  
+                </abbr></span></dt><dd>Full support</dd><dt><span class="bc-supports-no bc-supports">
+<abbr class="bc-level bc-level-no only-icon" title="No support">
+<span>No support</span>
+                  
+                </abbr></span></dt><dd>No support</dd><dt><span class="bc-supports-unknown bc-supports">
+<abbr class="bc-level bc-level-unknown only-icon" title="Compatibility unknown">
+<span>Compatibility unknown</span>
+                  
+                </abbr></span></dt><dd>Compatibility unknown</dd><dt><abbr class="only-icon" title="Experimental. Expect behavior to change in the future."><span>Experimental. Expect behavior to change in the future.</span><i class="ic-experimental"></i></abbr></dt><dd>Experimental. Expect behavior to change in the future.</dd></dl></section></div><p></p>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="Reference/Operators/Property_Accessors">Property accessors</a></li>
+<li><code><a href="Reference/Functions/get">get</a></code> / <code><a href="/en-US/docs/Web/JavaScript/Reference/Functions/set">set</a></code></li>
+<li><a href="Reference/Functions/Method_definitions">Method definitions</a></li>
+<li><a href="Reference/Lexical_grammar">Lexical grammar</a></li>
+</ul>
+</article>

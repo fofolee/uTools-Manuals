@@ -1,0 +1,227 @@
+<article id="wikiArticle">
+<div><div class="prevnext" style="text-align: right;">
+<p><a href="Guide/Details_of_the_Object_Model" style="float: left;">« 上一页</a><a href="Guide/Iterators_and_Generators">下一页  »</a></p>
+</div></div>
+<p>一个 <a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a> 就是一个对象，它代表了一个异步操作的最终完成或者失败。大多数人仅仅是使用已创建的Promise实例对象，因此本教程将首先说明怎样使用 Promise，之后说明如何创建Promise。</p>
+<p>本质上，Promise 是一个绑定了回调的对象，而不是将回调传进函数内部。</p>
+<p>假设，现有一个名为 createAudioFileAsync() 的函数，在给定的配置文件和两个回调函数（一个是声音文件成功创建时的回调，另一个是出现异常时的回调）的情况下，这个函数能异步地生成声音文件。</p>
+<p>以下为使用createAudioFileAsync()的示例：</p>
+<pre class="brush: js">// 成功的回调函数
+function successCallback(result) {
+  console.log("声音文件创建成功: " + result);
+}
+
+// 失败的回调函数
+function failureCallback(error) {
+  console.log("声音文件创建失败: " + error);
+}
+
+createAudioFileAsync(audioSettings, successCallback, failureCallback)</pre>
+<p>新方法就是返回一个promise对象，使得你可以附加你的回调函数到其中：</p>
+<p>如果函数createAudioFileAsync()被重写为返回Promise 对象，就可以像这样简单的使用：</p>
+<pre class="brush: js line-numbers language-js">const promise = createAudioFileAsync(audioSettings); 
+promise.then(successCallback, failureCallback);
+</pre>
+<p> 简写为：</p>
+<pre class="brush: js line-numbers language-js">createAudioFileAsync(audioSettings).then(successCallback, failureCallback);
+</pre>
+<p>我们把这个称为异步函数调用，这种形式有若干优点。我们将会逐一讨论。</p>
+<h2 id="约定">约定</h2>
+<p>不同于老式的传入回调，在应用 Promise 时，我们将会有以下约定：</p>
+<ul>
+<li> JavaScript 事件队列中，在<a href="https://developer.mozilla.orgEventLoop#执行至完成">本轮事件循环运行完成</a>之前，回调函数永远不会被调用。</li>
+<li>综上，通过 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then">.then() </a>形式添加的回调函数都会被调用，即便是在异步操作完成之后才被添加的函数。</li>
+<li>通过多次调用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then">.then()</a>，可以添加多个回调函数，它们会按照插入顺序并且独立运行。</li>
+</ul>
+<p>因此，Promise 最直接的好处就是链式调用。</p>
+<h2 id="链式调用">链式调用</h2>
+<p>一个常见的需求就是连续执行两个或者多个异步操作，在上一个操作执行成功之后开始下一个的操作，并带着上一步操作所返回的结果。我们可以通过创造一个 Promise chain 来完成这种需求。</p>
+<p>见证奇迹的时刻：then() 函数会返回一个全新的 Promise，和原来的不同：</p>
+<pre class="brush: js line-numbers language-js">const promise = doSomething();
+const promise2 = promise.then(successCallback, failureCallback);
+</pre>
+<p>或者</p>
+<pre class="brush: js">const promise2 = doSomething().then(successCallback, failureCallback);</pre>
+<p>第二个对象(promise2)不仅代表<code>doSomething()</code>函数的完成，也代表了你传入的 <code>successCallback</code> 或者<code>failureCallback</code> 的完成，这也有可能返回一个Promise对象从而形成另一个异步操作。这样的话，任何一个 <code>promise2</code> 新增的回调函数都会被依次排在由上一个<code>successCallback(成功回调函数)</code> 或 <code>failureCallback(失败回调函数)</code> 执行后所返回的 Promise对象的后面。</p>
+<p>基本上，每一个 Promise 代表了链式中另一个异步过程的完成。</p>
+<p>在过去，做多重的异步操作，会导致经典的回调地狱：</p>
+<pre class="brush: js">doSomething(function(result) {
+  doSomethingElse(result, function(newResult) {
+    doThirdThing(newResult, function(finalResult) {
+      console.log('Got the final result: ' + finalResult);
+    }, failureCallback);
+  }, failureCallback);
+}, failureCallback);
+</pre>
+<p>通过新的功能方法，我们把回调绑定到被返回的 Promise 上代替以往的做法，形成一个 Promise 链：</p>
+<pre class="brush: js">doSomething().then(function(result) {
+  return doSomethingElse(result);
+})
+.then(function(newResult) {
+  return doThirdThing(newResult);
+})
+.then(function(finalResult) {
+  console.log('Got the final result: ' + finalResult);
+})
+.catch(failureCallback);
+</pre>
+<p>then里的参数是可选的，<code>catch(failureCallback)</code> 是 <code>then(null, failureCallback)</code> 的缩略形式。如下所示，也可以用 <a href="/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions">arrow functions</a>（箭头函数）来表示：</p>
+<pre class="brush: js">doSomething()
+.then(result =&gt; doSomethingElse(result))
+.then(newResult =&gt; doThirdThing(newResult))
+.then(finalResult =&gt; {
+  console.log(`Got the final result: ${finalResult}`);
+})
+.catch(failureCallback);
+
+</pre>
+<p><strong>注意：</strong>如果想要在回调中获取上个 Promise 中的结果，上个 Promise 中必须要返回结果。(使用 <code>() =&gt; x</code> 比<code>() =&gt; { return x; }</code> 更简洁一点).</p>
+<h3 id="Catch_的后续链式操作">Catch 的后续链式操作</h3>
+<p>很可能会在一个回调失败之后继续使用链式操作，即 使用一个<code>catch，</code>这对于在链式操作中抛出一个失败之后，再次开启新的操作很有用。请阅读下面的例子：</p>
+<pre class="brush: js">new Promise((resolve, reject) =&gt; {
+    console.log('Initial');
+
+    resolve();
+})
+.then(() =&gt; {
+    throw new Error('Something failed');
+        
+    console.log('Do this');
+})
+.catch(() =&gt; {
+    console.log('Do that');
+})
+.then(() =&gt; {
+    console.log('Do this whatever happened before');
+});
+</pre>
+<p>输出结果如下：</p>
+<pre>Initial
+Do that
+Do this whatever happened before
+</pre>
+<p><strong>注意：</strong>由于“Something failed”错误的抛出导致了失败回调函数的调用，所以“Do this”文本没有被输出。</p>
+<h2 id="错误传递">错误传递</h2>
+<p>在之前的回调地狱示例中，你可能记得有3次<code>failureCallback</code>的调用，而在<font face="consolas, Liberation Mono, courier, monospace"><span style="background-color: rgba(32, 34, 40, 0.5);"> Promise </span></font>链中只有底部的一次调用。</p>
+<pre class="brush: js">doSomething()
+.then(result =&gt; doSomethingElse(value))
+.then(newResult =&gt; doThirdThing(newResult))
+.then(finalResult =&gt; console.log(`Got the final result: ${finalResult}`))
+.catch(failureCallback);
+
+</pre>
+<p>通常，一遇到异常抛出，promise链就会停下来，直接调用链式中的catch处理程序来继续当前执行。这看起来和同步代码的执行很相似。</p>
+<pre class="brush: js">try {
+  let result = syncDoSomething();
+  let newResult = syncDoSomethingElse(result);
+  let finalResult = syncDoThirdThing(newResult);
+  console.log(`Got the final result: ${finalResult}`);
+} catch(error) {
+  failureCallback(error);
+}
+</pre>
+<p>在ECMAScript 2017标准的<code><a href="https://developer.mozilla.orgReference/Statements/async_function">async/await</a></code>语法糖中，这种同步形式代码的对称性得到了极致的体现：</p>
+<pre class="brush: js">async function foo() {
+  try {
+    let result = await doSomething();
+    let newResult = await doSomethingElse(result);
+    let finalResult = await doThirdThing(newResult);
+    console.log(`Got the final result: ${finalResult}`);
+  } catch(error) {
+    failureCallback(error);
+  }
+}
+
+</pre>
+<p>这个例子是在 Promise 的基础上构建的，例如，<code>doSomething()</code>与之前的函数是相同的。你可以在<a class="external" href="https://developers.google.com/web/fundamentals/getting-started/primers/async-functions" rel="noopener">这里</a>阅读更多的与这个语法相关的文章。</p>
+<p>通过捕获所有的错误，甚至抛出异常和程序错误，Promise 解决了回调地狱的基本缺陷。这对于构建异步操作的基础功能是很有必要的。</p>
+<h2 id="在旧式回调_API_中创建_Promise">在旧式回调 API 中创建 Promise</h2>
+<p> <a href="Reference/Global_Objects/Promise" title="Promise 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。"><code>Promise</code></a>通过它的构造器从头开始创建。 只应用在包裹旧的 API。</p>
+<p>理想状态下，所有的异步函数都已经返回 Promise 了。但有一些 API 仍然使用旧式的被传入的成功或者失败的回调。典型的例子就是<a class="new" href="/zh-CN/docs/Web/API/WindowTimers/setTimeout" rel="nofollow" title="此页面仍未被本地化, 期待您的翻译!"><code>setTimeout()</code></a>函数：</p>
+<pre class="brush: js">setTimeout(() =&gt; saySomething("10 seconds passed"), 10000);
+</pre>
+<p>混用旧式回调和 Promise 是会有问题的。如果 <code>saySomething</code>  函数失败了或者包含了编程错误，那就没有办法捕获它了。</p>
+<p>幸运的是我们可以用 Promise 来包裹它。最好的做法是将有问题的函数包装在最低级别，并且永远不要再直接调用它们：</p>
+<pre class="brush: js">const wait = ms =&gt; new Promise(resolve =&gt; setTimeout(resolve, ms));
+
+wait(10000).then(() =&gt; saySomething("10 seconds")).catch(failureCallback);
+</pre>
+<p>通常，Promise 的构造器会有一个可以让我们手动操作resolve和reject的执行函数。既然 <code>setTimeout</code> 没有真的执行失败，那么我们可以在这种情况下忽略reject。</p>
+<h2 id="组合">组合</h2>
+<p><a href="Reference/Global_Objects/Promise/resolve" title="The source for this interactive demo is stored in a GitHub repository. If you'd like to contribute to the interactive demo project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>Promise.resolve()</code></a> 和 <a href="Reference/Global_Objects/Promise/reject" title="Promise.reject(reason)方法返回一个带有拒绝原因reason参数的Promise对象。"><code>Promise.reject()</code></a> 是手动创建一个已经resolve或者reject的promise快捷方法。它们有时很有用。</p>
+<p><a href="Reference/Global_Objects/Promise/all" title="Promise.all(iterable) 方法返回一个 Promise 实例，此实例在 iterable 参数内所有的 promise 都“完成（resolved）”或参数中不包含 promise 时回调完成（resolve）；如果参数中  promise 有一个失败（rejected），此实例回调失败（reject），失败原因的是第一个失败 promise 的结果。"><code>Promise.all()</code></a> 和 <a href="Reference/Global_Objects/Promise/race" title="Promise.race(iterable) 方法返回一个 promise，一旦迭代器中的某个promise解决或拒绝，返回的 promise就会解决或拒绝。"><code>Promise.race()</code></a>是并行运行异步操作的两个组合式工具。</p>
+<p>时序组合可以使用一些优雅的javascript形式：</p>
+<pre class="brush: js">[func1, func2].reduce((p, f) =&gt; p.then(f), Promise.resolve());
+</pre>
+<p>通常，我们递归调用一个由异步函数组成的数组时相当于一个 Promise 链式：</p>
+<pre><code>Promise.resolve().then(func1).then(func2);</code></pre>
+<p>我们也可以写成可复用的函数形式，这在函数式 编程中极为普遍：</p>
+<pre class="brush: js"><code>let applyAsync = (acc,val) =&gt; acc.then(val);
+let composeAsync = (...funcs) =&gt; x =&gt; funcs.reduce(applyAsync, Promise.resolve(x));</code>
+</pre>
+<p>composeAsync函数将会接受任意数量的函数作为其参数，并返回一个新的函数，该函数接受一个通过composition pipeline传入的初始值。这对我们来说非常有益，因为任一函数可以是异步 或同步的，它们能被保证按顺序执行：</p>
+<pre class="brush: js"><code>let transformData = composeAsync(func1, asyncFunc1, asyncFunc2, func2);
+transformData(data);</code></pre>
+<p>在 ECMAScript 2017标准中, 时序组合可以通过使用async/await而变得更简单：</p>
+<pre class="brush: js">for (let f of [func1, func2]) {
+  await f();
+}
+</pre>
+<h2 id="时序">时序</h2>
+<p>为了避免意外，即使是一个已经变成 resolve 状态的 Promise，传递给 <code>then</code> 的函数也总是会被异步调用：</p>
+<pre class="brush: js">Promise.resolve().then(() =&gt; console.log(2));
+console.log(1); // 1, 2
+</pre>
+<p>传递到then中的函数被置入了一个微任务队列，而不是立即执行，这意味着它是在JavaScript事件队列的所有运行时结束了，事件队列被清空之后才开始执行：</p>
+<pre class="brush: js">const wait = ms =&gt; new Promise(resolve =&gt; setTimeout(resolve, ms));
+
+wait().then(() =&gt; console.log(4));
+Promise.resolve().then(() =&gt; console.log(2)).then(() =&gt; console.log(3));
+console.log(1); // 1, 2, 3, 4</pre>
+<h2 id="嵌套">嵌套</h2>
+<p>简便的 Promise 链式编程最好保持扁平化，不要嵌套 Promise，嵌套经常会是粗心导致的。可查阅下一节的<a href="#常见错误">常见错误</a>中的例子。</p>
+<p>嵌套 Promise 是一种可以限制 catch 语句的作用域的控制结构写法。明确来说，嵌套的 catch 仅捕捉在其之前同时还必须是其作用域的 failureres，而捕捉不到在其链式以外或者其嵌套域以外的 error。如果使用正确，那么可以实现高精度的错误修复。</p>
+<pre><code>doSomethingCritical()
+.then(result =&gt; doSomethingOptional()
+  .then(optionalResult =&gt; doSomethingExtraNice(optionalResult))
+  .catch(e =&gt; {console.log(e.message)})) // 即使有异常也会忽略，继续运行;(最后会输出)
+.then(() =&gt; moreCriticalStuff())
+.catch(e =&gt; console.log("Critical failure: " + e.message));// 没有输出</code></pre>
+<p>注意,有些代码步骤是嵌套的，而不是一个简单的纯链式，这些语句前与后都被（）包裹着。</p>
+<p>这个内部的 catch 语句仅能捕获到 <code>doSomethingOptional() <font face="Verdana, arial, x-locale-body, sans-serif"><span style="background-color: #ffffff;">和 </span></font>doSomethingExtraNice() 的失败，而且还是在</code>moreCriticalStuff() 并发运行以后。重要提醒，如果 doSomethingCritical() 失败，这个错误才仅会被最后的（外部）catch 语句捕获到。</p>
+<h2 id="常见错误">常见错误</h2>
+<p>在编写 Promise 链时，需要注意以下示例中展示的几个错误：</p>
+<pre><code>// 错误示例，包含 3 个问题
+
+doSomething().then(function(result) {
+  doSomethingElse(result) // 没有返回 Promise 以及没有必要的嵌套 Promise
+  .then(newResult =&gt; doThirdThing(newResult));
+}).then(() =&gt; doFourthThing());
+// 最后是没有使用 catch 终止 Promise 调用链，可能导致没有捕获的异常</code>
+​​​​​​
+</pre>
+<p>第一个错误是没有正确地将事物相连接。当我们创建新 Promise 但忘记返回它时，会发生这种情况。因此，链条被打破，或者更确切地说，我们有两个独立的链条竞争（同时在执行两个异步而非一个一个的执行）。这意味着 <code>doFourthThing()</code> 不会等待 <code>doSomethingElse()</code> 或<code>doThirdThing()</code> 完成，并且将与它们并行运行，可能是无意的。单独的链也有单独的错误处理，导致未捕获的错误。</p>
+<p>第二个错误是不必要地嵌套，实现第一个错误。嵌套还限制了内部错误处理程序的范围，如果是非预期的，可能会导致未捕获的错误。其中一个变体是 <a class="external" href="https://stackoverflow.com/questions/23803743/what-is-the-explicit-promise-construction-antipattern-and-how-do-i-avoid-it" rel="noopener">promise 构造函数反模式</a>，它结合了 Promise 构造函数的多余使用和嵌套。</p>
+<p>第三个错误是忘记用 <code>catch</code> 终止链。这导致在大多数浏览器中不能终止的 Promise 链里的 rejection。</p>
+<p>一个好的经验法则是总是返回或终止 Promise 链，并且一旦你得到一个新的 Promise，返回它。下面是修改后的平面化的代码：</p>
+<p> </p>
+<pre class="brush: js">doSomething()
+.then(function(result) {
+  return doSomethingElse(result);
+})
+.then(newResult =&gt; doThirdThing(newResult))
+.then(() =&gt; doFourthThing());
+.catch(error =&gt; console.log(error));
+</pre>
+<p>现在我们有一个具有适当错误处理的确定性链。</p>
+<p>使用 <code>async/await</code> 解决了大多数，如果不是所有这些问题的话 - 最常见的错误就是忘记了<code>await</code> 关键字。</p>
+<h2 id="参见：">参见：</h2>
+<ul>
+<li><a href="Reference/Global_Objects/Promise/then" title="then() 方法返回一个  Promise 。它最多需要有两个参数：Promise 的成功和失败情况的回调函数。"><code>Promise.then()</code></a></li>
+<li><a class="external" href="http://promisesaplus.com/" rel="noopener">Promises/A+ specification</a></li>
+<li><a class="external" href="https://medium.com/@ramsunvtech/promises-of-promise-part-1-53f769245a53" rel="noopener">Venkatraman.R - JS Promise (Part 1, Basics)</a></li>
+<li><a class="external" href="https://medium.com/@ramsunvtech/js-promise-part-2-q-js-when-js-and-rsvp-js-af596232525c#.dzlqh6ski" rel="noopener">Venkatraman.R - JS Promise (Part 2 - Using Q.js, When.js and RSVP.js)</a></li>
+<li><a class="external" href="https://tech.io/playgrounds/11107/tools-for-promises-unittesting/introduction" rel="noopener">Venkatraman.R - Tools for Promises Unit Testing</a></li>
+<li><a class="external" href="http://pouchdb.com/2015/05/18/we-have-a-problem-with-promises.html" rel="noopener">Nolan Lawson: We have a problem with promises — Common mistakes with promises</a></li>
+</ul>
+</article>

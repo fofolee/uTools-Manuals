@@ -1,0 +1,74 @@
+<article id="wikiArticle">
+<div></div>
+<h2 id="错误信息">错误信息</h2>
+<pre class="syntaxbox">TypeError: 'x' is not iterable (Firefox, Chrome)
+TypeError: 'x' is not a function or its return value is not iterable (Chrome)
+</pre>
+<h2 id="错误类型">错误类型</h2>
+<p><a href="Reference/Global_Objects/TypeError" title="TypeError（类型错误） 对象用来表示值的类型非预期类型时发生的错误。"><code>TypeError</code></a></p>
+<h2 id="发生了什么错误">发生了什么错误?</h2>
+<p>这个值作为 <a href="/en-US/docs/Web/JavaScript/Guide/Loops_and_iteration#for...of_statement">for…of  </a>的表达式右值，或者作为一个函数的参数，如 <a href="Reference/Global_Objects/Promise/all" title="Promise.all(iterable) 方法返回一个 Promise 实例，此实例在 iterable 参数内所有的 promise 都“完成（resolved）”或参数中不包含 promise 时回调完成（resolve）；如果参数中  promise 有一个失败（rejected），此实例回调失败（reject），失败原因的是第一个失败 promise 的结果。"><code>Promise.all</code></a> 或者 <a href="Reference/Global_Objects/TypedArray/from" title="TypedArray.from() 方法 从一个类数组或者可迭代对象中创建一个新类型数组。 这个方法和 Array.from()类似。"><code>TypedArray.from</code></a>, 不是一个 <a href="/en-US/docs/Web/JavaScript/Reference/Iteration_protocols">可迭代对象</a>.  一个可迭代对象可以是一个内置可迭代类型，如<a href="Reference/Array" title="REDIRECT Array"><code>Array</code></a>, <a href="Reference/String" title="此页面仍未被本地化, 期待您的翻译!"><code>String</code></a> 或 <a href="Reference/Map" title="此页面仍未被本地化, 期待您的翻译!"><code>Map</code></a>, 一个 generator 生成结果, 或者一个实现了 <a href="/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterable_protocol">可迭代协议</a> 的对象</p>
+<h2 id="示例">示例</h2>
+<h3 id="Iterating_over_Object_properties">Iterating over Object properties</h3>
+<p>在JavaScript中, <a href="Reference/Global_Objects/Object" title="Object 构造函数创建一个对象包装器。"><code>Object</code></a> 是不可迭代的，除非它们实现了<a href="/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterable_protocol">迭代协议</a>. 因此, 你不能使用 <a href="/en-US/docs/Web/JavaScript/Guide/Loops_and_iteration#for...of_statement">for…of </a>来迭代对象的属性.</p>
+<pre class="brush: js example-bad">var obj = { 'France': 'Paris', 'England': 'London' };
+for (let p of obj) { // TypeError: obj is not iterable
+    // …
+}
+</pre>
+<p>做为替代你必须使用 <a href="Reference/Global_Objects/Object/keys" title="Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致 。"><code>Object.keys</code></a> 或 <a href="Reference/Global_Objects/Object/entries" title="The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>Object.entries</code></a> 来迭代对象的属性或属性值.</p>
+<pre class="brush: js example-good">var obj = { 'France': 'Paris', 'England': 'London' };
+// 迭代属性名称:
+for (let country of obj.keys()) {
+    var capital = obj[country];
+    console.log(country, capital);
+}
+
+for (const [country, capital] of obj.entries())
+    console.log(country, capital);
+</pre>
+<p>这次case的另外一个选择是使用 <a href="Reference/Map" title="此页面仍未被本地化, 期待您的翻译!"><code>Map</code></a>:</p>
+<pre class="brush: js example-good">var map = new Map;
+map.set('France', 'Paris');
+map.set('England', 'London');
+// Iterate over the property names:
+for (let country of map.keys()) {
+    let capital = map[country];
+    console.log(country, capital);
+}
+
+for (let capital of map.values())
+    console.log(capital);
+
+for (const [country, capital] of map.entries())
+    console.log(country, capital);
+</pre>
+<h3 id="Iterating_over_a_generator">Iterating over a generator</h3>
+<p><a href="/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#Generators">Generators</a> 是用来生成可迭代对象的函数.</p>
+<pre class="brush: js example-bad">function* generate(a, b) {
+  yield a;
+  yield b;
+}
+
+for (let x of generate) // TypeError: generate is not iterable
+    console.log(x);
+</pre>
+<p>当它没有被调用, 这个 <a href="Reference/Function" title="此页面仍未被本地化, 期待您的翻译!"><code>Function</code></a> 相应的是可调用的，但是不可迭代。 调用 generator 生成一个可迭代对象，该对象将迭代在生成器执行期间生成的值.</p>
+<pre class="brush: js example-good">function* generate(a, b) {
+    yield a;
+    yield b;
+}
+
+for (let x of generate(1,2))
+    console.log(x);
+</pre>
+<h2 id="参阅">参阅</h2>
+<ul>
+<li><a href="/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterable_protocol">iterable protocol</a></li>
+<li><a href="Reference/Global_Objects/Object/keys" title="Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致 。"><code>Object.keys</code></a></li>
+<li><a href="Reference/Global_Objects/Object/entries" title="The source for this interactive example is stored in a GitHub repository. If you'd like to contribute to the interactive examples project, please clone https://github.com/mdn/interactive-examples and send us a pull request."><code>Object.entries</code></a></li>
+<li><a href="Reference/Map" title="此页面仍未被本地化, 期待您的翻译!"><code>Map</code></a></li>
+<li><a href="/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#Generators">generators</a></li>
+<li><a href="/en-US/docs/Web/JavaScript/Guide/Loops_and_iteration#for...of_statement">for…of</a></li>
+</ul>
+</article>

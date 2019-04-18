@@ -1,0 +1,299 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.util.concurrent 
+   </div>
+<h2 class="title" title="Class CountDownLatch">Class CountDownLatch</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.util.concurrent.CountDownLatch</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<hr/> <br/> <pre>public class <span class="typeNameLabel">CountDownLatch</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></pre>
+<div class="block">
+<span>允许一个或多个线程等待直到在其他线程中执行的一组操作完成的同步辅助。</span>
+<p> <span>A <code>CountDownLatch</code>用给定的<em>计数</em>初始化。</span> <span><a href="../../../java/util/concurrent/CountDownLatch.html#await--"><code>await</code></a>方法阻塞，直到由于<a href="../../../java/util/concurrent/CountDownLatch.html#countDown--"><code>countDown()</code></a>方法的<a href="../../../java/util/concurrent/CountDownLatch.html#countDown--">调用</a>而导致当前计数达到零，之后所有等待线程被释放，并且任何后续的<code>await</code> <a href="../../../java/util/concurrent/CountDownLatch.html#await--">调用立即</a>返回。</span> <span>这是一个一次性的现象 - 计数无法重置。</span> <span>如果您需要重置计数的版本，请考虑使用<a href="../../../java/util/concurrent/CyclicBarrier.html" title="java.util.concurrent中的类"><code>CyclicBarrier</code></a> 。</span> </p>
+<p> <span>A <code>CountDownLatch</code>是一种通用的同步工具，可用于多种用途。</span> <span>一个<code>CountDownLatch</code>为一个计数的CountDownLatch用作一个简单的开/关锁存器，或者门：所有线程调用<a href="../../../java/util/concurrent/CountDownLatch.html#await--"><code>await</code></a>在门口等待，直到被调用<a href="../../../java/util/concurrent/CountDownLatch.html#countDown--"><code>countDown()</code></a>的线程打开。</span> <span>一个<code>CountDownLatch</code>初始化<em>N</em>可以用来做一个线程等待，直到<em>N个</em>线程完成某项操作，或某些动作已经完成N次。</span> </p>
+<p> <span><code>CountDownLatch</code>一个有用的属性是，它不要求调用<code>countDown</code>线程等待计数到达零之前继续，它只是阻止任何线程通过<a href="../../../java/util/concurrent/CountDownLatch.html#await--"><code>await</code></a> ，直到所有线程可以通过。</span> </p>
+<p> <span><b>示例用法：</b>这是一组类，其中一组工作线程使用两个倒计时锁存器：</span> </p>
+<ul>
+<li> <span>第一个是启动信号，防止任何工作人员进入，直到驾驶员准备好继续前进;</span> </li>
+<li> <span>第二个是完成信号，允许司机等到所有的工作人员完成。</span> </li>
+</ul>
+<pre>  <span><code> class Driver { // ... void main() throws InterruptedException { CountDownLatch startSignal = new CountDownLatch(1); CountDownLatch doneSignal = new CountDownLatch(N); for (int i = 0; i &lt; N; ++i) // create and start threads new Thread(new Worker(startSignal, doneSignal)).start(); doSomethingElse(); // don't let run yet startSignal.countDown(); // let all threads proceed doSomethingElse(); doneSignal.await(); // wait for all to finish } } class Worker implements Runnable { private final CountDownLatch startSignal; private final CountDownLatch doneSignal; Worker(CountDownLatch startSignal, CountDownLatch doneSignal) { this.startSignal = startSignal; this.doneSignal = doneSignal; } public void run() { try { startSignal.await(); doWork(); doneSignal.countDown(); } catch (InterruptedException ex) {} // return; } void doWork() { ... } }</code></span> </pre>
+<p> <span>另一个典型的用法是将问题划分为N个部分，用一个Runnable来描述每个部分，该Runnable执行该部分并在锁存器上倒计时，并将所有Runnables排队到执行器。</span> <span>当所有子部分完成时，协调线程将能够通过等待。</span> <span>（当线程必须以这种方式反复倒数时，请<a href="../../../java/util/concurrent/CyclicBarrier.html" title="java.util.concurrent中的类">改用<code>CyclicBarrier</code></a> ））</span> </p>
+<pre>  <span><code> class Driver2 { // ... void main() throws InterruptedException { CountDownLatch doneSignal = new CountDownLatch(N); Executor e = ... for (int i = 0; i &lt; N; ++i) // create and start threads e.execute(new WorkerRunnable(doneSignal, i)); doneSignal.await(); // wait for all to finish } } class WorkerRunnable implements Runnable { private final CountDownLatch doneSignal; private final int i; WorkerRunnable(CountDownLatch doneSignal, int i) { this.doneSignal = doneSignal; this.i = i; } public void run() { try { doWork(i); doneSignal.countDown(); } catch (InterruptedException ex) {} // return; } void doWork() { ... } }</code></span> </pre>
+<p> <span>内存一致性效果：直到计数调用之前达到零，在一个线程操作<code>countDown()</code> <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>以下由相应的成功返回行动<code>await()</code>在另一个线程。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.5 
+       </dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountDownLatch.html#CountDownLatch-int-">CountDownLatch</a></span>(int count)</code>
+<div class="block">
+              构造一个以给定计数 
+             <code>CountDownLatch</code> CountDownLatch。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountDownLatch.html#await--">await</a></span>()</code>
+<div class="block">
+              导致当前线程等到锁存器计数到零，除非线程是 
+             <a href="../../../java/lang/Thread.html#interrupt--">interrupted</a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountDownLatch.html#await-long-java.util.concurrent.TimeUnit-">await</a></span>(long timeout, <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)</code>
+<div class="block">
+              使当前线程等待直到锁存器计数到零为止，除非线程为 
+             <a href="../../../java/lang/Thread.html#interrupt--">interrupted</a>或指定的等待时间过去。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountDownLatch.html#countDown--">countDown</a></span>()</code>
+<div class="block">
+              减少锁存器的计数，如果计数达到零，释放所有等待的线程。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountDownLatch.html#getCount--">getCount</a></span>()</code>
+<div class="block">
+              返回当前计数。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/util/concurrent/CountDownLatch.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回一个标识此锁存器的字符串及其状态。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#hashCode--">hashCode</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="CountDownLatch-int-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>CountDownLatch</h4> <pre>public CountDownLatch(int count)</pre>
+<div class="block">
+            构造一个以给定计数 
+           <code>CountDownLatch</code> CountDownLatch。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>count</code> -的次数 
+            <a href="../../../java/util/concurrent/CountDownLatch.html#countDown--"><code>countDown()</code></a>必须调用之前线程可以通过 
+            <a href="../../../java/util/concurrent/CountDownLatch.html#await--"><code>await()</code></a>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果 
+            <code>count</code>为负数 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="await--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>await</h4> <pre>public void await()
+           throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>导致当前线程等到锁存器计数到零，除非线程是<a href="../../../java/lang/Thread.html#interrupt--">interrupted</a> 。</span>
+<p> <span>如果当前计数为零，则此方法立即返回。</span> </p>
+<p> <span>如果当前计数大于零，则当前线程将被禁用以进行线程调度，并处于休眠状态，直至发生两件事情之一：</span> </p>
+<ul>
+<li> <span>由于<a href="../../../java/util/concurrent/CountDownLatch.html#countDown--"><code>countDown()</code></a>方法的调用，计数达到零;</span> <span>要么</span> </li>
+<li> <span>一些其他线程<a href="../../../java/lang/Thread.html#interrupt--">interrupts</a>当前线程。</span> </li>
+</ul>
+<p> <span>如果当前线程：</span> </p>
+<ul>
+<li> <span>在进入该方法时设置了中断状态;</span> <span>要么</span> </li>
+<li> <span>是<a href="../../../java/lang/Thread.html#interrupt--">interrupted</a>等待，</span> </li>
+</ul>
+<span>然后<a href="../../../java/lang/InterruptedException.html" title="java.lang中的类"><code>InterruptedException</code></a>被关上，当前线程的中断状态被清除。</span>
+</div>
+<dl>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果当前线程在等待时中断 
+           </dd>
+</dl> </li>
+</ul> <a name="await-long-java.util.concurrent.TimeUnit-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>await</h4> <pre>public boolean await(long timeout,
+                     <a href="../../../java/util/concurrent/TimeUnit.html" title="enum in java.util.concurrent">TimeUnit</a> unit)
+              throws <a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></pre>
+<div class="block">
+<span>导致当前线程等到锁存器向下计数到零，除非线程为<a href="../../../java/lang/Thread.html#interrupt--">interrupted</a> ，否则指定的等待时间过去。</span>
+<p> <span>如果当前计数为零，则此方法将立即返回值为<code>true</code> 。</span> </p>
+<p> <span>如果当前计数大于零，则当前线程将被禁用以进行线程调度，并处于休眠状态，直至发生三件事情之一：</span> </p>
+<ul>
+<li> <span>由于<a href="../../../java/util/concurrent/CountDownLatch.html#countDown--"><code>countDown()</code></a>方法的调用，计数达到零;</span> <span>要么</span> </li>
+<li> <span>一些其他线程<a href="../../../java/lang/Thread.html#interrupt--">interrupts</a>当前线程;</span> <span>要么</span> </li>
+<li> <span>指定的等待时间过去了。</span> </li>
+</ul>
+<p> <span>如果计数达到零，则方法返回值为<code>true</code> 。</span> </p>
+<p> <span>如果当前线程：</span> </p>
+<ul>
+<li> <span>在进入该方法时设置了中断状态;</span> <span>要么</span> </li>
+<li> <span>是等待<a href="../../../java/lang/Thread.html#interrupt--">interrupted</a> ，</span> </li>
+</ul>
+<span>然后<a href="../../../java/lang/InterruptedException.html" title="java.lang中的类"><code>InterruptedException</code></a>被关上，当前线程的中断状态被清除。</span>
+<p> <span>如果指定的等待时间过去，则返回值<code>false</code> 。</span> <span>如果时间小于或等于零，该方法根本不会等待。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>timeout</code> - 等待的最长时间 
+           </dd>
+<dd>
+<code>unit</code> - 
+            <code>timeout</code>参数的时间单位 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<code>true</code>如果计数达到零和 
+            <code>false</code>如果在计数达到零之前经过的等待时间 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/InterruptedException.html" title="class in java.lang">InterruptedException</a></code> - 如果当前线程在等待时中断 
+           </dd>
+</dl> </li>
+</ul> <a name="countDown--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>countDown</h4> <pre>public void countDown()</pre>
+<div class="block">
+<span>减少锁存器的计数，如果计数达到零，释放所有等待的线程。</span>
+<p> <span>如果当前计数大于零，则它将递减。</span> <span>如果新计数为零，则所有等待的线程都将被重新启用以进行线程调度。</span> </p>
+<p> <span>如果当前计数等于零，那么没有任何反应。</span> </p>
+</div> </li>
+</ul> <a name="getCount--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getCount</h4> <pre>public long getCount()</pre>
+<div class="block">
+<span>返回当前计数。</span>
+<p> <span>该方法通常用于调试和测试。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             当前计数 
+           </dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>返回一个标识此锁存器的字符串及其状态。</span>
+<span>括号中的状态包括字符串<code>"Count ="</code>后跟当前计数。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#toString--">toString</a></code>在类别 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             识别此锁存器的字符串以及其状态 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

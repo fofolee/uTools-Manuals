@@ -1,0 +1,130 @@
+<div class="content guide with-sidebar components-custom-events-guide">
+<h1>自定义事件</h1>
+<blockquote>
+<p>该页面假设你已经阅读过了<a href="components.html">组件基础</a>。如果你还对组件不太了解，推荐你先阅读它。</p>
+</blockquote>
+<h2 id="事件名"><a class="headerlink" href="#事件名" title="事件名"></a>事件名</h2><p>不同于组件和 prop，事件名不存在任何自动化的大小写转换。而是触发的事件名需要完全匹配监听这个事件所用的名称。举个例子，如果触发一个 camelCase 名字的事件：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">this</span>.$emit(<span class="hljs-string">'myEvent'</span>)</code></pre>
+<p>则监听这个名字的 kebab-case 版本是不会有任何效果的：</p>
+<pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 没有效果 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">my-component</span> <span class="hljs-attr">v-on:my-event</span>=<span class="hljs-string">"doSomething"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">my-component</span>&gt;</span></code></pre>
+<p>不同于组件和 prop，事件名不会被用作一个 JavaScript 变量名或属性名，所以就没有理由使用 camelCase 或 PascalCase 了。并且 <code>v-on</code> 事件监听器在 DOM 模板中会被自动转换为全小写 (因为 HTML 是大小写不敏感的)，所以 <code>v-on:myEvent</code> 将会变成 <code>v-on:myevent</code>——导致 <code>myEvent</code> 不可能被监听到。</p>
+<p>因此，我们推荐你<strong>始终使用 kebab-case 的事件名</strong>。</p>
+<h2 id="自定义组件的-v-model"><a class="headerlink" href="#自定义组件的-v-model" title="自定义组件的 v-model"></a>自定义组件的 <code>v-model</code></h2><blockquote>
+<p>2.2.0+ 新增</p>
+</blockquote>
+<p>一个组件上的 <code>v-model</code> 默认会利用名为 <code>value</code> 的 prop 和名为 <code>input</code> 的事件，但是像单选框、复选框等类型的输入控件可能会将 <code>value</code> 特性用于<a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox#Value" rel="noopener" target="_blank">不同的目的</a>。<code>model</code> 选项可以用来避免这样的冲突：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'base-checkbox'</span>, {
+  <span class="hljs-attr">model</span>: {
+    <span class="hljs-attr">prop</span>: <span class="hljs-string">'checked'</span>,
+    <span class="hljs-attr">event</span>: <span class="hljs-string">'change'</span>
+  },
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">checked</span>: <span class="hljs-built_in">Boolean</span>
+  },
+  <span class="hljs-attr">template</span>: <span class="hljs-string">`
+    &lt;input
+      type="checkbox"
+      v-bind:checked="checked"
+      v-on:change="$emit('change', $event.target.checked)"
+    &gt;
+  `</span>
+})</code></pre>
+<p>现在在这个组件上使用 <code>v-model</code> 的时候：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-checkbox</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"lovingVue"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">base-checkbox</span>&gt;</span></code></pre>
+<p>这里的 <code>lovingVue</code> 的值将会传入这个名为 <code>checked</code> 的 prop。同时当 <code>&lt;base-checkbox&gt;</code> 触发一个 <code>change</code> 事件并附带一个新的值的时候，这个 <code>lovingVue</code> 的属性将会被更新。</p>
+<p class="tip">注意你仍然需要在组件的 <code>props</code> 选项里声明 <code>checked</code> 这个 prop。</p>
+<h2 id="将原生事件绑定到组件"><a class="headerlink" href="#将原生事件绑定到组件" title="将原生事件绑定到组件"></a>将原生事件绑定到组件</h2><p>你可能有很多次想要在一个组件的根元素上直接监听一个原生事件。这时，你可以使用 <code>v-on</code> 的 <code>.native</code> 修饰符：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">base-input</span> <span class="hljs-attr">v-on:focus.native</span>=<span class="hljs-string">"onFocus"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">base-input</span>&gt;</span></code></pre>
+<p>在有的时候这是很有用的，不过在你尝试监听一个类似 <code>&lt;input&gt;</code> 的非常特定的元素时，这并不是个好主意。比如上述 <code>&lt;base-input&gt;</code> 组件可能做了如下重构，所以根元素实际上是一个 <code>&lt;label&gt;</code> 元素：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">label</span>&gt;</span>
+  {{ label }}
+  <span class="hljs-tag">&lt;<span class="hljs-name">input</span>
+    <span class="hljs-attr">v-bind</span>=<span class="hljs-string">"$attrs"</span>
+    <span class="hljs-attr">v-bind:value</span>=<span class="hljs-string">"value"</span>
+    <span class="hljs-attr">v-on:input</span>=<span class="hljs-string">"$emit('input', $event.target.value)"</span>
+  &gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span></code></pre>
+<p>这时，父级的 <code>.native</code> 监听器将静默失败。它不会产生任何报错，但是 <code>onFocus</code> 处理函数不会如你预期地被调用。</p>
+<p>为了解决这个问题，Vue 提供了一个 <code>$listeners</code> 属性，它是一个对象，里面包含了作用在这个组件上的所有监听器。例如：</p>
+<pre><code class="hljs js">{
+  <span class="hljs-attr">focus</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">event</span>) </span>{ <span class="hljs-comment">/* ... */</span> }
+  input: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">value</span>) </span>{ <span class="hljs-comment">/* ... */</span> },
+}</code></pre>
+<p>有了这个 <code>$listeners</code> 属性，你就可以配合 <code>v-on="$listeners"</code> 将所有的事件监听器指向这个组件的某个特定的子元素。对于类似 <code>&lt;input&gt;</code> 的你希望它也可以配合 <code>v-model</code> 工作的组件来说，为这些监听器创建一个类似下述 <code>inputListeners</code> 的计算属性通常是非常有用的：</p>
+<pre><code class="hljs js">Vue.component(<span class="hljs-string">'base-input'</span>, {
+  <span class="hljs-attr">inheritAttrs</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'label'</span>, <span class="hljs-string">'value'</span>],
+  <span class="hljs-attr">computed</span>: {
+    <span class="hljs-attr">inputListeners</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      <span class="hljs-keyword">var</span> vm = <span class="hljs-keyword">this</span>
+      <span class="hljs-comment">// `Object.assign` 将所有的对象合并为一个新对象</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-built_in">Object</span>.assign({},
+        <span class="hljs-comment">// 我们从父级添加所有的监听器</span>
+        <span class="hljs-keyword">this</span>.$listeners,
+        <span class="hljs-comment">// 然后我们添加自定义监听器，</span>
+        <span class="hljs-comment">// 或覆写一些监听器的行为</span>
+        {
+          <span class="hljs-comment">// 这里确保组件配合 `v-model` 的工作</span>
+          input: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">event</span>) </span>{
+            vm.$emit(<span class="hljs-string">'input'</span>, event.target.value)
+          }
+        }
+      )
+    }
+  },
+  <span class="hljs-attr">template</span>: <span class="hljs-string">`
+    &lt;label&gt;
+      {{ label }}
+      &lt;input
+        v-bind="$attrs"
+        v-bind:value="value"
+        v-on="inputListeners"
+      &gt;
+    &lt;/label&gt;
+  `</span>
+})</code></pre>
+<p>现在 <code>&lt;base-input&gt;</code> 组件是一个<strong>完全透明的包裹器</strong>了，也就是说它可以完全像一个普通的 <code>&lt;input&gt;</code> 元素一样使用了：所有跟它相同的特性和监听器的都可以工作。</p>
+<h2 id="sync-修饰符"><a class="headerlink" href="#sync-修饰符" title=".sync 修饰符"></a><code>.sync</code> 修饰符</h2><blockquote>
+<p>2.3.0+ 新增</p>
+</blockquote>
+<p>在有些情况下，我们可能需要对一个 prop 进行“双向绑定”。不幸的是，真正的双向绑定会带来维护上的问题，因为子组件可以修改父组件，且在父组件和子组件都没有明显的改动来源。</p>
+<p>这也是为什么我们推荐以 <code>update:myPropName</code> 的模式触发事件取而代之。举个例子，在一个包含 <code>title</code> prop 的假设的组件中，我们可以用以下方法表达对其赋新值的意图：</p>
+<pre><code class="hljs js"><span class="hljs-keyword">this</span>.$emit(<span class="hljs-string">'update:title'</span>, newTitle)</code></pre>
+<p>然后父组件可以监听那个事件并根据需要更新一个本地的数据属性。例如：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">text-document</span>
+  <span class="hljs-attr">v-bind:title</span>=<span class="hljs-string">"doc.title"</span>
+  <span class="hljs-attr">v-on:update:title</span>=<span class="hljs-string">"doc.title = $event"</span>
+&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">text-document</span>&gt;</span></code></pre>
+<p>为了方便起见，我们为这种模式提供一个缩写，即 <code>.sync</code> 修饰符：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">text-document</span> <span class="hljs-attr">v-bind:title.sync</span>=<span class="hljs-string">"doc.title"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">text-document</span>&gt;</span></code></pre>
+<p class="tip">注意带有 <code>.sync</code> 修饰符的 <code>v-bind</code> <strong>不能</strong>和表达式一起使用 (例如 <code>v-bind:title.sync=”doc.title + ‘!’”</code> 是无效的)。取而代之的是，你只能提供你想要绑定的属性名，类似 <code>v-model</code>。</p>
+<p>当我们用一个对象同时设置多个 prop 的时候，也可以将这个 <code>.sync</code> 修饰符和 <code>v-bind</code> 配合使用：</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">text-document</span> <span class="hljs-attr">v-bind.sync</span>=<span class="hljs-string">"doc"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">text-document</span>&gt;</span></code></pre>
+<p>这样会把 <code>doc</code> 对象中的每一个属性 (如 <code>title</code>) 都作为一个独立的 prop 传进去，然后各自添加用于更新的 <code>v-on</code> 监听器。</p>
+<p class="tip">将 <code>v-bind.sync</code> 用在一个字面量的对象上，例如 <code>v-bind.sync=”{ title: doc.title }”</code>，是无法正常工作的，因为在解析一个像这样的复杂表达式的时候，有很多边缘情况需要考虑。</p>
+<div class="guide-links">
+<span>← <a href="components-props.html">Prop</a></span>
+<span style="float: right;"><a href="components-slots.html">插槽</a> →</span>
+</div>
+<div class="footer">
+<script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD62QM', 'placement:vuejsorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+    发现错误？想参与编辑？
+    <a href="https://github.com/vuejs/cn.vuejs.org/blob/master/srccomponents-custom-events.md" target="_blank">
+      在 GitHub 上编辑此页！
+    </a>
+</div>
+</div>

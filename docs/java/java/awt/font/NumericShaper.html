@@ -1,0 +1,1233 @@
+<div class="header">
+<div class="subTitle">
+     java.awt.font 
+   </div>
+<h2 class="title" title="Class NumericShaper">Class NumericShaper</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.awt.font.NumericShaper</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/io/Serializable.html" title="java.io中的接口">Serializable</a></span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public final class <span class="typeNameLabel">NumericShaper</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../../java/io/Serializable.html" title="interface in java.io">Serializable</a></pre>
+<div class="block">
+<span><code>NumericShaper</code>类用于将Latin-1（欧洲）数字转换为其他Unicode十进制数字。</span>
+<span>这个类的用户主要是希望使用国家数字形状呈现数据的人，但是使用Latin-1（欧洲）数字，可以更方便地在内部表示数据。</span>
+<span>这不会解释不推荐使用的数字形状选择器字符（U + 206E）。</span>
+<p> <span>NumericShaper的<code>NumericShaper</code>通常作为属性应用于<code>TextAttribute</code>类的<a href="../../../java/awt/font/TextAttribute.html#NUMERIC_SHAPING"><code>NUMERIC_SHAPING</code></a>属性的文本。</span> <span>例如，这个代码段导致一个<code>TextLayout</code>在阿拉伯语<code>TextLayout</code>欧洲数字形成阿拉伯语：</span> <br/></p>
+<blockquote>
+<span><pre>
+ Map map = new HashMap();
+ map.put(TextAttribute.NUMERIC_SHAPING,
+     NumericShaper.getContextualShaper(NumericShaper.ARABIC));
+ FontRenderContext frc = ...;
+ TextLayout layout = new TextLayout(text, map, frc);
+ layout.draw(g2d, x, y);
+ </pre></span>
+</blockquote>
+<br/>
+<span>也可以使用NumericShaper的<code>NumericShaper</code>地执行数字整形，因为这个代码段演示：</span>
+<br/>
+<blockquote>
+<span><pre>
+ char[] text = ...;
+ // shape all EUROPEAN digits (except zero) to ARABIC digits
+ NumericShaper shaper = NumericShaper.getShaper(NumericShaper.ARABIC);
+ shaper.shape(text, start, count);
+
+ // shape European digits to ARABIC digits if preceding text is Arabic, or
+ // shape European digits to TAMIL digits if preceding text is Tamil, or
+ // leave European digits alone if there is no preceding text, or
+ // preceding text is neither Arabic nor Tamil
+ NumericShaper shaper =
+     NumericShaper.getContextualShaper(NumericShaper.ARABIC |
+                                         NumericShaper.TAMIL,
+                                       NumericShaper.EUROPEAN);
+ shaper.shape(text, start, count);
+ </pre></span>
+</blockquote>
+<p> <span><b>基于位掩码和基于枚举的Unicode范围</b></span> </p>
+<p> <span>该类支持两种不同的编程接口来表示特定于脚本的数字的Unicode范围：基于位掩码的数据，例如<a href="../../../java/awt/font/NumericShaper.html#ARABIC"><code>NumericShaper.ARABIC</code></a>和基于枚举的数据，例如<a href="../../../java/awt/font/NumericShaper.Range.html#ARABIC"><code>NumericShaper.Range.ARABIC</code></a> 。</span> <span>可以通过ORing位掩码的常量来指定多个范围，例如：</span> </p>
+<blockquote>
+<span><pre>
+ NumericShaper.ARABIC | NumericShaper.TAMIL
+ </pre></span>
+</blockquote>
+<span>或创建一个<code>Set</code>与<a href="../../../java/awt/font/NumericShaper.Range.html" title="枚举在java.awt.font中"><code>NumericShaper.Range</code></a>常量，如：</span>
+<blockquote>
+<span><pre>
+ EnumSet.of(NumericShaper.Scirpt.ARABIC, NumericShaper.Range.TAMIL)
+ </pre></span>
+</blockquote>
+<span>基于枚举的范围是基于位掩码的超级集。</span>
+<p> <span>如果两个接口被混合（包括序列），Unicode的范围值被映射到它们的对应，其中这样的映射是可能的，如<code>NumericShaper.Range.ARABIC</code>从/到<code>NumericShaper.ARABIC</code> 。</span> <span>如果指定了任何不可映射的范围值，例如<code>NumericShaper.Range.BALINESE</code> ，那么这些范围将被忽略。</span> </p>
+<p> <span><b>十进制数优先</b></span> </p>
+<p> <span>Unicode范围可能有多个十进制数字。</span> <span>如果为同一个Unicode范围指定了多个十进制数字集，则其中一个集合的优先级如下。</span> </p>
+<span>  Unicode Range <code>NumericShaper</code> Constants Precedence   Arabic <a href="../../../java/awt/font/NumericShaper.html#ARABIC"><code>NumericShaper.ARABIC</code></a><br/> <a href="../../../java/awt/font/NumericShaper.html#EASTERN_ARABIC"><code>NumericShaper.EASTERN_ARABIC</code></a> <a href="../../../java/awt/font/NumericShaper.html#EASTERN_ARABIC"><code>NumericShaper.EASTERN_ARABIC</code></a> <a href="../../../java/awt/font/NumericShaper.Range.html#ARABIC"><code>NumericShaper.Range.ARABIC</code></a><br/> <a href="../../../java/awt/font/NumericShaper.Range.html#EASTERN_ARABIC"><code>NumericShaper.Range.EASTERN_ARABIC</code></a> <a href="../../../java/awt/font/NumericShaper.Range.html#EASTERN_ARABIC"><code>NumericShaper.Range.EASTERN_ARABIC</code></a>   Tai Tham <a href="../../../java/awt/font/NumericShaper.Range.html#TAI_THAM_HORA"><code>NumericShaper.Range.TAI_THAM_HORA</code></a><br/> <a href="../../../java/awt/font/NumericShaper.Range.html#TAI_THAM_THAM"><code>NumericShaper.Range.TAI_THAM_THAM</code></a> <a href="../../../java/awt/font/NumericShaper.Range.html#TAI_THAM_THAM"><code>NumericShaper.Range.TAI_THAM_THAM</code></a> </span>
+<table border="1" cellpadding="0" cellspacing="3" summary="NumericShaper constants precedence.">
+</table>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../serialized-form.html#java.awt.font.NumericShaper">Serialized Form</a>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!-- --> </a> <h3>Nested Class Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption>
+<span>Nested Classes</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a></span></code>
+<div class="block">
+<code>NumericShaper.Range</code>表示具有其自己的十进制数字的脚本的Unicode范围。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!-- --> </a> <h3>Field Summary</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Field Summary table, listing fields, and an explanation">
+<caption>
+<span>Fields</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#ALL_RANGES">ALL_RANGES</a></span></code>
+<div class="block">
+              识别所有范围，用于完整的上下文整形。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#ARABIC">ARABIC</a></span></code>
+<div class="block">
+              标识ARABIC范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#BENGALI">BENGALI</a></span></code>
+<div class="block">
+              标识BENGALI范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#DEVANAGARI">DEVANAGARI</a></span></code>
+<div class="block">
+              标识DEVANAGARI范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#EASTERN_ARABIC">EASTERN_ARABIC</a></span></code>
+<div class="block">
+              标识ARABIC范围和ARABIC_EXTENDED十进制基数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#ETHIOPIC">ETHIOPIC</a></span></code>
+<div class="block">
+              标识ETHIOPIC范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#EUROPEAN">EUROPEAN</a></span></code>
+<div class="block">
+              确定拉丁语1（欧洲）和扩展范围以及拉丁语1（欧洲）十进制基数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#GUJARATI">GUJARATI</a></span></code>
+<div class="block">
+              标识GUJARATI范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#GURMUKHI">GURMUKHI</a></span></code>
+<div class="block">
+              标识GURMUKHI范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#KANNADA">KANNADA</a></span></code>
+<div class="block">
+              标识KANNADA范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#KHMER">KHMER</a></span></code>
+<div class="block">
+              标识KHMER范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#LAO">LAO</a></span></code>
+<div class="block">
+              标识LAO范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#MALAYALAM">MALAYALAM</a></span></code>
+<div class="block">
+              标识MALAYALAM范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#MONGOLIAN">MONGOLIAN</a></span></code>
+<div class="block">
+              标识MONGOLIAN范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#MYANMAR">MYANMAR</a></span></code>
+<div class="block">
+              标识MYANMAR范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#ORIYA">ORIYA</a></span></code>
+<div class="block">
+              标识ORIYA范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#TAMIL">TAMIL</a></span></code>
+<div class="block">
+              标识TAMIL范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#TELUGU">TELUGU</a></span></code>
+<div class="block">
+              标识TELUGU范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#THAI">THAI</a></span></code>
+<div class="block">
+              标识THAI范围和十进制基数。 
+            </div> </td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#TIBETAN">TIBETAN</a></span></code>
+<div class="block">
+              标识TIBETAN范围和十进制基数。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#equals-java.lang.Object-">equals</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> o)</code>
+<div class="block">
+              返回 
+             <code>true</code>如果指定的对象是一个实例 
+             <code>NumericShaper</code>和一致地成形这一个，无论范围的表示，所述位掩码或枚举的。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#getContextualShaper-int-">getContextualShaper</a></span>(int ranges)</code>
+<div class="block">
+              返回提供的unicode范围的上下文整形器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#getContextualShaper-int-int-">getContextualShaper</a></span>(int ranges, int defaultContext)</code>
+<div class="block">
+              返回提供的unicode范围的上下文整形器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#getContextualShaper-java.util.Set-">getContextualShaper</a></span>(<a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a>&gt; ranges)</code>
+<div class="block">
+              返回提供的Unicode范围的上下文整形器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#getContextualShaper-java.util.Set-java.awt.font.NumericShaper.Range-">getContextualShaper</a></span>(<a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a>&gt; ranges, <a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a> defaultContext)</code>
+<div class="block">
+              返回提供的Unicode范围的上下文整形器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#getRanges--">getRanges</a></span>()</code>
+<div class="block">
+              返回一个 
+             <code>int</code> ，将所有范围的值组合在一起。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code><a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#getRangeSet--">getRangeSet</a></span>()</code>
+<div class="block">
+              返回 
+             <code>Set</code>代表所有的Unicode范围在此 
+             <code>NumericShaper</code>将要成型。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#getShaper-int-">getShaper</a></span>(int singleRange)</code>
+<div class="block">
+              返回提供的unicode范围的整形器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#getShaper-java.awt.font.NumericShaper.Range-">getShaper</a></span>(<a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a> singleRange)</code>
+<div class="block">
+              返回提供的Unicode范围的整形器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              返回此整形器的哈希码。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#isContextual--">isContextual</a></span>()</code>
+<div class="block">
+              返回一个 
+             <code>boolean</code>指示此成形器是否内容形状。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#shape-char:A-int-int-">shape</a></span>(char[] text, int start, int count)</code>
+<div class="block">
+              转换在start和start + count之间发生的文本中的数字。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#shape-char:A-int-int-int-">shape</a></span>(char[] text, int start, int count, int context)</code>
+<div class="block">
+              使用提供的上下文转换在start和start + count之间发生的文本中的数字。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#shape-char:A-int-int-java.awt.font.NumericShaper.Range-">shape</a></span>(char[] text, int start, int count, <a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a> context)</code>
+<div class="block">
+              使用提供的 
+             <code>context</code>转换发生在 
+             <code>start</code>和 
+             <code>start + count</code>之间的文本中的数字。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/awt/font/NumericShaper.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回 
+             <code>String</code>描述此成形。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!-- --> </a> <h3>字段详细信息</h3> <a name="EUROPEAN">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>EUROPEAN</h4> <pre>public static final int EUROPEAN</pre>
+<div class="block">
+            确定拉丁语1（欧洲）和扩展范围以及拉丁语1（欧洲）十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.EUROPEAN">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ARABIC">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ARABIC</h4> <pre>public static final int ARABIC</pre>
+<div class="block">
+            标识ARABIC范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.ARABIC">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="EASTERN_ARABIC">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>EASTERN_ARABIC</h4> <pre>public static final int EASTERN_ARABIC</pre>
+<div class="block">
+            标识ARABIC范围和ARABIC_EXTENDED十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.EASTERN_ARABIC">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="DEVANAGARI">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>DEVANAGARI</h4> <pre>public static final int DEVANAGARI</pre>
+<div class="block">
+            标识DEVANAGARI范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.DEVANAGARI">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="BENGALI">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>BENGALI</h4> <pre>public static final int BENGALI</pre>
+<div class="block">
+            标识BENGALI范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.BENGALI">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="GURMUKHI">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>GURMUKHI</h4> <pre>public static final int GURMUKHI</pre>
+<div class="block">
+            标识GURMUKHI范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.GURMUKHI">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="GUJARATI">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>GUJARATI</h4> <pre>public static final int GUJARATI</pre>
+<div class="block">
+            标识GUJARATI范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.GUJARATI">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ORIYA">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ORIYA</h4> <pre>public static final int ORIYA</pre>
+<div class="block">
+            标识ORIYA范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.ORIYA">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TAMIL">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TAMIL</h4> <pre>public static final int TAMIL</pre>
+<div class="block">
+            标识TAMIL范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.TAMIL">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TELUGU">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TELUGU</h4> <pre>public static final int TELUGU</pre>
+<div class="block">
+            标识TELUGU范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.TELUGU">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="KANNADA">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>KANNADA</h4> <pre>public static final int KANNADA</pre>
+<div class="block">
+            标识KANNADA范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.KANNADA">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="MALAYALAM">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>MALAYALAM</h4> <pre>public static final int MALAYALAM</pre>
+<div class="block">
+            标识MALAYALAM范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.MALAYALAM">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="THAI">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>THAI</h4> <pre>public static final int THAI</pre>
+<div class="block">
+            标识THAI范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.THAI">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="LAO">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>LAO</h4> <pre>public static final int LAO</pre>
+<div class="block">
+            标识LAO范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.LAO">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="TIBETAN">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>TIBETAN</h4> <pre>public static final int TIBETAN</pre>
+<div class="block">
+            标识TIBETAN范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.TIBETAN">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="MYANMAR">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>MYANMAR</h4> <pre>public static final int MYANMAR</pre>
+<div class="block">
+            标识MYANMAR范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.MYANMAR">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ETHIOPIC">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>ETHIOPIC</h4> <pre>public static final int ETHIOPIC</pre>
+<div class="block">
+            标识ETHIOPIC范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.ETHIOPIC">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="KHMER">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>KHMER</h4> <pre>public static final int KHMER</pre>
+<div class="block">
+            标识KHMER范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.KHMER">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="MONGOLIAN">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>MONGOLIAN</h4> <pre>public static final int MONGOLIAN</pre>
+<div class="block">
+            标识MONGOLIAN范围和十进制基数。 
+          </div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.MONGOLIAN">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> <a name="ALL_RANGES">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>ALL_RANGES</h4> <pre>public static final int ALL_RANGES</pre>
+<div class="block">
+<span>识别所有范围，用于完整的上下文整形。</span>
+<p> <span>该常数指定所有基于位掩码的范围。</span> <span>使用<code>EmunSet.allOf(NumericShaper.Range.class)</code>指定所有基于枚举的范围。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../constant-values.html#java.awt.font.NumericShaper.ALL_RANGES">Constant Field Values</a>
+</dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="getShaper-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getShaper</h4> <pre>public static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a> getShaper(int singleRange)</pre>
+<div class="block">
+<span>返回提供的unicode范围的整形器。</span>
+<span>所有Latin-1（EUROPEAN）数字转换为相应的十进制unicode数字。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>singleRange</code> - 指定的Unicode范围 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             非上下文数字整形器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果范围不是单个范围 
+           </dd>
+</dl> </li>
+</ul> <a name="getShaper-java.awt.font.NumericShaper.Range-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getShaper</h4> <pre>public static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a> getShaper(<a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a> singleRange)</pre>
+<div class="block">
+<span>返回提供的Unicode范围的整形器。</span>
+<span>所有Latin-1（EUROPEAN）数字都将转换为指定Unicode范围的相应十进制数字。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>singleRange</code> - 由<a href="../../../java/awt/font/NumericShaper.Range.html" title="枚举在java.awt.font中"><code>NumericShaper.Range</code></a>常数给出的Unicode范围。</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个非上下文的 
+            <code>NumericShaper</code> 。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>singleRange</code>是 
+            <code>null</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+</dl> </li>
+</ul> <a name="getContextualShaper-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getContextualShaper</h4> <pre>public static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a> getContextualShaper(int ranges)</pre>
+<div class="block">
+<span>返回提供的unicode范围的上下文整形器。</span>
+<span>如果范围是所提供的范围之一，则将Latin-1（EUROPEAN）数字转换为与前一文本范围相对应的十进制数字。</span>
+<span>多个范围由值或值组合表示，例如<code>NumericShaper.ARABIC | NumericShaper.THAI</code> 。</span>
+<span>整形器以欧洲方式为起始语境，也就是说，如果字符串中任何强有力的方向文本之前遇到欧洲数字，则上下文被推定为欧洲，因此数字将不会变形。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ranges</code> - 指定的Unicode范围 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             指定范围的整形器 
+           </dd>
+</dl> </li>
+</ul> <a name="getContextualShaper-java.util.Set-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getContextualShaper</h4> <pre>public static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a> getContextualShaper(<a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a>&gt; ranges)</pre>
+<div class="block">
+<span>返回提供的Unicode范围的上下文整形器。</span>
+<span>如果范围是提供的范围之一，则将Latin-1（EUROPEAN）数字转换为与前一文本范围相对应的十进制数字。</span>
+<p> <span>整形器以欧洲方式为起始语境，也就是说，如果字符串中任何强有力的方向文本之前遇到欧洲数字，则上下文被推定为欧洲，因此数字将不会变形。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ranges</code> - 指定的Unicode范围 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             指定范围的上下文整形器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>ranges</code>是 
+            <code>null</code> 。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+</dl> </li>
+</ul> <a name="getContextualShaper-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getContextualShaper</h4> <pre>public static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a> getContextualShaper(int ranges,
+                                                int defaultContext)</pre>
+<div class="block">
+<span>返回提供的unicode范围的上下文整形器。</span>
+<span>如果范围是提供的范围之一，则拉丁-1（欧洲）数字将被转换为对应于前一文本范围的十进制数字。</span>
+<span>多个范围由值或值一起表示，例如<code>NumericShaper.ARABIC | NumericShaper.THAI</code> 。</span>
+<span>整形器使用defaultContext作为起始上下文。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ranges</code> - 指定的Unicode范围 
+           </dd>
+<dd>
+<code>defaultContext</code> - 起始上下文，如 
+            <code>NumericShaper.EUROPEAN</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             指定Unicode范围的整形器。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果指定的 
+            <code>defaultContext</code>不是单个有效范围。 
+           </dd>
+</dl> </li>
+</ul> <a name="getContextualShaper-java.util.Set-java.awt.font.NumericShaper.Range-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getContextualShaper</h4> <pre>public static <a href="../../../java/awt/font/NumericShaper.html" title="class in java.awt.font">NumericShaper</a> getContextualShaper(<a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a>&gt; ranges,
+                                                <a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a> defaultContext)</pre>
+<div class="block">
+<span>返回提供的Unicode范围的上下文整形器。</span>
+<span>如果范围是提供的范围之一，则Latin-1（EUROPEAN）数字将被转换为对应于前一文本范围的十进制数字。</span>
+<span>整形器使用<code>defaultContext</code>作为起始上下文。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ranges</code> - 指定的Unicode范围 
+           </dd>
+<dd>
+<code>defaultContext</code> - 起始上下文，如 
+            <code>NumericShaper.Range.EUROPEAN</code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             指定Unicode范围的上下文整形器。 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>ranges</code>或 
+            <code>defaultContext</code>是 
+            <code>null</code>
+</dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+</dl> </li>
+</ul> <a name="shape-char:A-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shape</h4> <pre>public void shape(char[] text,
+                  int start,
+                  int count)</pre>
+<div class="block">
+            转换在start和start + count之间发生的文本中的数字。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>text</code> - 要转换的字符数组 
+           </dd>
+<dd>
+<code>start</code> - 索引成 
+            <code>text</code>开始转换 
+           </dd>
+<dd>
+<code>count</code> - 要转换的text中的 
+            <code>text</code>数 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IndexOutOfBoundsException.html" title="class in java.lang">IndexOutOfBoundsException</a></code> - 如果启动或启动+计数超出范围 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果文本为空 
+           </dd>
+</dl> </li>
+</ul> <a name="shape-char:A-int-int-int-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shape</h4> <pre>public void shape(char[] text,
+                  int start,
+                  int count,
+                  int context)</pre>
+<div class="block">
+<span>使用提供的上下文转换在start和start + count之间发生的文本中的数字。</span>
+<span>如果整形器不是上下文整形器，则忽略上下文。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>text</code> - 一个字符数组 
+           </dd>
+<dd>
+<code>start</code> - 索引成 
+            <code>text</code>开始转换 
+           </dd>
+<dd>
+<code>count</code> - 要转换的text中的 
+            <code>text</code>数 
+           </dd>
+<dd>
+<code>context</code> - 转换 
+            <code>context</code>的上下文，如 
+            <code>NumericShaper.EUROPEAN</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IndexOutOfBoundsException.html" title="class in java.lang">IndexOutOfBoundsException</a></code> - 如果启动或启动+计数超出范围 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果文本为空 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果这是一个上下文整形器，并且指定的 
+            <code>context</code>不是单个有效范围。 
+           </dd>
+</dl> </li>
+</ul> <a name="shape-char:A-int-int-java.awt.font.NumericShaper.Range-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>shape</h4> <pre>public void shape(char[] text,
+                  int start,
+                  int count,
+                  <a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a> context)</pre>
+<div class="block">
+<span>使用提供的<code>context</code>转换在<code>start</code>和<code>start + count</code>之间的文本中的数字。</span>
+<span><code>Context</code>被忽略，如果整形器不是上下文整形器。</span>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>text</code> - 一个 
+            <code>char</code>阵列 
+           </dd>
+<dd>
+<code>start</code> - 索引成 
+            <code>text</code>开始转换 
+           </dd>
+<dd>
+<code>count</code> -数量 
+            <code>char</code> S IN 
+            <code>text</code>转换 
+           </dd>
+<dd>
+<code>context</code> - 转换为字符的上下文，如 
+            <code>NumericShaper.Range.EUROPEAN</code>
+</dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/IndexOutOfBoundsException.html" title="class in java.lang">IndexOutOfBoundsException</a></code> - 如果 
+            <code>start</code>或 
+            <code>start + count</code>超出范围 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/NullPointerException.html" title="class in java.lang">NullPointerException</a></code> - 如果 
+            <code>text</code>或 
+            <code>context</code>为空 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+</dl> </li>
+</ul> <a name="isContextual--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isContextual</h4> <pre>public boolean isContextual()</pre>
+<div class="block">
+            返回一个 
+           <code>boolean</code>指示此成形器是否形成上下文。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果这个整形器是上下文的;</span>
+<span><code>false</code>否则。</span>
+</dd>
+</dl> </li>
+</ul> <a name="getRanges--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRanges</h4> <pre>public int getRanges()</pre>
+<div class="block">
+<span>返回一个<code>int</code> ，将所有范围的值合并在一起。</span>
+<p> <span>例如，要检查整形器是否形状为阿拉伯语，您将使用以下内容：</span> </p>
+<blockquote>
+<span><code>if ((shaper.getRanges() &amp; shaper.ARABIC) != 0) &amp;#123; ... </code></span>
+</blockquote>
+<p> <span>请注意，此方法仅支持基于位掩码的范围。</span> <span>调用<a href="../../../java/awt/font/NumericShaper.html#getRangeSet--"><code>getRangeSet()</code></a>为基于枚举的范围。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             要形成的所有范围的值。 
+           </dd>
+</dl> </li>
+</ul> <a name="getRangeSet--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>getRangeSet</h4> <pre>public <a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/awt/font/NumericShaper.Range.html" title="enum in java.awt.font">NumericShaper.Range</a>&gt; getRangeSet()</pre>
+<div class="block">
+            返回 
+           <code>Set</code>代表所有的Unicode范围在此 
+           <code>NumericShaper</code>将要成型。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             所有的Unicode范围都要形成。 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.7 
+           </dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public int hashCode()</pre>
+<div class="block">
+            返回此整形器的哈希码。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#hashCode--">hashCode</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个整形器的哈希码。 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public boolean equals(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> o)</pre>
+<div class="block">
+<span>返回<code>true</code>如果指定的对象是一个实例<code>NumericShaper</code>和一致地成形这一个，无论范围的表示，所述位掩码或枚举的。</span>
+<span>例如，以下代码生成<code>"true"</code> 。</span>
+<blockquote>
+<span><pre>
+ NumericShaper ns1 = NumericShaper.getShaper(NumericShaper.ARABIC);
+ NumericShaper ns2 = NumericShaper.getShaper(NumericShaper.Range.ARABIC);
+ System.out.println(ns1.equals(ns2));
+ </pre></span>
+</blockquote>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>o</code> - 与此 
+            <code>NumericShaper</code>进行比较的指定对象 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<span><code>true</code>如果<code>o</code>是的一个实例<code>NumericShaper</code>个形状以同样的方式;</span>
+<span><code>false</code>否则。</span>
+</dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+<span>返回<code>String</code>描述此成形。</span>
+<span>此方法仅用于调试。</span>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#toString--">toString</a></code>在 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个描述这个整形器的 
+            <code>String</code> 。 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>

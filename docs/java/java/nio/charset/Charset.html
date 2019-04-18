@@ -1,0 +1,825 @@
+<div class="header">
+<div class="subTitle">
+     compact1, compact2, compact3 
+   </div>
+<div class="subTitle">
+     java.nio.charset 
+   </div>
+<h2 class="title" title="Class Charset">Class Charset</h2>
+</div><div class="contentContainer">
+<ul class="inheritance">
+<li><a href="../../../java/lang/Object.html" title="class in java.lang">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>java.nio.charset.Charset</li>
+</ul> </li>
+</ul>
+<div class="description">
+<ul class="blockList">
+<li class="blockList">
+<dl>
+<dt>
+         All Implemented Interfaces: 
+       </dt>
+<dd>
+<span><a href="../../../java/lang/Comparable.html" title="java.lang中的接口">Comparable</a> &lt; <a href="../../../java/nio/charset/Charset.html" title="java.nio.charset中的类">Charset</a> &gt;</span>
+</dd>
+</dl>
+<hr/> <br/> <pre>public abstract class <span class="typeNameLabel">Charset</span>
+extends <a href="../../../java/lang/Object.html" title="class in java.lang">Object</a>
+implements <a href="../../../java/lang/Comparable.html" title="interface in java.lang">Comparable</a>&lt;<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a>&gt;</pre>
+<div class="block">
+<span>16位Unicode <a href="../../lang/Character.html#unicode">code units</a>和字节<a href="../../lang/Character.html#unicode">序列</a>之间的命名映射。</span>
+<span>该类定义了用于创建解码器和编码器以及检索与字符集关联的各种名称的方法。</span>
+<span>这个类的实例是不可变的。</span>
+<p> <span>此类还定义了用于测试是否支持特定字符集的静态方法，用于通过名称查找字符集实例，以及构造包含当前Java虚拟机中可用的每个字符集的映射。</span> <span>可以通过<a href="../../../java/nio/charset/spi/CharsetProvider.html" title="java.nio.charset.spi中的类"><code>CharsetProvider</code></a>类中定义的服务提供程序接口添加对新字符集的支持。</span> </p>
+<p> <span>此类中定义的所有方法都可以安全地被多个并发线程使用。</span> <span><a name="names"></a> <a name="charenc"></a></span> </p>
+<h2> <span>字符串名称</span> </h2>
+<p> <span>字符串由以下字符组成的字符串命名：</span> </p>
+<ul>
+<li> <span>大写字母<tt>'A'</tt>至<tt>'Z'</tt> （ <tt>'\u0041'</tt>至<tt>'\u005a'</tt> ），</span> </li>
+<li> <span>小写字母<tt>'a'</tt>至<tt>'z'</tt> （ <tt>'\u0061'</tt>至<tt>'\u007a'</tt> ），</span> </li>
+<li> <span>数字<tt>'0'</tt>至<tt>'9'</tt> （ <tt>'\u0030'</tt>至<tt>'\u0039'</tt> ），</span> </li>
+<li> <span>破折号<tt><tt>'-'（'\u002d'，</tt></tt> <small>连字符号</small> ），</span> </li>
+<li> <span>加号字符<tt>'+'</tt> （ <tt>'\u002b'</tt> ， <small>加号</small> ），</span> </li>
+<li> <span>期间字符<tt>'.'</tt> （ <tt>'\u002e'</tt> ， <small>FULL STOP</small> ），</span> </li>
+<li> <span>冒号字符<tt>':'</tt> （ <tt>'\u003a'</tt> ， <small>COLON</small> ）和</span> </li>
+<li> <span>下划线字符<tt>'_'</tt> （ <tt>'\u005f'</tt> ， <small>LOW LINE</small> ）。</span> </li>
+</ul>
+<span>字符集名称必须以字母或数字开头。</span>
+<span>空字符串不是合法的字符集名称。</span>
+<span>字符串名称不区分大小写;</span>
+<span>也就是说，比较字符集名称时总是忽略大小写。</span>
+<span>字符集名称通常遵循<i>RFC 2278: IANA Charset Registration Procedures</i>中记录的<a href="http://www.ietf.org/rfc/rfc2278.txt">惯例</a> 。</span>
+<p> <span>每个字符集都有一个<i>规范名称</i> ，也可能有一个或多个<i>别名</i> 。</span> <span>规范名称由本类的<a href="../../../java/nio/charset/Charset.html#name--"><code>name</code></a>方法返回。</span> <span>常规名称通常是大写的。</span> <span>字符集的别名由<a href="../../../java/nio/charset/Charset.html#aliases--"><code>aliases</code></a>方法返回。</span> </p>
+<p> <span><a name="hn">Some charsets have an <i>historical name</i> that is defined for compatibility with previous versions of the Java platform.</a>字符集的历史名称是其规范名称或其别名之一。</span> <span>历史名称由<a href="../../../java/io/InputStreamReader.html#getEncoding--"><code>InputStreamReader</code></a>和<a href="../../../java/io/OutputStreamWriter.html#getEncoding--"><code>OutputStreamWriter</code></a>课程的<tt>getEncoding()</tt>方法返回。</span> </p>
+<p> <span><a name="iana"></a>如果列出一个字符集<a href="http://www.iana.org/assignments/character-sets"><i>IANA Charset Registry</i></a>由Java平台的实现支持那么它的规范名称必须是注册表中列出的名字。</span> <span>许多字符集在注册表中都有多个名称，在这种情况下，注册表将其中一个名称<i>标识</i>为<i>MIME首选项</i> 。</span> <span>如果一个字符集有多个注册表名称，那么其规范名称必须是MIME首选名称，注册表中的其他名称必须是有效的别名。</span> <span>如果支持的字符集未列在IANA注册表中，则其规范名称必须以其中一个字符串<tt>"X-"</tt>或<tt>"x-"开头</tt> 。</span> </p>
+<p> <span>IANA字符集注册表确实随时间而变化，因此特定字符集的规范名称和别名也可能随时间而变化。</span> <span>为确保兼容性，建议不要从字符集中删除任何别名，如果字符集的规范名称被更改，那么其以前的规范名称将被做成一个别名。</span> </p>
+<h2> <span>标准字符集</span> </h2>
+<p> <span><a name="standard">Every implementation of the Java platform is required to support the following standard charsets.</a>请参阅实现的发行说明文件，查看是否支持其他字符集。</span> <span>这种可选字符集的行为在实现之间可能不同。</span> </p>
+<blockquote>
+<span>
+<table summary="Description of standard charsets" width="80%">
+<tbody>
+<tr>
+<th align="left">Charset</th>
+<th align="left">描述</th>
+</tr>
+<tr>
+<td valign="top"><tt>US-ASCII</tt></td>
+<td>Seven-bit ASCII, a.k.a. <tt>ISO646-US</tt>, a.k.a. the Basic Latin block of the Unicode character set</td>
+</tr>
+<tr>
+<td valign="top"><tt>ISO-8859-1  </tt></td>
+<td>ISO Latin Alphabet No. 1, a.k.a. <tt>ISO-LATIN-1</tt></td>
+</tr>
+<tr>
+<td valign="top"><tt>UTF-8</tt></td>
+<td>Eight-bit UCS Transformation Format</td>
+</tr>
+<tr>
+<td valign="top"><tt>UTF-16BE</tt></td>
+<td>Sixteen-bit UCS Transformation Format, big-endian byte order</td>
+</tr>
+<tr>
+<td valign="top"><tt>UTF-16LE</tt></td>
+<td>Sixteen-bit UCS Transformation Format, little-endian byte order</td>
+</tr>
+<tr>
+<td valign="top"><tt>UTF-16</tt></td>
+<td>Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark</td>
+</tr>
+</tbody>
+</table></span>
+</blockquote>
+<p> <span><tt>UTF-8</tt>字符集由<a href="http://www.ietf.org/rfc/rfc2279.txt"><i>RFC 2279</i>指定</a> ;</span> <span>其所依据的转换格式在ISO 10646-1的修正案2中规定，并在<i>Unicode Standard</i>中进行了<a href="http://www.unicode.org/unicode/standard/standard.html">说明</a> 。</span> </p>
+<p> <span><tt>UTF-16</tt>字符集由<a href="http://www.ietf.org/rfc/rfc2781.txt"><i>RFC 2781</i>指定</a> ;</span> <span>它们所基于的转换格式在ISO 10646-1的修正1中规定，并在<i>Unicode Standard</i>中进行了<a href="http://www.unicode.org/unicode/standard/standard.html">描述</a> 。</span> </p>
+<p> <span><tt>UTF-16</tt>字符集使用十六位数量，因此对字节顺序敏感。</span> <span>在这些编码中，流的字节顺序可以由Unicode字符'\uFEFF' <tt>表示</tt>的初始<i>字节顺序标记</i>来<tt>指示</tt> 。</span> <span>字节顺序标记处理如下：</span> </p>
+<ul>
+<li><p> <span>当解码时， <tt>UTF-16BE</tt>和<tt>UTF-16LE</tt>字符集将初始字节顺序标记解释为<small>ZERO-WIDTH NON-BREAKING SPACE</small> ;</span> <span>当编码时，它们不会写入字节顺序标记。</span> </p></li>
+<li><p> <span>当解码时， <tt>UTF-16</tt>字符集解释输入流开始处的字节顺序标记，以指示流的字节顺序，但如果没有字节顺序标记则默认为big-endian;</span> <span>当编码时，它使用大字节字节顺序并写入大字节字节顺序标记。</span> </p></li>
+</ul>
+<span>在任何情况下，在输入序列的第一个元素之后发生的字节顺序标记不被省略，因为相同的代码用于表示<small>零宽度非</small>破坏<small>空间</small> 。</span>
+<p> <span>Java虚拟机的每个实例都有一个默认字符集，它可能是也可能不是标准字符集之一。</span> <span>默认字符集在虚拟机启动期间确定，通常取决于底层操作系统正在使用的区域设置和字符集。</span> </p>
+<p> <span><a href="../../../java/nio/charset/StandardCharsets.html" title="java.nio.charset中的类"><code>StandardCharsets</code></a>类定义了每个标准字符集的常量。</span> </p>
+<h2> <span>术语</span> </h2>
+<p> <span>该类的名称取自<a href="http://www.ietf.org/rfc/rfc2278.txt"><i>RFC 2278</i>中</a>使用的<a href="http://www.ietf.org/rfc/rfc2278.txt">术语</a> 。</span> <span>在该文档中， <i>字符集</i>被定义为一个或多个编码字符集和字符编码方案的组合。</span> <span>（这个定义很混乱;一些其他软件系统将<i>charset</i>定义为<i>编码</i> <i>字符集</i>的同义词。）</span> </p>
+<p> <span><i>编码字符集</i>是一组抽象字符和一组整数之间的映射。</span> <span>US-ASCII，ISO 8859-1，JIS X 0201和Unicode是编码字符集的示例。</span> </p>
+<p> <span>一些标准将<i>字符集</i>定义为简单的一组抽象字符，而没有相关的分配编号。</span> <span>字母表是这样的字符集的示例。</span> <span>然而， <i>字符集</i>和<i>编码字符集</i>之间的微妙区别在实践中很少使用;</span> <span>前者已经成为后者的缩写，包括Java API规范。</span> </p>
+<p> <span><i>字符编码方案</i>是一个或多个编码字符集和一组八位字节（八位字节）序列之间的映射。</span> <span>UTF-8，UTF-16，ISO 2022和EUC是字符编码方案的例子。</span> <span>编码方案通常与特定编码字符集相关联;</span> <span>例如，UTF-8仅用于编码Unicode。</span> <span>然而，一些方案与多个编码字符集相关联;</span> <span>例如，EUC可用于对各种亚洲编码字符集中的字符进行编码。</span> </p>
+<p> <span>当编码字符集专用于单个字符编码方案时，相应的字符集通常被命名为编码字符集;</span> <span>否则字符集通常被命名为编码方案，并且可能是其支持的编码字符集的区域设置。</span> <span>因此， <tt>US-ASCII</tt>既是编码字符集的名称，也是编码字符集的名称，而<tt>EUC-JP</tt>是编码<tt>日语</tt>的JIS X 0201，JIS X 0208和JIS X 0212编码字符集的字符集的名称。</span> </p>
+<p> <span>Java编程语言的本机字符编码是UTF-16。</span> <span>因此，Java平台中的字符集定义了十六位UTF-16代码单元（即字符序列）和字节序列的序列之间的映射。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+         1.4 
+       </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/nio/charset/CharsetDecoder.html" title="java.nio.charset中的类"><code>CharsetDecoder</code></a> ， <a href="../../../java/nio/charset/CharsetEncoder.html" title="java.nio.charset中的类"><code>CharsetEncoder</code></a> ， <a href="../../../java/nio/charset/spi/CharsetProvider.html" title="java.nio.charset.spi中的类"><code>CharsetProvider</code></a> ， <a href="../../../java/lang/Character.html" title="java.lang中的类"><code>Character</code></a></span>
+</dd>
+</dl> </li>
+</ul>
+</div>
+<div class="summary">
+<ul class="blockList">
+<li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!-- --> </a> <h3>构造方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption>
+<span>构造方法</span>
+<span class="tabEnd"> </span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#Charset-java.lang.String-java.lang.String:A-">Charset</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> canonicalName, <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] aliases)</code>
+<div class="block">
+              使用给定的规范名称和别名集初始化新的字符集。 
+            </div> </td>
+</tr>
+</tbody>
+</table> </li>
+</ul>
+<!-- ========== METHOD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.summary">
+<!-- --> </a> <h3>方法摘要</h3>
+<table border="0" cellpadding="3" cellspacing="0" class="memberSummary" summary="Method Summary table, listing methods, and an explanation">
+<caption>
+<span class="activeTableTab" id="t0"><span>所有方法</span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t1"><span><a href="javascript:show(1);">静态方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t2"><span><a href="javascript:show(2);">接口方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t3"><span><a href="javascript:show(4);">抽象方法</a></span><span class="tabEnd"> </span></span>
+<span class="tableTab" id="t4"><span><a href="javascript:show(8);">具体的方法</a></span><span class="tabEnd"> </span></span>
+</caption>
+<tbody>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr class="altColor" id="i0">
+<td class="colFirst"><code><a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#aliases--">aliases</a></span>()</code>
+<div class="block">
+              返回一个包含此字符集的别名的集合。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i1">
+<td class="colFirst"><code>static <a href="../../../java/util/SortedMap.html" title="interface in java.util">SortedMap</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>,<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#availableCharsets--">availableCharsets</a></span>()</code>
+<div class="block">
+              构造从规范字符集名称到字符集对象的排序映射。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#canEncode--">canEncode</a></span>()</code>
+<div class="block">
+              告诉这个字符集是否支持编码。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#compareTo-java.nio.charset.Charset-">compareTo</a></span>(<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> that)</code>
+<div class="block">
+              将此字符串与另一个字符集进行比较。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>abstract boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#contains-java.nio.charset.Charset-">contains</a></span>(<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> cs)</code>
+<div class="block">
+              告知这个字符集是否包含给定的字符集。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i5">
+<td class="colFirst"><code><a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#decode-java.nio.ByteBuffer-">decode</a></span>(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> bb)</code>
+<div class="block">
+              便利方法，将此字符集中的字节解码为Unicode字符。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i6">
+<td class="colFirst"><code>static <a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#defaultCharset--">defaultCharset</a></span>()</code>
+<div class="block">
+              返回此Java虚拟机的默认字符集。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#displayName--">displayName</a></span>()</code>
+<div class="block">
+              返回此字符集的默认语言环境的可读名称。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#displayName-java.util.Locale-">displayName</a></span>(<a href="../../../java/util/Locale.html" title="class in java.util">Locale</a> locale)</code>
+<div class="block">
+              返回此字符集的给定语言环境的人类可读名称。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i9">
+<td class="colFirst"><code><a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#encode-java.nio.CharBuffer-">encode</a></span>(<a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> cb)</code>
+<div class="block">
+              在这个字符集中将Unicode字符编码为字节的便捷方法。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i10">
+<td class="colFirst"><code><a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#encode-java.lang.String-">encode</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> str)</code>
+<div class="block">
+              在此字符集中将字符串编码为字节的便捷方法。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i11">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#equals-java.lang.Object-">equals</a></span>(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> ob)</code>
+<div class="block">
+              告诉这个对象是否等于另一个。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i12">
+<td class="colFirst"><code>static <a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#forName-java.lang.String-">forName</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> charsetName)</code>
+<div class="block">
+              返回名为charset的charset对象。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i13">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#hashCode--">hashCode</a></span>()</code>
+<div class="block">
+              计算此字符集的哈希码。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i14">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#isRegistered--">isRegistered</a></span>()</code>
+<div class="block">
+              告诉这个字符集是否在IANA Charset Registry中 
+             <a href="http://www.iana.org/assignments/character-sets">注册</a> 。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#isSupported-java.lang.String-">isSupported</a></span>(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> charsetName)</code>
+<div class="block">
+              告诉是否支持命名的字符集。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#name--">name</a></span>()</code>
+<div class="block">
+              返回此字符集的规范名称。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#newDecoder--">newDecoder</a></span>()</code>
+<div class="block">
+              为此字符集构造一个新的解码器。 
+            </div> </td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>abstract <a href="../../../java/nio/charset/CharsetEncoder.html" title="class in java.nio.charset">CharsetEncoder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#newEncoder--">newEncoder</a></span>()</code>
+<div class="block">
+              为此字符集构造一个新的编码器。 
+            </div> </td>
+</tr>
+<tr class="rowColor" id="i19">
+<td class="colFirst"><code><a href="../../../java/lang/String.html" title="class in java.lang">String</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../java/nio/charset/Charset.html#toString--">toString</a></span>()</code>
+<div class="block">
+              返回描述此字符集的字符串。 
+            </div> </td>
+</tr>
+</tbody>
+</table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!-- --> </a> <h3>Methods inherited from class java.lang.<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></h3> <code><a href="../../../java/lang/Object.html#clone--">clone</a>, <a href="../../../java/lang/Object.html#finalize--">finalize</a>, <a href="../../../java/lang/Object.html#getClass--">getClass</a>, <a href="../../../java/lang/Object.html#notify--">notify</a>, <a href="../../../java/lang/Object.html#notifyAll--">notifyAll</a>, <a href="../../../java/lang/Object.html#wait--">wait</a>, <a href="../../../java/lang/Object.html#wait-long-">wait</a>, <a href="../../../java/lang/Object.html#wait-long-int-">wait</a></code></li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+<div class="details">
+<ul class="blockList">
+<li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!-- --> </a> <h3>构造方法详细信息</h3> <a name="Charset-java.lang.String-java.lang.String:A-">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>Charset</h4> <pre>protected Charset(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> canonicalName,
+                  <a href="../../../java/lang/String.html" title="class in java.lang">String</a>[] aliases)</pre>
+<div class="block">
+            使用给定的规范名称和别名集初始化新的字符集。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>canonicalName</code> - 此字符集的规范名称 
+           </dd>
+<dd>
+<code>aliases</code> - 这个字符集的别名的数组，如果没有别名，则为null 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/charset/IllegalCharsetNameException.html" title="class in java.nio.charset">IllegalCharsetNameException</a></code> - 如果规范名称或任何别名是非法的 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!-- --> </a> <h3>方法详细信息</h3> <a name="isSupported-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isSupported</h4> <pre>public static boolean isSupported(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> charsetName)</pre>
+<div class="block">
+            告诉是否支持命名的字符集。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>charsetName</code> - 请求的字符集的名称;</span>
+<span>可能是规范名称或别名</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>true</tt>如果并且只有在当前Java虚拟机中可用的命名字符集的支持 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/charset/IllegalCharsetNameException.html" title="class in java.nio.charset">IllegalCharsetNameException</a></code> - 如果给定的字符集名称是非法的 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果给定的 
+            <tt>charsetName</tt>为空 
+           </dd>
+</dl> </li>
+</ul> <a name="forName-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>forName</h4> <pre>public static <a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> forName(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> charsetName)</pre>
+<div class="block">
+            返回名为charset的charset对象。 
+          </div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<span><code>charsetName</code> - 请求的字符集的名称;</span>
+<span>可能是规范名称或别名</span>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             命名字符集的字符集对象 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/nio/charset/IllegalCharsetNameException.html" title="class in java.nio.charset">IllegalCharsetNameException</a></code> - 如果给定的字符集名称是非法的 
+           </dd>
+<dd>
+<code><a href="../../../java/lang/IllegalArgumentException.html" title="class in java.lang">IllegalArgumentException</a></code> - 如果给定的 
+            <tt>charsetName</tt>为空 
+           </dd>
+<dd>
+<code><a href="../../../java/nio/charset/UnsupportedCharsetException.html" title="class in java.nio.charset">UnsupportedCharsetException</a></code> - 如果在Java虚拟机的此实例中不支持命名的字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="availableCharsets--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>availableCharsets</h4> <pre>public static <a href="../../../java/util/SortedMap.html" title="interface in java.util">SortedMap</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>,<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a>&gt; availableCharsets()</pre>
+<div class="block">
+<span>构造从规范字符集名称到字符集对象的排序映射。</span>
+<p> <span>此方法返回的映射将为当前Java虚拟机中可用的每个字符集都有一个条目。</span> <span>如果两个或多个支持的字符集具有相同的规范名称，则生成的映射将仅包含其中的一个;</span> <span>它将包含哪一个没有指定。</span> </p>
+<p> <span>调用此方法以及后续使用生成的映射可能会导致耗时的磁盘或网络I / O操作发生。</span> <span>为需要枚举所有可用字符集的应用程序提供此方法，例如允许用户选择字符集。</span> <span><a href="../../../java/nio/charset/Charset.html#forName-java.lang.String-"><code>forName</code></a>方法不使用此方法，而是采用有效的增量查找算法。</span> </p>
+<p> <span>如果新的字符集提供程序动态地可用于当前的Java虚拟机，则此方法可能会在不同时间返回不同的结果。</span> <span>在没有这些更改的情况下，通过此方法返回的字符集恰好是可以通过<a href="../../../java/nio/charset/Charset.html#forName-java.lang.String-"><code>forName</code></a>方法检索的字符集。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             从规范字符集名称到字符集对象的不可变的，不区分大小写的映射 
+           </dd>
+</dl> </li>
+</ul> <a name="defaultCharset--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>defaultCharset</h4> <pre>public static <a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> defaultCharset()</pre>
+<div class="block">
+<span>返回此Java虚拟机的默认字符集。</span>
+<p> <span>默认字符集在虚拟机启动期间确定，通常取决于底层操作系统的区域设置和字符集。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             默认字符集的字符集对象 
+           </dd>
+<dt>
+<span class="simpleTagLabel">从以下版本开始：</span>
+</dt>
+<dd>
+             1.5 
+           </dd>
+</dl> </li>
+</ul> <a name="name--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>name</h4> <pre>public final <a href="../../../java/lang/String.html" title="class in java.lang">String</a> name()</pre>
+<div class="block">
+            返回此字符集的规范名称。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个字符集的规范名称 
+           </dd>
+</dl> </li>
+</ul> <a name="aliases--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>aliases</h4> <pre>public final <a href="../../../java/util/Set.html" title="interface in java.util">Set</a>&lt;<a href="../../../java/lang/String.html" title="class in java.lang">String</a>&gt; aliases()</pre>
+<div class="block">
+            返回一个包含此字符集的别名的集合。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个字符集的不可替代的别名 
+           </dd>
+</dl> </li>
+</ul> <a name="displayName--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>displayName</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> displayName()</pre>
+<div class="block">
+<span>返回此字符集的默认语言环境的可读名称。</span>
+<p> <span>这个方法的默认实现只是返回这个charset的规范名称。</span> <span>此类的具体子类可以覆盖此方法，以提供本地化显示名称。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             默认语言环境中此字符集的显示名称 
+           </dd>
+</dl> </li>
+</ul> <a name="isRegistered--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>isRegistered</h4> <pre>public final boolean isRegistered()</pre>
+<div class="block">
+            告诉这个字符集是否在IANA Charset Registry中 
+           <a href="http://www.iana.org/assignments/character-sets">注册</a> 。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>true</tt>如果并且只有这个字符集被其实现者知道才能在IANA注册 
+           </dd>
+</dl> </li>
+</ul> <a name="displayName-java.util.Locale-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>displayName</h4> <pre>public <a href="../../../java/lang/String.html" title="class in java.lang">String</a> displayName(<a href="../../../java/util/Locale.html" title="class in java.util">Locale</a> locale)</pre>
+<div class="block">
+<span>返回此字符集的给定语言环境的人类可读名称。</span>
+<p> <span>这个方法的默认实现只是返回这个charset的规范名称。</span> <span>此类的具体子类可以覆盖此方法，以提供本地化显示名称。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>locale</code> - 要检索显示名称的区域设置 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             此字符集在给定语言环境中的显示名称 
+           </dd>
+</dl> </li>
+</ul> <a name="contains-java.nio.charset.Charset-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>contains</h4> <pre>public abstract boolean contains(<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> cs)</pre>
+<div class="block">
+<span>告知这个字符集是否包含给定的字符集。</span>
+<p> <span>据说<i>C</i>字符集<i>包含</i>一个字符集<i>D，</i>如果只有在<i>D中</i>表示的每个字符也可以在<i>C中表示</i> 。</span> <span>如果这种关系成立，那么可以保证在<i>D</i>中编码的每个字符串也可以在<i>C中</i>进行编码，而不进行任何替换。</span> </p>
+<p> <span>该<i>C</i>包含<i>D</i>并不意味着通过特定字节序列在<i>C</i>中表示的每个字符在<i>D</i>中以相同的字节序列表示，尽管有时是这种情况。</span> </p>
+<p> <span>每个字符集都包含自身。</span> </p>
+<p> <span>该方法计算遏制关系的近似值：如果返回<tt>true，</tt>则该字符集将包含给定的字符集;</span> <span>但是，如果它返回<tt>false</tt> ，则不一定是这个字符集中不包含给定的字符集。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>cs</code> - 给定的字符集 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>true</tt>如果给定的字符集包含在此字符集中 
+           </dd>
+</dl> </li>
+</ul> <a name="newDecoder--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>newDecoder</h4> <pre>public abstract <a href="../../../java/nio/charset/CharsetDecoder.html" title="class in java.nio.charset">CharsetDecoder</a> newDecoder()</pre>
+<div class="block">
+            为此字符集构造一个新的解码器。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             这个字符集的新解码器 
+           </dd>
+</dl> </li>
+</ul> <a name="newEncoder--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>newEncoder</h4> <pre>public abstract <a href="../../../java/nio/charset/CharsetEncoder.html" title="class in java.nio.charset">CharsetEncoder</a> newEncoder()</pre>
+<div class="block">
+            为此字符集构造一个新的编码器。 
+          </div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             用于此字符集的新编码器 
+           </dd>
+<dt>
+<span class="throwsLabel">异常</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/UnsupportedOperationException.html" title="class in java.lang">UnsupportedOperationException</a></code> - 如果此字符集不支持编码 
+           </dd>
+</dl> </li>
+</ul> <a name="canEncode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>canEncode</h4> <pre>public boolean canEncode()</pre>
+<div class="block">
+<span>告诉这个字符集是否支持编码。</span>
+<p> <span>几乎所有的字符集都支持编码。</span> <span>主要的例外是专用<i>自动检测</i>字符集，其解码器可以通过检查输入字节序列来确定几种可能的编码方案中的哪一种。</span> <span>这样的字符集不支持编码，因为无法确定在输出中应使用哪个编码。</span> <span>这种字符集的实现应该覆盖此方法以返回<tt>false</tt> 。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>true</tt>如果，并且只有这个charset支持编码 
+           </dd>
+</dl> </li>
+</ul> <a name="decode-java.nio.ByteBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>decode</h4> <pre>public final <a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> decode(<a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> bb)</pre>
+<div class="block">
+<span>便利方法，将此字符集中的字节解码为Unicode字符。</span>
+<p> <span>在字符集<tt>cs上</tt>调用此方法返回与<tt>表达式</tt>相同的结果</span> </p>
+<pre>  <span>cs.newDecoder()
+       .onMalformedInput(CodingErrorAction.REPLACE)
+       .onUnmappableCharacter(CodingErrorAction.REPLACE)
+       .decode(bb);</span> </pre>
+<span>除了它可能更有效率，因为它可以在连续调用之间缓存解码器。</span>
+<p> <span>此方法总是用此字符集的默认替换字节数组替换格式错误的输入和不可映射字符序列。</span> <span>为了检测这些序列，请直接使用<a href="../../../java/nio/charset/CharsetDecoder.html#decode-java.nio.ByteBuffer-"><code>CharsetDecoder.decode(java.nio.ByteBuffer)</code></a>方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>bb</code> - 要解码的字节缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             包含解码字符的char缓冲区 
+           </dd>
+</dl> </li>
+</ul> <a name="encode-java.nio.CharBuffer-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>encode</h4> <pre>public final <a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> encode(<a href="../../../java/nio/CharBuffer.html" title="class in java.nio">CharBuffer</a> cb)</pre>
+<div class="block">
+<span>在这个字符集中将Unicode字符编码为字节的便捷方法。</span>
+<p> <span>在字符集<tt>cs上</tt>调用此方法返回与<tt>表达式</tt>相同的结果</span> </p>
+<pre>  <span>cs.newEncoder()
+       .onMalformedInput(CodingErrorAction.REPLACE)
+       .onUnmappableCharacter(CodingErrorAction.REPLACE)
+       .encode(bb);</span> </pre>
+<span>除了它可能更有效率，因为它可以在连续调用之间缓存编码器。</span>
+<p> <span>此方法总是用此字符集的默认替换字符串替换格式错误的输入和不可映射字符序列。</span> <span>为了检测这些序列，请直接使用<a href="../../../java/nio/charset/CharsetEncoder.html#encode-java.nio.CharBuffer-"><code>CharsetEncoder.encode(java.nio.CharBuffer)</code></a>方法。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>cb</code> - 要编码的char缓冲区 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             包含编码字符的字节缓冲区 
+           </dd>
+</dl> </li>
+</ul> <a name="encode-java.lang.String-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>encode</h4> <pre>public final <a href="../../../java/nio/ByteBuffer.html" title="class in java.nio">ByteBuffer</a> encode(<a href="../../../java/lang/String.html" title="class in java.lang">String</a> str)</pre>
+<div class="block">
+<span>在此字符集中将字符串编码为字节的便捷方法。</span>
+<p> <span>在字符集<tt>cs上</tt>调用此方法返回与<tt>表达式</tt>相同的结果</span> </p>
+<pre>  <span>cs.encode(CharBuffer.wrap(s));</span> </pre>
+</div>
+<dl>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>str</code> - 要编码的字符串 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             包含编码字符的字节缓冲区 
+           </dd>
+</dl> </li>
+</ul> <a name="compareTo-java.nio.charset.Charset-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>compareTo</h4> <pre>public final int compareTo(<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a> that)</pre>
+<div class="block">
+<span>将此字符串与另一个字符集进行比较。</span>
+<p> <span>字符串按其规范名称排序，不考虑案例。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">Specified by:</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Comparable.html#compareTo-T-">compareTo</a></code>在界面 
+            <code><a href="../../../java/lang/Comparable.html" title="interface in java.lang">Comparable</a>&lt;<a href="../../../java/nio/charset/Charset.html" title="class in java.nio.charset">Charset</a>&gt;</code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>that</code> - 要比较此字符集的字符集 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             负整数，零或正整数，因为此字符集小于，等于或大于指定的字符集 
+           </dd>
+</dl> </li>
+</ul> <a name="hashCode--">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>hashCode</h4> <pre>public final int hashCode()</pre>
+<div class="block">
+            计算此字符集的哈希码。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#hashCode--">hashCode</a></code>在类别 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             一个整数哈希码 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<a href="../../../java/lang/Object.html#equals-java.lang.Object-"><code>Object.equals(java.lang.Object)</code></a> ， 
+            <a href="../../../java/lang/System.html#identityHashCode-java.lang.Object-"><code>System.identityHashCode(java.lang.Object)</code></a>
+</dd>
+</dl> </li>
+</ul> <a name="equals-java.lang.Object-">
+<!-- --> </a>
+<ul class="blockList">
+<li class="blockList"> <h4>equals</h4> <pre>public final boolean equals(<a href="../../../java/lang/Object.html" title="class in java.lang">Object</a> ob)</pre>
+<div class="block">
+<span>告诉这个对象是否等于另一个。</span>
+<p> <span>两个字符串是相等的，只有当他们有相同的规范名称。</span> <span>字符集从不等于任何其他类型的对象。</span> </p>
+</div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#equals-java.lang.Object-">equals</a></code>在类别 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="paramLabel">参数</span>
+</dt>
+<dd>
+<code>ob</code> - 与之比较的参考对象。 
+           </dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+<tt>true</tt>如果，并且只有这个字符集等于给定的对象 
+           </dd>
+<dt>
+<span class="seeLabel">另请参见：</span>
+</dt>
+<dd>
+<span><a href="../../../java/lang/Object.html#hashCode--"><code>Object.hashCode()</code></a> ， <a href="../../../java/util/HashMap.html" title="java.util中的类"><code>HashMap</code></a></span>
+</dd>
+</dl> </li>
+</ul> <a name="toString--">
+<!-- --> </a>
+<ul class="blockListLast">
+<li class="blockList"> <h4>toString</h4> <pre>public final <a href="../../../java/lang/String.html" title="class in java.lang">String</a> toString()</pre>
+<div class="block">
+            返回描述此字符集的字符串。 
+          </div>
+<dl>
+<dt>
+<span class="overrideSpecifyLabel">重写：</span>
+</dt>
+<dd>
+<code><a href="../../../java/lang/Object.html#toString--">toString</a></code>在类别 
+            <code><a href="../../../java/lang/Object.html" title="class in java.lang">Object</a></code>
+</dd>
+<dt>
+<span class="returnLabel">结果</span>
+</dt>
+<dd>
+             A string describing this charset 
+           </dd>
+</dl> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+</div>
+</div>
