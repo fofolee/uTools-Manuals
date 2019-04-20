@@ -28,15 +28,6 @@ getAllFeatures = () => {
             },
             type: "default"
         },
-        "java": {
-            features: {
-                "code": "java",
-                "explain": "java中文文档",
-                "cmds": ["java文档"],
-                "icon": "logo/java.png"
-            },
-            type: "default"
-        },
         "c": {
             features: {
                 "code": "c",

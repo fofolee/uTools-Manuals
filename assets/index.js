@@ -64,20 +64,22 @@ showManual = path => {
             var f = p[0]
         }
         var file = `${window.dirs.docPath}/${f}`;
-        window.read(file, (err, data) => {
-            if (!err) {
+        $.get(file, data => {
+            if (data) {
                 $("#mainlist").fadeOut();
                 $("#manual").fadeOut().promise().done(() => {
-                    var filePath = f.substr(0, f.lastIndexOf('/') + 1);
+                    if (window.dirs.docPath != 'docs') {
+                        var filePath = file.substr(0, file.lastIndexOf('/') + 1); 
+                    } else {
+                        var filePath = f.substr(0, f.lastIndexOf('/') + 1);
+                    }
                     data = data.replace(/href="(?!http)(.*?)"(.*?)(?!\#)/g, `href="${filePath}$1$2"`);
                     data = data.replace(/src="(?!http)(.*?)"/g, `src="${filePath}$1"`);
                     $("#manual").html(`<div id="manualHead">${data}</div>`).fadeIn();
                     Prism.highlightAll();
                     location.href = p.length == 2 ? id : '#manualHead';
                 })
-            } else {
-                console.log(err);
-            }
+            } 
         })
     }
 }
@@ -158,35 +160,39 @@ utools.onPluginEnter(({ code, type, payload }) => {
         showOptions();
     } else {
         $("#mainlist").fadeIn();
-        var allFts = getAllFeatures();
+        var allFts = getAllFeatures(),
+            baseDir,
+            css;
         switch (allFts[code].type) {
             case "default":
-                var baseDir = window.getDirname();
-                if (window.exists(`${baseDir}/assets/${code}.css`)) {
-                    $("#manualCSS").attr("href", `assets/${code}.css`)
-                }
+                baseDir = getDirname();
+                css = `${baseDir}/assets/${code}.css`
                 window.dirs = {
-                    idxFile: `${baseDir}/index/${code}.json`,
-                    docPath: `${baseDir}/docs`
+                    idxFile: `index/${code}.json`,
+                    docPath: `docs`,
             }
                 break;
             case "custom":
-                var baseDir = allFts[code].path;
+                baseDir = allFts[code].path;
+                css = `${baseDir}/${code}.css`
                 window.dirs = {
                     idxFile: `${baseDir}/${code}.json`,
                     docPath: `${baseDir}`,
                 }
                 break;
             case "dash":
-                var baseDir = allFts[code].path;
+                baseDir = allFts[code].path;
                 window.dirs = {
                     idxFile: `${baseDir}/${code}.json`,
                     docPath: `${baseDir}/Documents`,
                 }
                 break;
         }
+        if (window.exists(css)) {
+            $("#manualCSS").attr("href", css)
+        }
         // 读取目录文件
-        window.read(window.dirs.idxFile, (err, data) => {
+        $.get(window.dirs.idxFile, data => {
             let index = JSON.parse(data);
             if (type == 'over') {
                 showList(payload, index, 500)

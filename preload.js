@@ -7,12 +7,6 @@ const { BrowserWindow } = require('electron').remote
 
 getDirname = () => __dirname;
 
-read = (path, callback) => {
-    fs.readFile(path, 'utf8', (err, data) => {
-        callback(err, data);
-    })
-}
-
 open = url => {
     shell.openExternal(url);
 }
@@ -37,9 +31,9 @@ exists = path => {
 sqlite2Json = (input, output) => {
     var binPath;
     if (os.platform() == 'win32') {
-        binPath = `${__dirname}/bin/sqlite3.exe`;
+        binPath = `${__dirname.replace(/(.*?\.asar)/, "$1.unpacked")}/bin/sqlite3.exe`;
     } else {
-        binPath = `${__dirname}/bin/sqlite3`
+        binPath = `${__dirname.replace(/(.*?\.asar)/, "$1.unpacked")}/bin/sqlite3`
     }
     const sql = spawn(binPath, [input, "select * from searchIndex", '-header', '-separator', '|||'])
     let chunks = [];
