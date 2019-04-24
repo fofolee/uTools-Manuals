@@ -19,26 +19,19 @@
 
 ##### 功能更新
 
-<<<<<<< HEAD
 - 增加外置手册的功能，需要有一定的编写爬虫脚本的能力，详情[戳我](https://yuanliao.info/d/356/27)
-=======
-- 增加外置手册的功能，需要有一定的编写爬虫脚本的能力，详情[戳我]()
->>>>>>> 3c522286bb5491f9d6794dc53d0ced8572e14111
 ![Snipaste_2019-04-20_10-45-20.png](https://i.loli.net/2019/04/20/5cba8859b3a66.png)
 ![Snipaste_2019-04-20_10-46-11.png](https://i.loli.net/2019/04/20/5cba8863a5266.png)
 - 增加了三个内置手册`javascript`,`jQuery`,`vue`,一个外置手册`Java`。由于`Java`体积太大（目录10M，手册100M+），会使整个插件体积暴增，故采取外置形式，同时也作为外置手册的一个案例作为参考。
 - 增加了版本检测的功能，当有新版本时会弹窗提示
-<<<<<<< HEAD
 ![Snipaste_2019-04-20_14-04-40.png](https://i.loli.net/2019/04/20/5cbab6a27136e.png)
-=======
->>>>>>> 3c522286bb5491f9d6794dc53d0ced8572e14111
 - 在设置页面增加了两个功能键`全部启用`和`全部禁用`
 
 ##### 用户体验改善
 
 - 优化搜索结果的排序，现在的排序规则是，置顶全字匹配的内容，优先显示名称匹配的内容，其次显示描述匹配的内容
   ![Snipaste_2019-04-19_21-58-45.png](https://i.loli.net/2019/04/19/5cb9d4282b7a1.png)
-- 滚动条样式调整，现在滚动条会自动隐藏，并在滚动时会鼠标移至滚动条位置时出现
+- 滚动条样式调整，现在滚动条会自动隐藏，并在滚动时和鼠标移至滚动条位置时出现
 - 设置页面的开关样式调整，现在开关的状态更加清晰明了
 - linux、C等语言的手册现在支持语法高亮了
 - 其他一些界面微调
@@ -102,7 +95,6 @@
 
 ## 手册来源
 
-<<<<<<< HEAD
 - php手册   | [官方中文文档](https://www.php.net/download-docs.php)       
 - linux手册 | [离线手册：linux-command@jaywcjlove](https://github.com/jaywcjlove/linux-command)  [原始数据：linuxde.net](http://man.linuxde.net/) 
 - python手册 | [官方文档一译翻译版（比官方中文翻译的要多不少）](https://yiyibooks.cn/xx/python_352/library/index.html)及其他第三方库的官方中文文档 
@@ -115,19 +107,4 @@
 - javascript | [MDN Web Docs](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Index) 
 - jQuery | [jQuery中文网](https://www.jquery123.com/) 
 - vue | [官方中文文档](https://cn.vuejs.org/v2/api/) 
-=======
-| 手册 | 来源 |
-| --------- | ------------------------------------------------------------ |
-| php手册   | [官方中文文档](https://www.php.net/download-docs.php)        |
-| linux手册 | [离线手册：linux-command@jaywcjlove](https://github.com/jaywcjlove/linux-command)  [原始数据：linuxde.net](http://man.linuxde.net/) |
-| python手册 | [官方文档一译翻译版（比官方中文翻译的要多不少）](https://yiyibooks.cn/xx/python_352/library/index.html)及其他第三方库的官方中文文档 |
-| C函数 | C语言函数速查（Knocker 2004.7.7 版本 0.5） |
-| vim命令 | [awesome-cheatsheets](https://github.com/skywind3000/awesome-cheatsheets/blob/master/editors/vim.txt) |
-| git命令 | [php中文网git开发手册](http://www.php.cn/manual/view/34942.html) |
-| sql手册 | [php中文网sql参考手册](http://www.php.cn/manual/view/21301.html) |
-| uTools API | [uTools官方文档](https://u.tools/docs/developer/api.html) |
-| java | [fondme.cn](https://blog.fondme.cn/apidoc/jdk-1.8-google/) |
-| javascript | [MDN Web Docs](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Index) |
-| jQuery | [jQuery中文网](https://www.jquery123.com/) |
-| vue | [官方中文文档](https://cn.vuejs.org/v2/api/) |
->>>>>>> 3c522286bb5491f9d6794dc53d0ced8572e14111
+
