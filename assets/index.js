@@ -202,7 +202,7 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                 }
             }, '输入名称或功能进行查询');
         } catch(e) {
-            document.write(e);
+            $("#mainlist").html(e);
         }
     }
 });
