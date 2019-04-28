@@ -140,8 +140,7 @@ showOptions = () => {
                 break;
             }
         }
-        var editBtn = "",
-            logoDir = "";
+        var editBtn = "";
         if (allFts[fts].type != "default") {
             editBtn = `<span class="editBtn" code="${features.code}">✎</span>
             <span class="delBtn" code="${features.code}">✘</span>`;
@@ -268,32 +267,16 @@ $("#options").on('click', '.saveBtn', function () {
             desc = $('#desc').val(),
             p = $('#path').val();
         $("#customize").animate({ right: '-370px' });
-        var pushData = {},
-            icon,
-            type
-        if (window.exists(`${p}/docSet.dsidx`)) {
-            if (!window.exists(`${p}/${code}.json`)) {
-                if (window.exists(`${p}/Tokens.xml`)) {
-                    window.xml2Json(`${p}/Tokens.xml`, `${p}/${code}.json`)
-                } else {
-                    window.sqlite2Json(`${p}/docSet.dsidx`, `${p}/${code}.json`)
-                }
-            }
-            icon = `${p}/../../icon@2x.png`;
-            type = 'dash';
-        } else {
-            icon = `${p}/${code}.png`
-            type = 'custom';
-        }
+        var pushData = {};
         pushData[code] = {
             features: {
                 "code": code,
                 "explain": desc,
                 "cmds": kw,
-                "icon": icon
+                "icon": `${p}/${code}.png`
             },
             path: p,
-            type: type
+            type: 'custom'
         }
         var db = utools.db.get("customFts");
         if (db) {
