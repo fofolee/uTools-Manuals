@@ -51,7 +51,7 @@ showList = (text, index, listnum) => {
 }
 
 // 显示手册
-showManual = path => {
+showManual = async path => {
     utools.setExpendHeight(550);
     if (/^((ht|f)tps?):\/\//.test(path)) {
         window.open(path);
@@ -64,23 +64,22 @@ showManual = path => {
             var f = p[0]
         }
         var file = `${window.dirs.docPath}/${f}`;
-        $.get(file, data => {
-            if (data) {
-                $("#mainlist").fadeOut();
-                $("#manual").fadeOut().promise().done(() => {
-                    if (window.dirs.docPath != 'docs') {
-                        var filePath = file.substr(0, file.lastIndexOf('/') + 1); 
-                    } else {
-                        var filePath = f.substr(0, f.lastIndexOf('/') + 1);
-                    }
-                    data = data.replace(/href="(?!http)(.*?)"(.*?)(?!\#)/g, `href="${filePath}$1$2"`);
-                    data = data.replace(/src="(?!http)(.*?)"/g, `src="${filePath}$1"`);
-                    $("#manual").html(`<div id="manualHead">${data}</div>`).fadeIn();
-                    Prism.highlightAll();
-                    location.href = p.length == 2 ? id : '#manualHead';
-                })
-            } 
-        })
+        try {
+            var data = await readFile(file);
+            $("#mainlist").fadeOut();
+            $("#manual").fadeOut().promise().done(() => {
+                var relPath = f.substr(0, f.lastIndexOf('/') + 1),
+                    absPath = window.dirs.docPath + relPath;
+                data = data.replace(/(a.*?)href="(?!http)(.*?)"(.*?)(?!\#)/g, `$1href="${relPath}$2$3"`);
+                data = data.replace(/(link.*?)href="(?!http)(.*?)"(.*?)(?!\#)/g, `$1href="${absPath}$2$3"`);
+                data = data.replace(/src="(?!http)(.*?)"/g, `src="${absPath}$1"`);
+                $("#manual").html(`<div id="manualHead">${data}</div>`).fadeIn();
+                Prism.highlightAll();
+                location.href = p.length == 2 ? id : '#manualHead';
+            })
+        } catch(e) {
+            console.log(e)
+        } 
     }
 }
 
@@ -109,15 +108,16 @@ init = () => {
 checkUpdate = () => {
     let cv = 'v0.0.2',
         pg = 'https://yuanliao.info/d/356';
-    if (localStorage[cv] != 'pass') {
+    if (!utools.db.get(cv)) {
         $.get(pg, data => {
-          data = /<title>\[插件\]\[程序员手册 (.*?)\](.*?) - 猿料<\/title>/.exec(data);
+            data = /<title>\[插件\]\[程序员手册 (.*?)\](.*?) - 猿料<\/title>/.exec(data);
             let lv = data[1],
                 desc = data[2];
             if (lv != cv) {
                 options = {
                     type: 'info',
-                    title: '可用更新',
+                    title: '插件有可用更新',
+                    icon: window.getLogo(),
                     cancelId: 1,
                     message: `发现新版本 ${lv}，是否前往更新？\n更新内容：\n${desc}`,
                     buttons: ['起驾', '朕知道了', '别再烦朕']
@@ -126,7 +126,7 @@ checkUpdate = () => {
                     if (index == 0) {
                         window.open(pg)
                     } else if (index == 2) {
-                        localStorage[cv] = 'pass';
+                        utools.db.put({ _id: cv, data: "pass" })
                     }
                 })
             }
@@ -153,7 +153,7 @@ loadList = listnum => {
 }
 
 // 进入插件
-utools.onPluginEnter(({ code, type, payload }) => {
+utools.onPluginEnter( async ({ code, type, payload }) => {
     init();
     checkUpdate();
     if (code == 'options') {
@@ -168,8 +168,8 @@ utools.onPluginEnter(({ code, type, payload }) => {
                 baseDir = getDirname();
                 css = `${baseDir}/assets/${code}.css`
                 window.dirs = {
-                    idxFile: `index/${code}.json`,
-                    docPath: `docs`,
+                    idxFile: `${baseDir}/index/${code}.json`,
+                    docPath: `${baseDir}/docs`,
             }
                 break;
             case "custom":
@@ -180,20 +180,14 @@ utools.onPluginEnter(({ code, type, payload }) => {
                     docPath: `${baseDir}`,
                 }
                 break;
-            case "dash":
-                baseDir = allFts[code].path;
-                window.dirs = {
-                    idxFile: `${baseDir}/${code}.json`,
-                    docPath: `${baseDir}/Documents`,
-                }
-                break;
         }
         if (window.exists(css)) {
             $("#manualCSS").attr("href", css)
         }
         // 读取目录文件
-        $.get(window.dirs.idxFile, data => {
-            let index = JSON.parse(data);
+        try {
+            var index = await readFile(window.dirs.idxFile);
+            index = JSON.parse(index);
             if (type == 'over') {
                 showList(payload, index, 500)
             } else {
@@ -207,7 +201,9 @@ utools.onPluginEnter(({ code, type, payload }) => {
                     highlightManual(text);
                 }
             }, '输入名称或功能进行查询');
-        });
+        } catch(e) {
+            document.write(e);
+        }
     }
 });
 
