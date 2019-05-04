@@ -1,7 +1,15 @@
 // 正则转义
-RegExp.escape = function (s) {
-    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-};
+escapeRe = s => {
+    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');   
+}
+
+// html实体编码
+escapeHtml = s => {
+    return s.replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "");
+}
 
 // 列表
 list = (path, initial, type, name ,desc) => {
@@ -19,26 +27,29 @@ showList = (text, index, listnum) => {
     var obn = [];
     var obd = [];
     index.forEach(i => {
-        let name = i.name,
-            desc = i.desc != undefined ? i.desc : "",
-            initial = name.slice(0, 1).toUpperCase(),
-            reg = new RegExp(RegExp.escape(text), "i"),
-            match1 = reg.exec(name),
-            match2 = reg.exec(desc);
+        let reg = new RegExp(escapeRe(text), "i",)
+            match1 = reg.exec(i.name),
+            match2 = reg.exec(i.desc),
+            name = escapeHtml(i.name),
+            desc = i.desc != undefined ? escapeHtml(i.desc) : "",
+            type = i.type != undefined ? escapeHtml(i.type) : "";
+        let initial = i.name.replace(/&lt;|&gt;|&quot;|&#039;/ig, '')
+        initial = /^.*?([a-zA-Z])/.exec(initial);
+        initial = initial ? initial[1].toUpperCase() : '&nbsp;';
         // 优先显示名称匹配的内容
         if (match1) {
             name = highlightList(name, match1[0]);
             if (match2) desc = highlightList(desc, match2[0]);
             // 置顶全字匹配的内容
             if (i.name.toUpperCase() == text.toUpperCase()) {
-                obn.unshift(list(i.path, initial, i.type, name, desc));
+                obn.unshift(list(i.path, initial, type, name, desc));
             } else {
-                obn.push(list(i.path, initial, i.type, name, desc));
+                obn.push(list(i.path, initial, type, name, desc));
             }
         // 其次显示描述匹配的内容
         } else if (match2) {
             desc = highlightList(desc, match2[0]);
-            obd.push(list(i.path, initial, i.type, name, desc));
+            obd.push(list(i.path, initial, type, name, desc));
         }
     });
     window.info = obn.concat(obd);
@@ -47,39 +58,38 @@ showList = (text, index, listnum) => {
     utools.setExpendHeight(num > 11 ? 550 : 50 * num);
     $(".select").removeClass('select');
     $(".info:first").addClass('select');
+    // 鼠标锁，方式鼠标抢占选择条
     window.mouseLockTime = new Date().getTime();
 }
 
 // 显示手册
-showManual = async path => {
+showManual = path => {
     utools.setExpendHeight(550);
     if (/^((ht|f)tps?):\/\//.test(path)) {
         window.open(path);
     } else {
-        let p = path.split('.html#')
-        if (p.length == 2) {
-            var f = p[0] + '.html';
-            var id = '#' + p[1];
+        let e = /(.*?)(\.html)*#(.*)/.exec(path);
+        if (e) {
+            var f = e[1] + '.html';
+            var id = '#' + e[3];
         } else {
-            var f = p[0]
+            var f = window.dirs.idxFile ? path : path + '.html';
         }
         var file = `${window.dirs.docPath}/${f}`;
-        try {
-            var data = await readFile(file);
-            $("#mainlist").fadeOut();
-            $("#manual").fadeOut().promise().done(() => {
-                var relPath = f.substr(0, f.lastIndexOf('/') + 1),
-                    absPath = window.dirs.docPath + relPath;
+        $("#mainlist").fadeOut();
+        $("#manual").fadeIn().html('<div class="load">Loading</div>')
+        $.get(file, data => {
+            // $("#manual").fadeOut().promise().done(() => {
+                var relPath = f.substr(0, f.lastIndexOf('/') + 1);
+                // a 标签改为相对路径
                 data = data.replace(/(a.*?)href="(?!http)(.*?)"(.*?)(?!\#)/g, `$1href="${relPath}$2$3"`);
-                data = data.replace(/(link.*?)href="(?!http)(.*?)"(.*?)(?!\#)/g, `$1href="${absPath}$2$3"`);
-                data = data.replace(/src="(?!http)(.*?)"/g, `src="${absPath}$1"`);
-                $("#manual").html(`<div id="manualHead">${data}</div>`).fadeIn();
+                // devdocs 语法高亮
+                data = data.replace(/<pre data-language="(.*?)">([\s\S]*?)<\/pre>/g, '<pre><code class="language-$1">$2</code></pre>')
+                $("#manual").html(`<div id="manualHead">${data}</div>`);
                 Prism.highlightAll();
-                location.href = p.length == 2 ? id : '#manualHead';
+                location.href = e ? id : '#manualHead';
             })
-        } catch(e) {
-            console.log(e)
-        } 
+        // })
     }
 }
 
@@ -157,20 +167,21 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
     init();
     checkUpdate();
     if (code == 'options') {
+        window.defaultPage = 0;
         showOptions();
     } else {
         $("#mainlist").fadeIn();
-        var allFts = getAllFeatures(),
+        var allFts = /^dd_/.test(code) ? await getDevdocs() : await getManuals(),
             baseDir,
             css;
         switch (allFts[code].type) {
             case "default":
-                baseDir = getDirname();
+                baseDir = dirname;
                 css = `${baseDir}/assets/${code}.css`
                 window.dirs = {
                     idxFile: `${baseDir}/index/${code}.json`,
                     docPath: `${baseDir}/docs`,
-            }
+                }
                 break;
             case "custom":
                 baseDir = allFts[code].path;
@@ -180,14 +191,20 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                     docPath: `${baseDir}`,
                 }
                 break;
+            case "devdocs":
+                window.dirs = {
+                    docPath: allFts[code].url.slice(0, -11),
+                }      
         }
-        if (window.exists(css)) {
-            $("#manualCSS").attr("href", css)
-        }
+        window.exists(css) && $("#manualCSS").attr("href", css);
         // 读取目录文件
         try {
-            var index = await readFile(window.dirs.idxFile);
-            index = JSON.parse(index);
+            if (window.dirs.idxFile) {
+                var index = await readFile(window.dirs.idxFile);
+                index = JSON.parse(index);
+            } else {
+                var index = utools.db.get(code).data;
+            }
             if (type == 'over') {
                 showList(payload, index, 500)
             } else {
@@ -216,7 +233,7 @@ $("#mainlist").on('mousedown', '.info', function (e) {
 
 // 鼠标滑过列表，高亮
 $("#mainlist").on('mousemove', '.info', function () {
-    // 设置500ms的鼠标锁
+    // 鼠标锁 500ms
     var mouseUnlockTime = new Date().getTime();
     if (mouseUnlockTime - window.mouseLockTime > 500) {
         $(".select").removeClass('select');
@@ -276,7 +293,6 @@ $(document).keydown(e => {
             let pre = $(".select").prev();
             // 没有到达边界时移动选择条
             if(pre.length != 0){
-                // event.preventDefault();
                 if(pre.offset().top < $(window).scrollTop()){
                     $("html").animate({ scrollTop: "-=50" }, 0);
                 }
@@ -292,7 +308,6 @@ $(document).keydown(e => {
             let next = $(".select").next();
             // 没有到达边界时移动选择条
             if(next.length !=0){
-                // event.preventDefault();
                 if(next.offset().top >= $(window).scrollTop() + 550){
                     $("html").animate({ scrollTop: "+=50" }, 0);
                 }

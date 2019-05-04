@@ -3,7 +3,7 @@ const { shell } = require('electron');
 const { dialog, BrowserWindow, nativeImage } = require('electron').remote
 const path = require("path")
 
-getDirname = () => __dirname;
+dirname = __dirname;
 
 open = url => {
     shell.openExternal(url);

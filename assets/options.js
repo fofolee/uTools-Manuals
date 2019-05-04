@@ -1,169 +1,94 @@
+// 选择器转义
+escapeJq = s => {
+    return s.replace( /(:|\.|\[|\]|,|=|@)/g, "\\$1" );   
+}
+
 // 默认和自定义手册
-getAllFeatures = () => {
-    var defaultFts = {
-        "linux": {
-            features: {
-                "code": "linux",
-                "explain": "linux命令大全",
-                "cmds": ["linux命令"],
-                "icon": "logo/linux.png"    
-            },
-            type: "default"
-        },
-        "php": {
-            features: {
-                "code": "php",
-                "explain": "官方php函数文档",
-                "cmds": ["php函数"],
-                "icon": "logo/php.png"
-            },
-            type: "default"
-        },
-        "python": {
-            features: {
-                "code": "python",
-                "explain": "官方python标准库及常用第三方库文档",
-                "cmds": ["python库"],
-                "icon": "logo/python.png"
-            },
-            type: "default"
-        },
-        "c": {
-            features: {
-                "code": "c",
-                "explain": "C语言函数速查",
-                "cmds": ["C函数"],
-                "icon": "logo/c.png"
-            },
-            type: "default"
-        },
-        "javascript": {
-            features: {
-                "code": "javascript",
-                "explain": "MDN javascript中文文档",
-                "cmds": ["js文档"],
-                "icon": "logo/javascript.png"
-            },
-            type: "default"
-        },
-        "jQuery": {
-            features: {
-                "code": "jQuery",
-                "explain": "jQuery官方中文文档",
-                "cmds": ["jQuery文档"],
-                "icon": "logo/jQuery.png"
-            },
-            type: "default"
-        },
-        "vue": {
-            features: {
-                "code": "vue",
-                "explain": "vue官方中文API文档",
-                "cmds": ["vue文档"],
-                "icon": "logo/vue.png"
-            },
-            type: "default"
-        },
-        "vim": {
-            features: {
-                "code": "vim",
-                "explain": "vim命令大全",
-                "cmds": ["vim命令"],
-                "icon": "logo/vim.png"
-            },
-            type: "default"
-        },
-        "git": {
-            features: {
-                "code": "git",
-                "explain": "git命令概览",
-                "cmds": ["git命令"],
-                "icon": "logo/git.png"
-            },
-            type: "default"
-        },
-        "docker": {
-            features: {
-                "code": "docker",
-                "explain": "docker常用命令",
-                "cmds": ["docker命令"],
-                "icon": "logo/docker.png"
-            },
-            type: "default"
-        },
-        "sql": {
-            features: {
-                "code": "sql",
-                "explain": "sql操作手册",
-                "cmds": ["sql手册"],
-                "icon": "logo/sql.png"
-            },
-            type: "default"
-        },
-        "utools": {
-            features: {
-                "code": "utools",
-                "explain": "uTools的API文档",
-                "cmds": ["uToolsAPI"],
-                "icon": "logo/utools.png"
-            },
-            type: "default"
-        }
-    };
+getManuals = async () => {
+    var defaultFts = await readFile(`${dirname}/features/default.json`);
+    defaultFts = JSON.parse(defaultFts);
     var db = utools.db.get("customFts"),
         customFts = db ? db.data : {},
         allFts = Object.assign(defaultFts, customFts);
     return allFts;
 }
 
+// devdocs
+getDevdocs = async () => {
+    var devDocs = await readFile(`${dirname}/features/devdocs.json`);
+    return JSON.parse(devDocs);
+}
 
 // 配置页面
-showOptions = () => {
-    $("#options").show();
-    var currentFts = utools.getFeatures(),
-        allFts = getAllFeatures();
-    let featureList = '<table><tr><td></td><td>关键字</td><td>说明</td><td>启用</td><td>主输入框搜索</td></tr>';
+showOptions = async () => {
+    var currentFts = utools.getFeatures();
+    var allFts = window.defaultPage ? await getDevdocs() : await getManuals();
+    let featureList = `<table>
+    <tr>
+    <td></td>
+    <td width="20%">关键字</td>
+    <td width="45%">说明</td>
+    <td width="10%">启用</td>
+    <td width="20%">主输入框搜索</td>
+    </tr>`;
     for (var fts in allFts) {
-        let features = allFts[fts].features;
+        let configs = allFts[fts],
+            features = configs.features;
         var cmds = '';
         features.cmds.forEach(cmd => {
             if (typeof (cmd) == "string") cmds += `<span class="keyword">${cmd}</span>`;
         });
         var isChecked1 = '',
             isChecked2 = '',
-            isDisabled = 'disabled';
+            isDisabled1 = '',
+            isDisabled2 = 'disabled';
         for(var c of currentFts){
             if (c.code == features.code) {
                 isChecked1 = 'checked';
-                isDisabled = '';
+                isDisabled2 = '';
                 if (typeof(c.cmds[c.cmds.length - 1]) != 'string') isChecked2 = 'checked';
                 break;
             }
         }
-        var editBtn = "";
-        if (allFts[fts].type != "default") {
-            editBtn = `<span class="editBtn" code="${features.code}">✎</span>
+        var tailBtn = "";
+        if (configs.type == "custom") {
+            tailBtn = `<span class="editBtn" code="${features.code}">✎</span>
             <span class="delBtn" code="${features.code}">✘</span>`;
+        } else if (configs.type == "devdocs") {
+            if (utools.db.get(features.code)) {
+                tailBtn = `<span class="delBtn" code="${features.code}">✘</span>`;
+            } else {
+                tailBtn = `<span class="editBtn" code="${features.code}">⇩</span>`;
+                isDisabled1 = 'disabled';
+            }
         }
-        featureList += `<tr><td><img class="logo" src="${features.icon}" onerror="this.src='logo.png'"></td>
-        <td>${cmds}</td><td width="300px">${features.explain}</td><td>
+        var icon = exists(`${dirname}/${features.icon}`) ? features.icon : 'logo.png';
+        featureList += `<tr><td><img class="logo" src="${icon}"></td>
+        <td>${cmds}</td><td>${features.explain}</td><td>
         <label class="switch-btn">
-        <input class="checked-switch" id="${features.code}_1" type="checkbox" ${isChecked1}>
+        <input class="checked-switch" id="${features.code}_1" type="checkbox" ${isDisabled1} ${isChecked1}>
         <span class="text-switch"></span>
         <span class="toggle-btn"></span>
         </label></td><td>
         <label class="switch-btn">
-        <input class="checked-switch" id="${features.code}_2" type="checkbox" ${isDisabled} ${isChecked2}>
+        <input class="checked-switch" id="${features.code}_2" type="checkbox" ${isDisabled2} ${isChecked2}>
         <span class="text-switch"></span>
         <span class="toggle-btn"></span>
-        </label>${editBtn}</td>`
+        </label>${tailBtn}</td>`
     };
     featureList += `</tr></table><div class="foot">
     <div id="add" class="footBtn">添加手册</div>
+    <div id="devdocs" class="footBtn">英文手册</div>
     <div id="disableAll" class="footBtn">全部禁用</div>
     <div id="enableAll" class="footBtn">全部启用</div>
     </div>`
     $("#options").html(featureList);
+    if (window.defaultPage) {
+        $("#devdocs").html('中文手册');
+        $('#add').addClass("disabled");
+    }
+    $('#options').fadeIn();
+    $('html').getNiceScroll().resize();
 }
 
 showCustomize = () => {
@@ -185,17 +110,20 @@ showCustomize = () => {
 }
 
 // 开关
-$("#options").on('change', 'input[type=checkbox]', function () {
-    var allFts = getAllFeatures(),
-        id = $(this).attr('id').split('_'),
-        code = id[0];
-    if (id[1] == '1') {
-        if (!utools.removeFeature(code)) {
+$("#options").on('change', 'input[type=checkbox]', async function () {
+    var allFts = window.defaultPage ? await getDevdocs() : await getManuals();
+    var id = $(this).attr('id'),
+        code = id.slice(0, -2),
+        num = id.slice(-1);
+    if (num == '1') {
+        id = escapeJq(code);
+        if ($(this).prop('checked')) {
             utools.setFeature(allFts[code].features);
-            $(`#${code}_2`).prop('disabled', false);
+            $(`#${id}_2`).prop('disabled', false);
         } else {
-            $(`#${code}_2`).prop('checked', false);
-            $(`#${code}_2`).prop('disabled', true);
+            utools.removeFeature(code);
+            $(`#${id}_2`).prop('checked', false);
+            $(`#${id}_2`).prop('disabled', true);
         }
     } else {
         var featureConf = allFts[code].features;
@@ -213,11 +141,20 @@ $("#options").on('change', 'input[type=checkbox]', function () {
 // 底部功能按钮
 $("#options").on('click', '.footBtn', function () {
     switch ($(this).attr('id')) {
-        case 'add': showCustomize();
+        case 'add':
+            $(this).hasClass("disabled") || showCustomize();
             break;
-        case 'enableAll': $(".checked-switch:not(:checked)[id*='_1']").click();
+        case 'devdocs':
+            window.defaultPage = (window.defaultPage + 1) % 2;
+            $('#options').fadeOut().promise().done(() => {
+                showOptions();
+            })
             break;
-        case 'disableAll': $(".checked-switch:checked").click();
+        case 'enableAll':
+            $(".checked-switch:not(:checked)[id*='_1']").click();
+            break;
+        case 'disableAll':
+            $(".checked-switch:checked").click();
             break;
     }
 })
@@ -228,26 +165,49 @@ $("#options").on('click', '.cancelBtn', function () {
 })
 
 // 编辑
-$("#options").on('click', '.editBtn', function () {
+$("#options").on('click', '.editBtn', async function () {
     var code = $(this).attr('code');
-    var data = utools.db.get("customFts").data[code];
-    showCustomize();
-    $("#code").attr('disabled', true);
-    $('#code').val(data.features.code);
-    $('#kw').val(data.features.cmds.toString());
-    $('#desc').val(data.features.explain);
-    $('#path').val(data.path);
+    if (window.defaultPage) {
+        var docs = await getDevdocs(),
+            url = docs[code].url;
+        $(this).removeClass('editBtn');
+        $(this).html('<i style="font-size:12px;color:#0277BD">Waiting...</i>')
+        $.get(url, content => {
+            utools.db.put({ _id: code, data: content.entries });
+            var id = escapeJq(code)
+            $(`#${id}_1`).prop('disabled', false);
+            $(this).html('✘');
+            $(this).addClass('delBtn');
+        })
+    } else {
+        var data = utools.db.get("customFts").data[code];
+        showCustomize();
+        $("#code").attr('disabled', true);
+        $('#code').val(data.features.code);
+        $('#kw').val(data.features.cmds.toString());
+        $('#desc').val(data.features.explain);
+        $('#path').val(data.path);     
+    }
 })
 
 // 删除
 $("#options").on('click', '.delBtn', function () {
-    var code = $(this).attr('code'),
-        db = utools.db.get("customFts"),
-        data = db.data;
-    delete data[code];
-    utools.removeFeature(code);
-    utools.db.put({ _id: "customFts", data: data, _rev: db._rev }); 
-    showOptions();
+    var code = $(this).attr('code');
+    if (window.defaultPage) {
+        utools.db.remove(code);
+        $(this).html('⇩');
+        $(this).removeClass('delBtn').addClass('editBtn');
+        var id = escapeJq(code);
+        $(`#${id}_1:checked`).click();
+        $(`#${id}_1`).prop('disabled', true);
+    } else {
+        var db = utools.db.get("customFts"),
+            data = db.data;
+        delete data[code];
+        utools.removeFeature(code);
+        utools.db.put({ _id: "customFts", data: data, _rev: db._rev }); 
+        showOptions();   
+    }
 })
 
 // 选择文件夹
@@ -258,7 +218,7 @@ $("#options").on('click', '.selectBtn', function () {
 // 保存
 $("#options").on('click', '.saveBtn', function () {
     var code = $('#code').val()
-    var allFts = getAllFeatures();
+    var allFts = getManuals();
     if (code in allFts && $("#code").prop('disabled') == false) {
         $('#code').css({ 'border-bottom-color': '#ec1212' })
         window.messageBox({ type: 'error', message: "名称与现有的手册重复！", buttons: ['朕知道了'] })
