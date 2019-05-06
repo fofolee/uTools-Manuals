@@ -8,7 +8,7 @@ escapeHtml = s => {
     return s.replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "");
+    .replace(/'/g, "&apos;");
 }
 
 // 列表
@@ -28,14 +28,14 @@ showList = (text, index, listnum) => {
     var obd = [];
     index.forEach(i => {
         let reg = new RegExp(escapeRe(text), "i",)
-            match1 = reg.exec(i.name),
+        match1 = reg.exec(i.name),
             match2 = reg.exec(i.desc),
             name = escapeHtml(i.name),
             desc = i.desc != undefined ? escapeHtml(i.desc) : "",
             type = i.type != undefined ? escapeHtml(i.type) : "";
-        let initial = i.name.replace(/&lt;|&gt;|&quot;|&#039;/ig, '')
-        initial = /^.*?([a-zA-Z])/.exec(initial);
-        initial = initial ? initial[1].toUpperCase() : '&nbsp;';
+        let initial = i.name.slice(0, 1).toUpperCase();
+        // let initial = /^([a-zA-Z])/.exec(i.name);
+        // initial = initial ? initial[1].toUpperCase() : '*';
         // 优先显示名称匹配的内容
         if (match1) {
             name = highlightList(name, match1[0]);
@@ -77,27 +77,35 @@ showManual = path => {
         }
         var file = `${window.dirs.docPath}/${f}`;
         $("#mainlist").fadeOut();
-        $("#manual").fadeIn().html('<div class="load">Loading</div>')
-        $.get(file, data => {
-            // $("#manual").fadeOut().promise().done(() => {
-                var relPath = f.substr(0, f.lastIndexOf('/') + 1);
-                // a 标签改为相对路径
-                data = data.replace(/(a.*?)href="(?!http)(.*?)"(.*?)(?!\#)/g, `$1href="${relPath}$2$3"`);
-                // devdocs 语法高亮
-                data = data.replace(/<pre data-language="(.*?)">([\s\S]*?)<\/pre>/g, '<pre><code class="language-$1">$2</code></pre>')
-                $("#manual").html(`<div id="manualHead">${data}</div>`);
-                Prism.highlightAll();
-                location.href = e ? id : '#manualHead';
-            })
-        // })
+        $(".load").html('Loading').show();
+        var request = $.ajax({
+            url: file,
+            type: "GET",
+        });
+        request.done(data => {
+            $(".load").hide();
+            var relPath = f.substr(0, f.lastIndexOf('/') + 1);
+            // a 标签改为相对路径
+            data = data.replace(/(a.*?)href="(?!http)([^\#].*?)"/g, `$1href="${relPath}$2"`);
+            // devdocs 语法高亮
+            data = data.replace(/<pre.*?data-language="(.*?)">([\s\S]*?)<\/pre>/g, '<pre><code class="language-$1">$2</code></pre>')
+            $("#manual").html(`<div id="manualBody">${data}</div>`).fadeIn();
+            Prism.highlightAll();
+            location.href = e ? id : '#manualBody';
+            utools.setSubInputValue('');
+        });
+        request.fail(function (xhr, err) {
+            $(".load").html('404').fadeOut();
+            console.log(xhr, err);
+        });
     }
 }
 
-// 手册搜索结果高亮
-highlightManual = text => {
-    $("#manual").removeHighlight() ;
+// 手册/配置页搜索结果高亮
+highlightManual = (selector, text) => {
+    $(selector).removeHighlight() ;
     if (text) {
-        $("#manual").highlight(text);
+        $(selector).highlight(text);
         window.findex = 0;
     }
 }
@@ -112,6 +120,13 @@ init = () => {
     $("#manual").fadeOut(0);
     $("html").niceScroll();
     $("#manual").niceScroll();
+}
+
+// 向活动窗口发送文本
+sendText = text => {
+    window.copyTo(text);
+    utools.hideMainWindow();
+    window.paste();
 }
 
 // 检查升级
@@ -159,6 +174,7 @@ toggleView = () => {
 loadList = listnum => {
     if ($(window).scrollTop() >= (listnum * 50 - 550) && $(".info").length <= listnum) {      
         $("#mainlist").append(window.info.slice(listnum).join(''));
+        $('html').getNiceScroll().resize();
     }
 }
 
@@ -169,15 +185,23 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
     if (code == 'options') {
         window.defaultPage = 0;
         showOptions();
+        utools.setSubInput(({ text }) => {
+            highlightManual(".keyword", text);
+        }, '输入关键词快速查找文档');
+    } else if (code == 'dash') {
+        utools.setExpendHeight(0);
+        utools.setSubInput(({ text }) => {
+            window.dashQuery = text;
+        }, '输入关键词进行查询,例如 nodejs:fs');
     } else {
         $("#mainlist").fadeIn();
         var allFts = /^dd_/.test(code) ? await getDevdocs() : await getManuals(),
             baseDir,
-            css;
+            assetDir;
         switch (allFts[code].type) {
             case "default":
                 baseDir = dirname;
-                css = `${baseDir}/assets/${code}.css`
+                assetDir = `${baseDir}/assets/${code}/`
                 window.dirs = {
                     idxFile: `${baseDir}/index/${code}.json`,
                     docPath: `${baseDir}/docs`,
@@ -185,7 +209,7 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                 break;
             case "custom":
                 baseDir = allFts[code].path;
-                css = `${baseDir}/${code}.css`
+                assetDir = `${baseDir}/${code}/`
                 window.dirs = {
                     idxFile: `${baseDir}/${code}.json`,
                     docPath: `${baseDir}`,
@@ -196,7 +220,15 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                     docPath: allFts[code].url.slice(0, -11),
                 }      
         }
-        window.exists(css) && $("#manualCSS").attr("href", css);
+        // 自定义 CSS、JS情况下
+        assetDir && window.readDir(assetDir, (err, files) => {
+            if (!err) {
+                $('[href="assets/manual.css"]').remove();
+                files.forEach(file => {
+                    $('head').append(`<link rel="stylesheet" href="${assetDir}${file}">`)
+                }) 
+            }
+        })
         // 读取目录文件
         try {
             if (window.dirs.idxFile) {
@@ -215,7 +247,7 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                 if ($('#manual').is(':hidden')) {
                     showList(text, index, 500);
                 } else {
-                    highlightManual(text);
+                    highlightManual("#manual", text);
                 }
             }, '输入名称或功能进行查询');
         } catch(e) {
@@ -224,10 +256,13 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
     }
 });
 
-// 单击列表，显示手册
+// 单击列表，显示手册; 中键发送文本
 $("#mainlist").on('mousedown', '.info', function (e) {
     if (1 == e.which) {
-        showManual($(".select").attr('path'));
+        var path = $(".select").attr('path');
+        path && showManual(path);
+    } else if (2 == e.which) {
+        sendText($('.select .name').text());
     }
 });
 
@@ -241,19 +276,28 @@ $("#mainlist").on('mousemove', '.info', function () {
     }
 });  
 
-// 右键单击手册，退出手册
+// 右键单击手册，退出手册; 中键发送文本
 $("#manual").on('mousedown', function (e) {
     if (3 == e.which) {
         toggleView();
+    } else if (2 == e.which) {
+        var select = document.getSelection().toString();
+        select && sendText(select);
     }
 })
 
 // 手册中a标签
 $("#manual").on('mousedown', 'a', function (e) {
     if (1 == e.which) {
-        showManual($(this).attr('href'));
+        var href = $(this).attr('href');
+        /^\#/.test(href) || showManual(href);
     }
 });
+
+$(document).on('error', 'img', function () {
+    console.log(1);
+    $(this).remove();
+  });
 
 // 滚动到边界加载列表
 $(document).scroll(() => {
@@ -269,23 +313,37 @@ $(document).keydown(e => {
             break;
         // 回车
         case 13:
+            // 按住shift键则发送文本
+            if (event.shiftKey) {
+                if ($('#manual').is(':hidden') && $("#mainlist").is(":visible")) {
+                    sendText($('.select .name').text());
+                } else if($('#manual').is(':visible') && $("#mainlist").is(":hidden")){
+                    var select = document.getSelection().toString();
+                    select && sendText(select);
+                }
+                return;
+            } 
             // 列表界面进入手册
-            if ($('#manual').is(':hidden')) {
-                showManual($(".select").attr('path'));
-            // 手册界面搜索下一个
-            } else {
+            if ($('#manual').is(':hidden') && $("#mainlist").is(":visible")) {
+                var path = $(".select").attr('path');
+                path && showManual(path);
+            // 手册/配置界面搜索下一个
+            } else if($('.founds').length){
                 if (window.findex > 0) {
                     $(`.founds:eq(${window.findex - 1})`).removeClass('firstFound');
                 } else {
                     $('.founds:last').removeClass('firstFound');  
                 }
                 $(`.founds:eq(${window.findex})`).addClass('firstFound');
-                $('.firstFound').get(0).scrollIntoView({ behavior: "smooth", block: "nearest" });
+                $('.firstFound').get(0).scrollIntoView({ behavior: "smooth", block: "center" });
                 if (window.findex == $('.founds').length - 1) {
                     window.findex = 0;
                 } else {
                     window.findex += 1;
                 }
+            // 快速启动 dash
+            } else if (window.dashQuery) {
+                 window.dash(window.dashQuery);
             }
             break;
         // 上
