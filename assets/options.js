@@ -21,16 +21,19 @@ getDevdocs = async () => {
 
 // 配置页面
 showOptions = async () => {
+    location.href = "#options";
     var currentFts = utools.getFeatures();
     var allFts = window.defaultPage ? await getDevdocs() : await getManuals();
-    let featureList = `<table>
+    let tableHead = `<table>
     <tr>
     <td></td>
     <td width="20%">关键字</td>
     <td width="45%">说明</td>
     <td width="10%">启用</td>
     <td width="20%">主输入框搜索</td>
-    </tr>`;
+    </tr>`,
+        tableBody = '',
+        topRows = '';
     for (var fts in allFts) {
         let configs = allFts[fts],
             features = configs.features;
@@ -50,20 +53,22 @@ showOptions = async () => {
                 break;
             }
         }
-        var tailBtn = "";
+        var tailBtn = "",
+            topRow = false;
         if (configs.type == "custom") {
             tailBtn = `<span class="editBtn" code="${features.code}">✎</span>
             <span class="delBtn" code="${features.code}">✘</span>`;
         } else if (configs.type == "devdocs") {
             if (utools.db.get(features.code)) {
                 tailBtn = `<span class="delBtn" code="${features.code}">✘</span>`;
+                topRow = true;
             } else {
                 tailBtn = `<span class="editBtn" code="${features.code}">⇩</span>`;
                 isDisabled1 = 'disabled';
             }
         }
         var icon = exists(`${dirname}/${features.icon}`) ? features.icon : 'logo.png';
-        featureList += `<tr><td><img class="logo" src="${icon}"></td>
+        var row = `<tr><td><img class="logo" src="${icon}"></td>
         <td>${cmds}</td><td>${features.explain}</td><td>
         <label class="switch-btn">
         <input class="checked-switch" id="${features.code}_1" type="checkbox" ${isDisabled1} ${isChecked1}>
@@ -74,21 +79,26 @@ showOptions = async () => {
         <input class="checked-switch" id="${features.code}_2" type="checkbox" ${isDisabled2} ${isChecked2}>
         <span class="text-switch"></span>
         <span class="toggle-btn"></span>
-        </label>${tailBtn}</td>`
+        </label>${tailBtn}</td>`;
+        topRow && (topRows += row) || (tableBody += row);
     };
-    featureList += `</tr></table><div class="foot">
+    tableBody = topRows + tableBody + `</tr></table><div class="foot">
     <div id="add" class="footBtn">添加手册</div>
     <div id="devdocs" class="footBtn">英文手册</div>
     <div id="disableAll" class="footBtn">全部禁用</div>
     <div id="enableAll" class="footBtn">全部启用</div>
-    </div>`
-    $("#options").html(featureList);
+    </div>`;
+    $("#options").html(tableHead + tableBody);
     if (window.defaultPage) {
         $("#devdocs").html('中文手册');
         $('#add').addClass("disabled");
     }
-    $('#options').fadeIn();
-    $('html').getNiceScroll().resize();
+    // 平滑过渡
+    setTimeout(() => {
+        $('#options').fadeIn(100).promise().done(() => {
+            $('html').getNiceScroll().resize();
+        })
+    }, 50);
 }
 
 showCustomize = () => {
@@ -140,13 +150,14 @@ $("#options").on('change', 'input[type=checkbox]', async function () {
 
 // 底部功能按钮
 $("#options").on('click', '.footBtn', function () {
+    utools.setSubInputValue('');
     switch ($(this).attr('id')) {
         case 'add':
             $(this).hasClass("disabled") || showCustomize();
             break;
         case 'devdocs':
             window.defaultPage = (window.defaultPage + 1) % 2;
-            $('#options').fadeOut().promise().done(() => {
+            $('#options').fadeOut(100).promise().done(() => {
                 showOptions();
             })
             break;
@@ -174,10 +185,7 @@ $("#options").on('click', '.editBtn', async function () {
         $(this).html('<i style="font-size:12px;color:#0277BD">Waiting...</i>')
         $.get(url, content => {
             utools.db.put({ _id: code, data: content.entries });
-            var id = escapeJq(code)
-            $(`#${id}_1`).prop('disabled', false);
-            $(this).html('✘');
-            $(this).addClass('delBtn');
+            showOptions();
         })
     } else {
         var data = utools.db.get("customFts").data[code];
@@ -195,19 +203,15 @@ $("#options").on('click', '.delBtn', function () {
     var code = $(this).attr('code');
     if (window.defaultPage) {
         utools.db.remove(code);
-        $(this).html('⇩');
-        $(this).removeClass('delBtn').addClass('editBtn');
-        var id = escapeJq(code);
-        $(`#${id}_1:checked`).click();
-        $(`#${id}_1`).prop('disabled', true);
+        utools.removeFeature(code);
     } else {
         var db = utools.db.get("customFts"),
             data = db.data;
         delete data[code];
         utools.removeFeature(code);
         utools.db.put({ _id: "customFts", data: data, _rev: db._rev }); 
-        showOptions();   
     }
+    showOptions();
 })
 
 // 选择文件夹
