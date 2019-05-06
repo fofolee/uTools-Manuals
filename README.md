@@ -97,7 +97,13 @@
 
 - php手册   | [官方中文文档](https://www.php.net/download-docs.php)       
 - linux手册 | [离线手册：linux-command@jaywcjlove](https://github.com/jaywcjlove/linux-command)  [原始数据：linuxde.net](http://man.linuxde.net/) 
-- python手册 | [官方文档一译翻译版（比官方中文翻译的要多不少）](https://yiyibooks.cn/xx/python_352/library/index.html)及其他第三方库的官方中文文档 
+- python手册 | [官方文档一译翻译版（比官方中文翻译的要多不少）](https://yiyibooks.cn/xx/python_352/library/index.html)
+  - beautifulSoup | [官方中文文档](https://www.crummy.com/software/BeautifulSoup/bs4/doc/index.zh.html)
+  - requests | [官方中文文档](https://2.python-requests.org//zh_CN/latest/user/quickstart.html)
+  - scrapy | [scrapy入门教程中文翻译](https://github.com/marchtea/scrapy_doc_chs)
+  - pillow | [pillow官方文档中文翻译](https://pillow-cn.readthedocs.io/zh_CN/latest/)
+  - tkinter | [易学教程](https://www.e-learn.cn/content/python/1101684)
+- PyQt5文档 | [PyQt5中文教程](https://github.com/maicss/PyQt5-Chinese-tutorial)
 - C函数 | C语言函数速查（Knocker 2004.7.7 版本 0.5）
 - vim命令 | [awesome-cheatsheets](https://github.com/skywind3000/awesome-cheatsheets/blob/master/editors/vim.txt) 
 - git命令 | [php中文网git开发手册](http://www.php.cn/manual/view/34942.html) 
