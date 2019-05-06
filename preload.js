@@ -1,9 +1,13 @@
 const fs = require('fs');
-const { shell } = require('electron');
+const { shell, clipboard } = require('electron');
 const { dialog, BrowserWindow, nativeImage } = require('electron').remote
 const path = require("path")
+const { exec } = require('child_process');
+const robot = require('./robotjs')
 
 dirname = __dirname;
+
+isWin = process.platform == 'win32' ? true : false;
 
 open = url => {
     shell.openExternal(url);
@@ -34,4 +38,26 @@ messageBox = (options, callback) => {
 
 exists = path => {
     return fs.existsSync(path);
+}
+
+readDir = (path,callback) => {
+    fs.readdir(path, (err, files) => {
+        callback(err, files);
+    });
+}
+
+dash = query => {
+    let cmd = process.platform == 'win32' ? `start dash-plugin://query=${query}` : `open dash://${query}`
+    exec(cmd, (err, stdout, stderr) => {
+      err && console.log(stderr);
+    });
+}
+
+copyTo = text => {
+    clipboard.writeText(text)
+}
+
+paste = () => {
+    var ctlKey = isWin ? 'control' : 'command';
+    robot.keyTap('v', ctlKey);
 }
