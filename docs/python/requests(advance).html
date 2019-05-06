@@ -9,28 +9,26 @@
   期间使用 <code class="docutils literal"><span class="pre">urllib3</span></code> 的 <a class="reference external" href="http://urllib3.readthedocs.io/en/latest/reference/index.html#module-urllib3.connectionpool">connection pooling</a> 功能。所以如果你向同一主机发送多个请求，底层的 TCP 连接将会被重用，从而带来显著的性能提升。 (参见 <a class="reference external" href="https://en.wikipedia.org/wiki/HTTP_persistent_connection">HTTP persistent connection</a>).</p>
   <p>会话对象具有主要的 Requests API 的所有方法。</p>
   <p>我们来跨请求保持一些 cookie:</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+  <pre><code class="language-python"><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
   
   <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/cookies/set/sessioncookie/123456789'</span><span class="p">)</span>
   <span class="n">r</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"http://httpbin.org/cookies"</span><span class="p">)</span>
   
   <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
   <span class="c1"># '{"cookies": {"sessioncookie": "123456789"}}'</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>会话也可用来为请求方法提供缺省数据。这是通过为会话对象的属性提供数据来实现的：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+  <pre><code class="language-python"><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
   <span class="n">s</span><span class="o">.</span><span class="n">auth</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'user'</span><span class="p">,</span> <span class="s1">'pass'</span><span class="p">)</span>
   <span class="n">s</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'x-test'</span><span class="p">:</span> <span class="s1">'true'</span><span class="p">})</span>
   
   <span class="c1"># both 'x-test' and 'x-test2' are sent</span>
   <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/headers'</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">'x-test2'</span><span class="p">:</span> <span class="s1">'true'</span><span class="p">})</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>任何你传递给请求方法的字典都会与已设置会话层数据合并。方法层的参数覆盖会话的参数。</p>
   <p>不过需要注意，就算使用了会话，方法级别的参数也不会被跨请求保持。下面的例子只会和第一个请求发送 cookie
   ，而非第二个：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+  <pre><code class="language-python"><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
   
   <span class="n">r</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/cookies'</span><span class="p">,</span> <span class="n">cookies</span><span class="o">=</span><span class="p">{</span><span class="s1">'from-my'</span><span class="p">:</span> <span class="s1">'browser'</span><span class="p">})</span>
   <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
@@ -39,15 +37,13 @@
   <span class="n">r</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/cookies'</span><span class="p">)</span>
   <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
   <span class="c1"># '{"cookies": {}}'</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>如果你要手动为会话添加 cookie，就使用 <a class="reference internal" href="../api.html#api-cookies"><span class="std std-ref">Cookie utility 函数</span></a> 来操纵
   <a class="reference internal" href="../api.html#requests.Session.cookies" title="requests.Session.cookies"><code class="xref py py-attr docutils literal"><span class="pre">Session.cookies</span></code></a>。</p>
   <p>会话还可以用作前后文管理器：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
+  <pre><code class="language-python"><span></span><span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
       <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/cookies/set/sessioncookie/123456789'</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>这样就能确保 <code class="docutils literal"><span class="pre">with</span></code> 区块退出后会话能被关闭，即使发生了异常也一样。</p>
   <div class="admonition- admonition">
   <p class="first admonition-title">从字典参数中移除一个值</p>
@@ -59,11 +55,10 @@
   <span id="id3"></span><h2>请求与响应对象</h2>
   <p>任何时候进行了类似 requests.get() 的调用，你都在做两件主要的事情。其一，你在构建一个 <cite>Request</cite> 对象，
   该对象将被发送到某个服务器请求或查询一些资源。其二，一旦 <code class="docutils literal"><span class="pre">requests</span></code> 得到一个从服务器返回的响应就会产生一个 <code class="docutils literal"><span class="pre">Response</span></code> 对象。该响应对象包含服务器返回的所有信息，也包含你原来创建的 <code class="docutils literal"><span class="pre">Request</span></code> 对象。如下是一个简单的请求，从 Wikipedia 的服务器得到一些非常重要的信息：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://en.wikipedia.org/wiki/Monty_Python'</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://en.wikipedia.org/wiki/Monty_Python'</span><span class="p">)</span>
+  </code></pre>
   <p>如果想访问服务器返回给我们的响应头部信息，可以这样做：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">headers</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">headers</span>
   <span class="go">{'content-length': '56170', 'x-content-type-options': 'nosniff', 'x-cache':</span>
   <span class="go">'HIT from cp1006.eqiad.wmnet, MISS from cp1010.eqiad.wmnet', 'content-encoding':</span>
   <span class="go">'gzip', 'age': '3080', 'content-language': 'en', 'vary': 'Accept-Encoding,Cookie',</span>
@@ -72,21 +67,19 @@
   <span class="go">must-revalidate', 'date': 'Thu, 14 Jun 2012 12:59:39 GMT', 'content-type':</span>
   <span class="go">'text/html; charset=UTF-8', 'x-cache-lookup': 'HIT from cp1006.eqiad.wmnet:3128,</span>
   <span class="go">MISS from cp1010.eqiad.wmnet:80'}</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>然而，如果想得到发送到服务器的请求的头部，我们可以简单地访问该请求，然后是该请求的头部：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span>
   <span class="go">{'Accept-Encoding': 'identity, deflate, compress, gzip',</span>
   <span class="go">'Accept': '*/*', 'User-Agent': 'python-requests/0.13.1'}</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   <div class="section" id="prepared-request">
   <span id="prepared-requests"></span><h2>准备的请求 （Prepared Request）</h2>
   <p>当你从 API 或者会话调用中收到一个 <a class="reference internal" href="../api.html#requests.Response" title="requests.Response"><code class="xref py py-class docutils literal"><span class="pre">Response</span></code></a>
   对象时，<code class="docutils literal"><span class="pre">request</span></code> 属性其实是使用了 <code class="docutils literal"><span class="pre">PreparedRequest</span></code>。有时在发送请求之前，你需要对
   body 或者 header （或者别的什么东西）做一些额外处理，下面演示了一个简单的做法：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">requests</span> <span class="k">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Session</span>
+  <pre><code class="language-python"><span></span><span class="kn">from</span> <span class="nn">requests</span> <span class="k">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Session</span>
   
   <span class="n">s</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
   <span class="n">req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span>
@@ -107,15 +100,14 @@
   <span class="p">)</span>
   
   <span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>由于你没有对 <code class="docutils literal"><span class="pre">Request</span></code> 对象做什么特殊事情，你立即准备和修改了 <code class="docutils literal"><span class="pre">PreparedRequest</span></code>
   对象，然后把它和别的参数一起发送到 <code class="docutils literal"><span class="pre">requests.*</span></code> 或者 <code class="docutils literal"><span class="pre">Session.*</span></code>。</p>
   <p>然而，上述代码会失去 Requests <a class="reference internal" href="../api.html#requests.Session" title="requests.Session"><code class="xref py py-class docutils literal"><span class="pre">Session</span></code></a> 对象的一些优势，
   尤其 <a class="reference internal" href="../api.html#requests.Session" title="requests.Session"><code class="xref py py-class docutils literal"><span class="pre">Session</span></code></a> 级别的状态，例如 cookie 就不会被应用到你的请求上去。要获取一个带有状态的 <a class="reference internal" href="../api.html#requests.PreparedRequest" title="requests.PreparedRequest"><code class="xref py py-class docutils literal"><span class="pre">PreparedRequest</span></code></a>，
   请用 <a class="reference internal" href="../api.html#requests.Session.prepare_request" title="requests.Session.prepare_request"><code class="xref py py-meth docutils literal"><span class="pre">Session.prepare_request()</span></code></a> 取代
   <a class="reference internal" href="../api.html#requests.Request.prepare" title="requests.Request.prepare"><code class="xref py py-meth docutils literal"><span class="pre">Request.prepare()</span></code></a> 的调用，如下所示：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">requests</span> <span class="k">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Session</span>
+  <pre><code class="language-python"><span></span><span class="kn">from</span> <span class="nn">requests</span> <span class="k">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Session</span>
   
   <span class="n">s</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
   <span class="n">req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span>  <span class="n">url</span><span class="p">,</span>
@@ -137,40 +129,34 @@
   <span class="p">)</span>
   
   <span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   <div class="section" id="ssl">
   <span id="verification"></span><h2>SSL 证书验证</h2>
   <p>Requests 可以为 HTTPS 请求验证 SSL 证书，就像 web 浏览器一样。SSL 验证默认是开启的，如果证书验证失败，Requests 会抛出 SSLError:</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://requestb.in'</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://requestb.in'</span><span class="p">)</span>
   <span class="go">requests.exceptions.SSLError: hostname 'requestb.in' doesn't match either of '*.herokuapp.com', 'herokuapp.com'</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>在该域名上我没有设置 SSL，所以失败了。但 Github 设置了 SSL:</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://github.com'</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://github.com'</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
   <span class="go">&lt;Response [200]&gt;</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>你可以为 <code class="docutils literal"><span class="pre">verify</span></code> 传入 CA_BUNDLE 文件的路径，或者包含可信任 CA 证书文件的文件夹路径：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://github.com'</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="s1">'/path/to/certfile'</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://github.com'</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="s1">'/path/to/certfile'</span><span class="p">)</span>
+  </code></pre>
   <p>或者将其保持在会话中：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+  <pre><code class="language-python"><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
   <span class="n">s</span><span class="o">.</span><span class="n">verify</span> <span class="o">=</span> <span class="s1">'/path/to/certfile'</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <div class="admonition note">
   <p class="first admonition-title">注解</p>
   <p class="last">如果 <code class="docutils literal"><span class="pre">verify</span></code> 设为文件夹路径，文件夹必须通过 OpenSSL 提供的 c_rehash 工具处理。</p>
   </div>
   <p>你还可以通过 <code class="docutils literal"><span class="pre">REQUESTS_CA_BUNDLE</span></code> 环境变量定义可信任 CA 列表。</p>
   <p>如果你将 <code class="docutils literal"><span class="pre">verify</span></code> 设置为 False，Requests 也能忽略对 SSL 证书的验证。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://kennethreitz.org'</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://kennethreitz.org'</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
   <span class="go">&lt;Response [200]&gt;</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>默认情况下， <code class="docutils literal"><span class="pre">verify</span></code> 是设置为 True 的。选项 <code class="docutils literal"><span class="pre">verify</span></code> 仅应用于主机证书。</p>
   <p># 对于私有证书，你也可以传递一个 CA_BUNDLE 文件的路径给 <code class="docutils literal"><span class="pre">verify</span></code>。你也可以设置
   # <code class="docutils literal"><span class="pre">REQUEST_CA_BUNDLE</span></code> 环境变量。</p>
@@ -178,20 +164,17 @@
   <div class="section" id="id4">
   <h2>客户端证书</h2>
   <p>你也可以指定一个本地证书用作客户端证书，可以是单个文件（包含密钥和证书）或一个包含两个文件路径的元组：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://kennethreitz.org'</span><span class="p">,</span> <span class="n">cert</span><span class="o">=</span><span class="p">(</span><span class="s1">'/path/client.cert'</span><span class="p">,</span> <span class="s1">'/path/client.key'</span><span class="p">))</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://kennethreitz.org'</span><span class="p">,</span> <span class="n">cert</span><span class="o">=</span><span class="p">(</span><span class="s1">'/path/client.cert'</span><span class="p">,</span> <span class="s1">'/path/client.key'</span><span class="p">))</span>
   <span class="go">&lt;Response [200]&gt;</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>或者保持在会话中：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+  <pre><code class="language-python"><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
   <span class="n">s</span><span class="o">.</span><span class="n">cert</span> <span class="o">=</span> <span class="s1">'/path/client.cert'</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>如果你指定了一个错误路径或一个无效的证书:</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://kennethreitz.org'</span><span class="p">,</span> <span class="n">cert</span><span class="o">=</span><span class="s1">'/wrong_path/client.pem'</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://kennethreitz.org'</span><span class="p">,</span> <span class="n">cert</span><span class="o">=</span><span class="s1">'/wrong_path/client.pem'</span><span class="p">)</span>
   <span class="go">SSLError: [Errno 336265225] _ssl.c:347: error:140B0009:SSL routines:SSL_CTX_use_PrivateKey_file:PEM lib</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <div class="admonition warning">
   <p class="first admonition-title">警告</p>
   <p>警告</p>
@@ -210,16 +193,14 @@
   <div class="section" id="body-content-workflow">
   <span id="id5"></span><h2>响应体内容工作流</h2>
   <p>默认情况下，当你进行网络请求后，响应体会立即被下载。你可以通过 <code class="docutils literal"><span class="pre">stream</span></code> 参数覆盖这个行为，推迟下载响应体直到访问 <a class="reference internal" href="../api.html#requests.Response.content" title="requests.Response.content"><code class="xref py py-attr docutils literal"><span class="pre">Response.content</span></code></a> 属性：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tarball_url</span> <span class="o">=</span> <span class="s1">'https://github.com/kennethreitz/requests/tarball/master'</span>
+  <pre><code class="language-python"><span></span><span class="n">tarball_url</span> <span class="o">=</span> <span class="s1">'https://github.com/kennethreitz/requests/tarball/master'</span>
   <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tarball_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>此时仅有响应头被下载下来了，连接保持打开状态，因此允许我们根据条件获取内容：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">'content-length'</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">TOO_LONG</span><span class="p">:</span>
+  <pre><code class="language-python"><span></span><span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">'content-length'</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">TOO_LONG</span><span class="p">:</span>
     <span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">content</span>
     <span class="o">...</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>你可以进一步使用 <a class="reference internal" href="../api.html#requests.Response.iter_content" title="requests.Response.iter_content"><code class="xref py py-class docutils literal"><span class="pre">Response.iter_content</span></code></a>
   和 <a class="reference internal" href="../api.html#requests.Response.iter_lines" title="requests.Response.iter_lines"><code class="xref py py-class docutils literal"><span class="pre">Response.iter_lines</span></code></a>
   方法来控制工作流，或者以 <a class="reference internal" href="../api.html#requests.Response.raw" title="requests.Response.raw"><code class="xref py py-class docutils literal"><span class="pre">Response.raw</span></code></a>
@@ -228,10 +209,9 @@
   消耗了所有的数据，或者调用了 <a class="reference internal" href="../api.html#requests.Response.close" title="requests.Response.close"><code class="xref py py-class docutils literal"><span class="pre">Response.close</span></code></a>。
   这样会带来连接效率低下的问题。如果你发现你在使用 <code class="docutils literal"><span class="pre">stream=True</span></code> 的同时还在部分读取请求的
   body（或者完全没有读取 body），那么你就应该考虑使用 with 语句发送请求，这样可以保证请求一定会被关闭：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/get'</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+  <pre><code class="language-python"><span></span><span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/get'</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
       <span class="c1"># 在此处理响应。</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   <div class="section" id="keep-alive">
   <span id="id7"></span><h2>保持活动状态（持久连接）</h2>
@@ -242,10 +222,9 @@
   <div class="section" id="streaming-uploads">
   <span id="id8"></span><h2>流式上传</h2>
   <p>Requests支持流式上传，这允许你发送大的数据流或文件而无需先把它们读入内存。要使用流式上传，仅需为你的请求体提供一个类文件对象即可：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'massive-body'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+  <pre><code class="language-python"><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'massive-body'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
       <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">'http://some.url/streamed'</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <div class="admonition warning">
   <p class="first admonition-title">警告</p>
   <p>警告</p>
@@ -256,13 +235,12 @@
   <div class="section" id="chunk-encoding">
   <span id="id9"></span><h2>块编码请求</h2>
   <p>对于出去和进来的请求，Requests 也支持分块传输编码。要发送一个块编码的请求，仅需为你的请求体提供一个生成器（或任意没有具体长度的迭代器）：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen</span><span class="p">():</span>
+  <pre><code class="language-python"><span></span><span class="k">def</span> <span class="nf">gen</span><span class="p">():</span>
       <span class="k">yield</span> <span class="s1">'hi'</span>
       <span class="k">yield</span> <span class="s1">'there'</span>
   
   <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">'http://some.url/chunked'</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">gen</span><span class="p">())</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>对于分块的编码请求，我们最好使用 <code class="xref py py-meth docutils literal"><span class="pre">Response.iter_content()</span></code>
   对其数据进行迭代。在理想情况下，你的 request 会设置 <code class="docutils literal"><span class="pre">stream=True</span></code>，这样你就可以通过调用
   <code class="docutils literal"><span class="pre">iter_content</span></code> 并将分块大小参数设为 <code class="docutils literal"><span class="pre">None</span></code>，从而进行分块的迭代。如果你要设置分块的最大体积，你可以把分块大小参数设为任意整数。</p>
@@ -270,11 +248,10 @@
   <div class="section" id="post">
   <span id="multipart"></span><h2>POST 多个分块编码的文件</h2>
   <p>你可以在一个请求中发送多个文件。例如，假设你要上传多个图像文件到一个 HTML 表单，使用一个多文件 field 叫做 "images":</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="nb">input</span> <span class="nb">type</span><span class="o">=</span><span class="s2">"file"</span> <span class="n">name</span><span class="o">=</span><span class="s2">"images"</span> <span class="n">multiple</span><span class="o">=</span><span class="s2">"true"</span> <span class="n">required</span><span class="o">=</span><span class="s2">"true"</span><span class="o">/&gt;</span>
-  </pre></div>
-  </div>
+  <pre><code class="language-python"><span></span><span class="o">&lt;</span><span class="nb">input</span> <span class="nb">type</span><span class="o">=</span><span class="s2">"file"</span> <span class="n">name</span><span class="o">=</span><span class="s2">"images"</span> <span class="n">multiple</span><span class="o">=</span><span class="s2">"true"</span> <span class="n">required</span><span class="o">=</span><span class="s2">"true"</span><span class="o">/&gt;</span>
+  </code></pre>
   <p>要实现，只要把文件设到一个元组的列表中，其中元组结构为 <code class="docutils literal"><span class="pre">(form_field_name,</span> <span class="pre">file_info)</span></code>:</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="s1">'http://httpbin.org/post'</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="s1">'http://httpbin.org/post'</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">multiple_files</span> <span class="o">=</span> <span class="p">[</span>
   <span class="go">        ('images', ('foo.png', open('foo.png', 'rb'), 'image/png')),</span>
   <span class="go">        ('images', ('bar.png', open('bar.png', 'rb'), 'image/png'))]</span>
@@ -286,8 +263,7 @@
   <span class="go">  'Content-Type': 'multipart/form-data; boundary=3131623adb2043caaeb5538cc7aa0b3a',</span>
   <span class="go">  ...</span>
   <span class="go">}</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <div class="admonition warning">
   <p class="first admonition-title">警告</p>
   <p>警告</p>
@@ -304,22 +280,19 @@
   <dd>从一个请求产生的响应</dd>
   </dl>
   <p>你可以通过传递一个 <code class="docutils literal"><span class="pre">{hook_name:</span> <span class="pre">callback_function}</span></code> 字典给 <code class="docutils literal"><span class="pre">hooks</span></code> 请求参数为每个请求分配一个钩子函数：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">hooks</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">print_url</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  <pre><code class="language-python"><span></span><span class="n">hooks</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">print_url</span><span class="p">)</span>
+  </code></pre>
   <p><code class="docutils literal"><span class="pre">callback_function</span></code> 会接受一个数据块作为它的第一个参数。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">print_url</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <pre><code class="language-python"><span></span><span class="k">def</span> <span class="nf">print_url</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
       <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>若执行你的回调函数期间发生错误，系统会给出一个警告。</p>
   <p>若回调函数返回一个值，默认以该值替换传进来的数据。若函数未返回任何东西，也没有什么其他的影响。</p>
   <p>我们来在运行期间打印一些请求方法的参数：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org'</span><span class="p">,</span> <span class="n">hooks</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">print_url</span><span class="p">))</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org'</span><span class="p">,</span> <span class="n">hooks</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">print_url</span><span class="p">))</span>
   <span class="go">http://httpbin.org</span>
   <span class="go">&lt;Response [200]&gt;</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   <div class="section" id="custom-auth">
   <span id="id12"></span><h2>自定义身份验证</h2>
@@ -328,7 +301,7 @@
   <p>自定义的身份验证机制是作为 <code class="docutils literal"><span class="pre">requests.auth.AuthBase</span></code> 的子类来实现的，也非常容易定义。Requests
   在 <code class="docutils literal"><span class="pre">requests.auth</span></code> 中提供了两种常见的的身份验证方案： <code class="docutils literal"><span class="pre">HTTPBasicAuth</span></code> 和 <code class="docutils literal"><span class="pre">HTTPDigestAuth</span></code> 。</p>
   <p>假设我们有一个web服务，仅在 <code class="docutils literal"><span class="pre">X-Pizza</span></code> 头被设置为一个密码值的情况下才会有响应。虽然这不太可能，但就以它为例好了。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">requests.auth</span> <span class="k">import</span> <span class="n">AuthBase</span>
+  <pre><code class="language-python"><span></span><span class="kn">from</span> <span class="nn">requests.auth</span> <span class="k">import</span> <span class="n">AuthBase</span>
   
   <span class="k">class</span> <span class="nc">PizzaAuth</span><span class="p">(</span><span class="n">AuthBase</span><span class="p">):</span>
       <span class="sd">"""Attaches HTTP Pizza Authentication to the given Request object."""</span>
@@ -340,13 +313,11 @@
           <span class="c1"># modify and return the request</span>
           <span class="n">r</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">'X-Pizza'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span>
           <span class="k">return</span> <span class="n">r</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>然后就可以使用我们的PizzaAuth来进行网络请求:</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://pizzabin.org/admin'</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">PizzaAuth</span><span class="p">(</span><span class="s1">'kenneth'</span><span class="p">))</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://pizzabin.org/admin'</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">PizzaAuth</span><span class="p">(</span><span class="s1">'kenneth'</span><span class="p">))</span>
   <span class="go">&lt;Response [200]&gt;</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   <div class="section" id="streaming-requests">
   <span id="id13"></span><h2>流式请求</h2>
@@ -354,7 +325,7 @@
   （例如 <a class="reference external" href="https://dev.twittercom/docs/streaming-api">Twitter 的流式 API</a> ）
   进行迭代。简单地设置 <code class="docutils literal"><span class="pre">stream</span></code> 为 <code class="docutils literal"><span class="pre">True</span></code> 便可以使用 <a class="reference internal" href="../api.html#requests.Response.iter_lines" title="requests.Response.iter_lines"><code class="xref py py-meth docutils literal"><span class="pre">iter_lines</span></code></a>
   对相应进行迭代：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+  <pre><code class="language-python"><span></span><span class="kn">import</span> <span class="nn">json</span>
   <span class="kn">import</span> <span class="nn">requests</span>
   
   <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/stream/20'</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -365,12 +336,11 @@
       <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
           <span class="n">decoded_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">'utf-8'</span><span class="p">)</span>
           <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">decoded_line</span><span class="p">))</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>当使用 <cite>decode_unicode=True</cite> 在
   <a class="reference internal" href="../api.html#requests.Response.iter_lines" title="requests.Response.iter_lines"><code class="xref py py-meth docutils literal"><span class="pre">Response.iter_lines()</span></code></a> 或
   <a class="reference internal" href="../api.html#requests.Response.iter_content" title="requests.Response.iter_content"><code class="xref py py-meth docutils literal"><span class="pre">Response.iter_content()</span></code></a> 中时，你需要提供一个回退编码方式，以防服务器没有提供默认回退编码，从而导致错误：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/stream/20'</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'http://httpbin.org/stream/20'</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
   
   <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">encoding</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="n">r</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="s1">'utf-8'</span>
@@ -378,8 +348,7 @@
   <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_lines</span><span class="p">(</span><span class="n">decode_unicode</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
       <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
           <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <div class="admonition warning">
   <p class="first admonition-title">警告</p>
   <p>警告</p>
@@ -392,14 +361,13 @@
   
   <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
       <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   </div>
   <div class="section" id="proxies">
   <span id="id14"></span><h2>代理</h2>
   <p>如果需要使用代理，你可以通过为任意请求方法提供 <code class="docutils literal"><span class="pre">proxies</span></code> 参数来配置单个请求:</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">requests</span>
+  <pre><code class="language-python"><span></span><span class="kn">import</span> <span class="nn">requests</span>
   
   <span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"http"</span><span class="p">:</span> <span class="s2">"http://10.10.1.10:3128"</span><span class="p">,</span>
@@ -407,28 +375,24 @@
   <span class="p">}</span>
   
   <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"http://example.org"</span><span class="p">,</span> <span class="n">proxies</span><span class="o">=</span><span class="n">proxies</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>你也可以通过环境变量 <code class="docutils literal"><span class="pre">HTTP_PROXY</span></code> 和 <code class="docutils literal"><span class="pre">HTTPS_PROXY</span></code> 来配置代理。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span>$ export HTTP_PROXY="http://10.10.1.10:3128"
+  <pre><code class="language-python"><span></span>$ export HTTP_PROXY="http://10.10.1.10:3128"
   $ export HTTPS_PROXY="http://10.10.1.10:1080"
   
   $ python
   &gt;&gt;&gt; import requests
   &gt;&gt;&gt; requests.get("http://example.org")
-  </pre></div>
-  </div>
+  </code></pre>
   <p>若你的代理需要使用HTTP Basic Auth，可以使用 <cite>http://user:password@host/</cite> 语法：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span>
+  <pre><code class="language-python"><span></span><span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span>
       <span class="s2">"http"</span><span class="p">:</span> <span class="s2">"http://user:pass@10.10.1.10:3128/"</span><span class="p">,</span>
   <span class="p">}</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>要为某个特定的连接方式或者主机设置代理，使用 <cite>scheme://hostname</cite> 作为 key，
   它会针对指定的主机和连接方式进行匹配。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'http://10.20.1.128'</span><span class="p">:</span> <span class="s1">'http://10.10.1.10:5323'</span><span class="p">}</span>
-  </pre></div>
-  </div>
+  <pre><code class="language-python"><span></span><span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'http://10.20.1.128'</span><span class="p">:</span> <span class="s1">'http://10.10.1.10:5323'</span><span class="p">}</span>
+  </code></pre>
   <p>注意，代理 URL 必须包含连接方式。</p>
   <div class="section" id="socks">
   <h3>SOCKS</h3>
@@ -439,15 +403,13 @@
   你需要安装第三方库。</p>
   <p>你可以用 <code class="docutils literal"><span class="pre">pip</span></code> 获取依赖:</p>
   <div class="highlight-bash"><div class="highlight"><pre><span></span>$ pip install requests<span class="o">[</span>socks<span class="o">]</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>安装好依赖以后，使用 SOCKS 代理和使用 HTTP 代理一样简单：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span>
+  <pre><code class="language-python"><span></span><span class="n">proxies</span> <span class="o">=</span> <span class="p">{</span>
       <span class="s1">'http'</span><span class="p">:</span> <span class="s1">'socks5://user:pass@host:port'</span><span class="p">,</span>
       <span class="s1">'https'</span><span class="p">:</span> <span class="s1">'socks5://user:pass@host:port'</span>
   <span class="p">}</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   </div>
   <div class="section" id="compliance">
@@ -469,20 +431,18 @@
   <span id="http-verbs"></span><h2>HTTP动词</h2>
   <p>Requests 提供了几乎所有HTTP动词的功能：GET、OPTIONS、HEAD、POST、PUT、PATCH、DELETE。以下内容为使用 Requests 中的这些动词以及 Github API 提供了详细示例。</p>
   <p>我将从最常使用的动词 GET 开始。HTTP GET 是一个幂等方法，从给定的 URL 返回一个资源。因而，当你试图从一个 web 位置获取数据之时，你应该使用这个动词。一个使用示例是尝试从 Github 上获取关于一个特定 commit 的信息。假设我们想获取 Requests 的 commit <code class="docutils literal"><span class="pre">a050faf</span></code> 的信息。我们可以这样去做：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">requests</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">requests</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://api.github.com/repos/requests/requests/git/commits/a050faf084662f3a352dd1a941f2c7c9f886d4ad'</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>我们应该确认 GitHub 是否正确响应。如果正确响应，我们想弄清响应内容是什么类型的。像这样去做：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">):</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">):</span>
   <span class="gp">... </span>    <span class="nb">print</span> <span class="n">r</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">'content-type'</span><span class="p">]</span>
   <span class="gp">...</span>
   <span class="go">application/json; charset=utf-8</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>可见，GitHub 返回了 JSON 数据，非常好，这样就可以使用 <code class="docutils literal"><span class="pre">r.json</span></code> 方法把这个返回的数据解析成
   Python 对象。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">commit_data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">commit_data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
   
   <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">commit_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
   <span class="go">[u'committer', u'author', u'url', u'tree', u'sha', u'parents', u'message']</span>
@@ -492,27 +452,24 @@
   
   <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">commit_data</span><span class="p">[</span><span class="sa">u</span><span class="s1">'message'</span><span class="p">]</span>
   <span class="go">makin' history</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>到目前为止，一切都非常简单。嗯，我们来研究一下 GitHub 的 API。我们可以去看看文档，但如果使用 Requests 来研究也许会更有意思一点。我们可以借助 Requests 的 OPTIONS
   动词来看看我们刚使用过的 url 支持哪些 HTTP 方法。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">verbs</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">verbs</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">verbs</span><span class="o">.</span><span class="n">status_code</span>
   <span class="go">500</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>额，这是怎么回事？毫无帮助嘛！原来 GitHub，与许多 API 提供方一样，实际上并未实现
   OPTIONS 方法。这是一个恼人的疏忽，但没关系，那我们可以使用枯燥的文档。然而，如果
   GitHub 正确实现了 OPTIONS，那么服务器应该在响应头中返回允许用户使用的 HTTP 方法，例如：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">verbs</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="s1">'http://a-good-website.com/api/cats'</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">verbs</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="s1">'http://a-good-website.com/api/cats'</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">verbs</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">'allow'</span><span class="p">]</span>
   <span class="go">GET,HEAD,POST,OPTIONS</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>转而去查看文档，我们看到对于提交信息，另一个允许的方法是 POST，它会创建一个新的提交。由于我们正在使用 Requests 代码库，我们应尽可能避免对它发送笨拙的 POST。作为替代，我们来玩玩 GitHub 的 Issue 特性。</p>
   <p>本篇文档是回应 <a class="reference external" href="https://github.com/requests/requests/issues/482">Issue #482</a>
   而添加的。鉴于该问题已经存在，我们就以它为例。先获取它。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://api.github.com/requests/kennethreitz/requests/issues/482'</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://api.github.com/requests/kennethreitz/requests/issues/482'</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
   <span class="go">200</span>
   
@@ -523,10 +480,9 @@
   
   <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">issue</span><span class="p">[</span><span class="sa">u</span><span class="s1">'comments'</span><span class="p">])</span>
   <span class="go">3</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>Cool，有 3 个评论。我们来看一下最后一个评论。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">url</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">'/comments'</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">url</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">'/comments'</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
   <span class="go">200</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">comments</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
@@ -534,26 +490,23 @@
   <span class="go">[u'body', u'url', u'created_at', u'updated_at', u'user', u'id']</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">comments</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="sa">u</span><span class="s1">'body'</span><span class="p">]</span>
   <span class="go">Probably in the "advanced" section</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>嗯，那看起来似乎是个愚蠢之处。我们发表个评论来告诉这个评论者他自己的愚蠢。那么，这个评论者是谁呢？</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">comments</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="sa">u</span><span class="s1">'user'</span><span class="p">][</span><span class="sa">u</span><span class="s1">'login'</span><span class="p">]</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">comments</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="sa">u</span><span class="s1">'user'</span><span class="p">][</span><span class="sa">u</span><span class="s1">'login'</span><span class="p">]</span>
   <span class="go">kennethreitz</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>好，我们来告诉这个叫 Kenneth 的家伙，这个例子应该放在快速上手指南中。根据 GitHub API
   文档，其方法是 POST 到该话题。我们来试试看。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">body</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="sa">u</span><span class="s2">"body"</span><span class="p">:</span> <span class="sa">u</span><span class="s2">"Sounds great! I'll get right on it!"</span><span class="p">})</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">body</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="sa">u</span><span class="s2">"body"</span><span class="p">:</span> <span class="sa">u</span><span class="s2">"Sounds great! I'll get right on it!"</span><span class="p">})</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="sa">u</span><span class="s2">"https://api.github.com/repos/requests/requests/issues/482/comments"</span>
   
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
   <span class="go">404</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>额，这有点古怪哈。可能我们需要验证身份。那就有点纠结了，对吧？不对。Requests
   简化了多种身份验证形式的使用，包括非常常见的 Basic Auth。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">requests.auth</span> <span class="k">import</span> <span class="n">HTTPBasicAuth</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">requests.auth</span> <span class="k">import</span> <span class="n">HTTPBasicAuth</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">auth</span> <span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="s1">'fake@example.com'</span><span class="p">,</span> <span class="s1">'not_a_real_password'</span><span class="p">)</span>
   
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
@@ -563,10 +516,9 @@
   <span class="gp">&gt;&gt;&gt; </span><span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="sa">u</span><span class="s1">'body'</span><span class="p">])</span>
   <span class="go">Sounds great! I'll get right on it.</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>太棒了！噢，不！我原本是想说等我一会，因为我得去喂我的猫。如果我能够编辑这条评论那就好了！幸运的是，GitHub 允许我们使用另一个 HTTP 动词 PATCH 来编辑评论。我们来试试。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="sa">u</span><span class="s2">"id"</span><span class="p">])</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="sa">u</span><span class="s2">"id"</span><span class="p">])</span>
   <span class="go">5804413</span>
   
   <span class="gp">&gt;&gt;&gt; </span><span class="n">body</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="sa">u</span><span class="s2">"body"</span><span class="p">:</span> <span class="sa">u</span><span class="s2">"Sounds great! I'll get right on it once I feed my cat."</span><span class="p">})</span>
@@ -575,56 +527,50 @@
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
   <span class="go">200</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>非常好。现在，我们来折磨一下这个叫 Kenneth 的家伙，我决定要让他急得团团转，也不告诉他是我在捣蛋。这意味着我想删除这条评论。GitHub 允许我们使用完全名副其实的 DELETE 方法来删除评论。我们来清除该评论。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
   <span class="go">204</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]</span>
   <span class="go">'204 No Content'</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>很好。不见了。最后一件我想知道的事情是我已经使用了多少限额（ratelimit）。查查看，GitHub
   在响应头部发送这个信息，因此不必下载整个网页，我将使用一个 HEAD 请求来获取响应头。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">r</span><span class="o">.</span><span class="n">headers</span>
   <span class="gp">...</span>
   <span class="go">'x-ratelimit-remaining': '4995'</span>
   <span class="go">'x-ratelimit-limit': '5000'</span>
   <span class="gp">...</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>很好。是时候写个 Python 程序以各种刺激的方式滥用 GitHub 的 API，还可以使用 4995 次呢。</p>
   </div>
   <div class="section" id="id17">
   <h2>定制动词</h2>
   <p>有时候你会碰到一些服务器，处于某些原因，它们允许或者要求用户使用上述 HTTP 动词之外的定制动词。比如说 WEBDAV 服务器会要求你使用 MKCOL 方法。别担心，Requests 一样可以搞定它们。你可以使用内建的 <code class="docutils literal"><span class="pre">.request</span></code> 方法，例如：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'MKCOL'</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'MKCOL'</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
   <span class="go">200 # Assuming your call was correct</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>这样你就可以使用服务器要求的任意方法动词了。</p>
   </div>
   <div class="section" id="link-headers">
   <span id="id18"></span><h2>响应头链接字段</h2>
   <p>许多 HTTP API 都有响应头链接字段的特性，它们使得 API 能够更好地自我描述和自我显露。</p>
   <p>GitHub 在 API 中为 <a class="reference external" href="http://developer.github.com/v3/#pagination">分页</a> 使用这些特性，例如:</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="s1">'https://api.github.com/users/kennethreitz/repos?page=1&amp;per_page=10'</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="s1">'https://api.github.com/users/kennethreitz/repos?page=1&amp;per_page=10'</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">'link'</span><span class="p">]</span>
   <span class="go">'&lt;https://api.github.com/users/kennethreitz/repos?page=2&amp;per_page=10&gt;; rel="next", &lt;https://api.github.com/users/kennethreitz/repos?page=6&amp;per_page=10&gt;; rel="last"'</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>Requests 会自动解析这些响应头链接字段，并使得它们非常易于使用:</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s2">"next"</span><span class="p">]</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s2">"next"</span><span class="p">]</span>
   <span class="go">{'url': 'https://api.github.com/users/kennethreitz/repos?page=2&amp;per_page=10', 'rel': 'next'}</span>
   
   <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s2">"last"</span><span class="p">]</span>
   <span class="go">{'url': 'https://api.github.com/users/kennethreitz/repos?page=7&amp;per_page=10', 'rel': 'last'}</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   <div class="section" id="transport-adapters">
   <span id="id20"></span><h2>传输适配器</h2>
@@ -634,10 +580,9 @@
   上，其中一个供 HTTP 使用，另一个供 HTTPS 使用。</p>
   <p>Request 允许用户创建和使用他们自己的传输适配器，实现他们需要的特殊功能。创建好以后，传输适配器可以被加载到一个会话对象上，附带着一个说明，告诉会话适配器应该应用在哪个 web
   服务上。</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+  <pre><code class="language-python"><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
   <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">'http://www.github.com'</span><span class="p">,</span> <span class="n">MyAdapter</span><span class="p">())</span>
-  </pre></div>
-  </div>
+  </code></pre>
   <p>这个 mount 调用会注册一个传输适配器的特定实例到一个前缀上面。加载以后，任何使用该会话的 HTTP
   请求，只要其 URL 是以给定的前缀开头，该传输适配器就会被使用到。</p>
   <p>传输适配器的众多实现细节不在本文档的覆盖范围内，不过你可以看看接下来这个简单的 SSL
@@ -648,7 +593,7 @@
   <p>你可以使用传输适配器解决这个问题，通过利用 HTTPAdapter 现有的大部分实现，再加上一个
   <em>ssl_version</em> 参数并将它传递到 <code class="docutils literal"><span class="pre">urllib3</span></code> 中。我们会创建一个传输适配器，用来告诉
   <code class="docutils literal"><span class="pre">urllib3</span></code> 让它使用 SSLv3：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ssl</span>
+  <pre><code class="language-python"><span></span><span class="kn">import</span> <span class="nn">ssl</span>
   
   <span class="kn">from</span> <span class="nn">requests.adapters</span> <span class="k">import</span> <span class="n">HTTPAdapter</span>
   <span class="kn">from</span> <span class="nn">requests.packages.urllib3.poolmanager</span> <span class="k">import</span> <span class="n">PoolManager</span>
@@ -662,8 +607,7 @@
                                          <span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">,</span>
                                          <span class="n">block</span><span class="o">=</span><span class="n">block</span><span class="p">,</span>
                                          <span class="n">ssl_version</span><span class="o">=</span><span class="n">ssl</span><span class="o">.</span><span class="n">PROTOCOL_SSLv3</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   </div>
   <div class="section" id="blocking-or-nonblocking">
@@ -691,17 +635,14 @@
   <p>一旦你的客户端连接到了服务器并且发送了 HTTP 请求，<strong>读取</strong>超时指的就是客户端等待服务器发送请求的时间。（特定地，它指的是客户端要等待服务器发送字节<strong>之间</strong>的时间。在 99.9%
   的情况下这指的是服务器发送第一个字节之前的时间）。</p>
   <p>如果你制订了一个单一的值作为 timeout，如下所示：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://github.com'</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  <pre><code class="language-python"><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://github.com'</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+  </code></pre>
   <p>这一 timeout 值将会用作 <code class="docutils literal"><span class="pre">connect</span></code> 和 <code class="docutils literal"><span class="pre">read</span></code> 二者的 timeout。如果要分别制定，就传入一个元组：</p>
-  <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://github.com'</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="mf">3.05</span><span class="p">,</span> <span class="mi">27</span><span class="p">))</span>
-  </pre></div>
-  </div>
+  <pre><code class="language-python"><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://github.com'</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="mf">3.05</span><span class="p">,</span> <span class="mi">27</span><span class="p">))</span>
+  </code></pre>
   <p>如果远端服务器很慢，你可以让 Request 永远等待，传入一个 None 作为 timeout 值，然后就冲咖啡去吧。</p>
   <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://github.com'</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-  </pre></div>
-  </div>
+  </code></pre>
   </div>
   </div>
   
