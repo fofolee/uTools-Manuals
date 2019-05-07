@@ -14,14 +14,14 @@ Johann Burkard
 
 */
 
-jQuery.fn.highlight = function(pat) {
+jQuery.fn.highlight = function(pat, hlclass) {
  function innerHighlight(node, pat) {
   var skip = 0;
   if (node.nodeType == 3) {
    var pos = node.data.toUpperCase().indexOf(pat);
    if (pos >= 0) {
     var spannode = document.createElement('span');
-    spannode.className = 'founds';
+    spannode.className = hlclass;
     var middlebit = node.splitText(pos);
     var endbit = middlebit.splitText(pat.length);
     var middleclone = middlebit.cloneNode(true);
@@ -42,7 +42,7 @@ jQuery.fn.highlight = function(pat) {
  });
 };
 
-jQuery.fn.removeHighlight = function() {
+jQuery.fn.removeHighlight = function(hlclass) {
  function newNormalize(node) {
     for (var i = 0, children = node.childNodes, nodeCount = children.length; i < nodeCount; i++) {
         var child = children[i];
@@ -63,7 +63,7 @@ jQuery.fn.removeHighlight = function() {
     }
  }
 
- return this.find("span.founds").each(function() {
+ return this.find("span." + hlclass).each(function() {
     var thisParent = this.parentNode;
     thisParent.replaceChild(this.firstChild, this);
     newNormalize(thisParent);
