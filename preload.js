@@ -1,17 +1,30 @@
-const fs = require('fs');
-const { shell, clipboard } = require('electron');
-const { dialog, BrowserWindow, nativeImage } = require('electron').remote
-const path = require("path")
+const { clipboard } = require('electron');
 const { exec } = require('child_process');
 const robot = require('./robotjs')
 
-dirname = __dirname;
+//-------checkUpdate------
+const fs = require('fs');
+const path = require("path")
+const { dialog, BrowserWindow, nativeImage } = require('electron').remote
+const { shell } = require('electron');
 
-isWin = process.platform == 'win32' ? true : false;
+pluginInfo = JSON.parse(fs.readFileSync(path.join(__dirname, 'plugin.json')));
+logo = nativeImage.createFromPath(path.join(__dirname, 'logo.png'));
+
+messageBox = (options, callback) => {
+    dialog.showMessageBox(BrowserWindow.getFocusedWindow(), options, index => {
+        callback(index);
+    })
+}
 
 open = url => {
     shell.openExternal(url);
 }
+// ------------------------
+
+dirname = __dirname;
+
+isWin = process.platform == 'win32' ? true : false;
 
 openFolder = () => {
     return dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
@@ -27,14 +40,6 @@ readFile = file =>
             reslove(data);
         });
     });
-
-getLogo = () => nativeImage.createFromPath(path.join(__dirname, 'logo.png'));
-
-messageBox = (options, callback) => {
-    dialog.showMessageBox(BrowserWindow.getFocusedWindow(), options, index => {
-        callback(index);
-    })    
-}
 
 exists = path => {
     return fs.existsSync(path);

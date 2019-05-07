@@ -1,8 +1,3 @@
-// 正则转义
-escapeRe = s => {
-    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');   
-}
-
 // html实体编码
 escapeHtml = s => {
     return s.replace(/</g, "&lt;")
@@ -11,59 +6,45 @@ escapeHtml = s => {
     .replace(/'/g, "&apos;");
 }
 
-// 列表
-list = (path, initial, type, name ,desc) => {
-    return `<div class='info' path='${path}'>
-    <div class="initial">${initial}</div>
-    <div class="type">${type}</div>
-    <div class="name">${name}</div>
-    <div class="description">${desc}</div>
-    </div>`
-}
-
 // 显示列表
 showList = (text, index, listnum) => {
-    window.ResultList = [];
-    window.ResultIndex = [];
-    var obn = [];
-    var obd = [];
+    window.infoRows = [];
+    var topRows = [],
+        tailRows = [];
     index.forEach(i => {
-        let reg = new RegExp(escapeRe(text), "i",)
-        match1 = reg.exec(i.name),
-            match2 = reg.exec(i.desc),
-            name = escapeHtml(i.name),
-            desc = i.desc != undefined ? escapeHtml(i.desc) : "",
-            type = i.type != undefined ? escapeHtml(i.type) : "";
-        let initial = i.name.slice(0, 1).toUpperCase();
-        // let initial = /^([a-zA-Z])/.exec(i.name);
-        // initial = initial ? initial[1].toUpperCase() : '*';
-        // 优先显示名称匹配的内容
-        if (match1) {
-            name = highlightList(name, match1[0]);
-            if (match2) desc = highlightList(desc, match2[0]);
-            // 置顶全字匹配的内容
-            if (i.name.toUpperCase() == text.toUpperCase()) {
-                obn.unshift(list(i.path, initial, type, name, desc));
-                window.ResultIndex.push(i);
-            } else {
-                obn.push(list(i.path, initial, type, name, desc));
-                window.ResultIndex.push(i);
-            }
-        // 其次显示描述匹配的内容
-        } else if (match2) {
-            desc = highlightList(desc, match2[0]);
-            obd.push(list(i.path, initial, type, name, desc));
-        }
+        let displayName = escapeHtml(i.name),
+            displatDesc = i.desc != undefined ? escapeHtml(i.desc) : "",
+            displayType = i.type != undefined ? escapeHtml(i.type) : "",
+            upName = i.name.toUpperCase(),
+            upDesc = i.desc.toUpperCase(),
+            initial = upName.slice(0, 1),
+            topRow = true,
+            matched = true;
+        // 多关键词搜索
+        text.trim().split(' ').forEach(keyword => {
+            upName.includes(keyword) || (topRow = false);
+            (upName.includes(keyword) || upDesc.includes(keyword)) || (matched = false);
+        })
+        var list = `<div class='info' path='${i.path}'>
+        <div class="initial">${initial}</div>
+        <div class="type">${displayType}</div>
+        <div class="name">${displayName}</div>
+        <div class="description">${displatDesc}</div>
+        </div>`
+        // 排序规则：置顶全字匹配，优先显示名称匹配
+        topRow && ((upName == text) && topRows.unshift(list) || topRows.push(list)) || (matched && tailRows.push(list));
     });
-    window.ResultList = obn.concat(obd);
-    $("#mainlist").html(window.ResultList.slice(0, listnum).join(''));
+    window.infoRows = topRows.concat(tailRows);
+    $("#mainlist").html(window.infoRows.slice(0, listnum).join(''));
     let num = $(".info").length
     utools.setExpendHeight(num > 11 ? 550 : 50 * num);
     $(".select").removeClass('select');
     $(".info:first").addClass('select');
+    $('html').getNiceScroll().resize();
     // 鼠标锁，方式鼠标抢占选择条
     window.mouseLockTime = new Date().getTime();
 }
+
 
 // 显示手册
 showManual = path => {
@@ -106,15 +87,12 @@ showManual = path => {
 
 // 手册/配置页搜索结果高亮
 highlightManual = (selector, text) => {
-    $(selector).removeHighlight() ;
+    $(selector).removeHighlight('founds') ;
     if (text) {
-        $(selector).highlight(text);
+        $(selector).highlight(text, 'founds');
         window.findex = 0;
     }
 }
-
-// 列表搜索结果高亮
-highlightList = (string, match) => string.replace(match, `<span style="color:#ff5722">${match}</span>`)
 
 // 初始化
 init = () => {
@@ -132,52 +110,28 @@ sendText = text => {
     window.paste();
 }
 
-// 检查升级
-checkUpdate = () => {
-    let cv = 'v0.0.2',
-        pg = 'https://yuanliao.info/d/356';
-    if (!utools.db.get(cv)) {
-        $.get(pg, data => {
-            data = /<title>\[插件\]\[程序员手册 (.*?)\](.*?) - 猿料<\/title>/.exec(data);
-            let lv = data[1],
-                desc = data[2];
-            if (lv != cv) {
-                options = {
-                    type: 'info',
-                    title: '插件有可用更新',
-                    icon: window.getLogo(),
-                    cancelId: 1,
-                    message: `发现新版本 ${lv}，是否前往更新？\n更新内容：\n${desc}`,
-                    buttons: ['起驾', '朕知道了', '别再烦朕']
-                };
-                window.messageBox(options, index => {
-                    if (index == 0) {
-                        window.open(pg)
-                    } else if (index == 2) {
-                        utools.db.put({ _id: cv, data: "pass" })
-                    }
-                })
-            }
-        })
-    }
-}
-
 // 切换列表和手册视图
 toggleView = () => {
     if ($("#manual").is(":hidden") && $("#mainlist").is(":visible")) {
         $("#manual").fadeIn();
         $("#mainlist").fadeOut();
+        utools.setExpendHeight(550);
     } else if ($("#manual").is(":visible") && $("#mainlist").is(":hidden")) {
         $("#manual").fadeOut();
         $("#mainlist").fadeIn();
+        let num = $(".info").length
+        utools.setExpendHeight(num > 11 ? 550 : 50 * num);
     }
 }
 
-// 加载剩余列表
-loadList = listnum => {
-    if ($(window).scrollTop() >= (listnum * 50 - 550) && $(".info").length <= listnum) {      
-        $("#mainlist").append(window.ResultList.slice(listnum).join(''));
-        $('html').getNiceScroll().resize();
+// 继续加载内容
+loadList = addnum => {
+    if ($('#manual').is(':hidden') && $("#mainlist").is(":visible")) {
+        var listnum = $(".info").length;
+        if ($(window).scrollTop() >= (listnum * 50 - 550)) {
+            $("#mainlist").append(window.infoRows.slice(listnum, listnum + addnum).join(''));
+            $('html').getNiceScroll().resize();
+        }
     }
 }
 
@@ -249,12 +203,11 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
             utools.setSubInput(({ text }) => {
                 // 列表搜索
                 if ($('#manual').is(':hidden')) {
-                    // 空格进行多关键词搜索
-                    if (text.includes(' ')) {
-                        showList(text.split(' ').pop(), window.ResultIndex, 500)
-                    } else {
-                        showList(text, index, 500);
-                    }
+                    showList(text.toUpperCase(), index, 500);
+                    // 高亮结果
+                    text.split(' ').forEach(keyword => {
+                        keyword && $(".name,.description").highlight(keyword, 'listFounds');
+                    });
                 // 手册搜索
                 } else {
                     highlightManual("#manual", text);

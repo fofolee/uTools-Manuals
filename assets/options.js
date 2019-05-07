@@ -220,12 +220,12 @@ $("#options").on('click', '.selectBtn', function () {
 })
 
 // 保存
-$("#options").on('click', '.saveBtn', function () {
+$("#options").on('click', '.saveBtn', async function () {
     var code = $('#code').val()
-    var allFts = getManuals();
+    var allFts = await getManuals();
     if (code in allFts && $("#code").prop('disabled') == false) {
         $('#code').css({ 'border-bottom-color': '#ec1212' })
-        window.messageBox({ type: 'error', message: "名称与现有的手册重复！", buttons: ['朕知道了'] })
+        window.messageBox({ type: 'error', icon: window.logo, message: "名称与现有的手册重复！", buttons: ['朕知道了'] })
     } else {
         var kw = $('#kw').val().split(','),
             desc = $('#desc').val(),
