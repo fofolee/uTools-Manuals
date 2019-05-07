@@ -23,7 +23,8 @@ list = (path, initial, type, name ,desc) => {
 
 // 显示列表
 showList = (text, index, listnum) => {
-    window.info = [];
+    window.ResultList = [];
+    window.ResultIndex = [];
     var obn = [];
     var obd = [];
     index.forEach(i => {
@@ -43,8 +44,10 @@ showList = (text, index, listnum) => {
             // 置顶全字匹配的内容
             if (i.name.toUpperCase() == text.toUpperCase()) {
                 obn.unshift(list(i.path, initial, type, name, desc));
+                window.ResultIndex.push(i);
             } else {
                 obn.push(list(i.path, initial, type, name, desc));
+                window.ResultIndex.push(i);
             }
         // 其次显示描述匹配的内容
         } else if (match2) {
@@ -52,8 +55,8 @@ showList = (text, index, listnum) => {
             obd.push(list(i.path, initial, type, name, desc));
         }
     });
-    window.info = obn.concat(obd);
-    $("#mainlist").html(window.info.slice(0, listnum).join(''));
+    window.ResultList = obn.concat(obd);
+    $("#mainlist").html(window.ResultList.slice(0, listnum).join(''));
     let num = $(".info").length
     utools.setExpendHeight(num > 11 ? 550 : 50 * num);
     $(".select").removeClass('select');
@@ -173,7 +176,7 @@ toggleView = () => {
 // 加载剩余列表
 loadList = listnum => {
     if ($(window).scrollTop() >= (listnum * 50 - 550) && $(".info").length <= listnum) {      
-        $("#mainlist").append(window.info.slice(listnum).join(''));
+        $("#mainlist").append(window.ResultList.slice(listnum).join(''));
         $('html').getNiceScroll().resize();
     }
 }
@@ -244,8 +247,15 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
             }
             // 子输入框
             utools.setSubInput(({ text }) => {
+                // 列表搜索
                 if ($('#manual').is(':hidden')) {
-                    showList(text, index, 500);
+                    // 空格进行多关键词搜索
+                    if (text.includes(' ')) {
+                        showList(text.split(' ').pop(), window.ResultIndex, 500)
+                    } else {
+                        showList(text, index, 500);
+                    }
+                // 手册搜索
                 } else {
                     highlightManual("#manual", text);
                 }
