@@ -12,11 +12,12 @@ showList = (text, index, listnum) => {
     var topRows = [],
         tailRows = [];
     index.forEach(i => {
-        let displayName = escapeHtml(i.name),
-            displatDesc = i.desc != undefined ? escapeHtml(i.desc) : "",
+        let desc = i.desc != undefined ? i.desc : "",
+            displayName = escapeHtml(i.name),
+            displatDesc = escapeHtml(desc),
             displayType = i.type != undefined ? escapeHtml(i.type) : "",
             upName = i.name.toUpperCase(),
-            upDesc = i.desc.toUpperCase(),
+            upDesc = desc.toUpperCase(),
             initial = upName.slice(0, 1),
             topRow = true,
             matched = true;
@@ -166,7 +167,7 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                 break;
             case "custom":
                 baseDir = allFts[code].path;
-                assetDir = `${baseDir}/${code}/`
+                assetDir = `${baseDir}/assets/`
                 window.dirs = {
                     idxFile: `${baseDir}/${code}.json`,
                     docPath: `${baseDir}`,
@@ -226,6 +227,8 @@ $("#mainlist").on('mousedown', '.info', function (e) {
         path && showManual(path);
     } else if (2 == e.which) {
         sendText($('.select .name').text());
+    } else if (3 == e.which) {
+        toggleView();
     }
 });
 
