@@ -1,19 +1,86 @@
-# 程序员手册 V0.0.2
+# 程序员手册 V0.0.3
 
 ## 简介
 
-内置了多个实用的离线中文手册，目前包括：内置了多个实用的离线中文手册，包括：Linux、PHP、Python、JS、C、Vim、Git、Docker、Sql、uTools等
+内置了十多个实用的离线中文手册，包括：Linux、PHP、Python、JS等,以及提供了搜索devdocs、dash/zeal上的文档的功能
 
-手册具有以下两个特色：
+手册具有以下三个特色：
 
-- 离线使用
-- 90%以上是中文
+- 内置多个手册均可离线使用，且90%以上是中文
+- 可以自行添加手册
+- 可以查询devdocs、dash/zeal上的文档
 
 前身是之前发布的两个插件：
 
 [PHP函数查询助手](https://yuanliao.info/d/329) [Linux命令查询手册](https://yuanliao.info/d/336)
 
 ## 更新
+
+### v0.0.3
+
+又有一大波更新来袭
+
+先做一个名词解释,本文中所提及的
+
+**手册界面**为：
+
+![UTOOLS1557242800409.png](https://i.loli.net/2019/05/07/5cd1a3b058870.png)
+
+**列表界面**为：
+
+![UTOOLS1557242777511.png](https://i.loli.net/2019/05/07/5cd1a399a2c46.png)
+
+
+##### 功能更新
+
+- 添加了快速将内容发送至活动窗口的功能，在列表界面按`shift+enter`或鼠标中键即可将选中的函数名称发送至上一个系统的活动窗口，在手册界面，选中相关文本内容后，按`shift+enter`或鼠标中键即可发送。查完api后再也不用慢悠悠地手动复制函数了~~
+
+- 集成了`devdocs`，在`手册设置`页面，点击下方的英文手册按钮即可进入`devdocs`的配置页面
+
+![UTOOLS1557237205596.png](https://i.loli.net/2019/05/07/5cd18dd58ced8.png)
+
+​    需要先在该页面点击下载按钮下载相应的文档目录，之后便可和内置手册一样使用
+
+![UTOOLS1557240920471.png](https://i.loli.net/2019/05/07/5cd19c58614cd.png)
+
+![UTOOLS1557240455149.png](https://i.loli.net/2019/05/07/5cd19a8732d26.png)
+
+![UTOOLS1557240886582.png](https://i.loli.net/2019/05/07/5cd19c3659474.png)
+
+   需要注意的是`devdocs`所有文档的`api`列表中均无中文注释，且只有目录文件是离线存储的，访问具体的手册页面需要联网
+
+- 现在`手册设置`页面可以在顶端输入框内搜索快速查找需要的文档
+
+- 添加快速启动`dash`或者`zeal`的功能，通过关键字`dash`即可进入
+
+![UTOOLS1557241588196.png](https://i.loli.net/2019/05/07/5cd19ef3eba37.png)
+
+​    注意，不同于`devdocs`，最后会根据查询内容调用`dash`或者`zeal`进行查看，故需要先安装`dash`或者`zeal`才可以使用此功能
+
+- 添加了多关键词查找的功能，现在想怎么搜就怎么搜~
+
+![UTOOLS1557241948612.png](https://i.loli.net/2019/05/07/5cd1a05ca1521.png)
+
+- 添加了一个内置手册`PyQt5`，同时在内置的`python`手册中添加了多个`tkinter`的实例
+
+  添加了一个内置手册`payload`，收录了一些网络安全测试的常用`payload`，没有手册页面，主要配合新出的发送文本到窗口的功能，实现快速输入`payload`，目前收录的比较少，后续会陆续补充
+  
+
+![UTOOLS1557242094634.png](https://i.loli.net/2019/05/07/5cd1a0ee86d07.png)
+
+- 增加外置手册时，如需自定义`css`，不再是添加单个`css`文件，而是统一放入`assets`目录中，相关外置手册说明同步更新
+
+##### 用户体验改善
+
+- 当在列表界面进行搜索后，点击进入手册界面，会清空顶端输入框内的值
+- 在某些情况下（例如读取外置手册失败时）会输出一些报错信息
+
+##### bug修复
+
+- 修复了添加外置手册后滚动条没有调整的bug，以及某些时候滚动条未自动调整的bug
+- 修复检测更新功能中，即使点了不再提醒，下次重启`uTools`时仍会再次出现的bug
+
+##### 本项目现已在Github开源，地址见下载一栏，欢迎提交pr，大家一同完善本项目，如果喜欢也请不吝star~
 
 ### v0.0.2
 
@@ -83,21 +150,39 @@
 
 [百度网盘](https://pan.baidu.com/s/188sFN_oktGulGTdvnCQPqw) 提取码: `yfh7`
 
+[项目地址](https://github.com/fofolee/uTools-Manuals)
+
 [插件发布页](https://yuanliao.info/d/356)
+
+[外置手册教程](https://yuanliao.info/d/356/27)
 
 ## 安装方法
 
-将`upx`文件拖入`uTools`输入框中安装即可
+将`upx`文件拖入`uTools`输入框中安装即可，安装前最好先卸载旧版本的插件，如果安装过程较久，请耐心等待
 
 ## 关键字
 
-`手册设置` `linux命令` `php函数` `python库` `C函数` `vim命令` `git命令` `docker命令` `sql手册` `uToolsAPI` 等
+`手册设置` `dash` `linux命令` `php函数` `python库` `C函数` `vim命令` `git命令` `docker命令` `sql手册` `uToolsAPI` 等
 
-## 手册来源
+## 基本操作
+
+- 列表界面：
+  - 查看选中的内容 `⏎` `🖱左键`
+  - 发送选中的内容至上一个活动窗口 `⇪ + ⏎` `🖱中键`
+  - 上下选择 `⇧` `⇩`
+- 手册界面
+  - 切换列表和手册视图 `tab` `🖱右键`
+  - 发送选中的内容至上一个活动窗口 `⇪ + ⏎` `🖱中键`
+  - 搜索下一个关键词 `⏎`
+- 退出插件 `esc`
+
+## 手册一览
+
+所有手册资源均来自网络，如有遗漏，请留言告知
 
 - php手册   | [官方中文文档](https://www.php.net/download-docs.php)       
 - linux手册 | [离线手册：linux-command@jaywcjlove](https://github.com/jaywcjlove/linux-command)  [原始数据：linuxde.net](http://man.linuxde.net/) 
-- python手册 | [官方文档一译翻译版（比官方中文翻译的要多不少）](https://yiyibooks.cn/xx/python_352/library/index.html)
+- python手册 | [官方文档一译翻译版](https://yiyibooks.cn/xx/python_352/library/index.html)
   - beautifulSoup | [官方中文文档](https://www.crummy.com/software/BeautifulSoup/bs4/doc/index.zh.html)
   - requests | [官方中文文档](https://2.python-requests.org//zh_CN/latest/user/quickstart.html)
   - scrapy | [scrapy入门教程中文翻译](https://github.com/marchtea/scrapy_doc_chs)
@@ -113,4 +198,6 @@
 - javascript | [MDN Web Docs](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Index) 
 - jQuery | [jQuery中文网](https://www.jquery123.com/) 
 - vue | [官方中文文档](https://cn.vuejs.org/v2/api/) 
+- payload | 收集自网络
+- devdocs | [devdocs](https://devdocs.io/)
 
