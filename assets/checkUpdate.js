@@ -6,7 +6,7 @@ checkUpdate = () => {
             data = re.exec(data);
             let lastVer = data[1],
                 desc = data[2];
-            if (lastVer != p.version) {
+            if (lastVer > p.version) {
                 options = {
                     type: 'info',
                     title: '插件有可用更新',
