@@ -97,9 +97,10 @@ highlightManual = (selector, text) => {
 
 // 初始化
 init = () => {
-    $("#mainlist").fadeOut(0);
-    $("#options").fadeOut(0);
-    $("#manual").fadeOut(0);
+    $("#mainlist").fadeOut();
+    $("#options").fadeOut();
+    $("#manual").fadeOut();
+    $('link[name="manual"]').remove();
     $("html").niceScroll();
     $("#manual").niceScroll();
 }
@@ -174,17 +175,20 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                 }
                 break;
             case "devdocs":
+                assetDir = '';
                 window.dirs = {
                     docPath: allFts[code].url.slice(0, -11),
-                }      
+                }
+                break;
         }
         // 自定义 CSS、JS情况下
-        assetDir && window.readDir(assetDir, (err, files) => {
+        window.readDir(assetDir, (err, files) => {
             if (!err) {
-                $('[href="assets/manual.css"]').remove();
                 files.forEach(file => {
-                    $('head').append(`<link rel="stylesheet" href="${assetDir}/${file}">`)
+                    $('head').append(`<link rel="stylesheet" href="${assetDir}/${file}" name="manual">`)
                 }) 
+            } else {
+                $('head').append('<link rel="stylesheet" href="assets/manual.css" name="manual">')
             }
         })
         // 读取目录文件
