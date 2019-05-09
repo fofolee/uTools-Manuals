@@ -159,7 +159,7 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
         switch (allFts[code].type) {
             case "default":
                 baseDir = dirname;
-                assetDir = `${baseDir}/assets/${code}/`
+                assetDir = `${baseDir}/assets/${code}`
                 window.dirs = {
                     idxFile: `${baseDir}/index/${code}.json`,
                     docPath: `${baseDir}/docs`,
@@ -167,7 +167,7 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                 break;
             case "custom":
                 baseDir = allFts[code].path;
-                assetDir = `${baseDir}/assets/`
+                assetDir = `${baseDir}/assets`
                 window.dirs = {
                     idxFile: `${baseDir}/${code}.json`,
                     docPath: `${baseDir}`,
@@ -183,7 +183,7 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
             if (!err) {
                 $('[href="assets/manual.css"]').remove();
                 files.forEach(file => {
-                    $('head').append(`<link rel="stylesheet" href="${assetDir}${file}">`)
+                    $('head').append(`<link rel="stylesheet" href="${assetDir}/${file}">`)
                 }) 
             }
         })
