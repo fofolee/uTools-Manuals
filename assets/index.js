@@ -96,11 +96,7 @@ highlightManual = (selector, text) => {
 }
 
 // 初始化
-init = () => {
-    $("#mainlist").fadeOut();
-    $("#options").fadeOut();
-    $("#manual").fadeOut();
-    $('link[name="manual"]').remove();
+scrollInit = () => {
     $("html").niceScroll();
     $("#manual").niceScroll();
 }
@@ -139,7 +135,7 @@ loadList = addnum => {
 
 // 进入插件
 utools.onPluginEnter( async ({ code, type, payload }) => {
-    init();
+    scrollInit();
     checkUpdate();
     if (code == 'options') {
         window.defaultPage = 0;
@@ -224,6 +220,13 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
     }
 });
 
+utools.onPluginOut(() => {
+    $("#mainlist").html('');
+    $("#options").html('');
+    $("#manual").html('');
+    $('link[name="manual"]').remove();
+})
+
 // 单击列表，显示手册; 中键发送文本
 $("#mainlist").on('mousedown', '.info', function (e) {
     if (1 == e.which) {
@@ -263,11 +266,6 @@ $("#manual").on('mousedown', 'a', function (e) {
         /^\#/.test(href) || showManual(href);
     }
 });
-
-$(document).on('error', 'img', function () {
-    console.log(1);
-    $(this).remove();
-  });
 
 // 滚动到边界加载列表
 $(document).scroll(() => {
