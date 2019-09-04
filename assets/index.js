@@ -196,15 +196,15 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                 var index = utools.db.get(code).data;
             }
             if (type == 'over') {
-                showList(payload, index, 500)
+                showList(payload, index, 300)
             } else {
-                showList('', index, 500)
+                showList('', index, 300)
             }
             // 子输入框
             utools.setSubInput(({ text }) => {
                 // 列表搜索
                 if ($('#manual').is(':hidden')) {
-                    showList(text.toUpperCase(), index, 500);
+                    showList(text.toUpperCase(), index, 300);
                     // 高亮结果
                     text.split(' ').forEach(keyword => {
                         keyword && $(".name,.description").highlight(keyword, 'listFounds');
@@ -214,6 +214,12 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                     highlightManual("#manual", text);
                 }
             }, '输入名称或功能进行查询');
+            if (type == 'window') {
+                utools.hideMainWindow();
+                copy();
+                utools.showMainWindow();
+                paste();
+            }
         } catch(e) {
             $("#mainlist").html(e);
         }
@@ -221,9 +227,10 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
 });
 
 utools.onPluginOut(() => {
-    $("#mainlist").html('');
-    $("#options").html('');
-    $("#manual").html('');
+    $("#mainlist").html('').hide();
+    $("#options").html('').hide();
+    $("#manual").html('').hide();
+    $(".load").html('').hide();
     $('link[name="manual"]').remove();
 })
 
@@ -269,7 +276,7 @@ $("#manual").on('mousedown', 'a', function (e) {
 
 // 滚动到边界加载列表
 $(document).scroll(() => {
-    loadList(500);
+    loadList(300);
 })
 
 // 按键监听
@@ -337,7 +344,7 @@ $(document).keydown(e => {
                 if(next.offset().top >= $(window).scrollTop() + 550){
                     $("html").animate({ scrollTop: "+=50" }, 0);
                 }
-                loadList(500);
+                loadList(300);
                 next.addClass("select");
                 $(".select:first").removeClass("select");
             // 到达边界闪烁移动选择条

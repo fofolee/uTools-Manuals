@@ -49,7 +49,7 @@ showOptions = async () => {
             if (c.code == features.code) {
                 isChecked1 = 'checked';
                 isDisabled2 = '';
-                if (typeof(c.cmds[c.cmds.length - 1]) != 'string') isChecked2 = 'checked';
+                if (c.cmds[c.cmds.length - 1].type == 'over') isChecked2 = 'checked';
                 break;
             }
         }
@@ -237,7 +237,7 @@ $("#options").on('click', '.saveBtn', async function () {
                 "code": code,
                 "explain": desc,
                 "cmds": kw,
-                "icon": `${p}/${code}.png`
+                "icon": `logo/${code}.png`
             },
             path: p,
             type: 'custom'

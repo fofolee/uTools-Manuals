@@ -1,6 +1,6 @@
 const { clipboard } = require('electron');
 const { exec } = require('child_process');
-const robot = require('./robotjs')
+const robot = utools.robot
 
 //-------checkUpdate------
 const fs = require('fs');
@@ -60,6 +60,11 @@ dash = query => {
 
 copyTo = text => {
     clipboard.writeText(text)
+}
+
+copy = () => {
+    var ctlKey = isWin ? 'control' : 'command';
+    robot.keyTap('c', ctlKey);
 }
 
 paste = () => {
