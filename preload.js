@@ -1,5 +1,6 @@
 const { clipboard } = require('electron');
 const { exec } = require('child_process');
+const crypto = require('crypto')
 const robot = utools.robot
 
 //-------checkUpdate------
@@ -70,4 +71,11 @@ copy = () => {
 paste = () => {
     var ctlKey = isWin ? 'control' : 'command';
     robot.keyTap('v', ctlKey);
+}
+
+rc4 = (text, key) => {
+    var decipher = crypto.createDecipher('rc4', key);
+    var result = decipher.update(text, 'base64', 'utf8');
+    result += decipher.final('utf8');
+    return result
 }

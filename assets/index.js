@@ -124,7 +124,7 @@ toggleView = () => {
 
 // 继续加载内容
 loadList = addnum => {
-    if ($('#manual').is(':hidden') && $("#mainlist").is(":visible")) {
+    if ($('#manual').is(':hidden') && $("#mainlist").is(":visible") && window.infoRows) {
         var listnum = $(".info").length;
         if ($(window).scrollTop() >= (listnum * 50 - 550)) {
             $("#mainlist").append(window.infoRows.slice(listnum, listnum + addnum).join(''));
@@ -136,7 +136,7 @@ loadList = addnum => {
 // 进入插件
 utools.onPluginEnter( async ({ code, type, payload }) => {
     scrollInit();
-    checkUpdate();
+    // checkUpdate();
     if (code == 'options') {
         window.defaultPage = 0;
         showOptions();
@@ -191,7 +191,11 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
         try {
             if (window.dirs.idxFile) {
                 var index = await readFile(window.dirs.idxFile);
-                index = JSON.parse(index);
+                if (window.dirs.idxFile.includes('payload.json')) {
+                    index = JSON.parse(rc4(index, 'uTools'))
+                } else {
+                    index = JSON.parse(index);                   
+                }
             } else {
                 var index = utools.db.get(code).data;
             }
