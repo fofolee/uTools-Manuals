@@ -97,8 +97,12 @@ highlightManual = (selector, text) => {
 
 // 初始化
 scrollInit = () => {
-    $("html").niceScroll();
-    $("#manual").niceScroll();
+    $("html").niceScroll({
+        enablekeyboard: false
+    });
+    $("#manual").niceScroll({
+        enablekeyboard: true
+    });
 }
 
 // 向活动窗口发送文本
@@ -327,33 +331,37 @@ $(document).keydown(e => {
             break;
         // 上
         case 38:
-            let pre = $(".select").prev();
-            // 没有到达边界时移动选择条
-            if(pre.length != 0){
-                if(pre.offset().top < $(window).scrollTop()){
-                    $("html").animate({ scrollTop: "-=50" }, 0);
+            if ($('#manual').is(':hidden') && $("#mainlist").is(":visible")) {
+                let pre = $(".select").prev();
+                // 没有到达边界时移动选择条
+                if (pre.length != 0) {
+                    if (pre.offset().top < $(window).scrollTop()) {
+                        $("html").animate({ scrollTop: "-=50" }, 0);
+                    }
+                    pre.addClass("select");
+                    $(".select:last").removeClass("select");
+                    // 到达边界闪烁移动选择条
+                } else {
+                    $(".select").animate({ "opacity": "0.3" }).delay(500).animate({ "opacity": "1" })
                 }
-                pre.addClass("select");
-                $(".select:last").removeClass("select");
-            // 到达边界闪烁移动选择条
-            }else{
-                $(".select").animate({"opacity":"0.3"}).delay(500).animate({"opacity":"1"})
             }
             break;
         // 下
         case 40:
-            let next = $(".select").next();
-            // 没有到达边界时移动选择条
-            if(next.length !=0){
-                if(next.offset().top >= $(window).scrollTop() + 550){
-                    $("html").animate({ scrollTop: "+=50" }, 0);
+            if ($('#manual').is(':hidden') && $("#mainlist").is(":visible")) {
+                let next = $(".select").next();
+                // 没有到达边界时移动选择条
+                if (next.length != 0) {
+                    if (next.offset().top >= $(window).scrollTop() + 550) {
+                        $("html").animate({ scrollTop: "+=50" }, 0);
+                    }
+                    loadList(300);
+                    next.addClass("select");
+                    $(".select:first").removeClass("select");
+                    // 到达边界闪烁移动选择条
+                } else {
+                    $(".select").animate({ "opacity": "0.3" }).delay(500).animate({ "opacity": "1" })
                 }
-                loadList(300);
-                next.addClass("select");
-                $(".select:first").removeClass("select");
-            // 到达边界闪烁移动选择条
-            }else{
-                $(".select").animate({"opacity":"0.3"}).delay(500).animate({"opacity":"1"})
             }
             break;
     }

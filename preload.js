@@ -28,7 +28,7 @@ dirname = __dirname;
 isWin = process.platform == 'win32' ? true : false;
 
 openFolder = () => {
-    return dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+    return dialog.showOpenDialogSync(BrowserWindow.getFocusedWindow(), {
         buttonLabel: '选择',
         properties: ['openDirectory']
     });
