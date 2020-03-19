@@ -364,5 +364,31 @@ $(document).keydown(e => {
                 }
             }
             break;
+        // 划词翻译
+        case 84:
+            if ($('#mainlist').is(':hidden') && $("#manual").is(":visible")) {
+                let text = window.getSelection().toString();
+                if (text) {
+                    if (/[\u4e00-\u9fa5]/.test(text)){
+                        utools.showNotification('中文你还看不懂嘛！', clickFeatureCode = null, silent = true)
+                    } else {
+                        let enText = encodeURIComponent(text)
+                        $.get("http://fanyi.youdao.com/translate?&doctype=json&type=EN2ZH_CN&i=" + enText, data => {
+                            let result = data.translateResult;
+                            let cnText = '';
+                            // 每段
+                            for (var r of result) {
+                                // 每句
+                                for (var a of r) {
+                                    cnText += a.tgt;
+                                }
+                                cnText += '\r';
+                            }
+                            let msg = '翻译结果：\n' + cnText;
+                            utools.showNotification(msg, clickFeatureCode = null, silent = true)
+                        })   
+                    }
+                }
+            }
     }
 });
