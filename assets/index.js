@@ -46,6 +46,27 @@ showList = (text, index, listnum) => {
     window.mouseLockTime = new Date().getTime();
 }
 
+// 列表界面子输入框
+mainlistSubInput = () => {
+    utools.removeSubInput();
+    utools.setSubInput(({ text }) => {
+        // 列表搜索
+            showList(text.toUpperCase(), index, 300);
+            // 高亮结果
+            text.split(' ').forEach(keyword => {
+                keyword && $(".name,.description").highlight(keyword, 'listFounds');
+            });
+    }, '空格→多关键词搜索；鼠标中键→发送选中条目到活动窗口');
+}
+
+// 手册界面子输入框
+manualSubInput = () => {
+    utools.removeSubInput();
+    utools.setSubInput(({ text }) => {
+        highlightManual("#manual", text);
+    }, '空格→多关键词；选中文本→中键发送 T翻译 S收藏；Tab→切换界面');
+}
+
 
 // 显示手册
 showManual = path => {
@@ -77,7 +98,7 @@ showManual = path => {
             $("#manual").html(`<div id="manualBody">${data}</div>`).fadeIn();
             Prism.highlightAll();
             location.href = e ? id : '#manualBody';
-            utools.setSubInputValue('');
+            manualSubInput();
         });
         request.fail(function (xhr, err) {
             $(".load").html('404').fadeOut();
@@ -118,11 +139,13 @@ toggleView = () => {
         $("#manual").fadeIn();
         $("#mainlist").fadeOut();
         utools.setExpendHeight(550);
+        manualSubInput();
     } else if ($("#manual").is(":visible") && $("#mainlist").is(":hidden")) {
         $("#manual").fadeOut();
         $("#mainlist").fadeIn();
         let num = $(".info").length
         utools.setExpendHeight(num > 11 ? 550 : 50 * num);
+        mainlistSubInput();
     }
 }
 
@@ -194,14 +217,14 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
         // 读取目录文件
         try {
             if (window.dirs.idxFile) {
-                var index = await readFile(window.dirs.idxFile);
+                index = await readFile(window.dirs.idxFile);
                 if (window.dirs.idxFile.includes('payload.json')) {
                     index = JSON.parse(rc4(index, 'uTools'))
                 } else {
                     index = JSON.parse(index);                   
                 }
             } else {
-                var index = utools.db.get(code).data;
+                index = utools.db.get(code).data;
             }
             if (type == 'over') {
                 showList(payload, index, 300)
@@ -209,19 +232,11 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                 showList('', index, 300)
             }
             // 子输入框
-            utools.setSubInput(({ text }) => {
-                // 列表搜索
-                if ($('#manual').is(':hidden')) {
-                    showList(text.toUpperCase(), index, 300);
-                    // 高亮结果
-                    text.split(' ').forEach(keyword => {
-                        keyword && $(".name,.description").highlight(keyword, 'listFounds');
-                    });
-                // 手册搜索
-                } else {
-                    highlightManual("#manual", text);
-                }
-            }, '输入名称或功能进行查询');
+            if ($('#manual').is(':hidden')) {
+                mainlistSubInput();
+            } else {
+                manualSubInput();
+            }
             if (type == 'window') {
                 utools.hideMainWindow();
                 copy();

@@ -6,6 +6,8 @@
 
 以下均以外置手册`Java`为例
 
+该外置下载地址 [百度网盘](https://pan.baidu.com/s/188sFN_oktGulGTdvnCQPqw) 提取码: `yfh7`
+
 ## 配置格式
 
 增加外置手册需要填写的参数如下图所示

@@ -169,11 +169,9 @@
 ![Snipaste_2019-04-08_21-29-49.png](https://i.loli.net/2019/04/08/5cab4d354abe7.png)
 ![Snipaste_2019-04-08_21-31-23.png](https://i.loli.net/2019/04/08/5cab4d4b93e34.png)
 
+## 安装
 
-
-## 下载
-
-[百度网盘](https://pan.baidu.com/s/188sFN_oktGulGTdvnCQPqw) 提取码: `yfh7`
+请直接在插件中心进行安装即可，或将本项目打包成`upx`安装
 
 [项目地址](https://github.com/fofolee/uTools-Manuals)
 
@@ -181,9 +179,7 @@
 
 [外置手册教程](https://yuanliao.info/d/356/27)
 
-## 安装方法
-
-将`upx`文件拖入`uTools`输入框中安装即可，安装前最好先卸载旧版本的插件，如果安装过程较久，请耐心等待
+## 关键字
 
 ## 关键字
 
@@ -199,6 +195,7 @@
   - 切换列表和手册视图 `tab` `🖱右键`
   - 发送选中的内容至上一个活动窗口 `⇪ + ⏎` `🖱中键`
   - 搜索下一个关键词 `⏎`
+  - 选中文本后翻译 `T`
 - 退出插件 `esc`
 
 ## 手册一览
