@@ -142,6 +142,7 @@ toggleView = () => {
         manualSubInput();
     } else if ($("#manual").is(":visible") && $("#mainlist").is(":hidden")) {
         $("#manual").fadeOut();
+        $("#infopannel").fadeOut();
         $("#mainlist").fadeIn();
         let num = $(".info").length
         utools.setExpendHeight(num > 11 ? 550 : 50 * num);
@@ -254,6 +255,7 @@ utools.onPluginOut(() => {
     $("#options").html('').hide();
     $("#manual").html('').hide();
     $(".load").html('').hide();
+    $("#infopannel").html('').hide();;
     $('link[name="manual"]').remove();
 })
 
@@ -286,6 +288,8 @@ $("#manual").on('mousedown', function (e) {
     } else if (2 == e.which) {
         var select = document.getSelection().toString();
         select && sendText(select);
+    } else if (1 == e.which) {
+        $("#infopannel").fadeOut(300);
     }
 })
 
@@ -379,6 +383,17 @@ $(document).keydown(e => {
                 }
             }
             break;
+        // 收藏
+        case 83:
+            if ($('#mainlist').is(':hidden') && $("#manual").is(":visible")) {
+                let text = window.getSelection().toString();
+                if (text) {
+                    utools.redirect('收藏', {
+                        'type': 'text',
+                        'data': text
+                    })
+                }
+            }
         // 划词翻译
         case 84:
             if ($('#mainlist').is(':hidden') && $("#manual").is(":visible")) {
@@ -388,6 +403,7 @@ $(document).keydown(e => {
                         utools.showNotification('中文你还看不懂嘛！', clickFeatureCode = null, silent = true)
                     } else {
                         let enText = encodeURIComponent(text)
+                        $("#infopannel").html('在线翻译中...').fadeIn(300);
                         $.get("http://fanyi.youdao.com/translate?&doctype=json&type=EN2ZH_CN&i=" + enText, data => {
                             let result = data.translateResult;
                             let cnText = '';
@@ -397,10 +413,9 @@ $(document).keydown(e => {
                                 for (var a of r) {
                                     cnText += a.tgt;
                                 }
-                                cnText += '\r';
+                                cnText += '<br>';
                             }
-                            let msg = '翻译结果：\n' + cnText;
-                            utools.showNotification(msg, clickFeatureCode = null, silent = true)
+                            $("#infopannel").html(cnText)
                         })   
                     }
                 }
