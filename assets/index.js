@@ -394,14 +394,15 @@ $(document).keydown(e => {
                     })
                 }
             }
+            break;
         // 划词翻译
         case 84:
             if ($('#mainlist').is(':hidden') && $("#manual").is(":visible")) {
                 let text = window.getSelection().toString();
                 if (text) {
-                    if (/[\u4e00-\u9fa5]/.test(text)){
-                        utools.showNotification('中文你还看不懂嘛！', clickFeatureCode = null, silent = true)
-                    } else {
+                    // if (/[\u4e00-\u9fa5]/.test(text)){
+                        // utools.showNotification('中文你还看不懂嘛！', clickFeatureCode = null, silent = true)
+                    // } else {
                         let enText = encodeURIComponent(text)
                         $("#infopannel").html('在线翻译中...').fadeIn(300);
                         $.get("http://fanyi.youdao.com/translate?&doctype=json&type=EN2ZH_CN&i=" + enText, data => {
@@ -417,8 +418,9 @@ $(document).keydown(e => {
                             }
                             $("#infopannel").html(cnText)
                         })   
-                    }
+                    // }
                 }
             }
+            break;
     }
 });
