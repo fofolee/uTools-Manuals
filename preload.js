@@ -53,9 +53,9 @@ readDir = (path,callback) => {
 }
 
 dash = query => {
-    let cmd = process.platform == 'win32' ? `start dash-plugin://query=${query}` : `open dash://${query}`
+    let cmd = process.platform == 'win32' ? `start dash-plugin://query=${query}` : `open dash://${query}`;
     exec(cmd, (err, stdout, stderr) => {
-      err && console.log(stderr);
+      err && utools.showNotification(stderr, clickFeatureCode = null, silent = true);
     });
 }
 
