@@ -1,0 +1,16 @@
+<h1 id="preload-js"><a href="#preload-js" aria-hidden="true" class="header-anchor">#</a> preload.js</h1> <p>当你在<code>plugin.json</code>中配置了<code>preload</code>属性，将载入对应的预加载脚本。</p> <p>在传统的web开发中，所有的javascript脚本都在浏览器沙盒中运行，权限被严格限制，所能实现的功能非常有限。</p> <p>通过<code>preload.js</code>能够帮你突破沙盒限制，进入一个崭新的JavaScript世界。</p> <p><code>preload.js</code> 是一个特殊且单独的文件，不需要与其他业务代码编译在一起，在此文件中可以访问<code>nodejs</code>、<code>electron</code>、<code>uTools</code>提供的api，并挂载到<code>window</code>对象中，你其他的普通javascript代码就可以访问这些 api。</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code> <span class="token comment">// 开发者可以暴露自定义API供后加载脚本使用</span>
+
+    <span class="token comment">// preload.js 中使用nodejs</span>
+    <span class="token keyword">const</span> <span class="token punctuation">{</span> readFileSync <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'fs'</span><span class="token punctuation">)</span>
+    
+    window<span class="token punctuation">.</span><span class="token function-variable function">readConfig</span> <span class="token operator">=</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./config.json'</span><span class="token punctuation">)</span>
+      <span class="token keyword">return</span> data
+    <span class="token punctuation">}</span>	
+    
+    
+    <span class="token comment">// index.html 后加载的内容可以使用window.readConfig()方法，但不能使用Node.js特性</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>window<span class="token punctuation">.</span><span class="token function">readConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// 正常执行</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token function">readFileSync</span><span class="token punctuation">(</span><span class="token string">'./config.json'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// 报错</span>
+    
+    </code></pre></div><p>通过这种机制可以获得强大的底层能力，配合html、css丰富的表现力，你完全可以按你理想中的样子去设计程序。</p> <p>但是，更强大的能力如果不受约束就会伴随着更大风险，在使用预加载脚本时，应该时刻注意只提供必要且最小权限的api供后加载脚本使用。</p> <p>（如果你想把插件提交到utools插件中心供其他用户下载使用，<code>preload.js</code>必须是明文代码，且精简清晰可读。）</p>

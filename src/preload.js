@@ -1,25 +1,15 @@
 const { clipboard } = require('electron');
 const { exec } = require('child_process');
 const crypto = require('crypto')
-const robot = utools.robot
 
 //-------checkUpdate------
 const fs = require('fs');
 const path = require("path")
-const { dialog, BrowserWindow, nativeImage } = require('electron').remote
-const { shell } = require('electron');
 
 pluginInfo = JSON.parse(fs.readFileSync(path.join(__dirname, 'plugin.json')));
-logo = nativeImage.createFromPath(path.join(__dirname, 'logo.png'));
-
-messageBox = (options, callback) => {
-    dialog.showMessageBox(BrowserWindow.getFocusedWindow(), options, index => {
-        callback(index);
-    })
-}
 
 open = url => {
-    shell.openExternal(url);
+    utools.shellOpenExternal(url);
 }
 // ------------------------
 
@@ -28,7 +18,7 @@ dirname = __dirname;
 isWin = process.platform == 'win32' ? true : false;
 
 openFolder = () => {
-    return dialog.showOpenDialogSync(BrowserWindow.getFocusedWindow(), {
+    return utools.showOpenDialog({ 
         buttonLabel: '选择',
         properties: ['openDirectory']
     });
@@ -65,12 +55,12 @@ copyTo = text => {
 
 copy = () => {
     var ctlKey = isWin ? 'control' : 'command';
-    robot.keyTap('c', ctlKey);
+    utools.simulateKeyboardTap('c', ctlKey);
 }
 
 paste = () => {
     var ctlKey = isWin ? 'control' : 'command';
-    robot.keyTap('v', ctlKey);
+    utools.simulateKeyboardTap('v', ctlKey);
 }
 
 rc4 = (text, key) => {
