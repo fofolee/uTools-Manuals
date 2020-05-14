@@ -11,6 +11,7 @@ showList = (text, index, listnum) => {
     window.infoRows = [];
     var topRows = [],
         tailRows = [];
+    if(text) text = text.toUpperCase()
     index.forEach(i => {
         let desc = i.desc != undefined ? i.desc : "",
             displayName = escapeHtml(i.name),
@@ -51,12 +52,12 @@ mainlistSubInput = () => {
     utools.removeSubInput();
     utools.setSubInput(({ text }) => {
         // 列表搜索
-            showList(text.toUpperCase(), index, 300);
+            showList(text, index, 300);
             // 高亮结果
             text.split(' ').forEach(keyword => {
                 keyword && $(".name,.description").highlight(keyword, 'listFounds');
             });
-    }, '空格→多关键词搜索；鼠标中键→发送选中条目到活动窗口');
+    }, '空格 多关键词搜索；中键/shift+Enter发送选中条目到活动窗口');
 }
 
 // 手册界面子输入框
@@ -64,7 +65,7 @@ manualSubInput = () => {
     utools.removeSubInput();
     utools.setSubInput(({ text }) => {
         highlightManual("#manual", text);
-    }, '空格→多关键词；选中文本→中键发送 T翻译 S收藏；Tab→切换界面');
+    }, '空格 多关键词；选中：中键/shift+Enter发送，T翻译，S收藏；Tab切换界面');
 }
 
 
@@ -227,16 +228,18 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
             } else {
                 index = utools.db.get(code).data;
             }
-            if (type == 'over') {
-                showList(payload, index, 300)
-            } else {
-                showList('', index, 300)
-            }
             // 子输入框
             if ($('#manual').is(':hidden')) {
                 mainlistSubInput();
             } else {
                 manualSubInput();
+            }
+            if (type == 'over') {
+                utools.setSubInputValue(payload)
+                // showList(payload, index, 300)
+            } else {
+                utools.setSubInputValue('')
+                // showList('', index, 300)
             }
             if (type == 'window') {
                 utools.hideMainWindow();
