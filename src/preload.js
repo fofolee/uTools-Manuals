@@ -43,9 +43,17 @@ readDir = (path,callback) => {
 }
 
 dash = query => {
-    let cmd = process.platform == 'win32' ? `start dash-plugin://query=${query}` : `open dash://${query}`;
+    var cmd;
+    if (utools.isWindows()) {
+        cmd = 'start'
+    } else if (utools.isLinux()) {
+        cmd = 'zeal'
+    } else {
+        cmd = 'open'
+    }
+    cmd = cmd + ` dash://${query}`
     exec(cmd, (err, stdout, stderr) => {
-      err && utools.showNotification(stderr, clickFeatureCode = null, silent = true);
+      err && utools.showNotification(stderr);
     });
 }
 
