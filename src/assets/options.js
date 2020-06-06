@@ -139,9 +139,9 @@ $("#options").on('change', 'input[type=checkbox]', async function () {
         var featureConf = allFts[code].features;
         if($(this).prop('checked')){
             featureConf.cmds.push({
-                "type": "over",
-                "label": featureConf.cmds[0],
-                "maxLength": 50
+                "type": "regex",
+                "match":"/[a-zA-Z\\.\\_]{2,20}/i",
+                "label": featureConf.cmds[0]
             });
         }
         utools.setFeature(featureConf);

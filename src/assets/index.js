@@ -72,6 +72,7 @@ manualSubInput = () => {
 // 显示手册
 showManual = path => {
     utools.setExpendHeight(550);
+    $('#manual').getNiceScroll().resize()
     if (/^((ht|f)tps?):\/\//.test(path)) {
         window.open(path);
     } else {
@@ -100,6 +101,11 @@ showManual = path => {
             $("#manual").fadeIn()
             Prism.highlightAll();
             location.href = e ? id : '#manualBody';
+            $('#manualNavi').autoMenu();
+            if ($('h1,h2,h3').length < 10 && $('#manual ul').is(":visible")) {
+                $('.btn-box span').removeClass('icon-minus-sign').addClass('icon-plus-sign')
+                $('#manual ul').hide()
+            }
             manualSubInput();
         });
         request.fail(function (xhr, err) {
