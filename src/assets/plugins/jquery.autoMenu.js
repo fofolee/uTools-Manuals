@@ -107,17 +107,19 @@
                 var _this = this;
                 $('#manual').scroll(function() {
                     _this.setActive()
-                    var actived = $('#manual .active')
-                    if(actived) actived.get(0).scrollIntoView({ behavior: "smooth", block: "center" });
+                    var actived = $('#manual .active').get(0)
+                    if(actived) actived.scrollIntoView({ behavior: "smooth", block: "center" });
                 });
                 _this.$element.off()
                 _this.$element.on('click', '.btn-box', function() {
                     if ($(this).find('span').hasClass('icon-minus-sign')) {
                         $(this).find('span').removeClass('icon-minus-sign').addClass('icon-plus-sign');
                         _this.$element.find('ul').fadeOut();
+                        // $('#manualBody').removeClass('withNaviBar')
                     } else {
                         $(this).find('span').removeClass('icon-plus-sign').addClass('icon-minus-sign');
                         _this.$element.find('ul').fadeIn();
+                        // $('#manualBody').addClass('withNaviBar')
                     }
 
                 })
@@ -159,8 +161,8 @@
         levelOne: 'h1', //一级标题
         levelTwo: 'h2', //二级标题（暂不支持更多级）
         levelThree: 'h3', //二级标题（暂不支持更多级）
-        width: 200, //容器宽度
-        height: 400, //容器高度
+        width: 220, //容器宽度
+        height: 480, //容器高度
         padding: 20, //内部间距
         offTop: 100, //滚动切换导航时离顶部的距离
 

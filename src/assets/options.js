@@ -49,7 +49,7 @@ showOptions = async () => {
             if (c.code == features.code) {
                 isChecked1 = 'checked';
                 isDisabled2 = '';
-                if (c.cmds[c.cmds.length - 1].type == 'over') isChecked2 = 'checked';
+                if (c.cmds[c.cmds.length - 1].type == 'regex') isChecked2 = 'checked';
                 break;
             }
         }
@@ -140,7 +140,7 @@ $("#options").on('change', 'input[type=checkbox]', async function () {
         if($(this).prop('checked')){
             featureConf.cmds.push({
                 "type": "regex",
-                "match":"/[a-zA-Z\\.\\_]{2,20}/i",
+                "match":"/^[a-zA-Z._]{2,20}$/i",
                 "label": featureConf.cmds[0]
             });
         }

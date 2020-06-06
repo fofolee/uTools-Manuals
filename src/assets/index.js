@@ -104,7 +104,10 @@ showManual = path => {
             $('#manualNavi').autoMenu();
             if ($('h1,h2,h3').length < 10 && $('#manual ul').is(":visible")) {
                 $('.btn-box span').removeClass('icon-minus-sign').addClass('icon-plus-sign')
+                // $('#manualBody').removeClass('withNaviBar')
                 $('#manual ul').hide()
+            // } else {
+            //     $('#manualBody').addClass('withNaviBar')
             }
             manualSubInput();
         });
@@ -242,7 +245,7 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
             } else {
                 manualSubInput();
             }
-            if (type == 'over') {
+            if (type == 'regex') {
                 utools.setSubInputValue(payload)
                 // showList(payload, index, 300)
             } else {
