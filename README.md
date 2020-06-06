@@ -1,4 +1,4 @@
-# 程序员手册 V1.1.1
+# 程序员手册 V1.1.2
 
 ## 简介
 
@@ -9,10 +9,6 @@
 - 内置多个手册均可离线使用，且90%以上是中文
 - 可以自行添加手册
 - 可以查询devdocs、dash/zeal上的文档
-
-前身是之前发布的两个插件：
-
-[PHP函数查询助手](https://yuanliao.info/d/329) [Linux命令查询手册](https://yuanliao.info/d/336)
 
 ## 基本操作
 
@@ -35,6 +31,20 @@
  - `linux命令` `php函数` `python库` `C函数` `vim命令` `git命令` `docker命令` `sql手册` `uToolsAPI` 等
 
 ## 更新
+
+### v1.1.2
+
+- 新增功能
+  - 新增在文档界面显示导航目录，方便在篇幅较长文档中快速定位，默认情况下，如果`h1+h2+h3`的数量大于10则自动显示目录
+
+  ![tcER4e.png](https://s1.ax1x.com/2020/06/06/tcER4e.png)
+  - 新增`win32api`手册
+
+- 体验改善
+  - 为了减少使用语音面板进行划词搜索时的干扰项，更改了开启`主输入框搜索`时匹配的正则，现在的匹配规则是`/^[a-zA-Z._]{2,20}$/i`
+
+- bug 修复
+  - 修复了从`主输入框搜索`进入插件时未对关键词进行搜索的bug
 
 ### v1.1.1
 
@@ -237,6 +247,7 @@
   - tkinter | [易学教程](https://www.e-learn.cn/content/python/1101684)
 - PyQt5文档 | [PyQt5中文教程](https://github.com/maicss/PyQt5-Chinese-tutorial)
 - C函数 | C语言函数速查（Knocker 2004.7.7 版本 0.5）
+- win32api | 新编win32api大全.chm
 - vim命令 | [awesome-cheatsheets](https://github.com/skywind3000/awesome-cheatsheets/blob/master/editors/vim.txt) 
 - git命令 | [php中文网git开发手册](http://www.php.cn/manual/view/34942.html) 
 - sql手册 | [php中文网sql参考手册](http://www.php.cn/manual/view/21301.html) 

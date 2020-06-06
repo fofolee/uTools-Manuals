@@ -1,0 +1,50 @@
+<html>
+<body>
+<FONT style="FONT: 12px 宋体" color=black>
+<h3>函数功能</h3>该函数得到一个字符串的参数，如字符宽度、脱字符号定位、字符串的定序和字符翻译，返回信息的类型依赖于参数dwFlags和在给定显示环境里的当前选择字体，此函数将信息复制到指定的GCP_RESULTS结构里或一个或多个由此结构指定的数组里。<br>
+<h3>函数原型</h3>DWORD GetCharacterPlacement(HDC hdc, LPCTSTR lpString, int nCount, int nMaxExtent, LPGCP_RESULTS lpResults, DWORD dwFlags)；<br>
+<h3>参数</h3>
+hdc：设备环境句柄。<br>
+lpString：指向将要处理的字符串的指针。<br>
+nCount：指定字符串里的字符个数。<br>
+nMaxExtent：指定字符串处理的最大宽度（逻辑单位）。如果要处理的字符超进此范围，则忽略不计。为任何要求的定序或字符数组进行的计算都只应用到包括进来的字符上。只有当参数dwFlags设置为GCP_MAXEXTENT时此参数才有用。当此参数处理输入的字符串时，每个字符及其宽度都被加入到输出宽度和其他数组里，只要总的宽度没有超过最大值。一旦达到最大值，处理就会停止。<br>
+lpResults：指向结构GCP_RESULTS的指针，该结构用于接收此函数的运行结果。<br>
+dwFlags：指定如何处理字符串并放入指定的数组里，此参数可取一个或多个下列值：<br>
+GCP_CLASSIN：指定数组lpClass里含有对字符的预置分类。此分类可以与输出时的相同，如果对一个字符的特殊分类是未知的，则数组里的相应位置必须设置为0。要得到更多关于分类的信息，参见GCP_RESULTS。只有当GetFontLanguageInfo返回GCP_REORDER标志值，此值才是有用的。<br>
+GCP_DIACRITIC：决定如何处理字符串里的变量符。如果来设置此值，变音符被当作零宽度的字符。例如，一个Hebrew字符中可以包含读音符，但可以不显示它们。<br>
+用GetFontLanguageInfo可以确定一种字体是否支持读音符。如果支持，可以根据应用程序的需要在GetCharacterPlacement调时或使用或不使用GCP_DIACRITIC标志。<br>
+GCP_DISPLAYZWG：用于那些需要重新排序，需要根据字符在一个单位中的不同位置而改变字符形状的语言，非显示字符经常出现在其代码页里。例如，在Hebrew代码页里，有Left-To-Right和Right-To-Left标记，用于决定输出字符串里字符的最终位置。通常这些标志不被显示并且会从lpGlyphs和lpDx数组里删除。可以用GCP_DISPLAYZWG标志来显示这些字符。<br>
+GCP_GLYPHSHAPE：指定将显示的字符串里的部分或所有字符使用与当前代码页里所选字体的标准形状不同的形状来显示，有一些语言，如阿拉伯语，若不设置此值将不支持字形创建。通常，如果GetFontLanguageInfo为一个字符串返回此值，则此值必须用于GetCharacterPlacement。<br>
+GCP_JUSTIFY：调整数组lpDx里的宽度，使字符串长度和nMaxextent相同。GCP_JUSTIFY只能和GCP_MAXEXTENT一起使用。<br>
+GCP_JUSTIFYIN：指定输入时数组lpDx包含的对齐权值。通常，一个对齐权值可取0或1，当取1时，表示给字符的宽度可以为对齐而调整。对那些GetFontLanguageInfo函数将返回GCP_KASHIDA标志的语言，对齐权值可以是GCP_ARAJUST_*值之一。<br>
+GCP_KASHIDA：使用Kashidas和（或）调整宽度来修改字符串的长度，使它能与nMaxExtent给定的值相等，在数组lpDx中，负对齐指数表示Kashida。GCP_KASHIDA只能与GCP_JUSTIFY组合使用，并且该字体（和语言）必须支持Kashidas。GetFontLanguageInfo用确定当前字体是否支持Kashidas。<br>
+使用Kashidas来调整字符串会导致所需要符号数超过输入字符串的字符数。因此，当使用Kashidas时，应用系统不能认为设置与输入字符串同样大小的数值就足够了。（最大值可能大约为dxPageWidth/dxAveCharWidth，其中dxPageWidth是文档的宽度，dxAveCharWidth是指GetTextMetrics返回时的平均字符宽度）。<br>
+注意：仅仅因为GetFontLanguageInfo返回GCP_KASHIDA并不意味着它在调用GetCharacterPlacement中被使用，只表明它可供选择。<br>
+GCP_LIGATE：当需要捆绑时使用捆绑。当一个符号被两个或多个字符使用时，应用捆绑。例如：字母a和e可捆绑?，但这需要语言和字体都支持所需要的符号。（所给的例子在缺省的英语里就不能进行）。<br>
+用GetFontLanguageInfo来确定当前字体是否支持捆绑。如果支持，要有一个确定将捆绑字符数的特定最大值，将此值填放数组lpGlyphs中的第一个元素，如果要求通常的捆绑，设置该值为0，如果未提供GCP_LIGATE值，不会发生捆绑。参见GCP_RESULTS可得到更多信息。<br>
+如果对字符集GCP_REORDER是必需的，但却没有被设置，则输出将是无意义的，除非进来的字符串已经是以可视的顺序排列的。（即第一次调用GetCharacterPlacement放入lpGcpResults->lpOutString后的结果是第二次调用的输入字符串）。<br>
+注意：仅因为GetFontLanguageInfo返回GCP_LIGATE值并不表示在调用GetCharacterPlacement时使用了该值，只表示该值可用而已。<br>
+GCP_MAXEXTENT：计算字符串的宽度只计算结果的逻辑单位宽度，不超过参数nMaxExtent指定的值。<br>
+GCP_NEUTRALOVERRIDE：只针对某些语言，忽略中性处理并将它们作为匹配字符串阅读顺序的强字符。只能和GCP_REORDER同时使用。<br>
+GCP_NUMERICOVERRIDE：只针对某些语言，忽略对数字的处理，把它们作为符合字符串阅读顺序的强字符，只能和GCP_REORDER同时使用。<br>
+GCP_NUMERICSLATIN：只对Arabic/Thai。对数字使用标准Latin符号，忽略系统的缺省值。要确定一种字体的语言是否提供此选项，用GetStringTypeEx来查看该语言是否支持一种以上的数字格式。<br>
+GCP_NUMERICSLOCAL：只对Arabic/Thai。对数字使用标准Latin符号，忽略系统的缺省值。要确定一种字体的语言是否提供此选项，用GetStringTypeEx来查看该语言是否支持一种以上数字格式。<br>
+GCP_REORDER：对字符串重排序，用于那些不是SBCS的且有从左到右阅读顺序的语言。如果没有给定此值，字符串被认为已经是按显示顺序排列的。<br>
+若此标志用于Semitic语言并且使用了lpClass数组，则数组的前两个元素是用来指定字符串范围之外部分的阅读顺序的。GCP_CLASS_PREBOUNDRTL和GCP_CLASS_PREBOUNDLTR可用来设置该顺序。如果不要求预先设置的顺序，则赋该值为0。如果设置了GCPCLASSIN标志，则这些值可以组合起来使用。<br>
+如果GCP_REORDER值没有给定，则lpString参数用于将语言进行可视排序，并且忽略字段lpOutString和lpOrder。<br>
+用GetFontLanguageInfo来确定当前的字体是否支持重新排序。<br>
+GCP_SYMSWAPOFF只对Semitic语言使用。指定可交换字符不重新设置。例如，在一个从右到左的字符串里'（'和'）'不被交换。<br>
+GCP_USEKERNING：当创建宽度数组时，在字体里（如果存在）使用字距调整对。用GetFontLanguage可确定当前字体是否支持字距调整对。<br>
+注意：不能因为GetFontLanguage返回了GCP_USEKERNIN值就认为该值被用于调用GetCharacterPlacement，这只说明该值可以被选用。大多数TrueType字体都有一个字距调整表，但却不能使用它。<br>
+建议应用程序使用GetFontLanguageInfo来确定GCP_DIACRITIC, GCP_DBCS, GCP_USEKERNING, GCP_LIGATE, GCP_REORDER, GCP_GLYPHSHAPE和GCP_KASHIDA等值对当前所选字体是否有效。如果无效，GetCharacterPlacement将不采用这些值。<br>
+GCP_NODIACRITICS：不再有定义，故不能使用。<br>
+<h3>返回值</h3>如果函数调用成功，返回值和GetTextextentPoint32的返回值一样，是字符串的宽度和高度；如果函数调用失败，返回值是零。<br>
+Windows NT：若想获得更多错误信息，请调用GetLastError函数。<br>
+备注：GetCharacterPlacement用来确保应用程序是否可以正确处理正文，不管国际通用设置和可用字体的类型如何。应用程序在调用函数ExtTextOut之前调用此函数，并用它来代替GetTextExtentPoint32（偶尔也代替函数GetCharWidth32和GetCharABCWidths）。<br>
+用GetCharacterPlacement来获得字符间隔和指数数组并不总是必需的，除非对齐和字距调整是必需的。对于非Latin字体，应用程序可以在ExtTextOut交付正文时提高速度，只要在调用ExtTextOut之前用GetCharacterPlacement来获得字符间的间隔和指数数组。这对于重复移交相同正文或利用字符间隔来给脱字符号定位特别有用。如果在调用ExtTextOut时要使用lpGlyphs输出数组，则ETO_GLYPH_INDEX标志必须被设置。<br>
+GetCharacterPlacement检查GCP_RESULTS结果里的lpOrder, lpDx, lpCarePos, lpOutString,lpGlyphs等成员，如果这些成员没有被设置为NULL，为确保获得有效的信息，应用程序有责任在调用此函数前将成员放置到有效的地址，并且在调用以后要检查成员的值。如果给定了GCP_JUSTIFY或GCP_USEKERNING值，lpDx各／或lpCaretPos成员必须有有效地址。如果GCP_JUSTIFYIN被设置，lpDx成员也必须有合法地址。<br>
+在进行对齐计算时，如果字符串的结尾字符是空格，此函数将养活字符串的长度值并且在计算前删除这些空格。如果此数组全由空格组成，则函数返回出错信息。<br>
+<h3>速查</h3>Windows NT：4.0及以上版本；Windows：95及以上版本；Windows CE：不支持；头文件：wingdi.h；库文件：gdi32.lib；Unicode：在Windows NT环境下实现为Unicode和ANSI两种版本。<br>
+
+</body>
+</html>
