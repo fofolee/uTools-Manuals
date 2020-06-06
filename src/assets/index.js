@@ -8,7 +8,7 @@ escapeHtml = s => {
 
 // 显示列表
 showList = (text, index, listnum) => {
-    window.infoRows = [];
+    window.manualVars.infoRows = [];
     var topRows = [],
         tailRows = [];
     if(text) text = text.toUpperCase()
@@ -36,15 +36,15 @@ showList = (text, index, listnum) => {
         // 排序规则：置顶全字匹配，优先显示名称匹配
         topRow && ((upName == text) && topRows.unshift(list) || topRows.push(list)) || (matched && tailRows.push(list));
     });
-    window.infoRows = topRows.concat(tailRows);
-    $("#mainlist").html(window.infoRows.slice(0, listnum).join(''));
+    window.manualVars.infoRows = topRows.concat(tailRows);
+    $("#mainlist").html(window.manualVars.infoRows.slice(0, listnum).join(''));
     let num = $(".info").length
     utools.setExpendHeight(num > 11 ? 550 : 50 * num);
     $(".select").removeClass('select');
     $(".info:first").addClass('select');
     $('html').getNiceScroll().resize();
     // 鼠标锁，方式鼠标抢占选择条
-    window.mouseLockTime = new Date().getTime();
+    window.manualVars.mouseLockTime = new Date().getTime();
 }
 
 // 列表界面子输入框
@@ -80,9 +80,9 @@ showManual = path => {
             var f = e[1] + '.html';
             var id = '#' + e[3];
         } else {
-            var f = window.dirs.idxFile ? path : path + '.html';
+            var f = window.manualVars.dirs.idxFile ? path : path + '.html';
         }
-        var file = `${window.dirs.docPath}/${f}`;
+        var file = `${window.manualVars.dirs.docPath}/${f}`;
         $("#mainlist").fadeOut();
         $(".load").html('Loading').show();
         var request = $.ajax({
@@ -96,7 +96,8 @@ showManual = path => {
             data = data.replace(/(a.*?)href="(?!http)([^\#].*?)"/g, `$1href="${relPath}$2"`);
             // devdocs 语法高亮
             data = data.replace(/<pre.*?data-language="(.*?)">([\s\S]*?)<\/pre>/g, '<pre><code class="language-$1">$2</code></pre>')
-            $("#manual").html(`<div id="manualBody">${data}</div>`).fadeIn();
+            $("#manualBody").html(data)
+            $("#manual").fadeIn()
             Prism.highlightAll();
             location.href = e ? id : '#manualBody';
             manualSubInput();
@@ -113,7 +114,7 @@ highlightManual = (selector, text) => {
     $(selector).removeHighlight('founds') ;
     if (text) {
         $(selector).highlight(text, 'founds');
-        window.findex = 0;
+        window.manualVars.findex = 0;
     }
 }
 
@@ -153,10 +154,10 @@ toggleView = () => {
 
 // 继续加载内容
 loadList = addnum => {
-    if ($('#manual').is(':hidden') && $("#mainlist").is(":visible") && window.infoRows) {
+    if ($('#manual').is(':hidden') && $("#mainlist").is(":visible") && window.manualVars.infoRows) {
         var listnum = $(".info").length;
         if ($(window).scrollTop() >= (listnum * 50 - 550)) {
-            $("#mainlist").append(window.infoRows.slice(listnum, listnum + addnum).join(''));
+            $("#mainlist").append(window.manualVars.infoRows.slice(listnum, listnum + addnum).join(''));
             $('html').getNiceScroll().resize();
         }
     }
@@ -166,8 +167,9 @@ loadList = addnum => {
 utools.onPluginEnter( async ({ code, type, payload }) => {
     scrollInit();
     // checkUpdate();
+    window.manualVars = {}
     if (code == 'options') {
-        window.defaultPage = 0;
+        window.manualVars.defaultPage = 0;
         showOptions();
         utools.setSubInput(({ text }) => {
             highlightManual(".keyword", text);
@@ -175,7 +177,7 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
     } else if (code == 'dash') {
         utools.setExpendHeight(0);
         utools.setSubInput(({ text }) => {
-            window.dashQuery = text;
+            window.manualVars.dashQuery = text;
         }, '输入关键词进行查询,例如 nodejs:fs');
     } else {
         $("#mainlist").fadeIn();
@@ -185,8 +187,8 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
         switch (allFts[code].type) {
             case "default":
                 baseDir = dirname;
-                assetDir = `${baseDir}/assets/${code}`
-                window.dirs = {
+                assetDir = `${baseDir}/assets/styles/${code}`
+                window.manualVars.dirs = {
                     idxFile: `${baseDir}/index/${code}.json`,
                     docPath: `${baseDir}/docs`,
                 }
@@ -194,14 +196,14 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
             case "custom":
                 baseDir = allFts[code].path;
                 assetDir = `${baseDir}/assets`
-                window.dirs = {
+                window.manualVars.dirs = {
                     idxFile: `${baseDir}/${code}.json`,
                     docPath: `${baseDir}`,
                 }
                 break;
             case "devdocs":
                 assetDir = '';
-                window.dirs = {
+                window.manualVars.dirs = {
                     docPath: allFts[code].url.slice(0, -11),
                 }
                 break;
@@ -213,14 +215,14 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
                     $('head').append(`<link rel="stylesheet" href="${assetDir}/${file}" name="manual">`)
                 }) 
             } else {
-                $('head').append('<link rel="stylesheet" href="assets/manual.css" name="manual">')
+                $('head').append('<link rel="stylesheet" href="assets/styles/manual.css" name="manual">')
             }
         })
         // 读取目录文件
         try {
-            if (window.dirs.idxFile) {
-                index = await readFile(window.dirs.idxFile);
-                if (window.dirs.idxFile.includes('payload.json')) {
+            if (window.manualVars.dirs.idxFile) {
+                index = await readFile(window.manualVars.dirs.idxFile);
+                if (window.manualVars.dirs.idxFile.includes('payload.json')) {
                     index = JSON.parse(rc4(index, 'uTools'))
                 } else {
                     index = JSON.parse(index);                   
@@ -256,7 +258,9 @@ utools.onPluginEnter( async ({ code, type, payload }) => {
 utools.onPluginOut(() => {
     $("#mainlist").html('').hide();
     $("#options").html('').hide();
-    $("#manual").html('').hide();
+    $("#manual").hide();
+    $("#manualBody").html('')
+    $("#manualNavi").html('')
     $(".load").html('').hide();
     $("#infopannel").html('').hide();;
     $('link[name="manual"]').remove();
@@ -278,7 +282,7 @@ $("#mainlist").on('mousedown', '.info', function (e) {
 $("#mainlist").on('mousemove', '.info', function () {
     // 鼠标锁 500ms
     var mouseUnlockTime = new Date().getTime();
-    if (mouseUnlockTime - window.mouseLockTime > 500) {
+    if (mouseUnlockTime - window.manualVars.mouseLockTime > 500) {
         $(".select").removeClass('select');
         $(this).addClass('select');
     }
@@ -334,21 +338,21 @@ $(document).keydown(e => {
                 path && showManual(path);
             // 手册/配置界面搜索下一个
             } else if($('.founds').length){
-                if (window.findex > 0) {
-                    $(`.founds:eq(${window.findex - 1})`).removeClass('firstFound');
+                if (window.manualVars.findex > 0) {
+                    $(`.founds:eq(${window.manualVars.findex - 1})`).removeClass('firstFound');
                 } else {
                     $('.founds:last').removeClass('firstFound');  
                 }
-                $(`.founds:eq(${window.findex})`).addClass('firstFound');
+                $(`.founds:eq(${window.manualVars.findex})`).addClass('firstFound');
                 $('.firstFound').get(0).scrollIntoView({ behavior: "smooth", block: "center" });
-                if (window.findex == $('.founds').length - 1) {
-                    window.findex = 0;
+                if (window.manualVars.findex == $('.founds').length - 1) {
+                    window.manualVars.findex = 0;
                 } else {
-                    window.findex += 1;
+                    window.manualVars.findex += 1;
                 }
             // 快速启动 dash
-            } else if (window.dashQuery) {
-                 window.dash(window.dashQuery);
+            } else if (window.manualVars.dashQuery) {
+                 window.dash(window.manualVars.dashQuery);
             }
             break;
         // 上
