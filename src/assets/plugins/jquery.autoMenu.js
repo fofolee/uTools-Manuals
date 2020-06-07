@@ -54,17 +54,17 @@
                     if (_this.get(0).tagName == opts.levelOne.toUpperCase()) {
                         _this.attr('id', num);
                         var nodetext = that.handleTxt(_this.html());
-                        html += '<li name="' + num + '"><a href="#' + num + '">' + nodetext + '</a></li>';
+                        html += '<li class="h1" name="' + num + '"><a href="#' + num + '">' + nodetext + '</a></li>';
                         num++;
                     } else if (_this.get(0).tagName == opts.levelTwo.toUpperCase()) {
                         _this.attr('id', num);
                         var nodetext = that.handleTxt(_this.html());
-                        html += '<li class="sub" name="' + num + '"><a href="#' + num + '">' + nodetext + '</a></li>';
+                        html += '<li class="h2" name="' + num + '"><a href="#' + num + '">' + nodetext + '</a></li>';
                         num++;
                     } else if (_this.get(0).tagName == opts.levelThree.toUpperCase()) {
                         _this.attr('id', num);
                         var nodetext = that.handleTxt(_this.html());
-                        html += '<li class="ssub" name="' + num + '"><a href="#' + num + '">' + nodetext + '</a></li>';
+                        html += '<li class="h3" name="' + num + '"><a href="#' + num + '">' + nodetext + '</a></li>';
                         num++;
                     }
                 })
