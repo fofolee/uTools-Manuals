@@ -174,7 +174,8 @@ loadList = addnum => {
 }
 
 // 进入插件
-utools.onPluginEnter( async ({ code, type, payload }) => {
+utools.onPluginEnter(async ({ code, type, payload }) => {
+    if(fofoCommon.isRunningAtFirstTime()) fofoCommon.showChangeLog()
     scrollInit();
     // checkUpdate();
     window.manualVars = {}
