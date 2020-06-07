@@ -23,7 +23,7 @@ getDevdocs = async () => {
 showOptions = async () => {
     location.href = "#options";
     var currentFts = utools.getFeatures();
-    var allFts = window.defaultPage ? await getDevdocs() : await getManuals();
+    var allFts = window.manualVars.defaultPage ? await getDevdocs() : await getManuals();
     let tableHead = `<table>
     <tr>
     <td></td>
@@ -89,7 +89,7 @@ showOptions = async () => {
     <div id="enableAll" class="footBtn">全部启用</div>
     </div>`;
     $("#options").html(tableHead + tableBody);
-    if (window.defaultPage) {
+    if (window.manualVars.defaultPage) {
         $("#devdocs").html('中文手册');
         $('#add').addClass("disabled");
     }
@@ -121,7 +121,7 @@ showCustomize = () => {
 
 // 开关
 $("#options").on('change', 'input[type=checkbox]', async function () {
-    var allFts = window.defaultPage ? await getDevdocs() : await getManuals();
+    var allFts = window.manualVars.defaultPage ? await getDevdocs() : await getManuals();
     var id = $(this).attr('id'),
         code = id.slice(0, -2),
         num = id.slice(-1);
@@ -156,7 +156,7 @@ $("#options").on('click', '.footBtn', function () {
             $(this).hasClass("disabled") || showCustomize();
             break;
         case 'devdocs':
-            window.defaultPage = (window.defaultPage + 1) % 2;
+            window.manualVars.defaultPage = (window.manualVars.defaultPage + 1) % 2;
             $('#options').fadeOut(100).promise().done(() => {
                 showOptions();
             })
@@ -178,7 +178,7 @@ $("#options").on('click', '.cancelBtn', function () {
 // 编辑
 $("#options").on('click', '.editBtn', async function () {
     var code = $(this).attr('code');
-    if (window.defaultPage) {
+    if (window.manualVars.defaultPage) {
         var docs = await getDevdocs(),
             url = docs[code].url;
         $(this).removeClass('editBtn');
@@ -201,7 +201,7 @@ $("#options").on('click', '.editBtn', async function () {
 // 删除
 $("#options").on('click', '.delBtn', function () {
     var code = $(this).attr('code');
-    if (window.defaultPage) {
+    if (window.manualVars.defaultPage) {
         utools.db.remove(code);
         utools.removeFeature(code);
     } else {
