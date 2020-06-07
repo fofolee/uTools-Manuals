@@ -52,20 +52,20 @@ mainlistSubInput = () => {
     utools.removeSubInput();
     utools.setSubInput(({ text }) => {
         // 列表搜索
-            showList(text, index, 300);
+            showList(text, index, 100);
             // 高亮结果
             text.split(' ').forEach(keyword => {
                 keyword && $(".name,.description").highlight(keyword, 'listFounds');
             });
-    }, '空格 多关键词搜索；中键/shift+Enter发送选中条目到活动窗口');
+    }, '空格 多关键词搜索；中键发送选中条目到活动窗口');
 }
 
 // 手册界面子输入框
 manualSubInput = () => {
     utools.removeSubInput();
     utools.setSubInput(({ text }) => {
-        highlightManual("#manual", text);
-    }, '空格 多关键词；选中：中键/shift+Enter发送，T翻译，S收藏；Tab切换界面');
+        highlightManual("#manualBody", text);
+    }, '搜索全文；选中文本：中键发送，T翻译，S收藏；Tab切换界面');
 }
 
 
@@ -102,17 +102,18 @@ showManual = path => {
             Prism.highlightAll();
             location.href = e ? id : '#manualBody';
             $('#manualNavi').autoMenu();
-            if ($('h1,h2,h3').length < 10 && $('#manual ul').is(":visible")) {
+            if ($('h1,h2,h3').length < 10 && $('#manualNavi ul').is(":visible")) {
                 $('.btn-box span').removeClass('icon-minus-sign').addClass('icon-plus-sign')
                 // $('#manualBody').removeClass('withNaviBar')
-                $('#manual ul').hide()
+                $('#manualNavi ul').hide()
             // } else {
-            //     $('#manualBody').addClass('withNaviBar')
+                // $('#manualBody').addClass('withNaviBar')
+                // $('#manualNavi input').focus()
             }
             manualSubInput();
         });
         request.fail(function (xhr, err) {
-            $(".load").html('404').fadeOut();
+            $(".load").html('err').fadeOut();
             console.log(xhr, err);
         });
     }
@@ -319,7 +320,7 @@ $("#manual").on('mousedown', 'a', function (e) {
 
 // 滚动到边界加载列表
 $(document).scroll(() => {
-    loadList(300);
+    loadList(100);
 })
 
 // 按键监听
@@ -346,7 +347,11 @@ $(document).keydown(e => {
                 var path = $(".select").attr('path');
                 path && showManual(path);
             // 手册/配置界面搜索下一个
-            } else if($('.founds').length){
+            } else if ($('.founds').length) {
+                if ($('#manualNavi ul').is(":visible")) {
+                    $('.btn-box span').removeClass('icon-minus-sign').addClass('icon-plus-sign')
+                    $('#manualNavi ul').hide()
+                }
                 if (window.manualVars.findex > 0) {
                     $(`.founds:eq(${window.manualVars.findex - 1})`).removeClass('firstFound');
                 } else {
@@ -390,7 +395,7 @@ $(document).keydown(e => {
                     if (next.offset().top >= $(window).scrollTop() + 550) {
                         $("html").animate({ scrollTop: "+=50" }, 0);
                     }
-                    loadList(300);
+                    loadList(100);
                     next.addClass("select");
                     $(".select:first").removeClass("select");
                     // 到达边界闪烁移动选择条
