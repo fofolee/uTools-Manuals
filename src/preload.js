@@ -1,17 +1,13 @@
 const { clipboard } = require('electron');
 const { exec } = require('child_process');
 const crypto = require('crypto')
-
-//-------checkUpdate------
 const fs = require('fs');
-const path = require("path")
 
-pluginInfo = JSON.parse(fs.readFileSync(path.join(__dirname, 'plugin.json')));
+fofoCommon = require('./common').fofo
 
 open = url => {
     utools.shellOpenExternal(url);
 }
-// ------------------------
 
 dirname = __dirname;
 
