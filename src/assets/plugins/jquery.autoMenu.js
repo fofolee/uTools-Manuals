@@ -46,7 +46,8 @@
                 var height = typeof opts.height === 'number' && opts.height;
                 var padding = typeof opts.padding === 'number' && opts.padding;
                 that.$element.width(width + padding * 2);
-                var html = '<ul style="height: ' + height + 'px;padding:' + padding + 'px">';
+                var html = `<ul style="height: ${height}px;padding: ${padding}px">
+                <input type="text" placeholder="搜索标题" style="width: ${width}px">`;
                 var num = 0;
                 $('*').each(function() {
                     var _this = $(this);
@@ -105,23 +106,41 @@
             },
             bindEvent: function() {
                 var _this = this;
-                $('#manual').scroll(function() {
+                $('#manual').scroll(function () {
+                    _this.$element.find('input').prop('value', '')
+                    _this.$element.find('li').show()
                     _this.setActive()
-                    var actived = $('#manual .active').get(0)
-                    if(actived) actived.scrollIntoView({ behavior: "smooth", block: "center" });
+                    // scroll
+                    var actived = _this.$element.find('.active')
+                    if (actived.length != 0) {
+                        var top = actived.offset().top
+                        if (top < 0 || top > _this.settings.height) {
+                            actived.get(0).scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                    }
                 });
                 _this.$element.off()
                 _this.$element.on('click', '.btn-box', function() {
                     if ($(this).find('span').hasClass('icon-minus-sign')) {
                         $(this).find('span').removeClass('icon-minus-sign').addClass('icon-plus-sign');
                         _this.$element.find('ul').fadeOut();
-                        // $('#manualBody').removeClass('withNaviBar')
                     } else {
                         $(this).find('span').removeClass('icon-plus-sign').addClass('icon-minus-sign');
                         _this.$element.find('ul').fadeIn();
-                        // $('#manualBody').addClass('withNaviBar')
+                        _this.$element.find('input').focus()
                     }
 
+                })
+                // 目录搜索
+                _this.$element.on('input', 'input', function () {
+                    var keyword = $(this).prop('value')
+                    _this.$element.find('li').each(function(){
+                        if ($(this).find('a').text().toUpperCase().includes(keyword.toUpperCase())) {
+                            $(this).show()
+                        } else {
+                            $(this).hide()
+                        }
+                    })
                 })
             }
 
@@ -162,7 +181,7 @@
         levelTwo: 'h2', //二级标题（暂不支持更多级）
         levelThree: 'h3', //二级标题（暂不支持更多级）
         width: 220, //容器宽度
-        height: 480, //容器高度
+        height: 460, //容器高度
         padding: 20, //内部间距
         offTop: 100, //滚动切换导航时离顶部的距离
 
