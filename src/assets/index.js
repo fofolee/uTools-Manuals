@@ -173,10 +173,19 @@ loadList = addnum => {
     }
 }
 
+adaptDarkMode = () => {
+    if (utools.isDarkColors()) {
+        !$('#darkmode').length && $('head').append('<link id="darkmode" rel="stylesheet" href="assets/styles/darkmode.css">')
+    } else {
+        $('#darkmode').length && $('#darkmode').remove()
+    }
+}
+
 // 进入插件
 utools.onPluginEnter(async ({ code, type, payload }) => {
-    if(fofoCommon.isRunningAtFirstTime()) fofoCommon.showChangeLog()
+    if (fofoCommon.isRunningAtFirstTime()) fofoCommon.showChangeLog()
     scrollInit();
+    adaptDarkMode()
     // checkUpdate();
     window.manualVars = {}
     if (code == 'options') {
@@ -410,10 +419,7 @@ $(document).keydown(e => {
             if ($('#mainlist').is(':hidden') && $("#manual").is(":visible")) {
                 let text = window.getSelection().toString();
                 if (text) {
-                    utools.redirect('收藏', {
-                        'type': 'text',
-                        'data': text
-                    })
+                    utools.redirect('备忘', { 'type': 'text', 'data': text })
                 }
             }
             break;
