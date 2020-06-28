@@ -107,7 +107,7 @@
             bindEvent: function() {
                 var _this = this;
                 $('#manual').scroll(function () {
-                    _this.$element.find('input').prop('value', '')
+                    _this.$element.find('input').val('')
                     _this.$element.find('li').show()
                     _this.setActive()
                     // scroll
@@ -133,7 +133,7 @@
                 })
                 // 目录搜索
                 _this.$element.on('input', 'input', function () {
-                    var keyword = $(this).prop('value')
+                    var keyword = $(this).val()
                     _this.$element.find('li').each(function(){
                         if ($(this).find('a').text().toUpperCase().includes(keyword.toUpperCase())) {
                             $(this).show()
