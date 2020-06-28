@@ -93,12 +93,13 @@ showOptions = async () => {
         $("#devdocs").html('中文手册');
         $('#add').addClass("disabled");
     }
+    $('#options').fadeIn(100)
     // 平滑过渡
-    setTimeout(() => {
-        $('#options').fadeIn(100).promise().done(() => {
-            $('html').getNiceScroll().resize();
-        })
-    }, 50);
+    // setTimeout(() => {
+    //     $('#options').fadeIn(100).promise().done(() => {
+    //         $('html').getNiceScroll().resize();
+    //     })
+    // }, 50);
 }
 
 showCustomize = () => {

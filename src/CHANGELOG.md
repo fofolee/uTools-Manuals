@@ -1,7 +1,7 @@
 ### v1.1.4
 
+- 兼容暗黑模式
 - 修复某些情况下导航目录被遮挡的 bug
-- 兼容暗黑模式（50%）
 - 修复按 S 搜藏时无法跳转到备忘(收藏)插件的 bug
 - linux 收手册下新增一个 tmux 快捷键 [ryuzheng提供](https://github.com/ryuzheng/TmuxCheatSheet) [中文原版](https://gist.github.com/ryerh/14b7c24dfd623ef8edc7) [英文原版](https://gist.github.com/MohamedAlaa/2961058)
 

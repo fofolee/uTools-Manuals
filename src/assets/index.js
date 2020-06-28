@@ -42,7 +42,7 @@ showList = (text, index, listnum) => {
     utools.setExpendHeight(num > 11 ? 550 : 50 * num);
     $(".select").removeClass('select');
     $(".info:first").addClass('select');
-    $('html').getNiceScroll().resize();
+    // $('html').getNiceScroll().resize();
     // 鼠标锁，方式鼠标抢占选择条
     window.manualVars.mouseLockTime = new Date().getTime();
 }
@@ -72,7 +72,7 @@ manualSubInput = () => {
 // 显示手册
 showManual = path => {
     utools.setExpendHeight(550);
-    $('#manual').getNiceScroll().resize()
+    // $('#manual').getNiceScroll().resize()
     if (/^((ht|f)tps?):\/\//.test(path)) {
         window.open(path);
     } else {
@@ -129,14 +129,14 @@ highlightManual = (selector, text) => {
 }
 
 // 初始化
-scrollInit = () => {
-    $("html").niceScroll({
-        enablekeyboard: false
-    });
-    $("#manual").niceScroll({
-        enablekeyboard: true
-    });
-}
+// scrollInit = () => {
+//     $("html").niceScroll({
+//         enablekeyboard: false
+//     });
+//     $("#manual").niceScroll({
+//         enablekeyboard: true
+//     });
+// }
 
 // 向活动窗口发送文本
 sendText = text => {
@@ -168,7 +168,7 @@ loadList = addnum => {
         var listnum = $(".info").length;
         if ($(window).scrollTop() >= (listnum * 50 - 550)) {
             $("#mainlist").append(window.manualVars.infoRows.slice(listnum, listnum + addnum).join(''));
-            $('html').getNiceScroll().resize();
+            // $('html').getNiceScroll().resize();
         }
     }
 }
@@ -176,15 +176,16 @@ loadList = addnum => {
 adaptDarkMode = () => {
     if (utools.isDarkColors()) {
         !$('#darkmode').length && $('head').append('<link id="darkmode" rel="stylesheet" href="assets/styles/darkmode.css">')
+            && $('#darkprism').attr('href', 'assets/styles/prism-dark.css')
     } else {
-        $('#darkmode').length && $('#darkmode').remove()
+        $('#darkmode').length && $('#darkmode').remove() && $('#darkprism').attr('href', 'assets/styles/prism.css')
     }
 }
 
 // 进入插件
 utools.onPluginEnter(async ({ code, type, payload }) => {
     if (fofoCommon.isRunningAtFirstTime()) fofoCommon.showChangeLog()
-    scrollInit();
+    // scrollInit();
     adaptDarkMode()
     // checkUpdate();
     window.manualVars = {}
@@ -232,10 +233,10 @@ utools.onPluginEnter(async ({ code, type, payload }) => {
         window.readDir(assetDir, (err, files) => {
             if (!err) {
                 files.forEach(file => {
-                    $('head').append(`<link rel="stylesheet" href="${assetDir}/${file}" name="manual">`)
+                    $('title').after(`<link rel="stylesheet" href="${assetDir}/${file}" name="manual">`)
                 }) 
             } else {
-                $('head').append('<link rel="stylesheet" href="assets/styles/manual.css" name="manual">')
+                $('title').after('<link rel="stylesheet" href="assets/styles/manual.css" name="manual">')
             }
         })
         // 读取目录文件
@@ -276,13 +277,13 @@ utools.onPluginEnter(async ({ code, type, payload }) => {
 });
 
 utools.onPluginOut(() => {
-    $("#mainlist").html('').hide();
-    $("#options").html('').hide();
+    $("#mainlist").empty().hide();
+    $("#options").empty().hide();
     $("#manual").hide();
-    $("#manualBody").html('')
-    $("#manualNavi").html('')
-    $(".load").html('').hide();
-    $("#infopannel").html('').hide();;
+    $("#manualBody").empty()
+    $("#manualNavi").empty()
+    $(".load").empty().hide();
+    $("#infopannel").empty().hide();;
     $('link[name="manual"]').remove();
 })
 
