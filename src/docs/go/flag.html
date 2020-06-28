@@ -1,0 +1,388 @@
+<div class="container">
+    <h1 id="pkg-overview">package flag</h1>
+    <p><code>import "flag"</code>
+    </p><p align="left">flag包实现了命令行参数的解析。</p>
+    <p align="left">要求：</p>
+    <p align="left">使用flag.String(), Bool(), Int()等函数注册flag，下例声明了一个整数flag，解析结果保存在*int指针ip里：</p>
+    <pre>import "flag"
+var ip = flag.Int("flagname", 1234, "help message for flagname")
+</pre>
+    <p>如果你喜欢，也可以将flag绑定到一个变量，使用Var系列函数：</p>
+    <pre>var flagvar int
+func init() {
+	flag.IntVar(&amp;flagvar, "flagname", 1234, "help message for flagname")
+}</pre>
+    <p>或者你可以自定义一个用于flag的类型（满足Value接口）并将该类型用于flag解析，如下：</p>
+    <pre>flag.Var(&amp;flagVal, "name", "help message for flagname")
+</pre>
+    <p align="left">对这种flag，默认值就是该变量的初始值。</p>
+    <p align="left">在所有flag都注册之后，调用：</p>
+    <pre>flag.Parse()
+</pre>
+    <p align="left">来解析命令行参数写入注册的flag里。</p>
+    <p align="left">解析之后，flag的值可以直接使用。如果你使用的是flag自身，它们是指针；如果你绑定到了某个变量，它们是值。</p>
+    <pre>fmt.Println("ip has value ", *ip)
+fmt.Println("flagvar has value ", flagvar)
+</pre>
+    <p align="left">解析后，flag后面的参数可以从flag.Args()里获取或用flag.Arg(i)单独获取。这些参数的索引为从0到flag.NArg()-1。</p>
+    <p align="left">命令行flag语法：</p>
+    <pre>-flag
+-flag=x
+-flag x  // 只有非bool类型的flag可以</pre>
+    <p>可以使用1个或2个'-'号，效果是一样的。最后一种格式不能用于bool类型的flag，因为如果有文件名为0、false等时,如下命令：</p>
+    <pre>cmd -x *
+</pre>
+    <p align="left">其含义会改变。你必须使用-flag=false格式来关闭一个bool类型flag。</p>
+    <p align="left">Flag解析在第一个非flag参数（单个"-"不是flag参数）之前停止，或者在终止符"--"之后停止。</p>
+    <p align="left">整数flag接受1234、0664、0x1234等类型，也可以是负数。bool类型flag可以是：</p>
+    <pre>1, 0, t, f, T, F, true, false, TRUE, FALSE, True, False
+</pre>
+    <p align="left">时间段flag接受任何合法的可提供给time.ParseDuration的输入。</p>
+    <p align="left">默认的命令行flag集被包水平的函数控制。FlagSet类型允许程序员定义独立的flag集，例如实现命令行界面下的子命令。FlagSet的方法和包水平的函数是非常类似的。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-package">
+            <div class="panel-heading" onclick="document.getElementById('ex-package').style.display = document.getElementById('ex-package').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-package">
+                <div class="panel-body">
+                    <pre><span class="com">// These examples demonstrate more intricate uses of the flag package.</span>
+package flag_test
+import (
+    "errors"
+    "flag"
+    "fmt"
+    "strings"
+    "time"
+)
+<span class="com">// Example 1: A single string flag called "species" with default value "gopher".</span>
+var species = flag.String("species", "gopher", "the species we are studying")
+<span class="com">// Example 2: Two flags sharing a variable, so we can have a shorthand.</span>
+<span class="com">// The order of initialization is undefined, so make sure both use the</span>
+<span class="com">// same default value. They must be set up with an init function.</span>
+var gopherType string
+func init() {
+    const (
+        defaultGopher = "pocket"
+        usage         = "the variety of gopher"
+    )
+    flag.StringVar(&amp;gopherType, "gopher_type", defaultGopher, usage)
+    flag.StringVar(&amp;gopherType, "g", defaultGopher, usage+" (shorthand)")
+}
+<span class="com">// Example 3: A user-defined flag type, a slice of durations.</span>
+type interval []time.Duration
+<span class="com">// String is the method to format the flag's value, part of the flag.Value interface.</span>
+<span class="com">// The String method's output will be used in diagnostics.</span>
+func (i *interval) String() string {
+    return fmt.Sprint(*i)
+}
+<span class="com">// Set is the method to set the flag value, part of the flag.Value interface.</span>
+<span class="com">// Set's argument is a string to be parsed to set the flag.</span>
+<span class="com">// It's a comma-separated list, so we split it.</span>
+func (i *interval) Set(value string) error {
+    <span class="com">// If we wanted to allow the flag to be set multiple times,</span>
+    <span class="com">// accumulating values, we would delete this if statement.</span>
+    <span class="com">// That would permit usages such as</span>
+    <span class="com">//	-deltaT 10s -deltaT 15s</span>
+    <span class="com">// and other combinations.</span>
+    if len(*i) &gt; 0 {
+        return errors.New("interval flag already set")
+    }
+    for _, dt := range strings.Split(value, ",") {
+        duration, err := time.ParseDuration(dt)
+        if err != nil {
+            return err
+        }
+        *i = append(*i, duration)
+    }
+    return nil
+}
+<span class="com">// Define a flag to accumulate durations. Because it has a special type,</span>
+<span class="com">// we need to use the Var function and therefore create the flag during</span>
+<span class="com">// init.</span>
+var intervalFlag interval
+func init() {
+    <span class="com">// Tie the command-line flag to the intervalFlag variable and</span>
+    <span class="com">// set a usage message.</span>
+    flag.Var(&amp;intervalFlag, "deltaT", "comma-separated list of intervals to use between events")
+}
+func Example() {
+    <span class="com">// All the interesting pieces are with the variables declared above, but</span>
+    <span class="com">// to enable the flag package to see the flags defined there, one must</span>
+    <span class="com">// execute, typically at the start of main (not init!):</span>
+    <span class="com">//	flag.Parse()</span>
+    <span class="com">// We don't run it here because this is not a main function and</span>
+    <span class="com">// the testing suite has already parsed the flags.</span>
+}
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+		
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    
+    
+		
+        
+    
+    <h2 id="pkg-variables">Variables </h2>
+    <pre>var <span id="CommandLine">CommandLine</span> = <a href="#NewFlagSet">NewFlagSet</a>(<a href="os.htm">os</a>.<a href="os.htm#Args">Args</a>[0], <a href="#ExitOnError">ExitOnError</a>)</pre>
+    <p>CommandLine是默认的命令行flag集，用于解析os.Args。包水平的函数如BoolVar、Arg等都是对其方法的封装。</p>
+    <pre>var <span id="ErrHelp">ErrHelp</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("flag: help requested")</pre>
+    <p>当flag -help被调用但没有注册这个flag时，就会返回ErrHelp。</p>
+    <pre>var <span id="Usage">Usage</span> = func() {
+    <a href="fmt.htm">fmt</a>.<a href="fmt.htm#Fprintf">Fprintf</a>(<a href="os.htm">os</a>.<a href="os.htm#Stderr">Stderr</a>, "Usage of %s:\n", <a href="os.htm">os</a>.<a href="os.htm#Args">Args</a>[0])
+    <a href="#PrintDefaults">PrintDefaults</a>()
+}</pre>
+    <p>Usage打印到标准错误输出一个使用信息，记录了所有注册的flag。本函数是一个包变量，可以将其修改为指向自定义的函数。</p>
+    <h2 id="Value">type <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#237" title="View Source">Value</a> </h2>
+    <pre>type Value interface {
+    <span id="Value.String">String</span>() <a href="builtin.htm#string">string</a>
+    <span id="Value.Set">Set</span>(<a href="builtin.htm#string">string</a>) <a href="builtin.htm#error">error</a>
+}</pre>
+    <p align="left">Value接口是用于将动态的值保存在一个flag里。（默认值被表示为一个字符串）</p>
+    <p align="left">如果Value接口具有IsBoolFlag() bool方法，且返回真。命令行解析其会将-name等价为-name=true而不是使用下一个命令行参数。</p>
+    <h2 id="Getter">type <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#246" title="View Source">Getter</a> </h2>
+    <pre>type Getter interface {
+    <a href="#Value">Value</a>
+    <span id="Getter.Get">Get</span>() interface{}
+}</pre>
+    <p>Gette接口使可以取回Value接口的内容。本接口包装了Value接口而不是作为Value接口的一部分，因为本接口是在Go 1之后出现，出于兼容的考虑才如此。本包所有的满足Value接口的类型都同时满足Getter接口。</p>
+    <h2 id="ErrorHandling">type <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#252" title="View Source">ErrorHandling</a> </h2>
+    <pre>type ErrorHandling <a href="builtin.htm#int">int</a></pre>
+    <p>ErrorHandling定义如何处理flag解析错误。</p>
+    <pre>const (
+    <span id="ContinueOnError">ContinueOnError</span> <a href="#ErrorHandling">ErrorHandling</a> = <a href="builtin.htm#iota">iota</a>
+    <span id="ExitOnError">ExitOnError</span>
+    <span id="PanicOnError">PanicOnError</span>
+)</pre>
+    <h2 id="Flag">type <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#278" title="View Source">Flag</a> </h2>
+    <pre>type Flag struct {
+    <span id="Flag.Name">Name</span>     <a href="builtin.htm#string">string</a> <span class="com">// flag在命令行中的名字</span>
+    <span id="Flag.Usage">Usage</span>    <a href="builtin.htm#string">string</a> <span class="com">// 帮助信息</span>
+    <span id="Flag.Value">Value</span>    <a href="#Value">Value</a>  <span class="com">// 要设置的值</span>
+    <span id="Flag.DefValue">DefValue</span> <a href="builtin.htm#string">string</a> <span class="com">// 默认值（文本格式），用于使用信息</span>
+}</pre>
+    <p>Flag类型代表一条flag的状态。</p>
+    <h2 id="FlagSet">type <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#262" title="View Source">FlagSet</a> </h2>
+    <pre>type FlagSet struct {
+    <span class="com">// Usage函数在解析flag出现错误时会被调用</span>
+    <span class="com">// 该字段为一个函数（而非采用方法），以便修改为自定义的错误处理函数</span><span class="com"></span>
+    <span id="FlagSet.Usage">Usage</span> func()
+    <span class="com">// 内含隐藏或非导出字段</span>
+}</pre>
+    <p>FlagSet代表一个已注册的flag的集合。FlagSet零值没有名字，采用ContinueOnError错误处理策略。</p>
+    <h3 id="NewFlagSet">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#835" title="View Source">NewFlagSet</a> </h3>
+    <pre class="funcdecl">func NewFlagSet(name <a href="builtin.htm#string">string</a>, errorHandling <a href="#ErrorHandling">ErrorHandling</a>) *<a href="#FlagSet">FlagSet</a></pre>
+    <p>NewFlagSet创建一个新的、名为name，采用errorHandling为错误处理策略的FlagSet。</p>
+    <h3 id="FlagSet.Init">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#846" title="View Source">Init</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Init(name <a href="builtin.htm#string">string</a>, errorHandling <a href="#ErrorHandling">ErrorHandling</a>)</pre>
+    <p>Init设置flag集合f的名字和错误处理属性。FlagSet零值没有名字，默认采用ContinueOnError错误处理策略。</p>
+    <h3 id="FlagSet.NFlag">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#415" title="View Source">NFlag</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) NFlag() <a href="builtin.htm#int">int</a></pre>
+    <p>NFlag返回解析时进行了设置的flag的数量。</p>
+    <h3 id="FlagSet.Lookup">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#343" title="View Source">Lookup</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Lookup(name <a href="builtin.htm#string">string</a>) *<a href="#Flag">Flag</a></pre>
+    <p>返回已经f中已注册flag的Flag结构体指针；如果flag不存在的话，返回nil。</p>
+    <h3 id="FlagSet.NArg">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#436" title="View Source">NArg</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) NArg() <a href="builtin.htm#int">int</a></pre>
+    <p>NArg返回解析flag之后剩余参数的个数。</p>
+    <h3 id="FlagSet.Args">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#442" title="View Source">Args</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Args() []<a href="builtin.htm#string">string</a></pre>
+    <p>返回解析之后剩下的非flag参数。（不包括命令名）</p>
+    <h3 id="FlagSet.Arg">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#422" title="View Source">Arg</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Arg(i <a href="builtin.htm#int">int</a>) <a href="builtin.htm#string">string</a></pre>
+    <p>返回解析之后剩下的第i个参数，从0开始索引。</p>
+    <h3 id="FlagSet.PrintDefaults">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#377" title="View Source">PrintDefaults</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) PrintDefaults()</pre>
+    <p>PrintDefault打印集合中所有注册好的flag的默认值。除非另外配置，默认输出到标准错误输出中。</p>
+    <h3 id="FlagSet.SetOutput">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#310" title="View Source">SetOutput</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) SetOutput(output <a href="io.htm">io</a>.<a href="io.htm#Writer">Writer</a>)</pre>
+    <p>设置使用信息和错误信息的输出流，如果output为nil，将使用os.Stderr。</p>
+    <h3 id="FlagSet.Bool">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#461" title="View Source">Bool</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Bool(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#bool">bool</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#bool">bool</a></pre>
+    <p>Bool用指定的名称、默认值、使用信息注册一个bool类型flag。返回一个保存了该flag的值的指针。</p>
+    <h3 id="FlagSet.BoolVar">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#449" title="View Source">BoolVar</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) BoolVar(p *<a href="builtin.htm#bool">bool</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#bool">bool</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>BoolVar用指定的名称、默认值、使用信息注册一个bool类型flag，并将flag的值保存到p指向的变量。</p>
+    <h3 id="FlagSet.Int">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#487" title="View Source">Int</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Int(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#int">int</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#int">int</a></pre>
+    <p>Int用指定的名称、默认值、使用信息注册一个int类型flag。返回一个保存了该flag的值的指针。</p>
+    <h3 id="FlagSet.IntVar">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#475" title="View Source">IntVar</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) IntVar(p *<a href="builtin.htm#int">int</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#int">int</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>IntVar用指定的名称、默认值、使用信息注册一个int类型flag，并将flag的值保存到p指向的变量。</p>
+    <h3 id="FlagSet.Int64">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#513" title="View Source">Int64</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Int64(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#int64">int64</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#int64">int64</a></pre>
+    <p>Int64用指定的名称、默认值、使用信息注册一个int64类型flag。返回一个保存了该flag的值的指针。</p>
+    <h3 id="FlagSet.Int64Var">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#501" title="View Source">Int64Var</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Int64Var(p *<a href="builtin.htm#int64">int64</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#int64">int64</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>Int64Var用指定的名称、默认值、使用信息注册一个int64类型flag，并将flag的值保存到p指向的变量。</p>
+    <h3 id="FlagSet.Uint">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#539" title="View Source">Uint</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Uint(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#uint">uint</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#uint">uint</a></pre>
+    <p>Uint用指定的名称、默认值、使用信息注册一个uint类型flag。返回一个保存了该flag的值的指针。</p>
+    <h3 id="FlagSet.UintVar">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#527" title="View Source">UintVar</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) UintVar(p *<a href="builtin.htm#uint">uint</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#uint">uint</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>UintVar用指定的名称、默认值、使用信息注册一个uint类型flag，并将flag的值保存到p指向的变量。</p>
+    <h3 id="FlagSet.Uint64">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#565" title="View Source">Uint64</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Uint64(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#uint64">uint64</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#uint64">uint64</a></pre>
+    <p>Uint64用指定的名称、默认值、使用信息注册一个uint64类型flag。返回一个保存了该flag的值的指针。</p>
+    <h3 id="FlagSet.Uint64Var">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#553" title="View Source">Uint64Var</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Uint64Var(p *<a href="builtin.htm#uint64">uint64</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#uint64">uint64</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>Uint64Var用指定的名称、默认值、使用信息注册一个uint64类型flag，并将flag的值保存到p指向的变量。</p>
+    <h3 id="FlagSet.Float64">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#617" title="View Source">Float64</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Float64(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#float64">float64</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#float64">float64</a></pre>
+    <p>Float64用指定的名称、默认值、使用信息注册一个float64类型flag。返回一个保存了该flag的值的指针。</p>
+    <h3 id="FlagSet.Float64Var">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#605" title="View Source">Float64Var</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Float64Var(p *<a href="builtin.htm#float64">float64</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#float64">float64</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>Float64Var用指定的名称、默认值、使用信息注册一个float64类型flag，并将flag的值保存到p指向的变量。</p>
+    <h3 id="FlagSet.String">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#591" title="View Source">String</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) String(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#string">string</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#string">string</a></pre>
+    <p>String用指定的名称、默认值、使用信息注册一个string类型flag。返回一个保存了该flag的值的指针。</p>
+    <h3 id="FlagSet.StringVar">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#579" title="View Source">StringVar</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) StringVar(p *<a href="builtin.htm#string">string</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#string">string</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>StringVar用指定的名称、默认值、使用信息注册一个string类型flag，并将flag的值保存到p指向的变量。</p>
+    <h3 id="FlagSet.Duration">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#643" title="View Source">Duration</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Duration(name <a href="builtin.htm#string">string</a>, value <a href="time.htm">time</a>.<a href="time.htm#Duration">Duration</a>, usage <a href="builtin.htm#string">string</a>) *<a href="time.htm">time</a>.<a href="time.htm#Duration">Duration</a></pre>
+    <p>Duration用指定的名称、默认值、使用信息注册一个time.Duration类型flag。返回一个保存了该flag的值的指针。</p>
+    <h3 id="FlagSet.DurationVar">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#631" title="View Source">DurationVar</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) DurationVar(p *<a href="time.htm">time</a>.<a href="time.htm#Duration">Duration</a>, name <a href="builtin.htm#string">string</a>, value <a href="time.htm">time</a>.<a href="time.htm#Duration">Duration</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>DurationVar用指定的名称、默认值、使用信息注册一个time.Duration类型flag，并将flag的值保存到p指向的变量。</p>
+    <h3 id="FlagSet.Var">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#661" title="View Source">Var</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Var(value <a href="#Value">Value</a>, name <a href="builtin.htm#string">string</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>Var方法使用指定的名字、使用信息注册一个flag。该flag的类型和值由第一个参数表示，该参数应实现了Value接口。例如，用户可以创建一个flag，可以用Value接口的Set方法将逗号分隔的字符串转化为字符串切片。</p>
+    <h3 id="FlagSet.Set">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#354" title="View Source">Set</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Set(name, value <a href="builtin.htm#string">string</a>) <a href="builtin.htm#error">error</a></pre>
+    <p>设置已注册的flag的值。</p>
+    <h3 id="FlagSet.Parse">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#788" title="View Source">Parse</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Parse(arguments []<a href="builtin.htm#string">string</a>) <a href="builtin.htm#error">error</a></pre>
+    <p>从arguments中解析注册的flag。必须在所有flag都注册好而未访问其值时执行。未注册却使用flag -help时，会返回ErrHelp。</p>
+    <h3 id="FlagSet.Parsed">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#812" title="View Source">Parsed</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Parsed() <a href="builtin.htm#bool">bool</a></pre>
+    <p>返回是否f.Parse已经被调用过。</p>
+    <h3 id="FlagSet.Visit">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#330" title="View Source">Visit</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) Visit(fn func(*<a href="#Flag">Flag</a>))</pre>
+    <p>按照字典顺序遍历标签，并且对每个标签调用fn。 这个函数只遍历解析时进行了设置的标签。</p>
+    <h3 id="FlagSet.VisitAll">func (*FlagSet) <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#316" title="View Source">VisitAll</a> </h3>
+    <pre class="funcdecl">func (f *<a href="#FlagSet">FlagSet</a>) VisitAll(fn func(*<a href="#Flag">Flag</a>))</pre>
+    <p>按照字典顺序遍历标签，并且对每个标签调用fn。 这个函数会遍历所有标签，不管解析时有无进行设置。</p>
+    <h2 id="NFlag">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#418" title="View Source">NFlag</a> </h2>
+    <pre class="funcdecl">func NFlag() <a href="builtin.htm#int">int</a></pre>
+    <p>NFlag返回已被设置的flag的数量。</p>
+    <h2 id="Lookup">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#349" title="View Source">Lookup</a> </h2>
+    <pre class="funcdecl">func Lookup(name <a href="builtin.htm#string">string</a>) *<a href="#Flag">Flag</a></pre>
+    <p>返回已经已注册flag的Flag结构体指针；如果flag不存在的话，返回nil。。</p>
+    <h2 id="NArg">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#439" title="View Source">NArg</a> </h2>
+    <pre class="funcdecl">func NArg() <a href="builtin.htm#int">int</a></pre>
+    <p>NArg返回解析flag之后剩余参数的个数。</p>
+    <h2 id="Args">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#445" title="View Source">Args</a> </h2>
+    <pre class="funcdecl">func Args() []<a href="builtin.htm#string">string</a></pre>
+    <p>返回解析之后剩下的非flag参数。（不包括命令名）</p>
+    <h2 id="Arg">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#431" title="View Source">Arg</a> </h2>
+    <pre class="funcdecl">func Arg(i <a href="builtin.htm#int">int</a>) <a href="builtin.htm#string">string</a></pre>
+    <p>返回解析之后剩下的第i个参数，从0开始索引。</p>
+    <h2 id="PrintDefaults">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#389" title="View Source">PrintDefaults</a> </h2>
+    <pre class="funcdecl">func PrintDefaults()</pre>
+    <p>PrintDefault会向标准错误输出写入所有注册好的flag的默认值。</p>
+    <h2 id="Bool">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#469" title="View Source">Bool</a> </h2>
+    <pre class="funcdecl">func Bool(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#bool">bool</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#bool">bool</a></pre>
+    <p>Bool用指定的名称、默认值、使用信息注册一个bool类型flag。返回一个保存了该flag的值的指针。</p>
+    <h2 id="BoolVar">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#455" title="View Source">BoolVar</a> </h2>
+    <pre class="funcdecl">func BoolVar(p *<a href="builtin.htm#bool">bool</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#bool">bool</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>BoolVar用指定的名称、默认值、使用信息注册一个bool类型flag，并将flag的值保存到p指向的变量。</p>
+    <h2 id="Int">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#495" title="View Source">Int</a> </h2>
+    <pre class="funcdecl">func Int(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#int">int</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#int">int</a></pre>
+    <p>Int用指定的名称、默认值、使用信息注册一个int类型flag。返回一个保存了该flag的值的指针。</p>
+    <h2 id="IntVar">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#481" title="View Source">IntVar</a> </h2>
+    <pre class="funcdecl">func IntVar(p *<a href="builtin.htm#int">int</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#int">int</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>IntVar用指定的名称、默认值、使用信息注册一个int类型flag，并将flag的值保存到p指向的变量。</p>
+    <h2 id="Int64">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#521" title="View Source">Int64</a> </h2>
+    <pre class="funcdecl">func Int64(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#int64">int64</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#int64">int64</a></pre>
+    <p>Int64用指定的名称、默认值、使用信息注册一个int64类型flag。返回一个保存了该flag的值的指针。</p>
+    <h2 id="Int64Var">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#507" title="View Source">Int64Var</a> </h2>
+    <pre class="funcdecl">func Int64Var(p *<a href="builtin.htm#int64">int64</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#int64">int64</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>Int64Var用指定的名称、默认值、使用信息注册一个int64类型flag，并将flag的值保存到p指向的变量。</p>
+    <h2 id="Uint">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#547" title="View Source">Uint</a> </h2>
+    <pre class="funcdecl">func Uint(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#uint">uint</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#uint">uint</a></pre>
+    <p>Uint用指定的名称、默认值、使用信息注册一个uint类型flag。返回一个保存了该flag的值的指针。</p>
+    <h2 id="UintVar">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#533" title="View Source">UintVar</a> </h2>
+    <pre class="funcdecl">func UintVar(p *<a href="builtin.htm#uint">uint</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#uint">uint</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>UintVar用指定的名称、默认值、使用信息注册一个uint类型flag，并将flag的值保存到p指向的变量。</p>
+    <h2 id="Uint64">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#573" title="View Source">Uint64</a> </h2>
+    <pre class="funcdecl">func Uint64(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#uint64">uint64</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#uint64">uint64</a></pre>
+    <p>Uint64用指定的名称、默认值、使用信息注册一个uint64类型flag。返回一个保存了该flag的值的指针。</p>
+    <h2 id="Uint64Var">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#559" title="View Source">Uint64Var</a> </h2>
+    <pre class="funcdecl">func Uint64Var(p *<a href="builtin.htm#uint64">uint64</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#uint64">uint64</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>Uint64Var用指定的名称、默认值、使用信息注册一个uint64类型flag，并将flag的值保存到p指向的变量。</p>
+    <h2 id="Float64">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#625" title="View Source">Float64</a> </h2>
+    <pre class="funcdecl">func Float64(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#float64">float64</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#float64">float64</a></pre>
+    <p>Float64用指定的名称、默认值、使用信息注册一个float64类型flag。返回一个保存了该flag的值的指针。</p>
+    <h2 id="Float64Var">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#611" title="View Source">Float64Var</a> </h2>
+    <pre class="funcdecl">func Float64Var(p *<a href="builtin.htm#float64">float64</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#float64">float64</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>Float64Var用指定的名称、默认值、使用信息注册一个float64类型flag，并将flag的值保存到p指向的变量。</p>
+    <h2 id="String">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#599" title="View Source">String</a> </h2>
+    <pre class="funcdecl">func String(name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#string">string</a>, usage <a href="builtin.htm#string">string</a>) *<a href="builtin.htm#string">string</a></pre>
+    <p>String用指定的名称、默认值、使用信息注册一个string类型flag。返回一个保存了该flag的值的指针。</p>
+    <h2 id="StringVar">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#585" title="View Source">StringVar</a> </h2>
+    <pre class="funcdecl">func StringVar(p *<a href="builtin.htm#string">string</a>, name <a href="builtin.htm#string">string</a>, value <a href="builtin.htm#string">string</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>StringVar用指定的名称、默认值、使用信息注册一个string类型flag，并将flag的值保存到p指向的变量。</p>
+    <h2 id="Duration">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#651" title="View Source">Duration</a> </h2>
+    <pre class="funcdecl">func Duration(name <a href="builtin.htm#string">string</a>, value <a href="time.htm">time</a>.<a href="time.htm#Duration">Duration</a>, usage <a href="builtin.htm#string">string</a>) *<a href="time.htm">time</a>.<a href="time.htm#Duration">Duration</a></pre>
+    <p>Duration用指定的名称、默认值、使用信息注册一个time.Duration类型flag。返回一个保存了该flag的值的指针。</p>
+    <h2 id="DurationVar">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#637" title="View Source">DurationVar</a> </h2>
+    <pre class="funcdecl">func DurationVar(p *<a href="time.htm">time</a>.<a href="time.htm#Duration">Duration</a>, name <a href="builtin.htm#string">string</a>, value <a href="time.htm">time</a>.<a href="time.htm#Duration">Duration</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>DurationVar用指定的名称、默认值、使用信息注册一个time.Duration类型flag，并将flag的值保存到p指向的变量。</p>
+    <h2 id="Var">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#687" title="View Source">Var</a> </h2>
+    <pre class="funcdecl">func Var(value <a href="#Value">Value</a>, name <a href="builtin.htm#string">string</a>, usage <a href="builtin.htm#string">string</a>)</pre>
+    <p>Var方法使用指定的名字、使用信息注册一个flag。该flag的类型和值由第一个参数表示，该参数应实现了Value接口。例如，用户可以创建一个flag，可以用Value接口的Set方法将逗号分隔的字符串转化为字符串切片。</p>
+    <h2 id="Set">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#371" title="View Source">Set</a> </h2>
+    <pre class="funcdecl">func Set(name, value <a href="builtin.htm#string">string</a>) <a href="builtin.htm#error">error</a></pre>
+    <p>设置已注册的flag的值。</p>
+    <h2 id="Parse">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#818" title="View Source">Parse</a> </h2>
+    <pre class="funcdecl">func Parse()</pre>
+    <p>从os.Args[1:]中解析注册的flag。必须在所有flag都注册好而未访问其值时执行。未注册却使用flag -help时，会返回ErrHelp。</p>
+    <h2 id="Parsed">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#824" title="View Source">Parsed</a> </h2>
+    <pre class="funcdecl">func Parsed() <a href="builtin.htm#bool">bool</a></pre>
+    <p>返回是否Parse已经被调用过。</p>
+    <h2 id="Visit">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#338" title="View Source">Visit</a> </h2>
+    <pre class="funcdecl">func Visit(fn func(*<a href="#Flag">Flag</a>))</pre>
+    <p>按照字典顺序遍历标签，并且对每个标签调用fn。 这个函数只遍历解析时进行了设置的标签。</p>
+    <h2 id="VisitAll">func <a href="https://github.com/golang/go/blob/master/src/flag/flag.go?name=release#324" title="View Source">VisitAll</a> </h2>
+    <pre class="funcdecl">func VisitAll(fn func(*<a href="#Flag">Flag</a>))</pre>
+    <p>按照字典顺序遍历标签，并且对每个标签调用fn。 这个函数会遍历所有标签，不管解析时有无进行设置。</p>
+</div>

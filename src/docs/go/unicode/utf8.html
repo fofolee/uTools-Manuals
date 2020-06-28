@@ -1,0 +1,363 @@
+<div class="container">
+    <h1 id="pkg-overview">package utf8</h1>
+    <p><code>import "unicode/utf8"</code>
+    </p><p>utf8包实现了对utf-8文本的常用函数和常数的支持，包括rune和utf-8编码byte序列之间互相翻译的函数。</p>
+    
+    
+		
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    
+    
+		
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    <h2 id="pkg-constants">Constants </h2>
+    <pre>const (
+    <span id="RuneError">RuneError</span> = '\uFFFD'     <span class="com">// 错误的Rune或"Unicode replacement character"</span>
+    <span id="RuneSelf">RuneSelf</span>  = 0x80         <span class="com">// 低于RunSelf的字符用代表单字节的同一值表示</span>
+    <span id="MaxRune">MaxRune</span>   = '\U0010FFFF' <span class="com">// 最大的合法unicode码值</span>
+    <span id="UTFMax">UTFMax</span>    = 4            <span class="com">// 最大的utf-8编码的unicode字符的长度</span>
+)</pre>
+    <p>编码的基础常数。</p>
+    <h2 id="ValidRune">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#425" title="View Source">ValidRune</a> </h2>
+    <pre class="funcdecl">func ValidRune(r <a href="builtin.htm#rune">rune</a>) <a href="builtin.htm#bool">bool</a></pre>
+    <p>判断r是否可以编码为合法的utf-8序列。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-ValidRune">
+            <div class="panel-heading" onclick="document.getElementById('ex-ValidRune').style.display = document.getElementById('ex-ValidRune').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-ValidRune">
+                <div class="panel-body">
+                    <pre>valid := 'a'
+invalid := rune(0xfffffff)
+fmt.Println(utf8.ValidRune(valid))
+fmt.Println(utf8.ValidRune(invalid))</pre>
+                    <p>Output:
+                    </p><pre>true
+false
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="RuneLen">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#310" title="View Source">RuneLen</a> </h2>
+    <pre class="funcdecl">func RuneLen(r <a href="builtin.htm#rune">rune</a>) <a href="builtin.htm#int">int</a></pre>
+    <p>返回r编码后的字节数。如果r不是一个合法的可编码为utf-8序列的值，会返回-1。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-RuneLen">
+            <div class="panel-heading" onclick="document.getElementById('ex-RuneLen').style.display = document.getElementById('ex-RuneLen').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-RuneLen">
+                <div class="panel-body">
+                    <pre>fmt.Println(utf8.RuneLen('a'))
+fmt.Println(utf8.RuneLen('界'))</pre>
+                    <p>Output:
+                    </p><pre>1
+3
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="RuneStart">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#384" title="View Source">RuneStart</a> </h2>
+    <pre class="funcdecl">func RuneStart(b <a href="builtin.htm#byte">byte</a>) <a href="builtin.htm#bool">bool</a></pre>
+    <p>报告字节b是否可以作为某个rune编码后的第一个字节。第二个即之后的字节总是将左端两个字位设为10。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-RuneStart">
+            <div class="panel-heading" onclick="document.getElementById('ex-RuneStart').style.display = document.getElementById('ex-RuneStart').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-RuneStart">
+                <div class="panel-body">
+                    <pre>buf := []byte("a界")
+fmt.Println(utf8.RuneStart(buf[0]))
+fmt.Println(utf8.RuneStart(buf[1]))
+fmt.Println(utf8.RuneStart(buf[2]))</pre>
+                    <p>Output:
+                    </p><pre>true
+true
+false
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="FullRune">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#203" title="View Source">FullRune</a> </h2>
+    <pre class="funcdecl">func FullRune(p []<a href="builtin.htm#byte">byte</a>) <a href="builtin.htm#bool">bool</a></pre>
+    <p>报告切片p是否以一个码值的完整utf-8编码开始。不合法的编码因为会被转换为宽度1的错误码值而被视为完整的。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-FullRune">
+            <div class="panel-heading" onclick="document.getElementById('ex-FullRune').style.display = document.getElementById('ex-FullRune').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-FullRune">
+                <div class="panel-body">
+                    <pre>buf := []byte{228, 184, 150} <span class="com">// 世</span>
+fmt.Println(utf8.FullRune(buf))
+fmt.Println(utf8.FullRune(buf[:2]))</pre>
+                    <p>Output:
+                    </p><pre>true
+false
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="FullRuneInString">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#209" title="View Source">FullRuneInString</a> </h2>
+    <pre class="funcdecl">func FullRuneInString(s <a href="builtin.htm#string">string</a>) <a href="builtin.htm#bool">bool</a></pre>
+    <p>函数类似FullRune但输入参数是字符串。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-FullRuneInString">
+            <div class="panel-heading" onclick="document.getElementById('ex-FullRuneInString').style.display = document.getElementById('ex-FullRuneInString').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-FullRuneInString">
+                <div class="panel-body">
+                    <pre>str := "世"
+fmt.Println(utf8.FullRuneInString(str))
+fmt.Println(utf8.FullRuneInString(str[:2]))</pre>
+                    <p>Output:
+                    </p><pre>true
+false
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="RuneCount">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#359" title="View Source">RuneCount</a> </h2>
+    <pre class="funcdecl">func RuneCount(p []<a href="builtin.htm#byte">byte</a>) <a href="builtin.htm#int">int</a></pre>
+    <p>返回p中的utf-8编码的码值的个数。错误或者不完整的编码会被视为宽度1字节的单个码值。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-RuneCount">
+            <div class="panel-heading" onclick="document.getElementById('ex-RuneCount').style.display = document.getElementById('ex-RuneCount').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-RuneCount">
+                <div class="panel-body">
+                    <pre>buf := []byte("Hello, 世界")
+fmt.Println("bytes =", len(buf))
+fmt.Println("runes =", utf8.RuneCount(buf))</pre>
+                    <p>Output:
+                    </p><pre>bytes = 13
+runes = 9
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="RuneCountInString">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#374" title="View Source">RuneCountInString</a> </h2>
+    <pre class="funcdecl">func RuneCountInString(s <a href="builtin.htm#string">string</a>) (n <a href="builtin.htm#int">int</a>)</pre>
+    <p>函数类似RuneCount但输入参数是一个字符串。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-RuneCountInString">
+            <div class="panel-heading" onclick="document.getElementById('ex-RuneCountInString').style.display = document.getElementById('ex-RuneCountInString').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-RuneCountInString">
+                <div class="panel-body">
+                    <pre>str := "Hello, 世界"
+fmt.Println("bytes =", len(str))
+fmt.Println("runes =", utf8.RuneCountInString(str))</pre>
+                    <p>Output:
+                    </p><pre>bytes = 13
+runes = 9
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="Valid">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#387" title="View Source">Valid</a> </h2>
+    <pre class="funcdecl">func Valid(p []<a href="builtin.htm#byte">byte</a>) <a href="builtin.htm#bool">bool</a></pre>
+    <p>返回切片p是否包含完整且合法的utf-8编码序列。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-Valid">
+            <div class="panel-heading" onclick="document.getElementById('ex-Valid').style.display = document.getElementById('ex-Valid').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-Valid">
+                <div class="panel-body">
+                    <pre>valid := []byte("Hello, 世界")
+invalid := []byte{0xff, 0xfe, 0xfd}
+fmt.Println(utf8.Valid(valid))
+fmt.Println(utf8.Valid(invalid))</pre>
+                    <p>Output:
+                    </p><pre>true
+false
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="ValidString">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#407" title="View Source">ValidString</a> </h2>
+    <pre class="funcdecl">func ValidString(s <a href="builtin.htm#string">string</a>) <a href="builtin.htm#bool">bool</a></pre>
+    <p>报告s是否包含完整且合法的utf-8编码序列。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-ValidString">
+            <div class="panel-heading" onclick="document.getElementById('ex-ValidString').style.display = document.getElementById('ex-ValidString').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-ValidString">
+                <div class="panel-body">
+                    <pre>valid := "Hello, 世界"
+invalid := string([]byte{0xff, 0xfe, 0xfd})
+fmt.Println(utf8.ValidString(valid))
+fmt.Println(utf8.ValidString(invalid))</pre>
+                    <p>Output:
+                    </p><pre>true
+false
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="EncodeRune">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#330" title="View Source">EncodeRune</a> </h2>
+    <pre class="funcdecl">func EncodeRune(p []<a href="builtin.htm#byte">byte</a>, r <a href="builtin.htm#rune">rune</a>) <a href="builtin.htm#int">int</a></pre>
+    <p>EncodeRune将r的utf-8编码序列写入p（p必须有足够的长度），并返回写入的字节数。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-EncodeRune">
+            <div class="panel-heading" onclick="document.getElementById('ex-EncodeRune').style.display = document.getElementById('ex-EncodeRune').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-EncodeRune">
+                <div class="panel-body">
+                    <pre>r := '世'
+buf := make([]byte, 3)
+n := utf8.EncodeRune(buf, r)
+fmt.Println(buf)
+fmt.Println(n)</pre>
+                    <p>Output:
+                    </p><pre>[228 184 150]
+3
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="DecodeRune">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#219" title="View Source">DecodeRune</a> </h2>
+    <pre class="funcdecl">func DecodeRune(p []<a href="builtin.htm#byte">byte</a>) (r <a href="builtin.htm#rune">rune</a>, size <a href="builtin.htm#int">int</a>)</pre>
+    <p align="left">函数解码p开始位置的第一个utf-8编码的码值，返回该码值和编码的字节数。如果编码不合法，会返回(RuneError, 1)。该返回值在正确的utf-8编码情况下是不可能返回的。</p>
+    <p align="left">如果一个utf-8编码序列格式不正确，或者编码的码值超出utf-8合法码值的范围，或者不是该码值的最短编码，该编码序列即是不合法的。函数不会执行其他的验证。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-DecodeRune">
+            <div class="panel-heading" onclick="document.getElementById('ex-DecodeRune').style.display = document.getElementById('ex-DecodeRune').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-DecodeRune">
+                <div class="panel-body">
+                    <pre>b := []byte("Hello, 世界")
+for len(b) &gt; 0 {
+    r, size := utf8.DecodeRune(b)
+    fmt.Printf("%c %v\n", r, size)
+    b = b[size:]
+}</pre>
+                    <p>Output:
+                    </p><pre>H 1
+e 1
+l 1
+l 1
+o 1
+, 1
+  1
+世 3
+界 3
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="DecodeRuneInString">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#229" title="View Source">DecodeRuneInString</a> </h2>
+    <pre class="funcdecl">func DecodeRuneInString(s <a href="builtin.htm#string">string</a>) (r <a href="builtin.htm#rune">rune</a>, size <a href="builtin.htm#int">int</a>)</pre>
+    <p>函数类似DecodeRune但输入参数是字符串。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-DecodeRuneInString">
+            <div class="panel-heading" onclick="document.getElementById('ex-DecodeRuneInString').style.display = document.getElementById('ex-DecodeRuneInString').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-DecodeRuneInString">
+                <div class="panel-body">
+                    <pre>str := "Hello, 世界"
+for len(str) &gt; 0 {
+    r, size := utf8.DecodeRuneInString(str)
+    fmt.Printf("%c %v\n", r, size)
+    str = str[size:]
+}</pre>
+                    <p>Output:
+                    </p><pre>H 1
+e 1
+l 1
+l 1
+o 1
+, 1
+  1
+世 3
+界 3
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="DecodeLastRune">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#239" title="View Source">DecodeLastRune</a> </h2>
+    <pre class="funcdecl">func DecodeLastRune(p []<a href="builtin.htm#byte">byte</a>) (r <a href="builtin.htm#rune">rune</a>, size <a href="builtin.htm#int">int</a>)</pre>
+    <p>函数解码p中最后一个utf-8编码序列，返回该码值和编码序列的长度。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-DecodeLastRune">
+            <div class="panel-heading" onclick="document.getElementById('ex-DecodeLastRune').style.display = document.getElementById('ex-DecodeLastRune').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-DecodeLastRune">
+                <div class="panel-body">
+                    <pre>b := []byte("Hello, 世界")
+for len(b) &gt; 0 {
+    r, size := utf8.DecodeLastRune(b)
+    fmt.Printf("%c %v\n", r, size)
+    b = b[:len(b)-size]
+}</pre>
+                    <p>Output:
+                    </p><pre>界 3
+世 3
+  1
+, 1
+o 1
+l 1
+l 1
+e 1
+H 1
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="DecodeLastRuneInString">func <a href="https://github.com/golang/go/blob/master/src/unicode/utf8/utf8.go?name=release#276" title="View Source">DecodeLastRuneInString</a> </h2>
+    <pre class="funcdecl">func DecodeLastRuneInString(s <a href="builtin.htm#string">string</a>) (r <a href="builtin.htm#rune">rune</a>, size <a href="builtin.htm#int">int</a>)</pre>
+    <p>函数类似DecodeLastRune但输入参数是字符串。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-DecodeLastRuneInString">
+            <div class="panel-heading" onclick="document.getElementById('ex-DecodeLastRuneInString').style.display = document.getElementById('ex-DecodeLastRuneInString').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-DecodeLastRuneInString">
+                <div class="panel-body">
+                    <pre>str := "Hello, 世界"
+for len(str) &gt; 0 {
+    r, size := utf8.DecodeLastRuneInString(str)
+    fmt.Printf("%c %v\n", r, size)
+    str = str[:len(str)-size]
+}</pre>
+                    <p>Output:
+                    </p><pre>界 3
+世 3
+  1
+, 1
+o 1
+l 1
+l 1
+e 1
+H 1
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

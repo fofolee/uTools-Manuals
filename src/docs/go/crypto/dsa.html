@@ -1,0 +1,61 @@
+<div class="container">
+    <h1 id="pkg-overview">package dsa</h1>
+    <p><code>import "crypto/dsa"</code>
+    </p><p>dsa包实现FIPS 186-3定义的数字签名算法（Digital Signature Algorithm），即DSA算法。</p>
+    
+    
+		
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    <h2 id="pkg-variables">Variables </h2>
+    <pre>var <span id="ErrInvalidPublicKey">ErrInvalidPublicKey</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("crypto/dsa: invalid public key")</pre>
+    <p>非法公钥，FIPS标准的公钥格式是很严格的，但有些实现没这么严格，使用这些实现的公钥时，就会导致这个错误。</p>
+    <h2 id="ParameterSizes">type <a href="https://github.com/golang/go/blob/master/src/crypto/dsa/dsa.go?name=release#40" title="View Source">ParameterSizes</a> </h2>
+    <pre>type ParameterSizes <a href="builtin.htm#int">int</a></pre>
+    <p>是DSA参数中的质数可以接受的字位长度的枚举，参见FIPS 186-3 section 4.2。</p>
+    <pre>const (
+    <span id="L1024N160">L1024N160</span> <a href="#ParameterSizes">ParameterSizes</a> = <a href="builtin.htm#iota">iota</a>
+    <span id="L2048N224">L2048N224</span>
+    <span id="L2048N256">L2048N256</span>
+    <span id="L3072N256">L3072N256</span>
+)</pre>
+    <h2 id="Parameters">type <a href="https://github.com/golang/go/blob/master/src/crypto/dsa/dsa.go?name=release#16" title="View Source">Parameters</a> </h2>
+    <pre>type Parameters struct {
+    <span id="Parameters.P">P</span>, <span id="Parameters.Q">Q</span>, <span id="Parameters.G">G</span> *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a>
+}</pre>
+    <p>Parameters代表密钥的域参数，这些参数可以被一组密钥共享，Q的字位长度必须是8的倍数。</p>
+    <h2 id="PublicKey">type <a href="https://github.com/golang/go/blob/master/src/crypto/dsa/dsa.go?name=release#21" title="View Source">PublicKey</a> </h2>
+    <pre>type PublicKey struct {
+    <a href="#Parameters">Parameters</a>
+    <span id="PublicKey.Y">Y</span>   *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a>
+}</pre>
+    <p>PublicKey代表一个DSA公钥。</p>
+    <h2 id="PrivateKey">type <a href="https://github.com/golang/go/blob/master/src/crypto/dsa/dsa.go?name=release#27" title="View Source">PrivateKey</a> </h2>
+    <pre>type PrivateKey struct {
+    <a href="#PublicKey">PublicKey</a>
+    <span id="PrivateKey.X">X</span>   *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a>
+}</pre>
+    <p>PrivateKey代表一个DSA私钥。</p>
+    <h2 id="GenerateKey">func <a href="https://github.com/golang/go/blob/master/src/crypto/dsa/dsa.go?name=release#151" title="View Source">GenerateKey</a> </h2>
+    <h2 id="GenerateParameters">func <a href="https://github.com/golang/go/blob/master/src/crypto/dsa/dsa.go?name=release#55" title="View Source">GenerateParameters</a> </h2>
+    <pre class="funcdecl">func GenerateParameters(params *<a href="#Parameters">Parameters</a>, rand <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, sizes <a href="#ParameterSizes">ParameterSizes</a>) (err <a href="builtin.htm#error">error</a>)</pre>
+    <p>GenerateParameters函数随机设置合法的参数到params。即使机器很快，函数也可能会花费很多时间来生成参数。</p>
+    <pre class="funcdecl">func GenerateKey(priv *<a href="#PrivateKey">PrivateKey</a>, rand <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>) <a href="builtin.htm#error">error</a></pre>
+    <p>GenerateKey生成一对公钥和私钥；priv.PublicKey.Parameters字段必须已经（被GenerateParameters函数）设置了合法的参数。</p>
+    <h2 id="Sign">func <a href="https://github.com/golang/go/blob/master/src/crypto/dsa/dsa.go?name=release#194" title="View Source">Sign</a> </h2>
+    <pre class="funcdecl">func Sign(rand <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, hash []<a href="builtin.htm#byte">byte</a>) (r, s *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p align="left">使用私钥对任意长度的hash值（必须是较大信息的hash结果）进行签名，返回签名结果（一对大整数）。私钥的安全性取决于密码读取器的熵度（随机程度）。</p>
+    <p align="left">注意根据FIPS 186-3 section 4.6的规定，hash必须被截断到亚组的长度，本函数是不会自己截断的。</p>
+    <h2 id="Verify">func <a href="https://github.com/golang/go/blob/master/src/crypto/dsa/dsa.go?name=release#249" title="View Source">Verify</a> </h2>
+    <pre class="funcdecl">func Verify(pub *<a href="#PublicKey">PublicKey</a>, hash []<a href="builtin.htm#byte">byte</a>, r, s *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a>) <a href="builtin.htm#bool">bool</a></pre>
+    <p align="left">使用公钥认证hash和两个大整数r、s构成的签名，报告签名是否合法。</p>
+    <p align="left">注意根据FIPS 186-3 section 4.6的规定，hash必须被截断到亚组的长度，本函数是不会自己截断的。</p>
+</div>

@@ -1,0 +1,1008 @@
+<div class="container">
+
+        <h1 id="pkg-overview">package testing</h1>
+
+        <p><code>import "testing"</code>
+
+        </p><p>
+testing 提供对 Go 包的自动化测试的支持。通过 `go test` 命令，能够自动执行如下形式的任何函数：
+</p>
+<pre>func TestXxx(*testing.T)
+</pre>
+<p>
+其中 Xxx 可以是任何字母数字字符串（但第一个字母不能是
+[a-z]），用于识别测试例程。
+</p>
+<p>
+在这些函数中，使用 Error, Fail 或相关方法来发出失败信号。
+</p>
+<p>
+要编写一个新的测试套件，需要创建一个名称以 _test.go 结尾的文件，该文件包含 `TestXxx` 函数，如上所述。 将该文件放在与被测试的包相同的包中。该文件将被排除在正常的程序包之外，但在运行 “go test” 命令时将被包含。 有关详细信息，请运行 “go help test” 和 “go help testflag” 了解。
+</p>
+<p>
+如果有需要，可以调用 *T 和 *B 的 Skip 方法，跳过该测试或基准测试：
+</p>
+<pre>func TestTimeConsuming(t *testing.T) {
+    if testing.Short() {
+        t.Skip("skipping test in short mode.")
+    }
+    ...
+}
+</pre>
+<h3 id="hdr-Benchmarks">Benchmarks </h3>
+<p>
+如下形式的函数：
+</p>
+<pre>func BenchmarkXxx(*testing.B)
+</pre>
+<p>
+被认为是基准测试，通过 "go test" 命令，加上 -bench flag 来执行。多个基准测试按照顺序运行。
+</p>
+<p>
+testing flags 的详细描述, 参见
+<a href="https://github.com/golang/go/blob/master/cmd/go/#hdr-Description_of_testing_flags">https://github.com/golang/go/blob/master/cmd/go/#hdr-Description_of_testing_flags</a>.
+</p>
+<p>
+基准测试函数样例看起来如下所示：
+</p>
+<pre>func BenchmarkHello(b *testing.B) {
+    for i := 0; i &lt; b.N; i++ {
+        fmt.Sprintf("hello")
+    }
+}
+</pre>
+<p>
+基准函数会运行目标代码 b.N 次。在基准执行期间，会调整 b.N 直到基准测试函数持续足够长的时间。输出
+</p>
+<pre>BenchmarkHello    10000000    282 ns/op
+</pre>
+<p>
+意味着循环执行了 10000000 次，每次循环花费 282 纳秒(ns)。
+</p>
+<p>
+如果在运行前基准测试需要一些耗时的配置，则可以先重置定时器：
+</p>
+<pre>func BenchmarkBigLen(b *testing.B) {
+    big := NewBig()
+    b.ResetTimer()
+    for i := 0; i &lt; b.N; i++ {
+        big.Len()
+    }
+}
+</pre>
+<p>
+如果基准测试需要在并行设置中测试性能，则可以使用 RunParallel 辅助函数; 这样的基准测试一般与 go test -cpu 标志一起使用：
+</p>
+<pre>func BenchmarkTemplateParallel(b *testing.B) {
+    templ := template.Must(template.New("test").Parse("Hello, {{.}}!"))
+    b.RunParallel(func(pb *testing.PB) {
+        var buf bytes.Buffer
+        for pb.Next() {
+            buf.Reset()
+            templ.Execute(&amp;buf, "World")
+        }
+    })
+}
+</pre>
+<h3 id="hdr-Examples">Examples </h3>
+<p>
+该包还运行并验证示例代码。示例函数可以包括以 "Output：" 开头的行注释，并在运行测试时与函数的标准输出进行比较。 （比较时会忽略前导和尾随空格。）这些是一个 example 的例子：
+</p>
+<pre>func ExampleHello() {
+        fmt.Println("hello")
+        // Output: hello
+}
+
+func ExampleSalutations() {
+        fmt.Println("hello, and")
+        fmt.Println("goodbye")
+        // Output:
+        // hello, and
+        // goodbye
+}
+</pre>
+<p>
+"Unordered output:" 形式的注释，和 "Output:" 类似，但是能够以任意顺序匹配行：
+</p>
+<pre>func ExamplePerm() {
+    for _, value := range Perm(4) {
+        fmt.Println(value)
+    }
+    // Unordered output: 4
+    // 2
+    // 1
+    // 3
+    // 0
+}
+</pre>
+<p>
+没有输出注释的示例函数被编译但不执行。
+</p>
+<p>
+example 声明的命名约定：包，函数 F，类型 T，类型 T 上的方法 M 依次是：
+</p>
+<pre>func Example() { ... }
+func ExampleF() { ... }
+func ExampleT() { ... }
+func ExampleT_M() { ... }
+</pre>
+<p>
+可以为 包/类型/函数/方法 提供多个 example 函数，这通过在名称上附加一个不同的后缀来实现。后缀必须是以小写字母开头。
+</p>
+<pre>func Example_suffix() { ... }
+func ExampleF_suffix() { ... }
+func ExampleT_suffix() { ... }
+func ExampleT_M_suffix() { ... }
+</pre>
+<p>
+当一个文件包含一个示例函数，同时至少一个其他函数，类型，变量或常量声明，或没有测试或基准函数时，这个测试文件作为示例存在，通常命名为 example_test.go
+</p>
+<h3 id="hdr-Subtests_and_Sub_benchmarks">Subtests 和 Sub-benchmarks </h3>
+<p>
+T 和 B 的 Run 方法允许定义子单元测试和子基准测试，而不必为每个子测试和子基准定义单独的函数。这使得可以使用 Table-Driven 的基准测试和创建层级测试。它还提供了一种共享通用 setup 和 tear-down 代码的方法：
+</p>
+<pre>func TestFoo(t *testing.T) {
+    // &lt;setup code&gt;
+    t.Run("A=1", func(t *testing.T) { ... })
+    t.Run("A=2", func(t *testing.T) { ... })
+    t.Run("B=1", func(t *testing.T) { ... })
+    // &lt;tear-down code&gt;
+}
+</pre>
+<p>
+每个子测试和子基准测试都有一个唯一的名称：顶级测试的名称和传递给 Run 的名称的组合，以斜杠分隔，并具有用于消歧的可选尾随序列号。
+</p>
+<p>
+-run 和 -bench 命令行标志的参数是与测试名称相匹配的非固定的正则表达式。对于具有多个斜杠分隔元素（例如子测试）的测试，该参数本身是斜杠分隔的，其中表达式依次匹配每个名称元素。因为它是非固定的，一个空的表达式匹配任何字符串。例如，使用 "匹配" 表示 "其名称包含"：
+</p>
+<pre>go test -run ''      # Run 所有测试。
+go test -run Foo     # Run 匹配 "Foo" 的顶层测试，例如 "TestFooBar"。
+go test -run Foo/A=  # 匹配顶层测试 "Foo"，运行其匹配 "A=" 的子测试。
+go test -run /A=1    # 运行所有匹配 "A=1" 的子测试。
+</pre>
+<p>
+子测试也可用于控制并行性。所有的子测试完成后，父测试才会完成。在这个例子中，所有的测试是相互并行运行的，当然也只是彼此之间，不包括定义在其他顶层测试的子测试：
+</p>
+<pre>func TestGroupedParallel(t *testing.T) {
+    for _, tc := range tests {
+        tc := tc // capture range variable
+        t.Run(tc.Name, func(t *testing.T) {
+            t.Parallel()
+            ...
+        })
+    }
+}
+</pre>
+<p>
+在并行子测试完成之前，Run 方法不会返回，这提供了一种测试后清理的方法：
+</p>
+<pre>func TestTeardownParallel(t *testing.T) {
+    // This Run will not return until the parallel tests finish.
+    t.Run("group", func(t *testing.T) {
+        t.Run("Test1", parallelTest1)
+        t.Run("Test2", parallelTest2)
+        t.Run("Test3", parallelTest3)
+    })
+    // &lt;tear-down code&gt;
+}
+</pre>
+<h3 id="hdr-Main">Main </h3>
+<p>
+测试程序有时需要在测试之前或之后进行额外的设置（setup）或拆卸（teardown）。有时, 测试还需要控制在主线程上运行的代码。为了支持这些和其他一些情况, 如果测试文件包含函数:
+</p>
+<pre>func TestMain(m *testing.M)
+</pre>
+<p>
+那么生成的测试将调用 TestMain(m)，而不是直接运行测试。TestMain 运行在主 goroutine 中, 可以在调用 m.Run 前后做任何设置和拆卸。应该使用 m.Run 的返回值作为参数调用 os.Exit。在调用 TestMain 时, flag.Parse 并没有被调用。所以，如果 TestMain 依赖于 command-line 标志 (包括 testing 包的标记), 则应该显示的调用 flag.Parse。
+</p>
+<p>
+一个简单的 TestMain 的实现：
+</p>
+<pre>func TestMain(m *testing.M) {
+	// call flag.Parse() here if TestMain uses flags
+    // 如果 TestMain 使用了 flags，这里应该加上 flag.Parse()
+	os.Exit(m.Run())
+}</pre>
+
+
+        
+  
+        
+
+        
+
+        
+
+        
+        
+          
+          
+        
+
+        
+        
+
+
+<p><a href="https://github.com/golang/go/blob/master/src/testing/allocs.go">allocs.go</a> <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go">benchmark.go</a> <a href="https://github.com/golang/go/blob/master/src/testing/cover.go">cover.go</a> <a href="https://github.com/golang/go/blob/master/src/testing/example.go">example.go</a> <a href="https://github.com/golang/go/blob/master/src/testing/match.go">match.go</a> <a href="https://github.com/golang/go/blob/master/src/testing/testing.go">testing.go</a> </p>
+
+        
+        
+
+        
+        
+
+        
+        
+        
+          <h2 data-kind="f" id="AllocsPerRun">func <a href="https://github.com/golang/go/blob/master/src/testing/allocs.go#L20" title="View Source">AllocsPerRun</a>  </h2>
+          <p>
+AllocsPerRun 返回在调用 f 期间内存平均分配次数。虽然返回值的类型为 float64，但它始终是一个整数值。
+</p>
+<p>
+要计算分配次数，该函数将首先作为热身运行一次。然后将测量并返回指定数量（runs 参数）运行的内存平均分配次数。
+</p>
+<p>
+AllocsPerRun 在测量过程中将 GOMAXPROCS 设置为1，并在返回前将其还原。
+</p>
+  
+
+        
+          <h2 data-kind="f" id="CoverMode">func <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L292" title="View Source">CoverMode</a>  </h2>
+          <p>
+CoverMode reports what the test coverage mode is set to. The
+values are "set", "count", or "atomic". The return value will be
+empty if test coverage is not enabled.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="Coverage">func <a href="https://github.com/golang/go/blob/master/src/testing/cover.go#L45" title="View Source">Coverage</a>  </h2>
+          <p>
+Coverage reports the current code coverage as a fraction in the range [0, 1].
+If coverage is not enabled, Coverage returns 0.
+</p>
+<p>
+When running a large set of sequential test cases, checking Coverage after each one
+can be useful for identifying which test cases exercise new code paths.
+It is not a replacement for the reports generated by 'go test -cover' and
+'go tool cover'.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="Main">func <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L774" title="View Source">Main</a>  </h2>
+          <p>
+Main is an internal function, part of the implementation of the "go test" command.
+It was exported because it is cross-package and predates "internal" packages.
+It is no longer used by "go test" but preserved, as much as possible, for other
+systems that simulate "go test" using Main, but Main sometimes cannot be updated as
+new functionality is added to the testing package.
+Systems simulating "go test" should be updated to use MainStart.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="RegisterCover">func <a href="https://github.com/golang/go/blob/master/src/testing/cover.go#L64" title="View Source">RegisterCover</a>  </h2>
+          <p>
+RegisterCover records the coverage data accumulators for the tests.
+NOTE: This function is internal to the testing infrastructure and may change.
+It is not covered (yet) by the Go 1 compatibility guidelines.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="RunBenchmarks">func <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L365" title="View Source">RunBenchmarks</a>  </h2>
+          <p>
+An internal function but exported because it is cross-package; part of the implementation
+of the "go test" command.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="RunExamples">func <a href="https://github.com/golang/go/blob/master/src/testing/example.go#L26" title="View Source">RunExamples</a>  </h2>
+          <p>
+An internal function but exported because it is cross-package; part of the implementation
+of the "go test" command.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="RunTests">func <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L858" title="View Source">RunTests</a>  </h2>
+          <p>
+An internal function but exported because it is cross-package; part of the implementation
+of the "go test" command.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="Short">func <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L285" title="View Source">Short</a>  </h2>
+          <p>
+Short reports whether the -test.short flag is set.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="Verbose">func <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L297" title="View Source">Verbose</a>  </h2>
+          <p>
+Verbose reports whether the -test.v flag is set.
+</p>
+
+          
+  
+
+        
+
+        
+        
+
+        
+          <h2 data-kind="t" id="B">type <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L48" title="View Source">B</a>  </h2>
+          <p>
+B 是传递给基准测试函数的一种类型，它用于管理基准测试的计时行为，并指示应该迭代地运行测试多少次。
+</p>
+<p>
+一个基准测试在它的基准测试函数返回时，又或者在它的基准测试函数调用 FailNow、Fatal、Fatalf、SkipNow、Skip 或者 Skipf 中的任意一个方法时，测试即宣告结束。至于其他报告方法，比如 Log 和 Error 的变种，则可以在其他 goroutine 中同时进行调用。
+</p>
+<p>
+跟单元测试一样，基准测试会在执行的过程中积累日志，并在测试完毕时将日志转储到标准错误。但跟单元测试不一样的是，为了避免基准测试的结果受到日志打印操作的影响，基准测试总是会把日志打印出来。
+</p>
+
+          
+          
+            <h3 data-kind="m" id="B.Error">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L510" title="View Source">Error</a>  </h3>
+            <p>
+调用 Error 相当于在调用 Log 之后调用 Fail 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Errorf">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L516" title="View Source">Errorf</a>  </h3>
+            <p>
+调用 Errorf 相当于在调用 Logf 之后调用 Fail 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Fail">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L437" title="View Source">Fail</a>  </h3>
+            <p>
+将当前的测试函数标识为“失败”，但仍然继续执行该函数。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.FailNow">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L463" title="View Source">FailNow</a>  </h3>
+            <p>
+将当前的测试函数标识为“失败”，并停止执行该函数。在此之后，测试过程将在下一个测试或者下一个基准测试中继续。
+
+FailNow 必须在运行测试函数或者基准测试函数的 goroutine 中调用，而不能在测试期间创建的 goroutine 中调用。调用 FailNow 不会导致其他 goroutine 停止。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Failed">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L451" title="View Source">Failed</a>  </h3>
+            <p>
+Failed 用于报告测试函数是否已失败。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Fatal">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L522" title="View Source">Fatal</a>  </h3>
+            <p>
+调用 Fatal 相当于在调用 Log 之后调用 FailNow 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Fatalf">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L528" title="View Source">Fatalf</a>  </h3>
+            <p>
+调用 Fatalf 相当于在调用 Logf 之后调用 FailNow 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Log">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L500" title="View Source">Log</a>  </h3>
+            <p>
+Log 使用与 Println 相同的格式化语法对它的参数进行格式化， 然后将格式化后的文本记录到错误日志里面：
+</p>
+<p>
+对于测试来说， 格式化文本只会在测试失败或者设置了 -test.v 标志的情况下被打印出来；
+对于基准测试来说， 为了避免 -test.v 标志的值对测试的性能产生影响， 格式化文本总会被打印出来。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Logf">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L507" title="View Source">Logf</a>  </h3>
+            <p>
+Log 使用与 Printf 相同的格式化语法对它的参数进行格式化， 然后将格式化后的文本记录到错误日志里面。 如果输入的格式化文本最末尾没有出现新行， 那么将一个新行添加到格式化后的文本末尾。
+</p>
+<p>
+对于测试来说，Logf 产生的格式化文本只会在测试失败或者设置了 -test.v 标志的情况下被打印出来； 对于基准测试来说， 为了避免 -test.v 标志的值对测试的性能产生影响， Logf 产生的格式化文本总会被打印出来。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Name">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L423" title="View Source">Name</a>  </h3>
+            <p>
+返回正在运行的测试或者基准测试的名字。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.ReportAllocs">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L117" title="View Source">ReportAllocs</a>  </h3>
+            <p>
+打开当前基准测试的内存统计功能，与使用 -test.benchmem 设置类似，但 ReportAllocs 只影响那些调用了该函数的基准测试。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.ResetTimer">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L98" title="View Source">ResetTimer</a>  </h3>
+            <p>
+对已经逝去的基准测试时间以及内存分配计数器进行清零。对于正在运行中的计时器，这个方法不会产生任何效果。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Run">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L466" title="View Source">Run</a>  </h3>
+            <p>
+执行名字为 name 的子基准测试（subbenchmark）f ，并报告 f 在执行过程中是否出现了任何失败。
+</p>
+<p>
+子基准测试跟其他普通的基准测试一样。一个调用了 Run 方法至少一次的基准测试将不会对其自身进行测量（measure），并且在 N 为 1 时， 这个基准测试将只会被执行一次。
+</p>
+<p>
+Run 可以同时在多个 goroutine 中被调用，但这些调用必须发生在 b 的外部基准函数（outer benchmark function）返回之前。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.RunParallel">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L573" title="View Source">RunParallel</a>  </h3>
+            <p>
+以并行的方式执行给定的基准测试。 RunParallel 会创建出多个 goroutine ，并将 b.N 分配给这些 goroutine 执行， 其中 goroutine 数量的默认值为 GOMAXPROCS 。用户如果想要增加非CPU受限（non-CPU-bound）基准测试的并行性， 那么可以在 RunParallel 之前调用 SetParallelism 。RunParallel 通常会与 -cpu 标志一同使用。
+</p>
+<p>
+body 函数将在每个 goroutine 中执行，这个函数需要设置所有 goroutine 本地的状态， 并迭代直到 pb.Next 返回 false 值为止。因为 StartTimer 、 StopTimer 和 ResetTimer 这三个函数都带有全局作用，所以 body 函数不应该调用这些函数；除此之外，body 函数也不应该调用 Run 函数。
+</p>
+
+            
+  
+    <div class="panel-group">
+    
+      <div class="panel panel-default" id="example-B-RunParallel">
+        <div class="panel-heading"><a class="accordion-toggle" data-toggle="collapse" href="#ex-B-RunParallel">Example</a></div>
+        <div class="panel-collapse collapse" id="ex-B-RunParallel"><div class="panel-body">
+          
+          <p>Code:<span class="pull-right"><a href="?play=B-RunParallel">play</a> </span>
+          </p><pre><span class="com">// Parallel benchmark for text/template.Template.Execute on a single object.</span>
+testing.Benchmark(func(b *testing.B) {
+    templ := template.Must(template.New("test").Parse("Hello, {{.}}!"))
+    <span class="com">// RunParallel will create GOMAXPROCS goroutines
+    // and distribute work among them.</span>
+    b.RunParallel(func(pb *testing.PB) {
+        <span class="com">// Each goroutine has its own bytes.Buffer.</span>
+        var buf bytes.Buffer
+        for pb.Next() {
+            <span class="com">// The loop body is executed b.N times total across all goroutines.</span>
+            buf.Reset()
+            templ.Execute(&amp;buf, "World")
+        }
+    })
+})
+</pre>
+          
+        </div></div>
+      </div>
+    
+    </div>
+  
+
+          
+            <h3 data-kind="m" id="B.SetBytes">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L112" title="View Source">SetBytes</a>  </h3>
+            <p>
+记录在单个操作中处理的字节数量。在调用了这个方法之后，基准测试将会报告 ns/op 以及 MB/s 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.SetParallelism">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L617" title="View Source">SetParallelism</a>  </h3>
+            <p>
+将 RunParallel 使用的 goroutine 数量设置为 p*GOMAXPROCS ，如果 p 小于 1 ，那么调用将不产生任何效果。
+</p>
+<p>
+CPU受限（CPU-bound）的基准测试通常不需要调用这个方法。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Skip">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L534" title="View Source">Skip</a>  </h3>
+            <p>
+调用 Skip 相当于在调用 Log 之后调用 SkipNow 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.SkipNow">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L552" title="View Source">SkipNow</a>  </h3>
+            <p>
+将当前测试标识为“被跳过”并停止执行该测试。 如果一个测试在失败（参考 Error 、 Errorf 和 Fail）之后被跳过了， 那么它还是会被判断为是“失败的”。
+</p>
+<p>
+在停止当前测试之后， 测试过程将在下一个测试或者下一个基准测试中继续， 具体请参考 FailNow 。
+</p>
+<p>
+SkipNow 必须在运行测试的 goroutine 中进行调用， 而不能在测试期间创建的 goroutine 中调用。 调用 SkipNow 不会导致其他 goroutine 停止。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Skipf">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L540" title="View Source">Skipf</a>  </h3>
+            <p>
+调用 Skipf 相当于在调用 Logf 之后调用 SkipNow 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.Skipped">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L565" title="View Source">Skipped</a>  </h3>
+            <p>
+报告测试是否已被跳过。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.StartTimer">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L73" title="View Source">StartTimer</a>  </h3>
+            <p>
+开始对测试进行计时。
+
+这个函数在基准测试开始时会自动被调用， 它也可以在调用 StopTimer 之后恢复进行计时。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="B.StopTimer">func (*B) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L86" title="View Source">StopTimer</a>  </h3>
+            <p>
+停止对测试进行计时。
+
+当你需要执行一些复杂的初始化操作， 并且你不想对这些操作进行测量时， 就可以使用这个方法来暂时地停止计时。
+</p>
+
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="BenchmarkResult">type <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L287" title="View Source">BenchmarkResult</a>  </h2>
+          <p>
+基准测试运行的结果。
+</p>
+
+          
+          
+
+          
+            <h3 data-kind="f" id="Benchmark">func <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L628" title="View Source">Benchmark</a>  </h3>
+            <p>
+测试单个函数。用于创建不使用 "go test" 命令的自定义基准测试。
+</p>
+<p>
+如果 f 调用 Run，则结果将是运行其所有子基准的结果估计，该子基准在单个基准测试中不会顺序调用 Run。
+</p>
+
+            
+          
+            <h3 data-kind="m" id="BenchmarkResult.AllocedBytesPerOp">func (BenchmarkResult) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L316" title="View Source">AllocedBytesPerOp</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BenchmarkResult.AllocsPerOp">func (BenchmarkResult) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L309" title="View Source">AllocsPerOp</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BenchmarkResult.MemString">func (BenchmarkResult) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L343" title="View Source">MemString</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BenchmarkResult.NsPerOp">func (BenchmarkResult) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L295" title="View Source">NsPerOp</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BenchmarkResult.String">func (BenchmarkResult) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L323" title="View Source">String</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Cover">type <a href="https://github.com/golang/go/blob/master/src/testing/cover.go#L31" title="View Source">Cover</a>  </h2>
+          <p>
+Cover records information about test coverage checking.
+NOTE: This struct is internal to the testing infrastructure and may change.
+It is not covered (yet) by the Go 1 compatibility guidelines.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="CoverBlock">type <a href="https://github.com/golang/go/blob/master/src/testing/cover.go#L18" title="View Source">CoverBlock</a>  </h2>
+          <p>
+CoverBlock records the coverage data for a single basic block.
+NOTE: This struct is internal to the testing infrastructure and may change.
+It is not covered (yet) by the Go 1 compatibility guidelines.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="InternalBenchmark">type <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L30" title="View Source">InternalBenchmark</a>  </h2>
+          <p>
+An internal type but exported because it is cross-package; part of the implementation
+of the "go test" command.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="InternalExample">type <a href="https://github.com/golang/go/blob/master/src/testing/example.go#L17" title="View Source">InternalExample</a>  </h2>
+          
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="InternalTest">type <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L597" title="View Source">InternalTest</a>  </h2>
+          <p>
+An internal type but exported because it is cross-package; part of the implementation
+of the "go test" command.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="M">type <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L779" title="View Source">M</a>  </h2>
+          <p>
+M 是传递给 TestMain 函数以运行实际测试的类型。
+</p>
+
+          
+          
+          
+  
+
+
+          
+            <h3 data-kind="f" id="MainStart">func <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L801" title="View Source">MainStart</a>  </h3>
+            <p>
+MainStart is meant for use by tests generated by 'go test'.
+It is not meant to be called directly and is not subject to the Go 1 compatibility document.
+It may change signature from release to release.
+</p>
+
+            
+  
+
+          
+
+          
+            <h3 data-kind="m" id="M.Run">func (*M) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L811" title="View Source">Run</a>  </h3>
+            <p>
+Run 运行这些测试。它返回要传递给 os.Exit 的退出代码。
+</p>
+
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="PB">type <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L540" title="View Source">PB</a>  </h2>
+          <p>
+PB 被 RunParallel 使用来运行并行基准测试。
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="PB.Next">func (*PB) <a href="https://github.com/golang/go/blob/master/src/testing/benchmark.go#L548" title="View Source">Next</a>  </h3>
+            <p>
+Next 判断是否有更多的迭代要执行
+</p>
+
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="T">type <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L414" title="View Source">T</a>  </h2>
+          <p>
+T 是传递给测试函数的一种类型，它用于管理测试状态并支持格式化测试日志。测试日志会在执行测试的过程中不断累积， 并在测试完成时转储至标准输出。
+</p>
+<p>
+当一个测试的测试函数返回时， 又或者当一个测试函数调用 FailNow 、 Fatal 、 Fatalf 、 SkipNow 、 Skip 或者 Skipf 中的任意一个时， 该测试即宣告结束。 跟 Parallel 方法一样， 以上提到的这些方法只能在运行测试函数的 goroutine 中调用。
+</p>
+<p>
+至于其他报告方法， 比如 Log 以及 Error 的变种， 则可以在多个 goroutine 中同时进行调用。
+</p>
+
+            <h3 data-kind="m" id="T.Error">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L510" title="View Source">Error</a>  </h3>
+            <p>
+调用 Error 相当于在调用 Log 之后调用 Fail 。
+</p>
+
+            <h3 data-kind="m" id="T.Errorf">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L516" title="View Source">Errorf</a>  </h3>
+            <p>
+调用 Errorf 相当于在调用 Logf 之后调用 Fail 。
+</p>
+
+            
+          
+            <h3 data-kind="m" id="T.Fail">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L437" title="View Source">Fail</a>  </h3>
+            <p>
+将当前测试标识为失败，但是仍继续执行该测试。
+</p>
+
+            
+  
+            <h3 data-kind="m" id="T.FailNow">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L463" title="View Source">FailNow</a>  </h3>
+            <p>
+将当前测试标识为失败并停止执行该测试，在此之后，测试过程将在下一个测试或者下一个基准测试中继续。
+</p>
+<p>
+FailNow 必须在运行测试函数或者基准测试函数的 goroutine 中调用，而不能在测试期间创建的 goroutine 中调用。调用 FailNow 不会导致其他 goroutine 停止。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Failed">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L451" title="View Source">Failed</a>  </h3>
+            <p>
+Failed 用于报告测试函数是否已失败。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Fatal">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L522" title="View Source">Fatal</a>  </h3>
+            <p>
+调用 Fatal 相当于在调用 Log 之后调用 FailNow 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Fatalf">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L528" title="View Source">Fatalf</a>  </h3>
+            <p>
+调用 Fatalf 相当于在调用 Logf 之后调用 FailNow 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Log">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L500" title="View Source">Log</a>  </h3>
+            <p>
+Log 使用与 Println 相同的格式化语法对它的参数进行格式化，然后将格式化后的文本记录到错误日志里面：
+</p>
+<p>
+1）对于测试来说，格式化文本只会在测试失败或者设置了 -test.v 标志的情况下被打印出来；
+2）对于基准测试来说，为了避免 -test.v 标志的值对测试的性能产生影响， 格式化文本总会被打印出来。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Logf">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L507" title="View Source">Logf</a>  </h3>
+            <p>
+Log 使用与 Printf 相同的格式化语法对它的参数进行格式化，然后将格式化后的文本记录到错误日志里面。 如果输入的格式化文本最末尾没有出现新行，那么将一个新行添加到格式化后的文本末尾。
+</p>
+<p>
+1）对于测试来说，Logf 产生的格式化文本只会在测试失败或者设置了 -test.v 标志的情况下被打印出来；
+2）对于基准测试来说，为了避免 -test.v 标志的值对测试的性能产生影响，Logf 产生的格式化文本总会被打印出来。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Name">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L423" title="View Source">Name</a>  </h3>
+            <p>
+返回正在运行的测试或基准测试的名字。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Parallel">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L573" title="View Source">Parallel</a>  </h3>
+            <p>
+Parallel 用于表示当前测试只会与其他带有 Parallel 方法的测试并行进行测试。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Run">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L666" title="View Source">Run</a>  </h3>
+            <p>
+执行名字为 name 的子测试 f ，并报告 f 在执行过程中是否出现了任何失败。Run 将一直阻塞直到 f 的所有并行测试执行完毕。
+</p>
+<p>
+Run 可以在多个 goroutine 里面同时进行调用，但这些调用必须发生在 t 的外层测试函数（outer test function）返回之前。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Skip">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L534" title="View Source">Skip</a>  </h3>
+            <p>
+调用 Skip 相当于在调用 Log 之后调用 SkipNow 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.SkipNow">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L552" title="View Source">SkipNow</a>  </h3>
+            <p>
+将当前测试标识为“被跳过”并停止执行该测试。 如果一个测试在失败（参考 Error、Errorf 和 Fail）之后被跳过了， 那么它还是会被判断为是“失败的”。
+</p>
+<p>
+在停止当前测试之后，测试过程将在下一个测试或者下一个基准测试中继续，具体请参考 FailNow 。
+</p>
+<p>
+SkipNow 必须在运行测试的 goroutine 中进行调用，而不能在测试期间创建的 goroutine 中调用。 调用 SkipNow 不会导致其他 goroutine 停止。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Skipf">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L540" title="View Source">Skipf</a>  </h3>
+            <p>
+调用 Skipf 相当于在调用 Logf 之后调用 SkipNow 。
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="T.Skipped">func (*T) <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L565" title="View Source">Skipped</a>  </h3>
+            <p>
+Skipped 用于报告测试函数是否已被跳过。
+</p>
+
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="TB">type <a href="https://github.com/golang/go/blob/master/src/testing/testing.go#L379" title="View Source">TB</a>  </h2>
+          <p>
+TB 是一个接口，类型 T 和 B 实现了该接口。
+</p>
+
+          
+          
+
+<h2 id="pkg-subdirectories">Directories </h2>
+    <table class="table table-condensed">
+    <thead><tr><th>Path</th><th>Synopsis</th></tr></thead>
+    <tbody><tr><td><a href="testing_iotest.htm">iotest</a></td><td>Package iotest implements Readers and Writers useful mainly for testing.</td></tr><tr><td><a href="testing_quick.htm">quick</a></td><td>Package quick implements utility functions to help with black box testing.</td></tr></tbody>
+    </table>
+
+<div class="clearfix" id="x-footer">
+  <div class="container">
+    <a href="http://studygolang.com/" target="_blank">Go语言中文网</a>
+    <span class="text-muted">|</span> <a href="http://golang.org/" target="_blank">Go Language</a>
+    <span class="pull-right"><a href="#">Back to top</a></span>
+  </div>
+</div>
+<script src="../assets/jquery-2.0.3.min.js"></script>
+<script src="../assets/bootstrap.min.js"></script>
+<script src="../assets/site.js"></script>
+
+
+</div>

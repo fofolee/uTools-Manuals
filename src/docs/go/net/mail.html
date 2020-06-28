@@ -1,0 +1,60 @@
+<div class="container">
+    <h1 id="pkg-overview">package mail</h1>
+    <p><code>import "net/mail"</code>
+    </p><p align="left">mail包实现了邮件的解析。</p>
+    <p align="left">本包大部分都遵守<a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>规定的语法，值得注意的区别是：</p>
+    <pre>* 旧格式地址和嵌入远端信息的地址不会被解析
+* 组地址不会被解析
+* 不支持全部的间隔符（CFWS语法元素），如分属两行的地址</pre>
+    
+    
+		
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    <h2 id="pkg-variables">Variables </h2>
+    <pre>var <span id="ErrHeaderNotPresent">ErrHeaderNotPresent</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("mail: header not in message")</pre>
+    <h2 id="Address">type <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#136" title="View Source">Address</a> </h2>
+    <pre>type Address struct {
+    <span id="Address.Name">Name</span>    <a href="builtin.htm#string">string</a> <span class="com">// 固有名，可以为空</span>
+    <span id="Address.Address">Address</span> <a href="builtin.htm#string">string</a> <span class="com">// user@domain</span>
+}</pre>
+    <p align="left">Address类型表示一个邮箱地址。</p>
+    <p align="left">例如地址"Barry Gibbs &lt;bg@example.com&gt;"表示为Address{Name: "Barry Gibbs", Address: "bg@example.com"}</p>
+    <h3 id="ParseAddress">func <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#142" title="View Source">ParseAddress</a> </h3>
+    <pre class="funcdecl">func ParseAddress(address <a href="builtin.htm#string">string</a>) (*<a href="#Address">Address</a>, <a href="builtin.htm#error">error</a>)</pre>
+    <p>解析单个的<a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>地址，例如"Barry Gibbs &lt;bg@example.com&gt;"。</p>
+    <h3 id="Address.String">func (*Address) <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#154" title="View Source">String</a> </h3>
+    <pre class="funcdecl">func (a *<a href="#Address">Address</a>) String() <a href="builtin.htm#string">string</a></pre>
+    <p>将a代表的地址表示为合法的<a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>地址字符串。如果Name字段包含非ASCII字符将根据<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>转义。</p>
+    <h2 id="ParseAddressList">func <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#147" title="View Source">ParseAddressList</a> </h2>
+    <pre class="funcdecl">func ParseAddressList(list <a href="builtin.htm#string">string</a>) ([]*<a href="#Address">Address</a>, <a href="builtin.htm#error">error</a>)</pre>
+    <p>函数将list作为一串邮箱地址并解析返回。</p>
+    <h2 id="Header">type <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#105" title="View Source">Header</a> </h2>
+    <pre>type Header map[<a href="builtin.htm#string">string</a>][]<a href="builtin.htm#string">string</a></pre>
+    <p>Header代表邮件头域的多个键值对。</p>
+    <h3 id="Header.AddressList">func (Header) <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#125" title="View Source">AddressList</a> </h3>
+    <pre class="funcdecl">func (h <a href="#Header">Header</a>) AddressList(key <a href="builtin.htm#string">string</a>) ([]*<a href="#Address">Address</a>, <a href="builtin.htm#error">error</a>)</pre>
+    <p>将键key对应的值（字符串）作为邮箱地址列表解析并返回。</p>
+    <h3 id="Header.Date">func (Header) <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#116" title="View Source">Date</a> </h3>
+    <pre class="funcdecl">func (h <a href="#Header">Header</a>) Date() (<a href="time.htm">time</a>.<a href="time.htm#Time">Time</a>, <a href="builtin.htm#error">error</a>)</pre>
+    <p>解析头域Date项的值并返回。</p>
+    <h3 id="Header.Get">func (Header) <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#109" title="View Source">Get</a> </h3>
+    <pre class="funcdecl">func (h <a href="#Header">Header</a>) Get(key <a href="builtin.htm#string">string</a>) <a href="builtin.htm#string">string</a></pre>
+    <p>返回键key对应的第一个值，如果没有对应值，将返回空字符串。</p>
+    <h2 id="Message">type <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#44" title="View Source">Message</a> </h2>
+    <pre>type Message struct {
+    <span id="Message.Header">Header</span> <a href="#Header">Header</a>
+    <span id="Message.Body">Body</span>   <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>
+}</pre>
+    <p>Message代表一个解析后的邮件。</p>
+    <h3 id="ReadMessage">func <a href="https://github.com/golang/go/blob/master/src/net/mail/message.go?name=release#52" title="View Source">ReadMessage</a> </h3>
+    <pre class="funcdecl">func ReadMessage(r <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>) (msg *<a href="#Message">Message</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>从r读取一个邮件，会解析邮件头域，消息主体可以从r/msg.Body中读取。</p>
+</div>

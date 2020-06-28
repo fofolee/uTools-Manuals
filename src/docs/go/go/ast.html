@@ -1,0 +1,2406 @@
+<div class="container">
+  
+        <h1 id="pkg-overview">package ast</h1>
+
+        <p><code>import "go/ast"</code>
+
+        </p><p>
+Package ast declares the types used to represent syntax trees for Go
+packages.</p>
+
+
+        
+  
+
+
+        
+        
+
+        
+
+        
+
+        
+        
+          
+          
+        
+
+        
+        
+
+
+<p><a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go">ast.go</a> <a href="https://github.com/golang/go/blob/master/src/go/ast/commentmap.go">commentmap.go</a> <a href="https://github.com/golang/go/blob/master/src/go/ast/filter.go">filter.go</a> <a href="https://github.com/golang/go/blob/master/src/go/ast/import.go">import.go</a> <a href="https://github.com/golang/go/blob/master/src/go/ast/print.go">print.go</a> <a href="https://github.com/golang/go/blob/master/src/go/ast/resolve.go">resolve.go</a> <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go">scope.go</a> <a href="https://github.com/golang/go/blob/master/src/go/ast/walk.go">walk.go</a> </p>
+
+        
+        
+
+        
+        
+
+        
+        
+        
+          <h2 data-kind="f" id="FileExports">func <a href="https://github.com/golang/go/blob/master/src/go/ast/filter.go#L28" title="View Source">FileExports</a>  </h2>
+          <p>
+FileExports trims the AST for a Go source file in place such that
+only exported nodes remain: all top-level identifiers which are not exported
+and their associated information (such as type, initial value, or function
+body) are removed. Non-exported fields and methods of exported types are
+stripped. The File.Comments list is not changed.
+</p>
+<p>
+FileExports reports whether there are exported declarations.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="FilterDecl">func <a href="https://github.com/golang/go/blob/master/src/go/ast/filter.go#L204" title="View Source">FilterDecl</a>  </h2>
+          <p>
+FilterDecl trims the AST for a Go declaration in place by removing
+all names (including struct field and interface method names, but
+not from parameter lists) that don't pass through the filter f.
+</p>
+<p>
+FilterDecl reports whether there are any declared names left after
+filtering.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="FilterFile">func <a href="https://github.com/golang/go/blob/master/src/go/ast/filter.go#L229" title="View Source">FilterFile</a>  </h2>
+          <p>
+FilterFile trims the AST for a Go file in place by removing all
+names from top-level declarations (including struct field and
+interface method names, but not from parameter lists) that don't
+pass through the filter f. If the declaration is empty afterwards,
+the declaration is removed from the AST. Import declarations are
+always removed. The File.Comments list is not changed.
+</p>
+<p>
+FilterFile reports whether there are any top-level declarations
+left after filtering.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="FilterPackage">func <a href="https://github.com/golang/go/blob/master/src/go/ast/filter.go#L256" title="View Source">FilterPackage</a>  </h2>
+          <p>
+FilterPackage trims the AST for a Go package in place by removing
+all names from top-level declarations (including struct field and
+interface method names, but not from parameter lists) that don't
+pass through the filter f. If the declaration is empty afterwards,
+the declaration is removed from the AST. The pkg.Files list is not
+changed, so that file names and top-level package comments don't get
+lost.
+</p>
+<p>
+FilterPackage reports whether there are any top-level declarations
+left after filtering.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="Fprint">func <a href="https://github.com/golang/go/blob/master/src/go/ast/print.go#L39" title="View Source">Fprint</a>  </h2>
+          <p>
+Fprint prints the (sub-)tree starting at AST node x to w.
+If fset != nil, position information is interpreted relative
+to that file set. Otherwise positions are printed as integer
+values (file set specific offsets).
+</p>
+<p>
+A non-nil FieldFilter f may be provided to control the output:
+struct fields for which f(fieldname, fieldvalue) is true are
+printed; all others are filtered from the output. Unexported
+struct fields are never printed.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="Inspect">func <a href="https://github.com/golang/go/blob/master/src/go/ast/walk.go#L384" title="View Source">Inspect</a>  </h2>
+          <p>
+Inspect traverses an AST in depth-first order: It starts by calling
+f(node); node must not be nil. If f returns true, Inspect invokes f
+recursively for each of the non-nil children of node, followed by a
+call of f(nil).
+</p>
+
+          
+  
+    <div class="panel-group">
+    
+      <div class="panel panel-default" id="example-Inspect">
+        <div class="panel-heading"><a class="accordion-toggle" data-toggle="collapse" href="#ex-Inspect">Example</a></div>
+        <div class="panel-collapse collapse" id="ex-Inspect"><div class="panel-body">
+          <p></p><p>
+This example demonstrates how to inspect the AST of a Go program.
+</p>
+
+          <p>Code:<span class="pull-right"><a href="?play=Inspect">play</a> </span>
+          </p><pre><span class="com">// src is the input for which we want to inspect the AST.</span>
+src := `
+package p
+const c = 1.0
+var X = f(3.14)*2 + c
+`
+
+<span class="com">// Create the AST by parsing src.</span>
+fset := token.NewFileSet() <span class="com">// positions are relative to fset</span>
+f, err := parser.ParseFile(fset, "src.go", src, 0)
+if err != nil {
+    panic(err)
+}
+
+<span class="com">// Inspect the AST and print all identifiers and literals.</span>
+ast.Inspect(f, func(n ast.Node) bool {
+    var s string
+    switch x := n.(type) {
+    case *ast.BasicLit:
+        s = x.Value
+    case *ast.Ident:
+        s = x.Name
+    }
+    if s != "" {
+        fmt.Printf("%s:\t%s\n", fset.Position(n.Pos()), s)
+    }
+    return true
+})</pre>
+          <p>Output:</p><pre>src.go:2:9:	p
+src.go:3:7:	c
+src.go:3:11:	1.0
+src.go:4:5:	X
+src.go:4:9:	f
+src.go:4:11:	3.14
+src.go:4:17:	2
+src.go:4:21:	c
+</pre>
+        </div></div>
+      </div>
+    
+    </div>
+  
+
+        
+          <h2 data-kind="f" id="IsExported">func <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L526" title="View Source">IsExported</a>  </h2>
+          <p>
+IsExported reports whether name is an exported Go symbol
+(that is, whether it begins with an upper-case letter).
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="NotNilFilter">func <a href="https://github.com/golang/go/blob/master/src/go/ast/print.go#L22" title="View Source">NotNilFilter</a>  </h2>
+          <p>
+NotNilFilter returns true for field values that are not nil;
+it returns false otherwise.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="PackageExports">func <a href="https://github.com/golang/go/blob/master/src/go/ast/filter.go#L39" title="View Source">PackageExports</a>  </h2>
+          <p>
+PackageExports trims the AST for a Go package in place such that
+only exported nodes remain. The pkg.Files list is not changed, so that
+file names and top-level package comments don't get lost.
+</p>
+<p>
+PackageExports reports whether there are exported declarations;
+it returns false otherwise.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="Print">func <a href="https://github.com/golang/go/blob/master/src/go/ast/print.go#L73" title="View Source">Print</a>  </h2>
+          <p>
+Print prints x to standard output, skipping nil fields.
+Print(fset, x) is the same as Fprint(os.Stdout, fset, x, NotNilFilter).
+</p>
+
+          
+  
+    <div class="panel-group">
+    
+      <div class="panel panel-default" id="example-Print">
+        <div class="panel-heading"><a class="accordion-toggle" data-toggle="collapse" href="#ex-Print">Example</a></div>
+        <div class="panel-collapse collapse" id="ex-Print"><div class="panel-body">
+          <p></p><p>
+This example shows what an AST looks like when printed for debugging.
+</p>
+
+          <p>Code:<span class="pull-right"><a href="?play=Print">play</a> </span>
+          </p><pre><span class="com">// src is the input for which we want to print the AST.</span>
+src := `
+package main
+func main() {
+	println("Hello, World!")
+}
+`
+
+<span class="com">// Create the AST by parsing src.</span>
+fset := token.NewFileSet() <span class="com">// positions are relative to fset</span>
+f, err := parser.ParseFile(fset, "", src, 0)
+if err != nil {
+    panic(err)
+}
+
+<span class="com">// Print the AST.</span>
+ast.Print(fset, f)</pre>
+          <p>Output:</p><pre>     0  *ast.File {
+     1  .  Package: 2:1
+     2  .  Name: *ast.Ident {
+     3  .  .  NamePos: 2:9
+     4  .  .  Name: "main"
+     5  .  }
+     6  .  Decls: []ast.Decl (len = 1) {
+     7  .  .  0: *ast.FuncDecl {
+     8  .  .  .  Name: *ast.Ident {
+     9  .  .  .  .  NamePos: 3:6
+    10  .  .  .  .  Name: "main"
+    11  .  .  .  .  Obj: *ast.Object {
+    12  .  .  .  .  .  Kind: func
+    13  .  .  .  .  .  Name: "main"
+    14  .  .  .  .  .  Decl: *(obj @ 7)
+    15  .  .  .  .  }
+    16  .  .  .  }
+    17  .  .  .  Type: *ast.FuncType {
+    18  .  .  .  .  Func: 3:1
+    19  .  .  .  .  Params: *ast.FieldList {
+    20  .  .  .  .  .  Opening: 3:10
+    21  .  .  .  .  .  Closing: 3:11
+    22  .  .  .  .  }
+    23  .  .  .  }
+    24  .  .  .  Body: *ast.BlockStmt {
+    25  .  .  .  .  Lbrace: 3:13
+    26  .  .  .  .  List: []ast.Stmt (len = 1) {
+    27  .  .  .  .  .  0: *ast.ExprStmt {
+    28  .  .  .  .  .  .  X: *ast.CallExpr {
+    29  .  .  .  .  .  .  .  Fun: *ast.Ident {
+    30  .  .  .  .  .  .  .  .  NamePos: 4:2
+    31  .  .  .  .  .  .  .  .  Name: "println"
+    32  .  .  .  .  .  .  .  }
+    33  .  .  .  .  .  .  .  Lparen: 4:9
+    34  .  .  .  .  .  .  .  Args: []ast.Expr (len = 1) {
+    35  .  .  .  .  .  .  .  .  0: *ast.BasicLit {
+    36  .  .  .  .  .  .  .  .  .  ValuePos: 4:10
+    37  .  .  .  .  .  .  .  .  .  Kind: STRING
+    38  .  .  .  .  .  .  .  .  .  Value: "\"Hello, World!\""
+    39  .  .  .  .  .  .  .  .  }
+    40  .  .  .  .  .  .  .  }
+    41  .  .  .  .  .  .  .  Ellipsis: -
+    42  .  .  .  .  .  .  .  Rparen: 4:25
+    43  .  .  .  .  .  .  }
+    44  .  .  .  .  .  }
+    45  .  .  .  .  }
+    46  .  .  .  .  Rbrace: 5:1
+    47  .  .  .  }
+    48  .  .  }
+    49  .  }
+    50  .  Scope: *ast.Scope {
+    51  .  .  Objects: map[string]*ast.Object (len = 1) {
+    52  .  .  .  "main": *(obj @ 11)
+    53  .  .  }
+    54  .  }
+    55  .  Unresolved: []*ast.Ident (len = 1) {
+    56  .  .  0: *(obj @ 29)
+    57  .  }
+    58  }
+</pre>
+        </div></div>
+      </div>
+    
+    </div>
+  
+
+        
+          <h2 data-kind="f" id="SortImports">func <a href="https://github.com/golang/go/blob/master/src/go/ast/import.go#L15" title="View Source">SortImports</a>  </h2>
+          <p>
+SortImports sorts runs of consecutive import lines in import blocks in f.
+It also removes duplicate imports when it is possible to do so without data loss.
+</p>
+
+          
+  
+
+        
+          <h2 data-kind="f" id="Walk">func <a href="https://github.com/golang/go/blob/master/src/go/ast/walk.go#L51" title="View Source">Walk</a>  </h2>
+          <p>
+Walk traverses an AST in depth-first order: It starts by calling
+v.Visit(node); node must not be nil. If the visitor w returned by
+v.Visit(node) is not nil, Walk is invoked recursively with visitor
+w for each of the non-nil children of node, followed by a call of
+w.Visit(nil).
+</p>
+
+          
+  
+
+        
+
+        
+        
+
+        
+          <h2 data-kind="t" id="ArrayType">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L375" title="View Source">ArrayType</a>  </h2>
+          <p>
+An ArrayType node represents an array or slice type.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="ArrayType.End">func (*ArrayType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L476" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="ArrayType.Pos">func (*ArrayType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L443" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="AssignStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L603" title="View Source">AssignStmt</a>  </h2>
+          <p>
+An AssignStmt node represents an assignment or
+a short variable declaration.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="AssignStmt.End">func (*AssignStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L749" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="AssignStmt.Pos">func (*AssignStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L720" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="BadDecl">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L899" title="View Source">BadDecl</a>  </h2>
+          <p>
+A BadDecl node is a placeholder for declarations containing
+syntax errors for which no correct declaration nodes can be
+created.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="BadDecl.End">func (*BadDecl) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L939" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BadDecl.Pos">func (*BadDecl) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L935" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="BadExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L233" title="View Source">BadExpr</a>  </h2>
+          <p>
+A BadExpr node is a placeholder for expressions containing
+syntax errors for which no correct expression nodes can be
+created.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="BadExpr.End">func (*BadExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L455" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BadExpr.Pos">func (*BadExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L422" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="BadStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L554" title="View Source">BadStmt</a>  </h2>
+          <p>
+A BadStmt node is a placeholder for statements containing
+syntax errors for which no correct statement nodes can be
+created.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="BadStmt.End">func (*BadStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L735" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BadStmt.Pos">func (*BadStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L713" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="BasicLit">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L253" title="View Source">BasicLit</a>  </h2>
+          <p>
+A BasicLit node represents a literal of basic type.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="BasicLit.End">func (*BasicLit) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L463" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BasicLit.Pos">func (*BasicLit) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L425" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="BinaryExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L342" title="View Source">BinaryExpr</a>  </h2>
+          <p>
+A BinaryExpr node represents a binary expression.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="BinaryExpr.End">func (*BinaryExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L474" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BinaryExpr.Pos">func (*BinaryExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L441" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="BlockStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L638" title="View Source">BlockStmt</a>  </h2>
+          <p>
+A BlockStmt node represents a braced statement list.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="BlockStmt.End">func (*BlockStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L764" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BlockStmt.Pos">func (*BlockStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L725" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="BranchStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L631" title="View Source">BranchStmt</a>  </h2>
+          <p>
+A BranchStmt node represents a break, continue, goto,
+or fallthrough statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="BranchStmt.End">func (*BranchStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L758" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="BranchStmt.Pos">func (*BranchStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L724" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="CallExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L316" title="View Source">CallExpr</a>  </h2>
+          <p>
+A CallExpr node represents an expression followed by an argument list.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="CallExpr.End">func (*CallExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L471" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="CallExpr.Pos">func (*CallExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L438" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="CaseClause">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L654" title="View Source">CaseClause</a>  </h2>
+          <p>
+A CaseClause represents a case of an expression or type switch statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="CaseClause.End">func (*CaseClause) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L771" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="CaseClause.Pos">func (*CaseClause) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L727" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="ChanDir">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L362" title="View Source">ChanDir</a>  </h2>
+          <p>
+The direction of a channel type is indicated by one
+of the following constants.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="ChanType">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L412" title="View Source">ChanType</a>  </h2>
+          <p>
+A ChanType node represents a channel type.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="ChanType.End">func (*ChanType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L486" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="ChanType.Pos">func (*ChanType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L453" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="CommClause">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L678" title="View Source">CommClause</a>  </h2>
+          <p>
+A CommClause node represents a case of a select statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="CommClause.End">func (*CommClause) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L779" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="CommClause.Pos">func (*CommClause) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L730" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Comment">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L62" title="View Source">Comment</a>  </h2>
+          <p>
+A Comment node represents a single //-style or /*-style comment.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="Comment.End">func (*Comment) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L68" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="Comment.Pos">func (*Comment) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L67" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="CommentGroup">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L73" title="View Source">CommentGroup</a>  </h2>
+          <p>
+A CommentGroup represents a sequence of comments
+with no other tokens and no empty lines between.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="CommentGroup.End">func (*CommentGroup) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L78" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="CommentGroup.Pos">func (*CommentGroup) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L77" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="CommentGroup.Text">func (*CommentGroup) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L96" title="View Source">Text</a>  </h3>
+            <p>
+Text returns the text of the comment.
+Comment markers (//, /*, and */), the first space of a line comment, and
+leading and trailing empty lines are removed. Multiple empty lines are
+reduced to one, and trailing space on lines is trimmed. Unless the result
+is empty, it is newline-terminated.
+</p>
+
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="CommentMap">type <a href="https://github.com/golang/go/blob/master/src/go/ast/commentmap.go#L35" title="View Source">CommentMap</a>  </h2>
+          <p>
+A CommentMap maps an AST node to a list of comment groups
+associated with it. See NewCommentMap for a description of
+the association.
+</p>
+
+          
+          
+          
+  
+    <div class="panel-group">
+    
+      <div class="panel panel-default" id="example-CommentMap">
+        <div class="panel-heading"><a class="accordion-toggle" data-toggle="collapse" href="#ex-CommentMap">Example</a></div>
+        <div class="panel-collapse collapse" id="ex-CommentMap"><div class="panel-body">
+          <p></p><p>
+This example illustrates how to remove a variable declaration
+in a Go program while maintaining correct comment association
+using an ast.CommentMap.
+</p>
+
+          <p>Code:
+          </p><pre><span class="com">// src is the input for which we create the AST that we
+// are going to manipulate.</span>
+src := `
+// This is the package comment.
+package main
+
+// This comment is associated with the hello constant.
+const hello = "Hello, World!" // line comment 1
+
+// This comment is associated with the foo variable.
+var foo = hello // line comment 2 
+
+// This comment is associated with the main function.
+func main() {
+	fmt.Println(hello) // line comment 3
+}
+`
+
+<span class="com">// Create the AST by parsing src.</span>
+fset := token.NewFileSet() <span class="com">// positions are relative to fset</span>
+f, err := parser.ParseFile(fset, "src.go", src, parser.ParseComments)
+if err != nil {
+    panic(err)
+}
+
+<span class="com">// Create an ast.CommentMap from the ast.File's comments.
+// This helps keeping the association between comments
+// and AST nodes.</span>
+cmap := ast.NewCommentMap(fset, f, f.Comments)
+
+<span class="com">// Remove the first variable declaration from the list of declarations.</span>
+f.Decls = removeFirstVarDecl(f.Decls)
+
+<span class="com">// Use the comment map to filter comments that don't belong anymore
+// (the comments associated with the variable declaration), and create
+// the new comments list.</span>
+f.Comments = cmap.Filter(f).Comments()
+
+<span class="com">// Print the modified AST.</span>
+var buf bytes.Buffer
+if err := format.Node(&amp;buf, fset, f); err != nil {
+    panic(err)
+}
+fmt.Printf("%s", buf.Bytes())</pre>
+          <p>Output:</p><pre>// This is the package comment.
+package main
+
+// This comment is associated with the hello constant.
+const hello = "Hello, World!" // line comment 1
+
+// This comment is associated with the main function.
+func main() {
+	fmt.Println(hello) // line comment 3
+}
+</pre>
+        </div></div>
+      </div>
+    
+    </div>
+  
+
+
+          
+            <h3 data-kind="f" id="NewCommentMap">func <a href="https://github.com/golang/go/blob/master/src/go/ast/commentmap.go#L143" title="View Source">NewCommentMap</a>  </h3>
+            <p>
+NewCommentMap creates a new comment map by associating comment groups
+of the comments list with the nodes of the AST specified by node.
+</p>
+<p>
+A comment group g is associated with a node n if:
+</p>
+<pre>- g starts on the same line as n ends
+- g starts on the line immediately following n, and there is
+  at least one empty line after g and before the next node
+- g starts before n and is not associated to the node before n
+  via the previous rules
+</pre>
+<p>
+NewCommentMap tries to associate a comment group to the "largest"
+node possible: For instance, if the comment is a line comment
+trailing an assignment, the comment is associated with the entire
+assignment rather than just the last operand in the assignment.
+</p>
+
+            
+  
+
+          
+
+          
+            <h3 data-kind="m" id="CommentMap.Comments">func (CommentMap) <a href="https://github.com/golang/go/blob/master/src/go/ast/commentmap.go#L272" title="View Source">Comments</a>  </h3>
+            <p>
+Comments returns the list of comment groups in the comment map.
+The result is sorted in source order.
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="CommentMap.Filter">func (CommentMap) <a href="https://github.com/golang/go/blob/master/src/go/ast/commentmap.go#L258" title="View Source">Filter</a>  </h3>
+            <p>
+Filter returns a new comment map consisting of only those
+entries of cmap for which a corresponding node exists in
+the AST specified by node.
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="CommentMap.String">func (CommentMap) <a href="https://github.com/golang/go/blob/master/src/go/ast/commentmap.go#L317" title="View Source">String</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="CommentMap.Update">func (CommentMap) <a href="https://github.com/golang/go/blob/master/src/go/ast/commentmap.go#L246" title="View Source">Update</a>  </h3>
+            <p>
+Update replaces an old node in the comment map with the new node
+and returns the new node. Comments that were associated with the
+old node are associated with the new node.
+</p>
+
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="CompositeLit">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L266" title="View Source">CompositeLit</a>  </h2>
+          <p>
+A CompositeLit node represents a composite literal.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="CompositeLit.End">func (*CompositeLit) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L465" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="CompositeLit.Pos">func (*CompositeLit) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L427" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Decl">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L53" title="View Source">Decl</a>  </h2>
+          <p>
+All declaration nodes implement the Decl interface.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="DeclStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L559" title="View Source">DeclStmt</a>  </h2>
+          <p>
+A DeclStmt node represents a declaration in a statement list.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="DeclStmt.End">func (*DeclStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L736" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="DeclStmt.Pos">func (*DeclStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L714" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="DeferStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L617" title="View Source">DeferStmt</a>  </h2>
+          <p>
+A DeferStmt node represents a defer statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="DeferStmt.End">func (*DeferStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L751" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="DeferStmt.Pos">func (*DeferStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L722" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Ellipsis">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L247" title="View Source">Ellipsis</a>  </h2>
+          <p>
+An Ellipsis node stands for the "..." type in a
+parameter list or the "..." length in an array type.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="Ellipsis.End">func (*Ellipsis) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L457" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="Ellipsis.Pos">func (*Ellipsis) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L424" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="EmptyStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L567" title="View Source">EmptyStmt</a>  </h2>
+          <p>
+An EmptyStmt node represents an empty statement.
+The "position" of the empty statement is the position
+of the immediately following (explicit or implicit) semicolon.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="EmptyStmt.End">func (*EmptyStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L737" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="EmptyStmt.Pos">func (*EmptyStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L715" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Expr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L41" title="View Source">Expr</a>  </h2>
+          <p>
+All expression nodes implement the Expr interface.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="ExprStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L582" title="View Source">ExprStmt</a>  </h2>
+          <p>
+An ExprStmt node represents a (stand-alone) expression
+in a statement list.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="ExprStmt.End">func (*ExprStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L744" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="ExprStmt.Pos">func (*ExprStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L717" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Field">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L157" title="View Source">Field</a>  </h2>
+          <p>
+A Field represents a Field declaration list in a struct type,
+a method list in an interface type, or a parameter/result declaration
+in a signature.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="Field.End">func (*Field) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L172" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="Field.Pos">func (*Field) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L165" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="FieldFilter">type <a href="https://github.com/golang/go/blob/master/src/go/ast/print.go#L18" title="View Source">FieldFilter</a>  </h2>
+          <p>
+A FieldFilter may be provided to Fprint to control the output.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="FieldList">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L180" title="View Source">FieldList</a>  </h2>
+          <p>
+A FieldList represents a list of Fields, enclosed by parentheses or braces.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="FieldList.End">func (*FieldList) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L198" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="FieldList.NumFields">func (*FieldList) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L211" title="View Source">NumFields</a>  </h3>
+            <p>
+NumFields returns the number of (named and anonymous fields) in a FieldList.
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="FieldList.Pos">func (*FieldList) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L186" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="File">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L969" title="View Source">File</a>  </h2>
+          <p>
+A File node represents a Go source file.
+</p>
+<p>
+The Comments list contains all comments in the source file in order of
+appearance, including the comments that are pointed to from other nodes
+via Doc and Comment fields.
+</p>
+
+          
+          
+          
+  
+
+
+          
+            <h3 data-kind="f" id="MergePackageFiles">func <a href="https://github.com/golang/go/blob/master/src/go/ast/filter.go#L315" title="View Source">MergePackageFiles</a>  </h3>
+            <p>
+MergePackageFiles creates a file AST by merging the ASTs of the
+files belonging to a package. The mode flags control merging behavior.
+</p>
+
+            
+  
+
+          
+
+          
+            <h3 data-kind="m" id="File.End">func (*File) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L981" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="File.Pos">func (*File) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L980" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Filter">type <a href="https://github.com/golang/go/blob/master/src/go/ast/filter.go#L46" title="View Source">Filter</a>  </h2>
+          
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="ForStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L692" title="View Source">ForStmt</a>  </h2>
+          <p>
+A ForStmt represents a for statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="ForStmt.End">func (*ForStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L786" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="ForStmt.Pos">func (*ForStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L732" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="FuncDecl">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L924" title="View Source">FuncDecl</a>  </h2>
+          <p>
+A FuncDecl node represents a function declaration.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="FuncDecl.End">func (*FuncDecl) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L946" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="FuncDecl.Pos">func (*FuncDecl) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L937" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="FuncLit">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L260" title="View Source">FuncLit</a>  </h2>
+          <p>
+A FuncLit node represents a function literal.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="FuncLit.End">func (*FuncLit) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L464" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="FuncLit.Pos">func (*FuncLit) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L426" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="FuncType">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L391" title="View Source">FuncType</a>  </h2>
+          <p>
+A FuncType node represents a function type.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="FuncType.End">func (*FuncType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L478" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="FuncType.Pos">func (*FuncType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L445" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="GenDecl">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L914" title="View Source">GenDecl</a>  </h2>
+          <p>
+A GenDecl node (generic declaration node) represents an import,
+constant, type or variable declaration. A valid Lparen position
+(Lparen.IsValid()) indicates a parenthesized declaration.
+</p>
+<p>
+Relationship between Tok value and Specs element type:
+</p>
+<pre>token.IMPORT  *ImportSpec
+token.CONST   *ValueSpec
+token.TYPE    *TypeSpec
+token.VAR     *ValueSpec
+</pre>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="GenDecl.End">func (*GenDecl) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L940" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="GenDecl.Pos">func (*GenDecl) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L936" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="GoStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L611" title="View Source">GoStmt</a>  </h2>
+          <p>
+A GoStmt node represents a go statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="GoStmt.End">func (*GoStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L750" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="GoStmt.Pos">func (*GoStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L721" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Ident">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L238" title="View Source">Ident</a>  </h2>
+          <p>
+An Ident node represents an identifier.
+</p>
+
+          
+          
+          
+  
+
+
+          
+            <h3 data-kind="f" id="NewIdent">func <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L521" title="View Source">NewIdent</a>  </h3>
+            <p>
+NewIdent creates a new Ident without position.
+Useful for ASTs generated by code other than the Go parser.
+</p>
+
+            
+  
+
+          
+
+          
+            <h3 data-kind="m" id="Ident.End">func (*Ident) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L456" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="Ident.IsExported">func (*Ident) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L534" title="View Source">IsExported</a>  </h3>
+            <p>
+IsExported reports whether id is an exported Go symbol
+(that is, whether it begins with an uppercase letter).
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="Ident.Pos">func (*Ident) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L423" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="Ident.String">func (*Ident) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L536" title="View Source">String</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="IfStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L645" title="View Source">IfStmt</a>  </h2>
+          <p>
+An IfStmt node represents an if statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="IfStmt.End">func (*IfStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L765" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="IfStmt.Pos">func (*IfStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L726" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="ImportSpec">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L828" title="View Source">ImportSpec</a>  </h2>
+          <p>
+An ImportSpec node represents a single package import.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="ImportSpec.End">func (*ImportSpec) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L867" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="ImportSpec.Pos">func (*ImportSpec) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L858" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Importer">type <a href="https://github.com/golang/go/blob/master/src/go/ast/resolve.go#L63" title="View Source">Importer</a>  </h2>
+          <p>
+An Importer resolves import paths to package Objects.
+The imports map records the packages already imported,
+indexed by package id (canonical import path).
+An Importer must determine the canonical import path and
+check the map to see if it is already present in the imports map.
+If so, the Importer can return the map entry. Otherwise, the
+Importer should load the package data for the given path into
+a new *Object (pkg), record pkg in the imports map, and then
+return pkg.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="IncDecStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L594" title="View Source">IncDecStmt</a>  </h2>
+          <p>
+An IncDecStmt node represents an increment or decrement statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="IncDecStmt.End">func (*IncDecStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L746" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="IncDecStmt.Pos">func (*IncDecStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L719" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="IndexExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L287" title="View Source">IndexExpr</a>  </h2>
+          <p>
+An IndexExpr node represents an expression followed by an index.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="IndexExpr.End">func (*IndexExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L468" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="IndexExpr.Pos">func (*IndexExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L435" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="InterfaceType">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L398" title="View Source">InterfaceType</a>  </h2>
+          <p>
+An InterfaceType node represents an interface type.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="InterfaceType.End">func (*InterfaceType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L484" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="InterfaceType.Pos">func (*InterfaceType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L451" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="KeyValueExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L352" title="View Source">KeyValueExpr</a>  </h2>
+          <p>
+A KeyValueExpr node represents (key : value) pairs
+in composite literals.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="KeyValueExpr.End">func (*KeyValueExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L475" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="KeyValueExpr.Pos">func (*KeyValueExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L442" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="LabeledStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L573" title="View Source">LabeledStmt</a>  </h2>
+          <p>
+A LabeledStmt node represents a labeled statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="LabeledStmt.End">func (*LabeledStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L743" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="LabeledStmt.Pos">func (*LabeledStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L716" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="MapType">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L405" title="View Source">MapType</a>  </h2>
+          <p>
+A MapType node represents a map type.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="MapType.End">func (*MapType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L485" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="MapType.Pos">func (*MapType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L452" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="MergeMode">type <a href="https://github.com/golang/go/blob/master/src/go/ast/filter.go#L274" title="View Source">MergeMode</a>  </h2>
+          <p>
+The MergeMode flags control the behavior of MergePackageFiles.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="Node">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L35" title="View Source">Node</a>  </h2>
+          <p>
+All node types implement the Node interface.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="ObjKind">type <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L137" title="View Source">ObjKind</a>  </h2>
+          <p>
+ObjKind describes what an object represents.
+</p>
+
+          <p>
+The list of possible Object kinds.
+</p>
+
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="ObjKind.String">func (ObjKind) <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L160" title="View Source">String</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Object">type <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L76" title="View Source">Object</a>  </h2>
+          <p>
+An Object describes a named language entity such as a package,
+constant, type, variable, function (incl. methods), or label.
+</p>
+<p>
+The Data fields contains object-specific data:
+</p>
+<pre>Kind    Data type         Data value
+Pkg     *Scope            package scope
+Con     int               iota for the respective declaration
+</pre>
+
+          
+          
+          
+  
+
+
+          
+            <h3 data-kind="f" id="NewObj">func <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L85" title="View Source">NewObj</a>  </h3>
+            <p>
+NewObj creates a new object of a given kind and name.
+</p>
+
+            
+  
+
+          
+
+          
+            <h3 data-kind="m" id="Object.Pos">func (*Object) <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L92" title="View Source">Pos</a>  </h3>
+            <p>
+Pos computes the source position of the declaration of an object name.
+The result may be an invalid position if it cannot be computed
+(obj.Decl may be nil or not correct).
+</p>
+
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Package">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L991" title="View Source">Package</a>  </h2>
+          <p>
+A Package node represents a set of source files
+collectively building a Go package.
+</p>
+
+          
+          
+          
+  
+
+
+          
+            <h3 data-kind="f" id="NewPackage">func <a href="https://github.com/golang/go/blob/master/src/go/ast/resolve.go#L74" title="View Source">NewPackage</a>  </h3>
+            <p>
+NewPackage creates a new Package node from a set of File nodes. It resolves
+unresolved identifiers across files and updates each file's Unresolved list
+accordingly. If a non-nil importer and universe scope are provided, they are
+used to resolve identifiers not declared in any of the package files. Any
+remaining unresolved identifiers are reported as undeclared. If the files
+belong to different packages, one package name is selected and files with
+different package names are reported and then ignored.
+The result is a package node and a scanner.ErrorList if there were errors.
+</p>
+
+            
+  
+
+          
+
+          
+            <h3 data-kind="m" id="Package.End">func (*Package) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L999" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="Package.Pos">func (*Package) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L998" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="ParenExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L274" title="View Source">ParenExpr</a>  </h2>
+          <p>
+A ParenExpr node represents a parenthesized expression.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="ParenExpr.End">func (*ParenExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L466" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="ParenExpr.Pos">func (*ParenExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L433" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="RangeStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L701" title="View Source">RangeStmt</a>  </h2>
+          <p>
+A RangeStmt represents a for statement with a range clause.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="RangeStmt.End">func (*RangeStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L787" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="RangeStmt.Pos">func (*RangeStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L733" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="ReturnStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L623" title="View Source">ReturnStmt</a>  </h2>
+          <p>
+A ReturnStmt node represents a return statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="ReturnStmt.End">func (*ReturnStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L752" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="ReturnStmt.Pos">func (*ReturnStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L723" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Scope">type <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L19" title="View Source">Scope</a>  </h2>
+          <p>
+A Scope maintains the set of named language entities declared
+in the scope and a link to the immediately surrounding (outer)
+scope.
+</p>
+
+          
+          
+          
+  
+
+
+          
+            <h3 data-kind="f" id="NewScope">func <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L25" title="View Source">NewScope</a>  </h3>
+            <p>
+NewScope creates a new scope nested in the outer scope.
+</p>
+
+            
+  
+
+          
+
+          
+            <h3 data-kind="m" id="Scope.Insert">func (*Scope) <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L43" title="View Source">Insert</a>  </h3>
+            <p>
+Insert attempts to insert a named object obj into the scope s.
+If the scope already contains an object alt with the same name,
+Insert leaves the scope unchanged and returns alt. Otherwise
+it inserts obj and returns nil.
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="Scope.Lookup">func (*Scope) <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L34" title="View Source">Lookup</a>  </h3>
+            <p>
+Lookup returns the object with the given name if it is
+found in scope s, otherwise it returns nil. Outer scopes
+are ignored.
+</p>
+
+            
+  
+
+          
+            <h3 data-kind="m" id="Scope.String">func (*Scope) <a href="https://github.com/golang/go/blob/master/src/go/ast/scope.go#L51" title="View Source">String</a>  </h3>
+            <p>
+Debugging support
+</p>
+
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="SelectStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L686" title="View Source">SelectStmt</a>  </h2>
+          <p>
+An SelectStmt node represents a select statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="SelectStmt.End">func (*SelectStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L785" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="SelectStmt.Pos">func (*SelectStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L731" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="SelectorExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L281" title="View Source">SelectorExpr</a>  </h2>
+          <p>
+A SelectorExpr node represents an expression followed by a selector.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="SelectorExpr.End">func (*SelectorExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L467" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="SelectorExpr.Pos">func (*SelectorExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L434" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="SendStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L587" title="View Source">SendStmt</a>  </h2>
+          <p>
+A SendStmt node represents a send statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="SendStmt.End">func (*SendStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L745" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="SendStmt.Pos">func (*SendStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L718" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="SliceExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L295" title="View Source">SliceExpr</a>  </h2>
+          <p>
+An SliceExpr node represents an expression followed by slice indices.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="SliceExpr.End">func (*SliceExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L469" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="SliceExpr.Pos">func (*SliceExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L436" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Spec">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L822" title="View Source">Spec</a>  </h2>
+          <p>
+The Spec type stands for any of *ImportSpec, *ValueSpec, and *TypeSpec.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="StarExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L327" title="View Source">StarExpr</a>  </h2>
+          <p>
+A StarExpr node represents an expression of the form "*" Expression.
+Semantically it could be a unary "*" expression, or a pointer type.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="StarExpr.End">func (*StarExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L472" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="StarExpr.Pos">func (*StarExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L439" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Stmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L47" title="View Source">Stmt</a>  </h2>
+          <p>
+All statement nodes implement the Stmt interface.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+        
+          <h2 data-kind="t" id="StructType">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L382" title="View Source">StructType</a>  </h2>
+          <p>
+A StructType node represents a struct type.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="StructType.End">func (*StructType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L477" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="StructType.Pos">func (*StructType) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L444" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="SwitchStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L662" title="View Source">SwitchStmt</a>  </h2>
+          <p>
+A SwitchStmt node represents an expression switch statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="SwitchStmt.End">func (*SwitchStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L777" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="SwitchStmt.Pos">func (*SwitchStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L728" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="TypeAssertExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L308" title="View Source">TypeAssertExpr</a>  </h2>
+          <p>
+A TypeAssertExpr node represents an expression followed by a
+type assertion.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="TypeAssertExpr.End">func (*TypeAssertExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L470" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="TypeAssertExpr.Pos">func (*TypeAssertExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L437" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="TypeSpec">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L848" title="View Source">TypeSpec</a>  </h2>
+          <p>
+A TypeSpec node represents a type declaration (TypeSpec production).
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="TypeSpec.End">func (*TypeSpec) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L883" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="TypeSpec.Pos">func (*TypeSpec) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L865" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="TypeSwitchStmt">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L670" title="View Source">TypeSwitchStmt</a>  </h2>
+          <p>
+An TypeSwitchStmt node represents a type switch statement.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="TypeSwitchStmt.End">func (*TypeSwitchStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L778" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="TypeSwitchStmt.Pos">func (*TypeSwitchStmt) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L729" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="UnaryExpr">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L335" title="View Source">UnaryExpr</a>  </h2>
+          <p>
+A UnaryExpr node represents a unary expression.
+Unary "*" expressions are represented via StarExpr nodes.
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="UnaryExpr.End">func (*UnaryExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L473" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="UnaryExpr.Pos">func (*UnaryExpr) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L440" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="ValueSpec">type <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L839" title="View Source">ValueSpec</a>  </h2>
+          <p>
+A ValueSpec node represents a constant or variable declaration
+(ConstSpec or VarSpec production).
+</p>
+
+          
+          
+          
+  
+
+
+          
+
+          
+            <h3 data-kind="m" id="ValueSpec.End">func (*ValueSpec) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L874" title="View Source">End</a>  </h3>
+            
+            
+  
+
+          
+            <h3 data-kind="m" id="ValueSpec.Pos">func (*ValueSpec) <a href="https://github.com/golang/go/blob/master/src/go/ast/ast.go#L864" title="View Source">Pos</a>  </h3>
+            
+            
+  
+
+          
+        
+          <h2 data-kind="t" id="Visitor">type <a href="https://github.com/golang/go/blob/master/src/go/ast/walk.go#L12" title="View Source">Visitor</a>  </h2>
+          <p>
+A Visitor's Visit method is invoked for each node encountered by Walk.
+If the result visitor w is not nil, Walk visits each of the children
+of node with the visitor w, followed by a call of w.Visit(nil).
+</p>
+
+<div class="clearfix" id="x-footer">
+  <div class="container">
+    <a href="http://studygolang.com/" target="_blank">Go语言中文网</a>
+    <span class="text-muted">|</span> <a href="http://golang.org/" target="_blank">Go Language</a>
+    <span class="pull-right"><a href="#">Back to top</a></span>
+  </div>
+</div>
+<script src="../assets/jquery-2.0.3.min.js"></script>
+<script src="../assets/bootstrap.min.js"></script>
+<script src="../assets/site.js"></script>
+
+
+</div>

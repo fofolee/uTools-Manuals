@@ -1,0 +1,105 @@
+<div class="container">
+    <h1 id="pkg-overview">package csv</h1>
+    <p><code>import "encoding/csv"</code>
+    </p><p align="left">csv读写逗号分隔值（csv）的文件。</p>
+    <p align="left">一个csv分拣包含零到多条记录，每条记录一到多个字段。每个记录用换行符分隔。最后一条记录后面可以有换行符，也可以没有。</p>
+    <pre>field1,field2,field3
+</pre>
+    <p align="left">空白视为字段的一部分。</p>
+    <p align="left">换行符前面的回车符会悄悄的被删掉。</p>
+    <p align="left">忽略空行。只有空白的行（除了末尾换行符之外）不视为空行。</p>
+    <p align="left">以双引号"开始和结束的字段成为受引字段，其开始和结束的引号不属于字段。</p>
+    <p align="left">资源：</p>
+    <pre>normal string,"quoted-field"
+</pre>
+    <p>产生如下字段：</p>
+    <pre>{`normal string`, `quoted-field`}
+</pre>
+    <p>受引字段内部，如果有两个连续的双引号，则视为一个单纯的双引号字符：</p>
+    <pre>"the ""word"" is true","a ""quoted-field"""
+</pre>
+    <p>生成：</p>
+    <pre>{`the "word" is true`, `a "quoted-field"`}
+</pre>
+    <p>受引字段里可以包含换行和逗号：</p>
+    <pre>"Multi-line
+field","comma is ,"
+</pre>
+    <p>生成：</p>
+    <pre>{`Multi-line
+field`, `comma is ,`}</pre>
+    
+    
+		
+        
+        
+        
+        
+        
+        
+        
+    
+    <h2 id="pkg-variables">Variables </h2>
+    <pre>var (
+    <span id="ErrTrailingComma">ErrTrailingComma</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("extra delimiter at end of line") <span class="com">// 不再使用</span>
+    <span id="ErrBareQuote">ErrBareQuote</span>     = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("bare \" in non-quoted-field")
+    <span id="ErrQuote">ErrQuote</span>         = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("extraneous \" in field")
+    <span id="ErrFieldCount">ErrFieldCount</span>    = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("wrong number of fields in line")
+)</pre>
+    <p>这些都是PaserError.Err字段可能的值。</p>
+    <h2 id="ParseError">type <a href="https://github.com/golang/go/blob/master/src/encoding/csv/reader.go?name=release#63" title="View Source">ParseError</a> </h2>
+    <pre>type ParseError struct {
+    <span id="ParseError.Line">Line</span>   <a href="builtin.htm#int">int</a>   <span class="com">// 出错的行号</span>
+    <span id="ParseError.Column">Column</span> <a href="builtin.htm#int">int</a>   <span class="com">// 出错的列号</span>
+    <span id="ParseError.Err">Err</span>    <a href="builtin.htm#error">error</a> <span class="com">// 具体的错误</span>
+}</pre>
+    <p>当解析错误时返回ParseError，第一个行为1，第一列为0。</p>
+    <h3 id="ParseError.Error">func (*ParseError) <a href="https://github.com/golang/go/blob/master/src/encoding/csv/reader.go?name=release#69" title="View Source">Error</a> </h3>
+    <pre class="funcdecl">func (e *<a href="#ParseError">ParseError</a>) Error() <a href="builtin.htm#string">string</a></pre>
+    <h2 id="Reader">type <a href="https://github.com/golang/go/blob/master/src/encoding/csv/reader.go?name=release#102" title="View Source">Reader</a> </h2>
+    <pre>type Reader struct {
+    <span id="Reader.Comma">Comma</span>            <a href="builtin.htm#rune">rune</a> <span class="com">// 字段分隔符（NewReader将之设为','）</span>
+    <span id="Reader.Comment">Comment</span>          <a href="builtin.htm#rune">rune</a> <span class="com">// 一行开始位置的注释标识符</span>
+    <span id="Reader.FieldsPerRecord">FieldsPerRecord</span>  <a href="builtin.htm#int">int</a>  <span class="com">// 每条记录期望的字段数</span>
+    <span id="Reader.LazyQuotes">LazyQuotes</span>       <a href="builtin.htm#bool">bool</a> <span class="com">// 允许懒引号</span>
+    <span id="Reader.TrailingComma">TrailingComma</span>    <a href="builtin.htm#bool">bool</a> <span class="com">// 忽略，出于后端兼容性而保留</span>
+    <span id="Reader.TrimLeadingSpace">TrimLeadingSpace</span> <a href="builtin.htm#bool">bool</a> <span class="com">// 去除前导的空白</span>
+    <span class="com">// 内含隐藏或非导出字段</span>
+}</pre>
+    <p align="left">Reader从csv编码的文件中读取记录。</p>
+    <p align="left">NewReader返回的*Reader期望输入符合<a href="http://tools.ietf.org/html/rfc4180">RFC 4180</a>。在首次调用Read或者ReadAll之前可以设定导出字段的细节。</p>
+    <p align="left">Comma是字段分隔符，默认为','。Comment如果不是0，则表示注释标识符，以Comment开始的行会被忽略。如果FieldsPerRecord大于0，Read方法要求每条记录都有给定数目的字段。如果FieldsPerRecord等于0，Read方法会将其设为第一条记录的字段数，因此其余的记录必须有同样数目的字段。如果FieldsPerRecord小于0，不会检查字段数，允许记录有不同数量的字段。如果LazyQuotes为真，引号可以出现在非受引字段里，不连续两个的引号可以出现在受引字段里。如果TrimLeadingSpace为真，字段前导的空白会忽略掉。</p>
+    <h3 id="NewReader">func <a href="https://github.com/golang/go/blob/master/src/encoding/csv/reader.go?name=release#116" title="View Source">NewReader</a> </h3>
+    <pre class="funcdecl">func NewReader(r <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>) *<a href="#Reader">Reader</a></pre>
+    <p>NewReader函数返回一个从r读取的*Reader。</p>
+    <h3 id="Reader.Read">func (*Reader) <a href="https://github.com/golang/go/blob/master/src/encoding/csv/reader.go?name=release#134" title="View Source">Read</a> </h3>
+    <pre class="funcdecl">func (r *<a href="#Reader">Reader</a>) Read() (record []<a href="builtin.htm#string">string</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>Read从r读取一条记录，返回值record是字符串的切片，每个字符串代表一个字段。</p>
+    <h3 id="Reader.ReadAll">func (*Reader) <a href="https://github.com/golang/go/blob/master/src/encoding/csv/reader.go?name=release#161" title="View Source">ReadAll</a> </h3>
+    <pre class="funcdecl">func (r *<a href="#Reader">Reader</a>) ReadAll() (records [][]<a href="builtin.htm#string">string</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>ReadAll从r中读取所有剩余的记录，每个记录都是字段的切片，成功的调用返回值err为nil而不是EOF。因为ReadAll方法定义为读取直到文件结尾，因此它不会将文件结尾视为应该报告的错误。</p>
+    <h2 id="Writer">type <a href="https://github.com/golang/go/blob/master/src/encoding/csv/writer.go?name=release#24" title="View Source">Writer</a> </h2>
+    <pre>type Writer struct {
+    <span id="Writer.Comma">Comma</span>   <a href="builtin.htm#rune">rune</a> <span class="com">// 字段分隔符（NewWriter将之设为','）</span>
+    <span id="Writer.UseCRLF">UseCRLF</span> <a href="builtin.htm#bool">bool</a> <span class="com">// 如为真，则换行时使用\r\n</span>
+    <span class="com">// 内含隐藏或非导出字段</span>
+}</pre>
+    <p align="left">Writer类型的值将记录写入一个csv编码的文件。</p>
+    <p align="left">NewWriter返回的*Writer写入记录时，以换行结束记录，用','分隔字段。在第一次调用Write或WriteAll之前，可以设置导出字段的细节。</p>
+    <p align="left">Comma是字段分隔符。如果UseCRLF为真，Writer在每条记录结束时用\r\n代替\n。</p>
+    <h3 id="NewWriter">func <a href="https://github.com/golang/go/blob/master/src/encoding/csv/writer.go?name=release#31" title="View Source">NewWriter</a> </h3>
+    <pre class="funcdecl">func NewWriter(w <a href="io.htm">io</a>.<a href="io.htm#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+    <p>NewWriter返回一个写入w的*Writer。</p>
+    <h3 id="Writer.Write">func (*Writer) <a href="https://github.com/golang/go/blob/master/src/encoding/csv/writer.go?name=release#40" title="View Source">Write</a> </h3>
+    <pre class="funcdecl">func (w *<a href="#Writer">Writer</a>) Write(record []<a href="builtin.htm#string">string</a>) (err <a href="builtin.htm#error">error</a>)</pre>
+    <p>向w中写入一条记录，会自行添加必需的引号。记录是字符串切片，每个字符串代表一个字段。</p>
+    <h3 id="Writer.WriteAll">func (*Writer) <a href="https://github.com/golang/go/blob/master/src/encoding/csv/writer.go?name=release#107" title="View Source">WriteAll</a> </h3>
+    <pre class="funcdecl">func (w *<a href="#Writer">Writer</a>) WriteAll(records [][]<a href="builtin.htm#string">string</a>) (err <a href="builtin.htm#error">error</a>)</pre>
+    <p>WriteAll方法使用Write方法向w写入多条记录，并在最后调用Flush方法清空缓存。</p>
+    <h3 id="Writer.Flush">func (*Writer) <a href="https://github.com/golang/go/blob/master/src/encoding/csv/writer.go?name=release#96" title="View Source">Flush</a> </h3>
+    <pre class="funcdecl">func (w *<a href="#Writer">Writer</a>) Flush()</pre>
+    <p>将缓存中的数据写入底层的io.Writer。要检查Flush时是否发生错误的话，应调用Error方法。</p>
+    <h3 id="Writer.Error">func (*Writer) <a href="https://github.com/golang/go/blob/master/src/encoding/csv/writer.go?name=release#101" title="View Source">Error</a> </h3>
+    <pre class="funcdecl">func (w *<a href="#Writer">Writer</a>) Error() <a href="builtin.htm#error">error</a></pre>
+    <p>Error返回在之前的Write方法和Flush方法执行时出现的任何错误。</p>
+</div>

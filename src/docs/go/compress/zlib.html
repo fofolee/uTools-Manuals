@@ -1,0 +1,120 @@
+<div class="container">
+    <h1 id="pkg-overview">package zlib</h1>
+    <p><code>import "compress/zlib"</code>
+    </p><p align="left">zlib包实现了对zlib格式压缩数据的读写，参见<a href="http://tools.ietf.org/html/rfc1950">RFC 1950</a>。</p>
+    <p align="left">本包的实现提供了在读取时解压和写入时压缩的滤镜。例如，将压缩数据写入一个bytes.Buffer：</p>
+    <pre>var b bytes.Buffer
+w := zlib.NewWriter(&amp;b)
+w.Write([]byte("hello, world\n"))
+w.Close()
+</pre>
+    <p>然后将数据读取回来：</p>
+    <pre>r, err := zlib.NewReader(&amp;b)
+io.Copy(os.Stdout, r)
+r.Close()</pre>
+    
+    
+		
+        
+        
+        
+        
+        
+        
+    
+    
+    
+		
+        
+        
+    
+    <h2 id="pkg-constants">Constants </h2>
+    <pre>const (
+    <span id="NoCompression">NoCompression</span>      = <a href="compress/flate.htm">flate</a>.<a href="compress/flate.htm#NoCompression">NoCompression</a>
+    <span id="BestSpeed">BestSpeed</span>          = <a href="compress/flate.htm">flate</a>.<a href="compress/flate.htm#BestSpeed">BestSpeed</a>
+    <span id="BestCompression">BestCompression</span>    = <a href="compress/flate.htm">flate</a>.<a href="compress/flate.htm#BestCompression">BestCompression</a>
+    <span id="DefaultCompression">DefaultCompression</span> = <a href="compress/flate.htm">flate</a>.<a href="compress/flate.htm#DefaultCompression">DefaultCompression</a>
+)</pre>
+    <p>这些常量都是拷贝自flate包，因此导入"compress/zlib"后，就不必再导入"compress/flate"了。</p>
+    <h2 id="pkg-variables">Variables </h2>
+    <pre>var (
+    <span class="com">// 当读取的zlib数据的校验和错误时，会返回ErrChecksum</span>
+    <span id="ErrChecksum">ErrChecksum</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("zlib: invalid checksum")
+    <span class="com">// 当读取的zlib数据的目录错误时，会返回ErrDictionary</span>
+    <span id="ErrDictionary">ErrDictionary</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("zlib: invalid dictionary")
+    <span class="com">// 当读取的zlib数据的头域错误时，会返回ErrHeader</span>
+    <span id="ErrHeader">ErrHeader</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("zlib: invalid header")
+)</pre>
+    <h2 id="NewReader">func <a href="https://github.com/golang/go/blob/master/src/compress/zlib/reader.go?name=release#58" title="View Source">NewReader</a> </h2>
+    <pre class="funcdecl">func NewReader(r <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>) (<a href="io.htm">io</a>.<a href="io.htm#ReadCloser">ReadCloser</a>, <a href="builtin.htm#error">error</a>)</pre>
+    <p>NewReader返回一个从r读取并解压数据的io.ReadCloser。其实现会缓冲输入流的数据，并可能从r中读取比需要的更多的数据。调用者有责任在读取完毕后调用返回值的Close方法。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-NewReader">
+            <div class="panel-heading" onclick="document.getElementById('ex-NewReader').style.display = document.getElementById('ex-NewReader').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-NewReader">
+                <div class="panel-body">
+                    <pre>buff := []byte{120, 156, 202, 72, 205, 201, 201, 215, 81, 40, 207,
+    47, 202, 73, 225, 2, 4, 0, 0, 255, 255, 33, 231, 4, 147}
+b := bytes.NewReader(buff)
+r, err := zlib.NewReader(b)
+if err != nil {
+    panic(err)
+}
+io.Copy(os.Stdout, r)</pre>
+                    <p>Output:
+                    </p><pre>hello, world
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 id="NewReaderDict">func <a href="https://github.com/golang/go/blob/master/src/compress/zlib/reader.go?name=release#64" title="View Source">NewReaderDict</a> </h2>
+    <pre class="funcdecl">func NewReaderDict(r <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, dict []<a href="builtin.htm#byte">byte</a>) (<a href="io.htm">io</a>.<a href="io.htm#ReadCloser">ReadCloser</a>, <a href="builtin.htm#error">error</a>)</pre>
+    <p align="left">NewReaderDict类似NewReader，但会使用预设的字典初始化返回的Reader。</p>
+    <p align="left">如果压缩数据没有采用字典，本函数会忽略该参数。</p>
+    <h2 id="Writer">type <a href="https://github.com/golang/go/blob/master/src/compress/zlib/writer.go?name=release#26" title="View Source">Writer</a> </h2>
+    <pre>type Writer struct {
+    <span class="com">// 内含隐藏或非导出字段</span>
+}</pre>
+    <p>Writer将提供给它的数据压缩后写入下层io.Writer接口。</p>
+    <h3 id="NewWriter">func <a href="https://github.com/golang/go/blob/master/src/compress/zlib/writer.go?name=release#42" title="View Source">NewWriter</a> </h3>
+    <pre class="funcdecl">func NewWriter(w <a href="io.htm">io</a>.<a href="io.htm#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+    <p align="left">NewWriter创建并返回一个Writer。写入返回值的数据都会在压缩后写入w。</p>
+    <p align="left">调用者有责任在结束写入后调用返回值的Close方法。因为写入的数据可能保存在缓冲中没有刷新入下层。</p>
+    <div class="panel-group">
+        <div class="panel panel-default" id="example-NewWriter">
+            <div class="panel-heading" onclick="document.getElementById('ex-NewWriter').style.display = document.getElementById('ex-NewWriter').style.display=='none'?'block':'none';">Example</div>
+            <div class="panel-collapse collapse" id="ex-NewWriter">
+                <div class="panel-body">
+                    <pre>var b bytes.Buffer
+w := zlib.NewWriter(&amp;b)
+w.Write([]byte("hello, world\n"))
+w.Close()
+fmt.Println(b.Bytes())</pre>
+                    <p>Output:
+                    </p><pre>[120 156 202 72 205 201 201 215 81 40 207 47 202 73 225 2 4 0 0 255 255 33 231 4 147]
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h3 id="NewWriterLevel">func <a href="https://github.com/golang/go/blob/master/src/compress/zlib/writer.go?name=release#53" title="View Source">NewWriterLevel</a> </h3>
+    <pre class="funcdecl">func NewWriterLevel(w <a href="io.htm">io</a>.<a href="io.htm#Writer">Writer</a>, level <a href="builtin.htm#int">int</a>) (*<a href="#Writer">Writer</a>, <a href="builtin.htm#error">error</a>)</pre>
+    <p align="left">NewWriterLevel类似NewWriter但指定了压缩水平而不是采用默认的DefaultCompression。</p>
+    <p align="left">参数level可以是DefaultCompression、NoCompression或BestSpeed与BestCompression之间包括二者的任何整数。如果level合法，返回的错误值为nil。</p>
+    <h3 id="NewWriterLevelDict">func <a href="https://github.com/golang/go/blob/master/src/compress/zlib/writer.go?name=release#62" title="View Source">NewWriterLevelDict</a> </h3>
+    <pre class="funcdecl">func NewWriterLevelDict(w <a href="io.htm">io</a>.<a href="io.htm#Writer">Writer</a>, level <a href="builtin.htm#int">int</a>, dict []<a href="builtin.htm#byte">byte</a>) (*<a href="#Writer">Writer</a>, <a href="builtin.htm#error">error</a>)</pre>
+    <p>NewWriterLevelDict类似NewWriterLevel但还指定了用于压缩的字典。dict参数可以为nil；否则，在返回的Writer关闭之前，其内容不可被修改。</p>
+    <h3 id="Writer.Reset">func (*Writer) <a href="https://github.com/golang/go/blob/master/src/compress/zlib/writer.go?name=release#76" title="View Source">Reset</a> </h3>
+    <pre class="funcdecl">func (z *<a href="#Writer">Writer</a>) Reset(w <a href="io.htm">io</a>.<a href="io.htm#Writer">Writer</a>)</pre>
+    <p>Reset将w重置，丢弃当前的写入状态，并将下层输出目标设为dst。效果上等价于将w设为使用dst和w的压缩水平、字典重新调用NewWriterLevel或NewWriterLevelDict返回的*Writer。</p>
+    <h3 id="Writer.Write">func (*Writer) <a href="https://github.com/golang/go/blob/master/src/compress/zlib/writer.go?name=release#146" title="View Source">Write</a> </h3>
+    <pre class="funcdecl">func (z *<a href="#Writer">Writer</a>) Write(p []<a href="builtin.htm#byte">byte</a>) (n <a href="builtin.htm#int">int</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>Write将p压缩后写入下层io.Writer接口。压缩后的数据不一定会立刻刷新，除非Writer被关闭或者显式的刷新。</p>
+    <h3 id="Writer.Flush">func (*Writer) <a href="https://github.com/golang/go/blob/master/src/compress/zlib/writer.go?name=release#166" title="View Source">Flush</a> </h3>
+    <pre class="funcdecl">func (z *<a href="#Writer">Writer</a>) Flush() <a href="builtin.htm#error">error</a></pre>
+    <p>Flush将缓冲中的压缩数据刷新到下层io.Writer接口中。</p>
+    <h3 id="Writer.Close">func (*Writer) <a href="https://github.com/golang/go/blob/master/src/compress/zlib/writer.go?name=release#179" title="View Source">Close</a> </h3>
+    <pre class="funcdecl">func (z *<a href="#Writer">Writer</a>) Close() <a href="builtin.htm#error">error</a></pre>
+    <p>调用Close会刷新缓冲并关闭w，但不会关闭下层io.Writer接口。</p>
+</div>

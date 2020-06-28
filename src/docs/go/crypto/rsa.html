@@ -1,0 +1,119 @@
+<div class="container">
+    <h1 id="pkg-overview">package rsa</h1>
+    <p><code>import "crypto/rsa"</code>
+    </p><p>rsa包实现了PKCS#1规定的RSA加密算法。</p>
+    
+    
+		
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    <h2 id="pkg-constants">Constants </h2>
+    <pre>const (
+    <span class="com">// PSSSaltLengthAuto让PSS签名在签名时让盐尽可能长，并在验证时自动检测出盐。</span><span class="com"></span>
+    <span id="PSSSaltLengthAuto">PSSSaltLengthAuto</span> = 0
+    <span class="com">// PSSSaltLengthEqualsHash让盐的长度和用于签名的哈希值的长度相同。</span>
+    <span id="PSSSaltLengthEqualsHash">PSSSaltLengthEqualsHash</span> = -1
+)</pre>
+    <h2 id="pkg-variables">Variables </h2>
+    <pre>var <span id="ErrDecryption">ErrDecryption</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("crypto/rsa: decryption error")</pre>
+    <p>ErrDecryption代表解密数据失败。它故意写的语焉不详，以避免适应性攻击。</p>
+    <pre>var <span id="ErrMessageTooLong">ErrMessageTooLong</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("crypto/rsa: message too long for RSA public key size")</pre>
+    <p>当试图用公钥加密尺寸过大的数据时，就会返回ErrMessageTooLong。</p>
+    <pre>var <span id="ErrVerification">ErrVerification</span> = <a href="errors.htm">errors</a>.<a href="errors.htm#New">New</a>("crypto/rsa: verification error")</pre>
+    <p>ErrVerification代表认证签名失败。它故意写的语焉不详，以避免适应性攻击。</p>
+    <h2 id="CRTValue">type <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#73" title="View Source">CRTValue</a> </h2>
+    <pre>type CRTValue struct {
+    <span id="CRTValue.Exp">Exp</span>   *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a> <span class="com">// D mod (prime-1).</span>
+    <span id="CRTValue.Coeff">Coeff</span> *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a> <span class="com">// R·Coeff ≡ 1 mod Prime.</span>
+    <span id="CRTValue.R">R</span>     *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a> <span class="com">// product of primes prior to this (inc p and q).</span>
+}</pre>
+    <p>CRTValue包含预先计算的中国剩余定理的值。</p>
+    <h2 id="PrecomputedValues">type <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#61" title="View Source">PrecomputedValues</a> </h2>
+    <pre>type PrecomputedValues struct {
+    <span id="PrecomputedValues.Dp">Dp</span>, <span id="PrecomputedValues.Dq">Dq</span> *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a> <span class="com">// D mod (P-1) (or mod Q-1)</span>
+    <span id="PrecomputedValues.Qinv">Qinv</span>   *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a> <span class="com">// Q^-1 mod P</span>
+    <span class="com">// CRTValues用于保存第3个及其余的素数的预计算值。</span>
+    <span class="com">// 因为历史原因，头两个素数的CRT在PKCS#1中的处理是不同的。</span>
+    <span class="com">// 因为互操作性十分重要，我们镜像了这些素数的预计算值。</span>
+    <span id="PrecomputedValues.CRTValues">CRTValues</span> []<a href="#CRTValue">CRTValue</a>
+}</pre>
+    <h2 id="PublicKey">type <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#21" title="View Source">PublicKey</a> </h2>
+    <pre>type PublicKey struct {
+    <span id="PublicKey.N">N</span>   *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a> <span class="com">// 模</span>
+    <span id="PublicKey.E">E</span>   <a href="builtin.htm#int">int</a>      <span class="com">// 公开的指数</span>
+}</pre>
+    <p>代表一个RSA公钥。</p>
+    <h2 id="PrivateKey">type <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#51" title="View Source">PrivateKey</a> </h2>
+    <pre>type PrivateKey struct {
+    <a href="#PublicKey">PublicKey</a>            <span class="com">// 公钥</span>
+    <span id="PrivateKey.D">D</span>         *<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a>   <span class="com">// 私有的指数</span>
+    <span id="PrivateKey.Primes">Primes</span>    []*<a href="math/big.htm">big</a>.<a href="math/big.htm#Int">Int</a> <span class="com">// N的素因子，至少有两个</span>
+    <span class="com">// 包含预先计算好的值，可在某些情况下加速私钥的操作</span>
+    <span id="PrivateKey.Precomputed">Precomputed</span> <a href="#PrecomputedValues">PrecomputedValues</a>
+}</pre>
+    <p>代表一个RSA私钥。</p>
+    <h3 id="GenerateKey">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#125" title="View Source">GenerateKey</a> </h3>
+    <pre class="funcdecl">func GenerateKey(random <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, bits <a href="builtin.htm#int">int</a>) (priv *<a href="#PrivateKey">PrivateKey</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>GenerateKey函数使用随机数据生成器random生成一对具有指定字位数的RSA密钥。</p>
+    <h3 id="GenerateMultiPrimeKey">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#140" title="View Source">GenerateMultiPrimeKey</a> </h3>
+    <pre class="funcdecl">func GenerateMultiPrimeKey(random <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, nprimes <a href="builtin.htm#int">int</a>, bits <a href="builtin.htm#int">int</a>) (priv *<a href="#PrivateKey">PrivateKey</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p align="left">GenerateMultiPrimeKey使用指定的字位数生成一对多质数的RSA密钥，参见US patent 4405829。虽然公钥可以和二质数情况下的公钥兼容（事实上，不能区分两种公钥），私钥却不行。因此有可能无法生成特定格式的多质数的密钥对，或不能将生成的密钥用在其他（语言的）代码里。</p>
+    <p align="left"><a href="http://www.cacr.math.uwaterloo.ca/techreports/2006/cacr2006-16.pdf">http://www.cacr.math.uwaterloo.ca/techreports/2006/cacr2006-16.pdf</a>中的Table 1说明了给定字位数的密钥可以接受的质数最大数量。</p>
+    <h3 id="PrivateKey.Precompute">func (*PrivateKey) <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#348" title="View Source">Precompute</a> </h3>
+    <pre class="funcdecl">func (priv *<a href="#PrivateKey">PrivateKey</a>) Precompute()</pre>
+    <p>Precompute方法会预先进行一些计算，以加速未来的私钥的操作。</p>
+    <h3 id="PrivateKey.Validate">func (*PrivateKey) <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#81" title="View Source">Validate</a> </h3>
+    <pre class="funcdecl">func (priv *<a href="#PrivateKey">PrivateKey</a>) Validate() <a href="builtin.htm#error">error</a></pre>
+    <p>Validate方法进行密钥的完整性检查。如果密钥合法会返回nil，否则会返回说明问题的error值。</p>
+    <h2 id="PSSOptions">type <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/pss.go?name=release#220" title="View Source">PSSOptions</a> </h2>
+    <pre>type PSSOptions struct {
+    <span class="com">// SaltLength控制PSS签名中加盐的长度，可以是字节数，或者某个PSS盐长度的常数</span>
+    <span id="PSSOptions.SaltLength">SaltLength</span> <a href="builtin.htm#int">int</a>
+}</pre>
+    <p>PSSOptions包含用于创建和认证PSS签名的参数。</p>
+    <h2 id="EncryptOAEP">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#268" title="View Source">EncryptOAEP</a> </h2>
+    <pre class="funcdecl">func EncryptOAEP(hash <a href="hash.htm">hash</a>.<a href="hash.htm#Hash">Hash</a>, random <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, pub *<a href="#PublicKey">PublicKey</a>, msg []<a href="builtin.htm#byte">byte</a>, label []<a href="builtin.htm#byte">byte</a>) (out []<a href="builtin.htm#byte">byte</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>采用RSA-OAEP算法加密给出的数据。数据不能超过((公共模数的长度)-2*( hash长度)+2)字节。</p>
+    <h2 id="DecryptOAEP">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/rsa.go?name=release#457" title="View Source">DecryptOAEP</a> </h2>
+    <pre class="funcdecl">func DecryptOAEP(hash <a href="hash.htm">hash</a>.<a href="hash.htm#Hash">Hash</a>, random <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, ciphertext []<a href="builtin.htm#byte">byte</a>, label []<a href="builtin.htm#byte">byte</a>) (msg []<a href="builtin.htm#byte">byte</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>DecryptOAEP解密RSA-OAEP算法加密的数据。如果random不是nil，函数会注意规避时间侧信道攻击。</p>
+    <h2 id="EncryptPKCS1v15">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/pkcs1v15.go?name=release#21" title="View Source">EncryptPKCS1v15</a> </h2>
+    <pre class="funcdecl">func EncryptPKCS1v15(rand <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, pub *<a href="#PublicKey">PublicKey</a>, msg []<a href="builtin.htm#byte">byte</a>) (out []<a href="builtin.htm#byte">byte</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>EncryptPKCS1v15使用PKCS#1 v1.5规定的填充方案和RSA算法加密msg。信息不能超过((公共模数的长度)-11)字节。注意：使用本函数加密明文（而不是会话密钥）是危险的，请尽量在新协议中使用RSA OAEP。</p>
+    <h2 id="DecryptPKCS1v15">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/pkcs1v15.go?name=release#52" title="View Source">DecryptPKCS1v15</a> </h2>
+    <pre class="funcdecl">func DecryptPKCS1v15(rand <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, ciphertext []<a href="builtin.htm#byte">byte</a>) (out []<a href="builtin.htm#byte">byte</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>DecryptPKCS1v15使用PKCS#1 v1.5规定的填充方案和RSA算法解密密文。如果random不是nil，函数会注意规避时间侧信道攻击。</p>
+    <h2 id="DecryptPKCS1v15SessionKey">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/pkcs1v15.go?name=release#80" title="View Source">DecryptPKCS1v15SessionKey</a> </h2>
+    <pre class="funcdecl">func DecryptPKCS1v15SessionKey(rand <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, ciphertext []<a href="builtin.htm#byte">byte</a>, key []<a href="builtin.htm#byte">byte</a>) (err <a href="builtin.htm#error">error</a>)</pre>
+    <p align="left">DecryptPKCS1v15SessionKey使用PKCS#1 v1.5规定的填充方案和RSA算法解密会话密钥。如果random不是nil，函数会注意规避时间侧信道攻击。</p>
+    <p align="left">如果密文长度不对，或者如果密文比公共模数的长度还长，会返回错误；否则，不会返回任何错误。如果填充是合法的，生成的明文信息会拷贝进key；否则，key不会被修改。这些情况都会在固定时间内出现（规避时间侧信道攻击）。本函数的目的是让程序的使用者事先生成一个随机的会话密钥，并用运行时的值继续协议。这样可以避免任何攻击者从明文窃取信息的可能性。</p>
+    <p align="left">参见”Chosen Ciphertext Attacks Against Protocols Based on the RSA Encryption Standard PKCS #1”。</p>
+    <h2 id="SignPKCS1v15">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/pkcs1v15.go?name=release#194" title="View Source">SignPKCS1v15</a> </h2>
+    <pre class="funcdecl">func SignPKCS1v15(rand <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, hash <a href="crypto.htm">crypto</a>.<a href="crypto.htm#Hash">Hash</a>, hashed []<a href="builtin.htm#byte">byte</a>) (s []<a href="builtin.htm#byte">byte</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>SignPKCS1v15使用RSA PKCS#1 v1.5规定的RSASSA-PKCS1-V1_5-SIGN签名方案计算签名。注意hashed必须是使用提供给本函数的hash参数对（要签名的）原始数据进行hash的结果。</p>
+    <h2 id="VerifyPKCS1v15">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/pkcs1v15.go?name=release#231" title="View Source">VerifyPKCS1v15</a> </h2>
+    <pre class="funcdecl">func VerifyPKCS1v15(pub *<a href="#PublicKey">PublicKey</a>, hash <a href="crypto.htm">crypto</a>.<a href="crypto.htm#Hash">Hash</a>, hashed []<a href="builtin.htm#byte">byte</a>, sig []<a href="builtin.htm#byte">byte</a>) (err <a href="builtin.htm#error">error</a>)</pre>
+    <p>VerifyPKCS1v15认证RSA PKCS#1 v1.5签名。hashed是使用提供的hash参数对（要签名的）原始数据进行hash的结果。合法的签名会返回nil，否则表示签名不合法。</p>
+    <h2 id="SignPSS">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/pss.go?name=release#238" title="View Source">SignPSS</a> </h2>
+    <pre class="funcdecl">func SignPSS(rand <a href="io.htm">io</a>.<a href="io.htm#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, hash <a href="crypto.htm">crypto</a>.<a href="crypto.htm#Hash">Hash</a>, hashed []<a href="builtin.htm#byte">byte</a>, opts *<a href="#PSSOptions">PSSOptions</a>) (s []<a href="builtin.htm#byte">byte</a>, err <a href="builtin.htm#error">error</a>)</pre>
+    <p>SignPSS采用RSASSA-PSS方案计算签名。注意hashed必须是使用提供给本函数的hash参数对（要签名的）原始数据进行hash的结果。opts参数可以为nil，此时会使用默认参数。</p>
+    <h2 id="VerifyPSS">func <a href="https://github.com/golang/go/blob/master/src/crypto/rsa/pss.go?name=release#259" title="View Source">VerifyPSS</a> </h2>
+    <pre class="funcdecl">func VerifyPSS(pub *<a href="#PublicKey">PublicKey</a>, hash <a href="crypto.htm">crypto</a>.<a href="crypto.htm#Hash">Hash</a>, hashed []<a href="builtin.htm#byte">byte</a>, sig []<a href="builtin.htm#byte">byte</a>, opts *<a href="#PSSOptions">PSSOptions</a>) <a href="builtin.htm#error">error</a></pre>
+    <p>VerifyPSS认证一个PSS签名。hashed是使用提供给本函数的hash参数对（要签名的）原始数据进行hash的结果。合法的签名会返回nil，否则表示签名不合法。opts参数可以为nil，此时会使用默认参数。</p>
+</div>
