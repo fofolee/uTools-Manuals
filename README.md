@@ -1,4 +1,4 @@
-# 程序员手册 V1.1.2
+# 程序员手册 V1.1.4
 
 ## 简介
 
@@ -58,6 +58,7 @@
 
 - php手册   | [官方中文文档](https://www.php.net/download-docs.php)       
 - linux手册 | [离线手册：linux-command@jaywcjlove](https://github.com/jaywcjlove/linux-command)  [原始数据：linuxde.net](http://man.linuxde.net/) 
+  - tmux 快捷键 | [ryuzheng提供](https://github.com/ryuzheng/TmuxCheatSheet) [中文原版](https://gist.github.com/ryerh/14b7c24dfd623ef8edc7) [英文原版](https://gist.github.com/MohamedAlaa/2961058)
 - python手册 | [官方文档一译翻译版](https://yiyibooks.cn/xx/python_352/library/index.html)
   - beautifulSoup | [官方中文文档](https://www.crummy.com/software/BeautifulSoup/bs4/doc/index.zh.html)
   - requests | [官方中文文档](https://2.python-requests.org//zh_CN/latest/user/quickstart.html)
@@ -67,6 +68,7 @@
 - PyQt5文档 | [PyQt5中文教程](https://github.com/maicss/PyQt5-Chinese-tutorial)
 - C函数 | C语言函数速查（Knocker 2004.7.7 版本 0.5）
 - win32api | 新编win32api大全.chm
+- go | [@永远の明日](https://yuanliao.info/u/21504), [源文档](https://studygolang.com/)
 - vim命令 | [awesome-cheatsheets](https://github.com/skywind3000/awesome-cheatsheets/blob/master/editors/vim.txt) 
 - git命令 | [php中文网git开发手册](http://www.php.cn/manual/view/34942.html) 
 - sql手册 | [php中文网sql参考手册](http://www.php.cn/manual/view/21301.html) 
