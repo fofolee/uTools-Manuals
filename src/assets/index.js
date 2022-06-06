@@ -83,6 +83,11 @@ showManual = path => {
         } else {
             var f = window.manualVars.dirs.idxFile ? path : path + '.html';
         }
+        if (/(.*?)(\.md)/.test(path)) {
+            var isMd = true
+            e = true
+            id = '#' + $('.select .name').text()
+        }
         var file = `${window.manualVars.dirs.docPath}/${f}`;
         $("#mainlist").fadeOut();
         $(".load").html('Loading').show();
@@ -91,6 +96,9 @@ showManual = path => {
             type: "GET",
         });
         request.done(data => {
+            if (isMd) {
+                data = window.markdownit().use(window.markdownItAnchor).render(data)
+            }
             $(".load").hide();
             var relPath = f.substr(0, f.lastIndexOf('/') + 1);
             // a 标签改为相对路径
@@ -234,7 +242,7 @@ utools.onPluginEnter(async ({ code, type, payload }) => {
             if (!err) {
                 files.forEach(file => {
                     $('title').after(`<link rel="stylesheet" href="${assetDir}/${file}" name="manual">`)
-                }) 
+                })
             } else {
                 $('title').after('<link rel="stylesheet" href="assets/styles/manual.css" name="manual">')
             }
@@ -246,7 +254,7 @@ utools.onPluginEnter(async ({ code, type, payload }) => {
                 if (window.manualVars.dirs.idxFile.includes('payload.json')) {
                     index = JSON.parse(rc4(index, 'uTools'))
                 } else {
-                    index = JSON.parse(index);                   
+                    index = JSON.parse(index);
                 }
             } else {
                 index = utools.db.get(code).data;
@@ -307,7 +315,7 @@ $("#mainlist").on('mousemove', '.info', function () {
         $(".select").removeClass('select');
         $(this).addClass('select');
     }
-});  
+});
 
 // 右键单击手册，退出手册; 中键发送文本
 $("#manual").on('mousedown', function (e) {
@@ -352,7 +360,7 @@ $(document).keydown(e => {
                     select && sendText(select);
                 }
                 return;
-            } 
+            }
             // 列表界面进入手册
             if ($('#manual').is(':hidden') && $("#mainlist").is(":visible")) {
                 var path = $(".select").attr('path');
@@ -366,7 +374,7 @@ $(document).keydown(e => {
                 if (window.manualVars.findex > 0) {
                     $(`.founds:eq(${window.manualVars.findex - 1})`).removeClass('firstFound');
                 } else {
-                    $('.founds:last').removeClass('firstFound');  
+                    $('.founds:last').removeClass('firstFound');
                 }
                 $(`.founds:eq(${window.manualVars.findex})`).addClass('firstFound');
                 $('.firstFound').get(0).scrollIntoView({ behavior: "smooth", block: "center" });
@@ -446,7 +454,7 @@ $(document).keydown(e => {
                                 cnText += '<br>';
                             }
                             $("#infopannel").html(cnText)
-                        })   
+                        })
                     // }
                 }
             }
