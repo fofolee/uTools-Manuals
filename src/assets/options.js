@@ -84,7 +84,7 @@ showOptions = async () => {
     };
     tableBody = topRows + tableBody + `</tr></table><div class="foot">
     <div id="add" class="footBtn">添加手册</div>
-    <div id="devdocs" class="footBtn">英文手册</div>
+    <!--<div id="devdocs" class="footBtn">英文手册</div>-->
     <div id="disableAll" class="footBtn">全部禁用</div>
     <div id="enableAll" class="footBtn">全部启用</div>
     </div>`;
